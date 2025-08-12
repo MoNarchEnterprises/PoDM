@@ -1,0 +1,33 @@
+/*
+ * /src/styles/globals.css
+ *
+ * This is the main stylesheet for your application. It's where you'll
+ * import Tailwind CSS and define any global styles that apply to your
+ * entire project.
+ */
+
+/* * 1. Import Tailwind CSS Directives
+ * ---------------------------------
+ * These directives are processed by Tailwind to inject its base styles,
+ * component classes, and utility classes into your CSS. They must be
+ * at the very top of the file.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* * 2. Define Global Base Styles
+ * -----------------------------
+ * This is the best place to define styles that should apply globally,
+ * such as the default font family and background colors for the body.
+ * We use the `@layer base` directive to tell Tailwind to include these
+ * in its base layer, which can be overridden by utility classes.
+ */
+@layer base {
+  body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200;
+    @apply font-sans; /* This applies the 'Inter' font defined in tailwind.config.js */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
