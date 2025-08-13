@@ -101,63 +101,52 @@ const FanMessagingInterface = ({ initialConversations, currentFanId }: FanMessag
     const activeConversation = conversations.find(c => c._id === selectedConversationId);
 
     return (
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-            <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
-                <div className="text-purple-500 font-bold text-2xl mb-10">PoDM</div>
-                <ul className="space-y-2">
-                    {[ { icon: <Home className="w-5 h-5" />, label: 'Feed' }, { icon: <ImageIcon className="w-5 h-5" />, label: 'Gallery' }, { icon: <Briefcase className="w-5 h-5" />, label: 'Subscriptions' }, { icon: <MessageSquare className="w-5 h-5" />, label: 'Messages', active: true }, { icon: <Settings className="w-5 h-5" />, label: 'Settings' } ].map(item => (
-                        <li key={item.label}><a href="#" className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${item.active ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>{item.icon}<span className="font-medium">{item.label}</span></a></li>
+        <div className="flex h-full">
+            <div className={`w-full md:w-1/3 lg:w-1/4 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold">Messages</h2>
+                    <Input 
+                        id="search-creators"
+                        placeholder="Search creators..." 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                        leftIcon={Search}
+                        containerClassName="mt-4"
+                    />
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                    {filteredConversations.map(convo => (
+                        <ConversationListItem key={convo._id} conversation={convo} isActive={selectedConversationId === convo._id} onClick={() => setSelectedConversationId(convo._id)} />
                     ))}
-                </ul>
-            </nav>
-
-            <div className="flex-1 flex flex-col md:flex-row">
-                <div className={`w-full md:w-1/3 lg:w-1/4 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <h2 className="text-xl font-bold">Messages</h2>
-                        <Input 
-                            id="search-creators"
-                            placeholder="Search creators..." 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                            leftIcon={Search}
-                            containerClassName="mt-4"
-                        />
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                        {filteredConversations.map(convo => (
-                            <ConversationListItem key={convo._id} conversation={convo} isActive={selectedConversationId === convo._id} onClick={() => setSelectedConversationId(convo._id)} />
-                        ))}
-                    </div>
                 </div>
+            </div>
 
-                <div className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-900 ${!activeConversation && 'hidden md:flex'}`}>
-                    {activeConversation ? (
-                        <>
-                            <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                                <div className="flex items-center">
-                                    <Button variant="ghost" size="sm" className="md:hidden mr-2 p-2 h-auto" onClick={() => setSelectedConversationId(undefined)}><ArrowLeft className="w-5 h-5" /></Button>
-                                    <img className="w-10 h-10 rounded-full mr-3" src={activeConversation.creator.profile.avatar} alt={activeConversation.creator.profile.name} />
-                                    <p className="font-bold">{activeConversation.creator.profile.name}</p>
-                                </div>
-                                <Button variant="ghost" size="sm" className="p-2 h-auto"><DollarSign className="w-5 h-5 text-gray-500" /></Button>
+            <div className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-900 ${!activeConversation && 'hidden md:flex'}`}>
+                {activeConversation ? (
+                    <>
+                        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <div className="flex items-center">
+                                <Button variant="ghost" size="sm" className="md:hidden mr-2 p-2 h-auto" onClick={() => setSelectedConversationId(undefined)}><ArrowLeft className="w-5 h-5" /></Button>
+                                <img className="w-10 h-10 rounded-full mr-3" src={activeConversation.creator.profile.avatar} alt={activeConversation.creator.profile.name} />
+                                <p className="font-bold">{activeConversation.creator.profile.name}</p>
                             </div>
-                            <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                                {activeConversation.messageHistory.map((msg) => (
-                                    <MessageBubble key={msg._id} message={msg} isFan={msg.senderId === currentFanId} onUnlock={handleUnlock} />
-                                ))}
+                            <Button variant="ghost" size="sm" className="p-2 h-auto"><DollarSign className="w-5 h-5 text-gray-500" /></Button>
+                        </div>
+                        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                            {activeConversation.messageHistory.map((msg) => (
+                                <MessageBubble key={msg._id} message={msg} isFan={msg.senderId === currentFanId} onUnlock={handleUnlock} />
+                            ))}
+                        </div>
+                        <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+                                <Input id="message-input" placeholder="Type a message..." containerClassName="flex-1" className="bg-transparent border-transparent focus:ring-0" />
+                                <Button size="sm" className="p-2 h-auto rounded-full ml-2"><Send className="w-5 h-5" /></Button>
                             </div>
-                            <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                                <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full p-1">
-                                    <Input id="message-input" placeholder="Type a message..." containerClassName="flex-1" className="bg-transparent border-transparent focus:ring-0" />
-                                    <Button size="sm" className="p-2 h-auto rounded-full ml-2"><Send className="w-5 h-5" /></Button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex-1 flex items-center justify-center text-gray-500"><p>Select a conversation to view messages</p></div>
-                    )}
-                </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex-1 flex items-center justify-center text-gray-500"><p>Select a conversation to view messages</p></div>
+                )}
             </div>
         </div>
     );

@@ -12,7 +12,6 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 
 // --- Local Types ---
-// In a real app, your API would return gallery items with full content and creator details
 interface PopulatedGalleryItem extends GalleryItem {
     content: Content;
 }
@@ -153,60 +152,4 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
     );
 };
 
-
-export default function App() {
-    const [isDarkMode, setIsDarkMode] = useState(true);
-    const [isLoading, setIsLoading] = useState(true);
-    const [galleryData, setGalleryData] = useState<CreatorWithContent[]>([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            // Simulate API call
-            const data: CreatorWithContent[] = [
-                 {
-                    creator: { _id: 'c1', username: 'creatorone', email: '', passwordHash: '', role: 'creator', status: 'active', profile: { name: 'CreatorOne', avatar: 'https://placehold.co/100x100/7E22CE/FFFFFF?text=C1' }, creatorData: {} as any, createdAt: '', updatedAt: '' },
-                    activeSubscription: true,
-                    content: [
-                        { contentId: 'p1', addedDate: '2025-08-09T10:00:00Z', isAccessible: true, content: { _id: 'p1', creatorId: 'c1', title: 'City Lights', type: 'photo', status: 'published', files: [{id: 'f1', url: '', thumbnailUrl: 'https://placehold.co/400x400/1F2937/FFFFFF?text=P1', size: 0, mimeType: ''}], stats: {views: 1250, galleryAdds: 0, tips: 0}, description: '', visibility: 'subscribers_only', tags: [], schedule: {isScheduled: false}, createdAt: '', updatedAt: '' } },
-                        { contentId: 'p2', addedDate: '2025-08-08T11:00:00Z', isAccessible: true, content: { _id: 'p2', creatorId: 'c1', title: 'Behind the Scenes', type: 'video', status: 'published', files: [{id: 'f2', url: '', thumbnailUrl: 'https://placehold.co/400x600/1F2937/FFFFFF?text=V1', size: 0, mimeType: ''}], stats: {views: 3400, galleryAdds: 0, tips: 0}, description: '', visibility: 'subscribers_only', tags: [], schedule: {isScheduled: false}, createdAt: '', updatedAt: '' } },
-                    ]
-                },
-                {
-                    creator: { _id: 'c2', username: 'artdiva', email: '', passwordHash: '', role: 'creator', status: 'active', profile: { name: 'ArtDiva', avatar: 'https://placehold.co/100x100/BE185D/FFFFFF?text=AD' }, creatorData: {} as any, createdAt: '', updatedAt: '' },
-                    activeSubscription: false,
-                    content: [
-                        { contentId: 'p3', addedDate: '2025-07-20T15:00:00Z', isAccessible: false, content: { _id: 'p3', creatorId: 'c2', title: 'Studio Session', type: 'photo', status: 'published', files: [{id: 'f3', url: '', thumbnailUrl: 'https://placehold.co/400x400/1F2937/FFFFFF?text=P3', size: 0, mimeType: ''}], stats: {views: 5600, galleryAdds: 0, tips: 0}, description: '', visibility: 'subscribers_only', tags: [], schedule: {isScheduled: false}, createdAt: '', updatedAt: '' } },
-                    ]
-                },
-            ];
-            setGalleryData(data);
-            setIsLoading(false);
-        };
-        fetchData();
-    }, []);
-
-    return (
-        <div className={isDarkMode ? 'dark' : ''}>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
-                <div className="flex">
-                    <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
-                        <div className="text-purple-500 font-bold text-2xl mb-10">PoDM</div>
-                        <ul className="space-y-2">
-                            {[ { icon: <Home className="w-5 h-5" />, label: 'Feed' }, { icon: <ImageIcon className="w-5 h-5" />, label: 'Gallery', active: true }, { icon: <Briefcase className="w-5 h-5" />, label: 'Subscriptions' }, { icon: <MessageSquare className="w-5 h-5" />, label: 'Messages' }, { icon: <Settings className="w-5 h-5" />, label: 'Settings' } ].map(item => (
-                                <li key={item.label}><a href="#" className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${item.active ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>{item.icon}<span className="font-medium">{item.label}</span></a></li>
-                            ))}
-                        </ul>
-                    </nav>
-                    <main className="flex-1">
-                        {isLoading ? (
-                            <div className="flex items-center justify-center h-full"><p className="text-gray-500">Loading Gallery...</p></div>
-                        ) : (
-                            <FanGalleryPage galleryData={galleryData} />
-                        )}
-                    </main>
-                </div>
-            </div>
-        </div>
-    );
-}
+export default FanGalleryPage;

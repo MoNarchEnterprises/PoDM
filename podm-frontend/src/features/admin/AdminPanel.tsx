@@ -56,15 +56,6 @@ const AdminPanel = () => {
         fetchData();
     }, []);
 
-    const menuItems = [
-        { key: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { key: 'Users', label: 'Users', icon: Users },
-        { key: 'Content Moderation', label: 'Content', icon: Shield },
-        { key: 'Analytics', label: 'Analytics', icon: BarChart3 },
-        { key: 'Reports', label: 'Reports', icon: FileText },
-        { key: 'Support Tickets', label: 'Support', icon: LifeBuoy },
-        { key: 'Settings', label: 'Settings', icon: Settings },
-    ];
     
     const handleSetView = (panel: string, context: ViewContext | null = null) => {
         setView({ panel, context });
@@ -92,19 +83,6 @@ const AdminPanel = () => {
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-            <nav className="w-64 bg-white dark:bg-gray-800 p-4 border-r border-gray-200 dark:border-gray-700 hidden lg:flex flex-col">
-                <div className="text-purple-500 font-bold text-2xl mb-10">PoDM - Admin</div>
-                <ul className="space-y-2">
-                    {menuItems.map(item => (
-                        <li key={item.key}>
-                            <a href="#" onClick={() => handleSetView(item.key)} className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${view.panel === item.key ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
-                                <item.icon className="w-5 h-5" />
-                                <span className="font-medium">{item.label}</span>
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </nav>
             <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{view.context?.subview || view.panel}</h1>

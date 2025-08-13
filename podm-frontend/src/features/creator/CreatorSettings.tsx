@@ -88,7 +88,7 @@ const WelcomeMessagePanel = ({ creator }: { creator: Creator }) => {
 const PaymentsSettingsPanel = ({ creator }: { creator: Creator }) => (
     <div className="space-y-6">
         <SettingsCard title="Payout Method" subtitle="This is how you will receive your earnings." noFooter>
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex items-center space-x-4">
                     <Banknote className="w-8 h-8 text-green-500" />
                     <div>
@@ -189,57 +189,4 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     );
 };
 
-export default function App() {
-    const [isDarkMode, setIsDarkMode] = useState(true);
-    const [isLoading, setIsLoading] = useState(true);
-    const [creator, setCreator] = useState<Creator | null>(null);
-
-    useEffect(() => {
-        const fetchCreatorData = async () => {
-            setIsLoading(true);
-            // Simulate API call
-            const data: Creator = {
-                _id: 'creator123', username: 'creatorone', email: 'creator@example.com', passwordHash: '', role: 'creator', status: 'active',
-                profile: { name: 'CreatorOne', avatar: 'https://placehold.co/100x100/7E22CE/FFFFFF?text=C1', bio: 'Welcome to my page! Here you will find exclusive behind-the-scenes content, tutorials, and much more. Subscribe for full access!', },
-                creatorData: {
-                    subscriptionTiers: [
-                        { id: '1', name: 'Bronze Tier', price: 4.99, features: ['Basic content access', 'Group chat access'], subscriberCount: 150 },
-                        { id: '2', name: 'Silver Tier', price: 9.99, features: ['All content access', 'Direct Messages'], subscriberCount: 85 },
-                        { id: '3', name: 'Gold Tier', price: 19.99, features: ['All content + DMs', '1 custom request/month'], subscriberCount: 25 },
-                    ],
-                    welcomeMessage: { isActive: true, message: 'Thanks so much for subscribing! As a welcome gift, here is a free photo set just for you. I can\'t wait to chat!' },
-                    payoutSettings: { method: 'bank_transfer', schedule: 'monthly', minimumThreshold: 50 },
-                    contentSettings: { defaultVisibility: 'subscribers_only', defaultPrice: 0, watermark: { enabled: true, text: '@creatorone', position: 'bottom-right', opacity: 0.5 } }
-                },
-                createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-            };
-            setCreator(data);
-            setIsLoading(false);
-        };
-        fetchCreatorData();
-    }, []);
-
-    return (
-        <div className={isDarkMode ? 'dark' : ''}>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
-                <div className="flex">
-                    <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
-                        <div className="text-purple-500 font-bold text-2xl mb-10">PoDM</div>
-                        <ul className="space-y-2">
-                            {[ { icon: <Home className="w-5 h-5" />, label: 'Dashboard' }, { icon: <FileText className="w-5 h-5" />, label: 'Content' }, { icon: <MessageSquare className="w-5 h-5" />, label: 'Messages' }, { icon: <BarChart2 className="w-5 h-5" />, label: 'Analytics' }, { icon: <DollarSign className="w-5 h-5" />, label: 'Earnings' }, { icon: <Settings className="w-5 h-5" />, label: 'Settings', active: true } ].map(item => (
-                                <li key={item.label}><a href="#" className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${item.active ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>{item.icon}<span className="font-medium">{item.label}</span></a></li>
-                            ))}
-                        </ul>
-                    </nav>
-                    <main className="flex-1">
-                        {isLoading || !creator ? (
-                             <div className="flex items-center justify-center h-full"><p className="text-gray-500">Loading Settings...</p></div>
-                        ) : (
-                            <CreatorSettingsPage creator={creator} />
-                        )}
-                    </main>
-                </div>
-            </div>
-        </div>
-    );
-}
+export default CreatorSettingsPage;
