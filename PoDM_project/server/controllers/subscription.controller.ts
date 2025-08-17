@@ -1,21 +1,26 @@
-import { Request, Response } from 'express';
-// In a real app, you would import your Supabase client and Stripe client here
-// import supabase from '../config/supabaseClient';
-// import stripe from '../config/stripeClient';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
+
+// --- Import Service Functions ---
+import * as SubscriptionService from '../services/subscription.service';
 
 /**
  * @desc    Get all of the current fan's subscriptions
  * @route   GET /api/v1/subscriptions
  * @access  Private (Fans only)
  */
-export const getMySubscriptions = async (req: Request, res: Response) => {
-    // const { userId } = req.user; // from 'protect' middleware
+export const getMySubscriptions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?.id;
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
 
-    // Placeholder logic:
-    console.log(`Fetching all subscriptions for user ${'userId'}`);
-    // const { data, error } = await supabase.from('subscriptions').select('*').eq('fan_id', userId);
-
-    res.status(200).json({ success: true, message: "Fetched subscriptions successfully." });
+        const subscriptions = await SubscriptionService.getFanSubscriptions(fanId);
+        res.status(200).json({ success: true, data: subscriptions });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -23,18 +28,23 @@ export const getMySubscriptions = async (req: Request, res: Response) => {
  * @route   POST /api/v1/subscriptions
  * @access  Private (Fans only)
  */
-export const createSubscription = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { creatorId, tierId, paymentMethodId } = req.body;
+export const createSubscription = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?.id;
+        const { creatorId, tierId, paymentMethodId } = req.body;
 
-    // Placeholder logic:
-    console.log(`User {'userId'} is subscribing to creator ${creatorId} with tier ${tierId}.`);
-    
-    // 1. Get tier price from your database to ensure it's correct.
-    // 2. Create a Stripe PaymentIntent or Subscription object.
-    // 3. On successful payment (often confirmed via webhook), create the subscription record in your database.
-    
-    res.status(201).json({ success: true, message: "Subscription created successfully." });
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!creatorId || !tierId || !paymentMethodId) {
+            throw new AppError('Creator ID, Tier ID, and Payment Method ID are required.', 400);
+        }
+
+        const newSubscription = await SubscriptionService.createFanSubscription(fanId, creatorId, tierId, paymentMethodId);
+        res.status(201).json({ success: true, data: newSubscription });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -42,19 +52,24 @@ export const createSubscription = async (req: Request, res: Response) => {
  * @route   PUT /api/v1/subscriptions/:id
  * @access  Private (Owner only)
  */
-export const updateSubscription = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { id: subscriptionId } = req.params;
-    const { newTierId } = req.body;
+export const updateSubscription = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?.id;
+        const { id: subscriptionId } = req.params;
+        const { newTierId } = req.body;
 
-    // Placeholder logic:
-    console.log(`User {'userId'} is updating subscription ${subscriptionId} to new tier ${newTierId}.`);
-    
-    // 1. Verify the user owns this subscription.
-    // 2. Update the subscription in Stripe to the new tier.
-    // 3. Update the subscription record in your database with the new tierId.
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!newTierId) {
+            throw new AppError('New Tier ID is required.', 400);
+        }
 
-    res.status(200).json({ success: true, message: "Subscription updated successfully." });
+        const updatedSubscription = await SubscriptionService.changeSubscriptionTier(subscriptionId, fanId, newTierId);
+        res.status(200).json({ success: true, data: updatedSubscription });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -62,16 +77,18 @@ export const updateSubscription = async (req: Request, res: Response) => {
  * @route   DELETE /api/v1/subscriptions/:id
  * @access  Private (Owner only)
  */
-export const cancelSubscription = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { id: subscriptionId } = req.params;
+export const cancelSubscription = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?.id;
+        const { id: subscriptionId } = req.params;
 
-    // Placeholder logic:
-    console.log(`User {'userId'} is canceling subscription ${subscriptionId}.`);
-    
-    // 1. Verify the user owns this subscription.
-    // 2. Cancel the subscription in Stripe (usually set to cancel at the end of the billing period).
-    // 3. Update the subscription record in your database to 'canceled' and set the 'end_date'.
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
 
-    res.status(200).json({ success: true, message: "Subscription canceled successfully." });
+        const canceledSubscription = await SubscriptionService.cancelFanSubscription(subscriptionId, fanId);
+        res.status(200).json({ success: true, data: canceledSubscription });
+    } catch (error) {
+        next(error);
+    }
 };

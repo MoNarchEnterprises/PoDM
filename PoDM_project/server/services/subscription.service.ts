@@ -3,6 +3,7 @@ import * as SubscriptionModel from '../models/subscription.model';
 import * as UserModel from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { Subscription } from '@common/types/Subscription';
+import Stripe from 'stripe';
 
 /**
  * Handles the business logic for creating a new subscription for a fan.
@@ -13,7 +14,7 @@ import { Subscription } from '@common/types/Subscription';
  * @returns The newly created subscription record from the database.
  */
 export const createFanSubscription = async (fanId: string, creatorId: string, tierId: string, paymentMethodId: string) => {
-    // In a real app, you'd fetch the fan's Stripe Customer ID or create one if it doesn't exist.
+    // In a real app, you would fetch the fan's Stripe Customer ID or create one if it doesn't exist.
     const fanStripeCustomerId = 'cus_...'; // e.g., await getOrCreateStripeCustomer(fanId);
 
     try {
@@ -30,15 +31,17 @@ export const createFanSubscription = async (fanId: string, creatorId: string, ti
         });
 
         // Step 3: Create the subscription in Stripe.
-        const stripeSubscription = await stripe.subscriptions.create({
+        const stripeSubscription: Stripe.Subscription = await stripe.subscriptions.create({
             customer: fanStripeCustomerId,
             items: [{ price: tierId }], // The tierId should be the Stripe Price ID
             expand: ['latest_invoice.payment_intent'],
         });
 
-        if (!stripeSubscription) {
-            throw new AppError('Could not create Stripe subscription.', 500);
+        if (!stripeSubscription || !stripeSubscription.items.data[0]) {
+            throw new AppError('Could not create Stripe subscription or subscription item is missing.', 500);
         }
+
+        const firstItem = stripeSubscription.items.data[0];
 
         // Step 4: Create the subscription record in your local database.
         const subscriptionData: Partial<Subscription> = {
@@ -47,8 +50,8 @@ export const createFanSubscription = async (fanId: string, creatorId: string, ti
             creatorId,
             tierId,
             status: 'active',
-            startDate: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-            nextBillingDate: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+            startDate: new Date(firstItem.current_period_start * 1000).toISOString(),
+            nextBillingDate: new Date(firstItem.current_period_end * 1000).toISOString(),
             // ... other relevant fields
         };
         
@@ -83,7 +86,7 @@ export const cancelFanSubscription = async (subscriptionId: string, fanId: strin
 
     try {
         // Cancel the subscription in Stripe at the end of the current billing period.
-        const canceledStripeSubscription = await stripe.subscriptions.update(subscriptionId, {
+        const canceledStripeSubscription: Stripe.Subscription = await stripe.subscriptions.update(subscriptionId, {
             cancel_at_period_end: true,
         });
 

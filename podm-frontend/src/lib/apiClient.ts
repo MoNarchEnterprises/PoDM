@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { User, UserRole } from '@common/types/User';
 
 // --- Configuration ---
 
@@ -7,7 +8,7 @@ import axios from 'axios';
  * In a real application, this would come from an environment variable.
  * e.g., process.env.REACT_APP_API_URL
  */
-const API_BASE_URL = 'https://api.yourplatform.com/v1';
+const API_BASE_URL = 'http://localhost:5000/api/v1'; // Assuming your backend runs on port 5000
 
 // --- Axios Instance Creation ---
 
@@ -54,33 +55,58 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error) => {
-        // Handle common error statuses globally.
-        if (error.response) {
-            const { status } = error.response;
-
-            if (status === 401) {
-                // Unauthorized: The user is not logged in or their token is invalid.
-                // Redirect to the login page.
-                console.error("Unauthorized request. Redirecting to login.");
-                // window.location.href = '/login'; 
-            }
-
-            if (status === 403) {
-                // Forbidden: The user is logged in but doesn't have permission.
-                console.error("Forbidden. You don't have permission to access this resource.");
-                // You might show a "Forbidden" page or a notification.
-            }
-
-            if (status === 500) {
-                // Server Error: Something went wrong on the backend.
-                console.error("Internal Server Error. Please try again later.");
-                // You could show a generic error message to the user.
-            }
+        if (error.response?.status === 401) {
+            // Handle unauthorized errors, e.g., redirect to login
+            console.error("Unauthorized request. Redirecting to login.");
+            // window.location.href = '/login'; 
         }
-        
-        // Return the error so that individual components can still handle it if needed.
         return Promise.reject(error);
     }
 );
+
+// --- API Service Functions ---
+
+interface AuthResponse {
+    success: boolean;
+    message: string;
+    data: {
+        user: User;
+        token: string;
+    };
+}
+
+/**
+ * Sends a signup request to the backend.
+ */
+export const signup = async (username: string, email: string, password: string, role: UserRole) => {
+    const response = await apiClient.post<AuthResponse>('/auth/signup', {
+        username,
+        email,
+        password,
+        role,
+    });
+    return response.data;
+};
+
+/**
+ * Sends a login request to the backend.
+ */
+export const login = async (email: string, password: string) => {
+    const response = await apiClient.post<AuthResponse>('/auth/login', {
+        email,
+        password,
+    });
+    return response.data;
+};
+
+/**
+ * Verifies the user's session and retrieves their data.
+ * This is typically called on app load to check if the user is logged in.
+ */
+export const getMe = async () => {
+    const response = await apiClient.get<AuthResponse>('/auth/me');
+    return response.data;
+};
+
 
 export default apiClient;

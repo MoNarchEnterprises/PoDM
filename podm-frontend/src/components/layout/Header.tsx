@@ -4,26 +4,27 @@ import { Search, LogIn, UserPlus, Bell, MessageSquare, LogOut, User as UserIcon,
 // --- Import Shared Types ---
 import { User } from '@common/types/User';
 
+// --- Import Hooks ---
+import { useAuth } from '../../hooks/useAuth';
+import { useOnClickOutside } from '../../hooks/useOnClickOutside';
+
 // --- Reusable Sub-Components ---
 
 const ProfileDropdown = ({ user }: { user: User }) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const { logout } = useAuth(); // Get the logout function
+    useOnClickOutside(menuRef, () => setIsOpen(false));
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [menuRef]);
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        logout();
+        setIsOpen(false);
+    };
 
     const dropdownItems = [
         { label: 'Profile', icon: UserIcon, href: `/creator/${user.username}` },
         { label: 'Settings', icon: Settings, href: '/settings' },
-        { label: 'Log Out', icon: LogOut, href: '/logout' },
     ];
 
     return (
@@ -46,6 +47,12 @@ const ProfileDropdown = ({ user }: { user: User }) => {
                                 </a>
                             </li>
                         ))}
+                         <li>
+                            <a href="#" onClick={handleLogout} className="flex items-center space-x-3 px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <LogOut className="w-4 h-4" />
+                                <span>Log Out</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             )}
@@ -56,7 +63,7 @@ const ProfileDropdown = ({ user }: { user: User }) => {
 // --- Main Header Component ---
 
 interface HeaderProps {
-    user?: User; // If a user is passed, it's a logged-in header
+    user?: User | null; // User can be null if not logged in
     logoText?: string;
     onLoginClick: () => void;
     onSignUpClick: () => void;

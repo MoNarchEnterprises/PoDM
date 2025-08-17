@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Shield, Mail, KeyRound, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+// --- Import Reusable Components & Hooks ---
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import AuthLayout from '../components/layout/AuthLayout';
+import { useAuth } from '../hooks/useAuth';
 
 // --- Main Admin Login Page Component ---
 const AdminLoginPage = () => {
@@ -10,31 +14,32 @@ const AdminLoginPage = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { login, logout } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         
-        // In a real application, you would call your authentication logic here.
-        // This could be a function from your useAuth hook, for example:
-        // const { error } = await auth.login(email, password, { isAdmin: true });
-        console.log("Attempting admin login with:", { email, password });
-        
-        // Simulate an API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            const loggedInUser = await login(email, password);
+            console.log("Logged in user:", loggedInUser.role);
+            // CRITICAL: Check if the user has the 'admin' role
+            if (loggedInUser && loggedInUser.role === 'admin') {
+                // Use the navigate function to redirect the user
+                navigate('/admin/dashboard');
+            } else {
+                // If the user is not an admin, log them out immediately and show an error
+                logout(); 
+                setError('Access denied. This account does not have admin privileges.');
+            }
 
-        // Example error handling
-        if (email !== 'admin@podm.com' || password !== 'password') {
-            setError('Invalid credentials. Please try again.');
-        } else {
-            // On a successful login, you would typically redirect the user
-            // to the main admin dashboard.
-            alert('Login successful! Redirecting to /admin/dashboard...');
-            // window.location.href = '/admin/dashboard';
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     return (

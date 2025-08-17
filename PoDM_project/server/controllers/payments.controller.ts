@@ -1,25 +1,35 @@
-import { Request, Response } from 'express';
-// In a real app, you would import your Supabase client and Stripe client here
-// import supabase from '../config/supabaseClient';
-// import stripe from '../config/stripeClient';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
+
+// --- Import Service Functions ---
+import * as PaymentService from '../services/payment.service';
 
 /**
  * @desc    Send a tip to a creator
  * @route   POST /api/v1/payments/tip
  * @access  Private (Fans only)
  */
-export const sendTip = async (req: Request, res: Response) => {
-    // const { userId } = req.user; // from 'protect' middleware
-    const { creatorId, amount, message } = req.body; // amount should be in cents
+export const sendTip = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?.id;
+        const { creatorId, amount, message } = req.body; // amount should be in cents
 
-    // Placeholder logic:
-    console.log(`User {'userId'} is sending a tip of ${amount} to creator ${creatorId} with message: "${message}"`);
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!creatorId || !amount) {
+            throw new AppError('Creator ID and amount are required to send a tip.', 400);
+        }
+        if (amount < 100) { // Example: minimum tip of $1.00
+            throw new AppError('Tip amount must be at least $1.00.', 400);
+        }
 
-    // 1. Create a Stripe PaymentIntent to charge the fan's saved payment method.
-    // 2. On successful charge, create a new record in your 'transactions' table.
-    // 3. Send a notification to the creator about the new tip.
+        const result = await PaymentService.sendTipToCreator(fanId, creatorId, amount, message);
 
-    res.status(200).json({ success: true, message: "Tip sent successfully." });
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -27,32 +37,17 @@ export const sendTip = async (req: Request, res: Response) => {
  * @route   POST /api/v1/payments/stripe/webhooks
  * @access  Public (but protected by Stripe signature verification middleware)
  */
-export const handleStripeWebhook = async (req: Request, res: Response) => {
-    const event = req.body;
+export const handleStripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // The `verifyStripeSignature` middleware has already validated the event
+        // and attached it to the request body.
+        const event = req.body;
 
-    // Placeholder logic:
-    console.log(`Received Stripe webhook event: ${event.type}`);
+        await PaymentService.handleStripeWebhookEvent(event);
 
-    // Handle the event
-    switch (event.type) {
-        case 'payment_intent.succeeded':
-            const paymentIntent = event.data.object;
-            // This is where you would fulfill the purchase, e.g.:
-            // - If it's a subscription, create the record in your 'subscriptions' table.
-            // - If it's a PPV purchase, grant the user access to the content.
-            // - Update the corresponding record in your 'transactions' table to 'Cleared'.
-            console.log('PaymentIntent was successful!', paymentIntent.id);
-            break;
-        case 'customer.subscription.created':
-            const subscription = event.data.object;
-            // Handle new subscription creation in your database.
-            console.log('Subscription created:', subscription.id);
-            break;
-        // ... handle other event types as needed
-        default:
-            console.log(`Unhandled event type ${event.type}`);
+        // Return a 200 response to acknowledge receipt of the event to Stripe
+        res.status(200).json({ received: true });
+    } catch (error) {
+        next(error);
     }
-
-    // Return a 200 response to acknowledge receipt of the event
-    res.status(200).json({ received: true });
 };

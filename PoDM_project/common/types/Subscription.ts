@@ -15,6 +15,8 @@ export type BillingCycle = 'monthly' | 'yearly';
  */
 export type PaymentMethodType = 'card' | 'paypal';
 
+
+
 /**
  * Defines the structure for the payment method used for a subscription.
  * This should only contain non-sensitive information safe for the frontend.

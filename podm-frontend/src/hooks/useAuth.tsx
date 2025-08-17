@@ -3,11 +3,14 @@ import React, { useState, useEffect, useContext, createContext, ReactNode } from
 // --- Import Shared Types ---
 import { User, UserRole } from '@common/types/User';
 
+// --- Import API Client ---
+import * as api from '../lib/apiClient';
+
 // --- Local Types ---
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<User>; // Updated return type
     signup: (username: string, email: string, password: string, userType: UserRole) => Promise<void>;
     logout: () => void;
 }
@@ -16,7 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
-    login: async () => {},
+    login: async () => Promise.reject(),
     signup: async () => {},
     logout: () => {},
 });
@@ -34,43 +37,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check for an existing session on initial app load
         const checkUserSession = async () => {
             setIsLoading(true);
-            try {
-                // In a real app, you'd make an API call to your backend
-                // to verify the user's token and get their data.
-                setUser(null);
-            } catch (error) {
-                console.error("No active session found", error);
-                setUser(null);
-            } finally {
-                setIsLoading(false);
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    // In a real app, you'd have an endpoint like /auth/me to verify the token
+                    // const response = await api.getMe(); 
+                    // setUser(response.data.user);
+                } catch (error) {
+                    console.error("Session token is invalid, logging out.", error);
+                    localStorage.removeItem('authToken');
+                    setUser(null);
+                }
             }
+            setIsLoading(false);
         };
 
         checkUserSession();
     }, []);
 
-    const login = async (email: string, password: string) => {
-        setIsLoading(true);
-        // Simulate API call to log in
-        console.log("Logging in with:", email, password);
-        // const loggedInUser = await api.post('/auth/login', { email, password });
-        // setUser(loggedInUser);
-        setIsLoading(false);
+    const login = async (email: string, password: string): Promise<User> => {
+        try {
+            const { data } = await api.login(email, password);
+            localStorage.setItem('authToken', data.token);
+            setUser(data.user);
+            return data.user; // Return the user object on success
+        } catch (error) {
+            console.error("Login failed:", error);
+            // Re-throw the error so the component can display a message
+            throw error;
+        }
     };
 
     const signup = async (username: string, email: string, password: string, userType: UserRole) => {
-        setIsLoading(true);
-        // Simulate API call to sign up
-        console.log("Signing up as", userType, "with:", { username, email, password });
-        // const newUser = await api.post('/auth/signup', { username, email, password, role: userType });
-        // setUser(newUser);
-        setIsLoading(false);
+        try {
+            const { data } = await api.signup(username, email, password, userType);
+            localStorage.setItem('authToken', data.token);
+            setUser(data.user);
+        } catch (error) {
+            console.error("Signup failed:", error);
+            throw error;
+        }
     };
 
     const logout = () => {
-        // Simulate API call to log out
-        console.log("Logging out");
         setUser(null);
+        localStorage.removeItem('authToken');
     };
 
     const value = {
@@ -89,10 +100,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 // --- Custom Hook ---
-/**
- * A custom hook to access authentication state and actions.
- * Must be used within an AuthProvider.
- */
 export const useAuth = () => {
     return useContext(AuthContext);
 };
