@@ -47,7 +47,7 @@ export const findSubscriptionById = async (id: string): Promise<Subscription | n
 export const findActiveSubscriptionsByFan = async (fanId: string): Promise<Subscription[] | null> => {
     const { data, error } = await supabase
         .from('subscriptions')
-        .select('*')
+        .select('*, creator:profiles(*)') // Also fetches the creator's profile
         .eq('fan_id', fanId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -97,4 +97,21 @@ export const updateSubscription = async (id: string, updates: Partial<Subscripti
         return null;
     }
     return data as Subscription;
+};
+
+/**
+ * Find subscriptions by fan ID.
+ * @param fanId - The UUID of the fan.
+ */
+export const findSubscriptionsByFanId = async (fanId: string): Promise<Subscription[] | null> => {
+    const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('fan_id', fanId);
+
+    if (error) {
+        console.error('Error finding subscriptions by fan ID:', error.message);
+        return null;
+    }
+    return data as Subscription[];
 };

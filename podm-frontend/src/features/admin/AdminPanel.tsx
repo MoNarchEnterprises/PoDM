@@ -6,6 +6,9 @@ import { User } from '@common/types/User';
 import { Content } from '@common/types/Content';
 import { SupportTicket } from '@common/types/SupportTicket';
 
+// --- Import API Client ---
+import apiClient from '../../lib/apiClient';
+
 // --- Import Panel Components ---
 import DashboardPanel from './components/DashboardPanel';
 import UserManagementPanel from './components/UserManagementPanel';
@@ -29,33 +32,58 @@ const AdminPanel = () => {
     const [data, setData] = useState<any>({}); // A single state object to hold all fetched data
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchAdminData = async () => {
             setIsLoading(true);
-            // In a real app, you'd fetch data for all panels from your API here
-            // This simulates a single, comprehensive API call
-            setData({
-                dashboard: { keyMetrics: { totalUsers: 12345, activeCreators: 1234, monthlyRevenue: 123456.78, openTickets: 45 }, userGrowth: [ { name: 'Mar', Users: 8500 }, { name: 'Apr', Users: 9200 }, { name: 'May', Users: 10500 } ] },
-                users: [
-                    { _id: '1', profile: { name: 'Fan123', avatar: 'https://placehold.co/100x100/7C3AED/FFFFFF?text=F1' }, role: 'fan', status: 'Active', createdAt: '2025-08-09T00:00:00Z' },
-                    { _id: '6', profile: { name: 'PendingCreator', avatar: 'https://placehold.co/100x100/f59e0b/FFFFFF?text=PC' }, role: 'creator', status: 'pending verification', createdAt: '2025-08-11T00:00:00Z', verificationDocs: { idUrl: 'https://placehold.co/600x400/1F2937/FFFFFF?text=ID+Card', selfieUrl: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Selfie+with+ID', signature: 'Pending Creator' } },
-                ],
-                flaggedContent: [
-                    { _id: 'fc1', title: 'Flagged Post 1', creator: { _id: 'c1', profile: { name: 'CreatorOne', avatar: 'https://placehold.co/100x100/7E22CE/FFFFFF?text=C1' } }, files: [{thumbnailUrl: 'https://placehold.co/400x400/1F2937/FFFFFF?text=Content'}], reportCount: 5, reason: 'Inappropriate content' },
-                ],
-                analytics: { revenueGrowth: [ { name: 'Mar', Revenue: 85000 } ], engagement: [ { name: 'Mar', 'Messages Sent': 15000, 'Content Unlocked': 5000 } ], topCreators: [ { name: 'CreatorOne', revenue: 12500.50 } ] },
-                reports: [ { id: 1, name: 'Monthly Revenue Report', lastRun: '2025-08-01' } ],
-                supportTickets: [
-                    { _id: 't1', userId: 'u1', subject: 'Billing Issue', status: 'Open', priority: 'High', conversation: [{ senderId: 'u1', senderName: 'Fan123', text: 'I was charged twice.', timestamp: '2025-08-10T10:30:00Z' }] }
-                ],
-                settings: {
-                    admins: [ { _id: 'a1', profile: {name: 'AdminUser'}, email: 'admin@podm.com', role: 'Super Admin' } ]
-                }
-            });
-            setIsLoading(false);
+            try {
+                // Use Promise.all to fetch all necessary data concurrently
+                const [
+                    dashboardRes,
+                    usersRes,
+                    flaggedContentRes,
+                    analyticsRes,
+                    reportsRes,
+                    supportTicketsRes,
+                    settingsRes
+                ] = await Promise.all([
+                    apiClient.get('/admin/dashboard'),
+                    apiClient.get('/admin/users'),
+                    apiClient.get('/admin/content/flagged'),
+                    apiClient.get('/admin/analytics'),
+                    apiClient.get('/admin/reports'),
+                    apiClient.get('/admin/support-tickets'),
+                    apiClient.get('/admin/settings/admins') // Assuming an endpoint for admins
+                ]);
+
+                setData({
+                    dashboard: dashboardRes.data.data,
+                    users: usersRes.data.data,
+                    flaggedContent: flaggedContentRes.data.data,
+                    analytics: analyticsRes.data.data,
+                    reports: reportsRes.data.data,
+                    supportTickets: supportTicketsRes.data.data,
+                    settings: {
+                        admins: settingsRes.data.data
+                    }
+                });
+            } catch (error) {
+                console.error("Failed to fetch admin data:", error);
+                // Optionally, set an error state here to show an error message in the UI
+            } finally {
+                setIsLoading(false);
+            }
         };
-        fetchData();
+        fetchAdminData();
     }, []);
 
+    const menuItems = [
+        { key: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { key: 'Users', label: 'Users', icon: Users },
+        { key: 'Content Moderation', label: 'Content', icon: Shield },
+        { key: 'Analytics', label: 'Analytics', icon: BarChart3 },
+        { key: 'Reports', label: 'Reports', icon: FileText },
+        { key: 'Support Tickets', label: 'Support', icon: LifeBuoy },
+        { key: 'Settings', label: 'Settings', icon: Settings },
+    ];
     
     const handleSetView = (panel: string, context: ViewContext | null = null) => {
         setView({ panel, context });
@@ -83,6 +111,19 @@ const AdminPanel = () => {
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+            <nav className="w-64 bg-white dark:bg-gray-800 p-4 border-r border-gray-200 dark:border-gray-700 hidden lg:flex flex-col">
+                <div className="text-purple-500 font-bold text-2xl mb-10">PoDM - Admin</div>
+                <ul className="space-y-2">
+                    {menuItems.map(item => (
+                        <li key={item.key}>
+                            <a href="#" onClick={() => handleSetView(item.key)} className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${view.panel === item.key ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                                <item.icon className="w-5 h-5" />
+                                <span className="font-medium">{item.label}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
             <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{view.context?.subview || view.panel}</h1>
@@ -93,11 +134,4 @@ const AdminPanel = () => {
     );
 };
 
-export default function App() {
-    const [isDarkMode, setIsDarkMode] = useState(true);
-    return (
-        <div className={isDarkMode ? 'dark' : ''}>
-            <AdminPanel />
-        </div>
-    );
-}
+export default AdminPanel;

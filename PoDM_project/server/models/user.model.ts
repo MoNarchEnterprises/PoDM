@@ -79,3 +79,87 @@ export const updateProfile = async (id: string, updates: Partial<UserProfile>): 
     }
     return data as User;
 };
+
+/**
+ * Counts the total number of users.
+ * @returns The total count of users.
+ */
+export const countAllUsers = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+    if (error) {
+        console.error('Error counting all users:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
+
+/**
+ * Counts the number of active users.
+ */
+export const countActiveUsers = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+    if (error) {
+        console.error('Error counting active users:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
+
+/**
+ * Finds all users with optional filtering.
+ * @param query - The query parameters for filtering.      
+ */
+export const findAll = async (query: any): Promise<User[]> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .match(query);
+
+    if (error) {
+        console.error('Error finding users:', error.message);
+        return [];
+    }
+    return data as User[];
+}
+
+/**
+ * Counts the number of active creators.
+ * @returns The count of active creators.
+ */
+export const countActiveCreators = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'creator')
+        .eq('status', 'active');
+
+    if (error) {
+        console.error('Error counting active creators:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
+
+/**
+ * Finds all users with the 'admin' role.
+ * @returns An array of admin user objects.
+ */
+export const findAdmins = async (): Promise<User[] | null> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'admin');
+
+    if (error) {
+        console.error('Error finding admin users:', error.message);
+        return null;
+    }
+    return data as User[];
+};

@@ -3,7 +3,7 @@ import * as TransactionModel from '../models/transaction.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
 import { Transaction } from '@common/types/Transaction';
-import { DEFAULT_COMMISSION_RATE } from '../../../podm-frontend/src/lib/constants'; // Assuming constants are in a shared lib
+import { DEFAULT_COMMISSION_RATE } from '../lib/constants'; // Assuming constants are in a shared lib
 
 /**
  * Handles the business logic for a fan sending a tip to a creator.

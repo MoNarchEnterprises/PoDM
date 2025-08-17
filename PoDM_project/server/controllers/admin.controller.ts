@@ -1,20 +1,21 @@
-import { Request, Response } from 'express';
-// In a real app, you would import your Supabase admin client here
-// import supabase from '../config/supabaseClient';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
+
+// --- Import Service Functions ---
+import * as AdminService from '../services/admin.service';
 
 /**
  * @desc    Get key metrics for the admin dashboard
  * @route   GET /api/v1/admin/dashboard
  * @access  Private (Admins only)
  */
-export const getDashboardStats = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Fetching admin dashboard stats.");
-    // 1. Get total user count from 'profiles' table.
-    // 2. Get active creator count.
-    // 3. Sum 'platform_fee' from 'transactions' table for the last 30 days.
-    // 4. Get count of 'support_tickets' where status is 'Open'.
-    res.status(200).json({ success: true, message: "Fetched dashboard stats." });
+export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const stats = await AdminService.getDashboardStats();
+        res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -22,13 +23,26 @@ export const getDashboardStats = async (req: Request, res: Response) => {
  * @route   GET /api/v1/admin/users
  * @access  Private (Admins only)
  */
-export const getAllUsers = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Fetching all users for admin panel.");
-    // 1. Query 'profiles' table.
-    // 2. Apply filters from req.query (e.g., role, status).
-    // 3. Paginate the results.
-    res.status(200).json({ success: true, message: "Fetched all users." });
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const users = await AdminService.getAllUsers(req.query);
+        res.status(200).json({ success: true, data: users });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get all users with the 'admin' role
+ * @returns A list of admin users.
+ */
+export const getAdminUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const admins = await AdminService.getAdminUsers();
+        res.status(200).json({ success: true, data: admins });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -36,14 +50,20 @@ export const getAllUsers = async (req: Request, res: Response) => {
  * @route   PUT /api/v1/admin/users/:id/status
  * @access  Private (Admins only)
  */
-export const updateUserStatus = async (req: Request, res: Response) => {
-    const { id: userId } = req.params;
-    const { status } = req.body;
+export const updateUserStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: userId } = req.params;
+        const { status } = req.body;
 
-    // Placeholder logic:
-    console.log(`Updating status for user ${userId} to ${status}.`);
-    // 1. Update the 'status' field in the 'profiles' table for the given userId.
-    res.status(200).json({ success: true, message: "User status updated." });
+        if (!status) {
+            throw new AppError('Status is required.', 400);
+        }
+
+        const updatedUser = await AdminService.updateUserStatus(userId, status);
+        res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -51,12 +71,13 @@ export const updateUserStatus = async (req: Request, res: Response) => {
  * @route   GET /api/v1/admin/content/flagged
  * @access  Private (Admins only)
  */
-export const getFlaggedContent = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Fetching flagged content.");
-    // 1. Query 'content' table where 'status' is 'flagged'.
-    // 2. Join with 'profiles' table to get creator info.
-    res.status(200).json({ success: true, message: "Fetched flagged content." });
+export const getFlaggedContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const content = await AdminService.getFlaggedContent();
+        res.status(200).json({ success: true, data: content });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -64,15 +85,20 @@ export const getFlaggedContent = async (req: Request, res: Response) => {
  * @route   PUT /api/v1/admin/content/:id/status
  * @access  Private (Admins only)
  */
-export const updateContentStatus = async (req: Request, res: Response) => {
-    const { id: contentId } = req.params;
-    const { status } = req.body; // e.g., 'published' or 'removed'
+export const updateContentStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: contentId } = req.params;
+        const { status } = req.body;
 
-    // Placeholder logic:
-    console.log(`Updating status for content ${contentId} to ${status}.`);
-    // 1. If removing, delete the content record and associated files in storage.
-    // 2. If approving, change the status from 'flagged' back to 'published'.
-    res.status(200).json({ success: true, message: "Content status updated." });
+        if (!status) {
+            throw new AppError('Status is required.', 400);
+        }
+
+        const updatedContent = await AdminService.updateContentStatus(contentId, status);
+        res.status(200).json({ success: true, data: updatedContent });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -80,11 +106,13 @@ export const updateContentStatus = async (req: Request, res: Response) => {
  * @route   GET /api/v1/admin/analytics
  * @access  Private (Admins only)
  */
-export const getPlatformAnalytics = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Fetching platform analytics.");
-    // 1. Perform aggregate queries on 'transactions', 'users', and 'content' tables.
-    res.status(200).json({ success: true, message: "Fetched platform analytics." });
+export const getPlatformAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const analytics = await AdminService.getPlatformAnalytics();
+        res.status(200).json({ success: true, data: analytics });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -92,14 +120,14 @@ export const getPlatformAnalytics = async (req: Request, res: Response) => {
  * @route   POST /api/v1/admin/reports
  * @access  Private (Admins only)
  */
-export const generateReport = async (req: Request, res: Response) => {
-    const { metrics, dateRange, filters } = req.body;
-
-    // Placeholder logic:
-    console.log("Generating custom report with params:", { metrics, dateRange, filters });
-    // 1. Build a dynamic SQL query based on the report parameters.
-    // 2. Execute the query and return the results, likely as a CSV file.
-    res.status(200).json({ success: true, message: "Report generated." });
+export const generateReport = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const reportData = req.body; // Assume the report data is in the request body
+        const report = await AdminService.generateReport(reportData);
+        res.status(200).json({ success: true, data: report });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -107,12 +135,13 @@ export const generateReport = async (req: Request, res: Response) => {
  * @route   GET /api/v1/admin/support-tickets
  * @access  Private (Admins only)
  */
-export const getSupportTickets = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Fetching all support tickets.");
-    // 1. Query the 'support_tickets' table.
-    // 2. Join with 'profiles' to get user info.
-    res.status(200).json({ success: true, message: "Fetched support tickets." });
+export const getSupportTickets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tickets = await AdminService.getSupportTickets();
+        res.status(200).json({ success: true, data: tickets });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -120,14 +149,18 @@ export const getSupportTickets = async (req: Request, res: Response) => {
  * @route   PUT /api/v1/admin/support-tickets/:id
  * @access  Private (Admins only)
  */
-export const updateSupportTicket = async (req: Request, res: Response) => {
-    const { id: ticketId } = req.params;
-    const { status, replyText } = req.body;
+export const updateSupportTicket = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: ticketId } = req.params;
+        const updates = req.body;
 
-    // Placeholder logic:
-    console.log(`Updating support ticket ${ticketId}.`);
-    // 1. Fetch the ticket from the database.
-    // 2. If there is a reply, append it to the 'conversation' JSONB array.
-    // 3. Update the ticket's 'status'.
-    res.status(200).json({ success: true, message: "Support ticket updated." });
+        if (Object.keys(updates).length === 0) {
+            throw new AppError('No updates provided.', 400);
+        }
+
+        const updatedTicket = await AdminService.updateSupportTicket(ticketId, updates);
+        res.status(200).json({ success: true, data: updatedTicket });
+    } catch (error) {
+        next(error);
+    }
 };

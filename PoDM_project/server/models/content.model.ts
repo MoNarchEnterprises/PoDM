@@ -21,6 +21,21 @@ export const createContent = async (contentData: Partial<Content>): Promise<Cont
 };
 
 /**
+ * Counts the total number of content pieces in the database.
+ */
+export const countAllContent = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('content')
+        .select('*', { count: 'exact', head: true });
+
+    if (error) {
+        console.error('Error counting content:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
+
+/**
  * Finds a single piece of content by its unique ID.
  * @param id - The ID of the content to find.
  * @returns The content object or null if not found.
@@ -37,6 +52,24 @@ export const findContentById = async (id: string): Promise<Content | null> => {
         return null;
     }
     return data as Content;
+};
+
+/**
+ * Finds content by its status (e.g., 'published', 'flagged', 'removed').
+ * @param status - The status to filter content by.
+ */
+export const findContentByStatus = async (status: string): Promise<Content[] | null> => {
+    const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error finding content by status:', error.message);
+        return null;
+    }
+    return data as Content[];
 };
 
 /**

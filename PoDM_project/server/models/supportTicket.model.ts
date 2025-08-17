@@ -96,3 +96,20 @@ export const updateSupportTicket = async (id: string, updates: Partial<SupportTi
     }
     return data as SupportTicket;
 };
+
+/**
+ * Counts the number of open support tickets.
+ * @returns The count of tickets with the status 'Open'.
+ */
+export const countOpenTickets = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('support_tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Open');
+
+    if (error) {
+        console.error('Error counting open tickets:', error.message);
+        return 0;
+    }
+    return count || 0;
+};

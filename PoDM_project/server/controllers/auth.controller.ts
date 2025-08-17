@@ -1,32 +1,36 @@
-import { Request, Response } from 'express';
-// In a real app, you would import your Supabase client here
-// import supabase from '../config/supabaseClient';
-
+import { Request, Response, NextFunction } from 'express';
+import * as AuthService from '../services/auth.service';
+import { AppError } from '../middleware/error.middleware';
+import { UserRole } from '@common/types/User';
 /**
  * @desc    Register a new user (fan or creator)
  * @route   POST /api/v1/auth/signup
  * @access  Public
  */
-export const signup = async (req: Request, res: Response) => {
-    const { email, password, username, role } = req.body;
+export const signup = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password, username, role } = req.body;
 
-    // Placeholder logic:
-    console.log(`Attempting to sign up user: ${email} as a ${role}`);
+        if (!email || !password || !username || !role) {
+            throw new AppError('Please provide email, password, username, and role.', 400);
+        }
 
-    // 1. Use Supabase Auth to create a new user in the private `auth.users` table.
-    //    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
-    //    if (authError) return res.status(400).json({ message: authError.message });
+        if (role !== 'fan' && role !== 'creator') {
+            throw new AppError('Invalid user role specified.', 400);
+        }
 
-    // 2. If the auth user is created successfully, use their new ID to create a public profile.
-    //    const userId = authData.user.id;
-    //    const { error: profileError } = await supabase.from('profiles').insert({ id: userId, username, role });
-    //    if (profileError) {
-    //        // Handle potential error where auth user was created but profile failed.
-    //        return res.status(500).json({ message: "Failed to create user profile." });
-    //    }
+        const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole);
 
-    // 3. Return the session and user data to the client.
-    res.status(201).json({ success: true, message: "User registered successfully." /*, data: authData */ });
+        // In a real app, you would likely send the token back in a secure cookie
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully.",
+            data: { user, token }
+        });
+
+    } catch (error) {
+        next(error); // Pass errors to the global error handler
+    }
 };
 
 /**
@@ -34,18 +38,25 @@ export const signup = async (req: Request, res: Response) => {
  * @route   POST /api/v1/auth/login
  * @access  Public
  */
-export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+export const login = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password } = req.body;
 
-    // Placeholder logic:
-    console.log(`Attempting to log in user: ${email}`);
+        if (!email || !password) {
+            throw new AppError('Please provide an email and password.', 400);
+        }
 
-    // 1. Use Supabase Auth to sign in the user.
-    //    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    //    if (error) return res.status(401).json({ message: "Invalid credentials." });
+        const { user, token } = await AuthService.loginUser(email, password);
 
-    // 2. Return the session and user data to the client.
-    res.status(200).json({ success: true, message: "User logged in successfully." /*, data */ });
+        res.status(200).json({
+            success: true,
+            message: "User logged in successfully.",
+            data: { user, token }
+        });
+
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -53,13 +64,32 @@ export const login = async (req: Request, res: Response) => {
  * @route   POST /api/v1/auth/logout
  * @access  Private (requires auth token)
  */
-export const logout = async (req: Request, res: Response) => {
-    // Placeholder logic:
-    console.log("Logging out user.");
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // In a real app, you might have logic here to invalidate a token
+        // or clear a cookie. For Supabase, signOut is handled on the client.
+        res.status(200).json({ success: true, message: "User logged out successfully." });
+    } catch (error) {
+        next(error);
+    }
+};
 
-    // 1. Use Supabase Auth to sign out the user, invalidating their token.
-    //    const { error } = await supabase.auth.signOut();
-    //    if (error) return res.status(500).json({ message: "Failed to log out." });
+/**
+ * @desc    Get current logged-in user
+ * @route   GET /api/v1/auth/me
+ * @access  Private (requires auth token)
+ */
+export const getMe = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // The 'protect' middleware has already verified the token
+        // and attached the user object to the request.
+        const user = req.user;
 
-    res.status(200).json({ success: true, message: "User logged out successfully." });
+        res.status(200).json({
+            success: true,
+            data: { user }
+        });
+    } catch (error) {
+        next(error);
+    }
 };

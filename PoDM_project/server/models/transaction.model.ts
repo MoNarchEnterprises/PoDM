@@ -79,3 +79,49 @@ export const updateTransactionStatus = async (paymentGatewayId: string, status: 
     }
     return data as Transaction;
 };
+
+/**
+ * Calculates the sum of the platform fee over a given number of days.
+ * @param days - The number of days to look back.
+ * @returns The total platform fee in cents.
+ */
+export const sumPlatformFeeForPeriod = async (days: number): Promise<number> => {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    const thirtyDaysAgo = date.toISOString();
+
+    const { data, error } = await supabase
+        .from('transactions')
+        .select('platform_fee')
+        .gte('created_at', thirtyDaysAgo)
+        .eq('status', 'Cleared');
+
+    if (error) {
+        console.error('Error summing platform fee:', error.message);
+        return 0;
+    }
+
+    return data.reduce((sum, transaction) => sum + transaction.platform_fee, 0);
+};
+
+/**
+ * Find successful transaction by fan and content ID.
+ * @param fanId - The ID of the fan.
+ * @param contentId - The ID of the content.
+ * 
+ */
+export const findSuccessfulTransactionByFanAndContent = async (fanId: string, contentId: string): Promise<Transaction | null> => {
+    const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('fan_id', fanId)
+        .eq('content_id', contentId)
+        .eq('status', 'Cleared')
+        .single();
+
+    if (error) {
+        console.error('Error finding successful transaction by fan and content:', error.message);
+        return null;
+    }
+    return data as Transaction;
+}

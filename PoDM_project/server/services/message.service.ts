@@ -3,6 +3,39 @@ import * as MessageModel from '../models/message.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
 import { Message } from '@common/types/Message';
+import { Conversation } from '@common/types/Conversation';
+
+/**
+ * Fetches all conversations for a specific user.
+ * @param userId - The ID of the user.
+ * @returns An array of conversation objects.
+ */
+export const getConversationsForUser = async (userId: string): Promise<Conversation[] | null> => {
+    const conversations = await ConversationModel.findConversationsByUserId(userId);
+    if (!conversations) {
+        throw new AppError('Could not retrieve conversations for this user.', 404);
+    }
+    return conversations;
+};
+
+/**
+ * Fetches all messages for a specific conversation, ensuring the user is a participant.
+ * @param conversationId - The ID of the conversation.
+ * @param userId - The ID of the user requesting the messages.
+ * @returns An array of message objects.
+ */
+export const getMessagesForConversation = async (conversationId: string, userId: string): Promise<Message[] | null> => {
+    const conversation = await ConversationModel.findConversationById(conversationId);
+    if (!conversation || !conversation.participants.includes(userId)) {
+        throw new AppError('You are not authorized to view this conversation.', 403);
+    }
+    
+    const messages = await MessageModel.findMessagesByConversationId(conversationId);
+    if (!messages) {
+        throw new AppError('Could not retrieve messages for this conversation.', 404);
+    }
+    return messages;
+};
 
 /**
  * Handles the business logic for sending a direct message.

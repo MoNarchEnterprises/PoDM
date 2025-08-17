@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 // In a real app, you would import your Supabase client here
-// import supabase from '../config/supabaseClient';
+import supabase from '../config/supabaseClient';
 
 // Extend the Express Request type to include a 'user' property
 declare global {
@@ -25,18 +25,18 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             token = req.headers.authorization.split(' ')[1];
 
             // Verify token with Supabase
-            // const { data: { user }, error } = await supabase.auth.getUser(token);
+            const { data: { user }, error } = await supabase.auth.getUser(token);
 
-            // if (error || !user) {
-            //     return res.status(401).json({ message: 'Not authorized, token failed' });
-            // }
+            if (error || !user) {
+                return res.status(401).json({ message: 'Not authorized, token failed' });
+            }
 
             // Attach user to the request object
-            // req.user = user;
+            req.user = user;
 
             // --- Placeholder Logic ---
-            console.log("Token received and processed by 'protect' middleware.");
-            req.user = { id: 'user123', role: 'fan' }; // Mock user for demonstration
+            // console.log("Token received and processed by 'protect' middleware.");
+            // req.user = { id: 'user123', role: 'fan' }; // Mock user for demonstration
             // --- End Placeholder ---
 
             next();
