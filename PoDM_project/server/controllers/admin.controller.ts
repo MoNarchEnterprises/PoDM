@@ -11,6 +11,7 @@ import * as AdminService from '../services/admin.service';
  */
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log('Fetching dashboard stats...');
         const stats = await AdminService.getDashboardStats();
         res.status(200).json({ success: true, data: stats });
     } catch (error) {
