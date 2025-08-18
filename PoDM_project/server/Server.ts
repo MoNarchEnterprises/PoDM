@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // --- Load Environment Variables ---
-dotenv.config({ path: path.resolve(__dirname, '.env') });
-
+dotenv.config({ path: path.resolve(__dirname, './.env') });
 
 import express, { Express, Request, Response } from 'express';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 
 // --- Import Routes ---
@@ -19,6 +19,8 @@ import adminRoutes from './routes/admin.routes';
 
 // --- Import Middleware ---
 import { errorHandler } from './middleware/error.middleware';
+import { verifyStripeSignature } from './middleware/stripe.middleware';
+import { handleStripeWebhook } from './controllers/payments.controller';
 
 // --- Configuration ---
 const app: Express = express();
@@ -28,14 +30,22 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173'
 }));
+
+// --- Stripe Webhook Route ---
+// This route must be registered BEFORE express.json() to receive the raw body.
+// We define it here directly to avoid the import issues in other files.
+//app.post('/api/v1/payments/stripe/webhooks', express.raw({type: 'application/json'}), verifyStripeSignature, handleStripeWebhook);
+app.use('/webhook', bodyParser.raw({ type: 'application/json' }));
+// --- Global Middleware ---
+// This will parse the body for all other routes.
 app.use(express.json());
 
-// --- API Routes ---
+// --- Other API Routes ---
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
-app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/payments', paymentRoutes); // For other payment routes like /tip
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
@@ -46,7 +56,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // --- Global Error Handler ---
-// This must be the last piece of middleware
 app.use(errorHandler);
 
 // --- Start Server ---

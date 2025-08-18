@@ -1,11 +1,10 @@
-import express from 'express';
+import { Router } from 'express';
 
 // --- Import Controllers & Middleware ---
-import { sendTip, handleStripeWebhook } from '../controllers/payments.controller';
+import { sendTip } from '../controllers/payments.controller';
 import { protect } from '../middleware/auth.middleware';
-import { verifyStripeSignature } from '../middleware/stripe.middleware';
 
-const router = express.Router();
+const router = Router();
 
 /**
  * @route   POST /api/v1/payments/tip
@@ -14,14 +13,6 @@ const router = express.Router();
  */
 router.post('/tip', protect, sendTip);
 
-/**
- * @route   POST /api/v1/payments/stripe/webhooks
- * @desc    Handle incoming webhooks from Stripe to confirm payments
- * @access  Public (but protected by Stripe signature verification)
- */
-// Stripe requires the raw request body for signature verification.
-// This middleware is applied specifically to this route.
-router.post('/stripe/webhooks', express.raw({type: 'application/json'}), verifyStripeSignature, handleStripeWebhook);
-
+// The Stripe webhook route is now handled directly in server.ts
 
 export default router;
