@@ -1,21 +1,28 @@
-import { Request, Response } from 'express';
-// In a real app, you would import your Supabase client here
-// import supabase from '../config/supabaseClient';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
+
+// --- Import Service Functions ---
+import * as UserService from '../services/user.service';
 
 /**
  * @desc    Get the profile of the currently logged-in user
  * @route   GET /api/v1/users/me
  * @access  Private
  */
-export const getMe = async (req: Request, res: Response) => {
-    // In a real app, the user's ID would be attached to the request by the 'protect' middleware
-    // const { userId } = req.user; 
+export const getMe = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // The 'protect' middleware has already attached the full user profile.
+        // We can just send it back to the client.
+        const user = req.user;
 
-    // Placeholder logic:
-    console.log("Fetching profile for the current user.");
-    // const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    
-    res.status(200).json({ success: true, message: "Fetched current user profile successfully." });
+        if (!user) {
+            throw new AppError('Authentication error, user not found in request.', 401);
+        }
+
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -23,15 +30,20 @@ export const getMe = async (req: Request, res: Response) => {
  * @route   PUT /api/v1/users/me
  * @access  Private
  */
-export const updateMe = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { name, bio } = req.body;
+export const updateMe = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const profileUpdates = req.body;
 
-    // Placeholder logic:
-    console.log("Updating profile for the current user with:", { name, bio });
-    // const { data, error } = await supabase.from('profiles').update({ name, bio }).eq('id', userId);
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
 
-    res.status(200).json({ success: true, message: "Profile updated successfully." });
+        const updatedUser = await UserService.updateUserProfile(userId, profileUpdates);
+        res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -39,15 +51,23 @@ export const updateMe = async (req: Request, res: Response) => {
  * @route   POST /api/v1/users/me/gallery
  * @access  Private
  */
-export const addToGallery = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { contentId } = req.body;
+export const addToGallery = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        const { contentId } = req.body;
 
-    // Placeholder logic:
-    console.log(`Adding content ${contentId} to gallery for the current user.`);
-    // This would involve fetching the user's gallery and appending the new item.
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!contentId) {
+            throw new AppError('Content ID is required to add an item to the gallery.', 400);
+        }
 
-    res.status(200).json({ success: true, message: "Content added to gallery." });
+        const updatedGallery = await UserService.addToUserGallery(fanId, contentId);
+        res.status(200).json({ success: true, data: updatedGallery });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -55,15 +75,20 @@ export const addToGallery = async (req: Request, res: Response) => {
  * @route   DELETE /api/v1/users/me/gallery/:contentId
  * @access  Private
  */
-export const removeFromGallery = async (req: Request, res: Response) => {
-    // const { userId } = req.user;
-    const { contentId } = req.params;
+export const removeFromGallery = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        const { contentId } = req.params;
 
-    // Placeholder logic:
-    console.log(`Removing content ${contentId} from gallery for the current user.`);
-    // This would involve fetching the user's gallery and removing the specified item.
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
 
-    res.status(200).json({ success: true, message: "Content removed from gallery." });
+        const updatedGallery = await UserService.removeFromUserGallery(fanId, contentId);
+        res.status(200).json({ success: true, data: updatedGallery });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -71,12 +96,12 @@ export const removeFromGallery = async (req: Request, res: Response) => {
  * @route   GET /api/v1/users/:username
  * @access  Public
  */
-export const getPublicProfile = async (req: Request, res: Response) => {
-    const { username } = req.params;
-
-    // Placeholder logic:
-    console.log(`Fetching public profile for username: ${username}`);
-    // const { data, error } = await supabase.from('profiles').select('*').eq('username', username).single();
-    
-    res.status(200).json({ success: true, message: `Fetched public profile for ${username}.` });
+export const getPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { username } = req.params;
+        const userProfile = await UserService.getPublicUserProfile(username);
+        res.status(200).json({ success: true, data: userProfile });
+    } catch (error) {
+        next(error);
+    }
 };

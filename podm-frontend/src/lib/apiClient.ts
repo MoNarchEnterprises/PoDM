@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, UserRole } from '@common/types/User';
+import { User, UserRole, UserProfile } from '@common/types/User';
 
 // --- Configuration ---
 
@@ -107,6 +107,28 @@ export const getMe = async () => {
     const response = await apiClient.get<AuthResponse>('/auth/me');
     return response.data;
 };
+
+/**
+ * Sends a request to update the current user's profile information.
+ * It intelligently filters out any empty fields before sending the request.
+ * @param profileData - The profile data to update (e.g., name, email).
+ */
+export const updateMe = async (profileData: Record<string, any>) => {
+    const payload: Record<string, any> = {};
+    console.log('apiClients: Profile data to update:', profileData);
+    // Iterate over the keys in the provided data and build a payload
+    // that only includes fields with actual values (not empty strings).
+    for (const key in profileData) {
+        if (Object.prototype.hasOwnProperty.call(profileData, key) && profileData[key] !== '') {
+            payload[key] = profileData[key];
+        }
+    }
+
+    // Only send the filtered payload to the backend.
+    const response = await apiClient.put<{ success: boolean, data: User }>('/users/me', payload);
+    return response.data;
+};
+
 
 
 export default apiClient;

@@ -5,32 +5,23 @@ import { BrowserRouter, Routes, Route, Outlet, useParams } from 'react-router-do
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
 import { User } from '@common/types/User';
-import { Subscription } from '@common/types/Subscription';
-import { Conversation } from '@common/types/Conversation';
-import { Transaction } from '@common/types/Transaction';
 
 // --- Import Reusable Layouts & Hooks ---
 import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './hooks/useAuth';
 import { FAN_NAV_ITEMS, CREATOR_NAV_ITEMS, ADMIN_NAV_ITEMS } from './lib/constants';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// --- Import Page Components ---
-// Public Pages
-import SplashPage from './pages/SplashPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-
-// Feature Pages (Lazy load for better performance)
+// --- Import Page Components (Lazy Loaded) ---
+const SplashPage = React.lazy(() => import('./pages/SplashPage'));
+const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage'));
 const CreatorProfilePage = React.lazy(() => import('./features/profile/CreatorProfile'));
 const ContentViewerPage = React.lazy(() => import('./features/viewer/ContentViewer'));
-
-// Fan Pages
 const FanFeed = React.lazy(() => import('./features/fan/FanFeed'));
 const FanGallery = React.lazy(() => import('./features/fan/FanGallery'));
 const FanSubscriptions = React.lazy(() => import('./features/fan/FanSubscriptions'));
 const FanMessages = React.lazy(() => import('./features/fan/FanMessages'));
 const FanSettings = React.lazy(() => import('./features/fan/FanSettings'));
-
-// Creator Pages
 const CreatorOnboarding = React.lazy(() => import('./features/auth/CreatorOnboarding'));
 const CreatorVerification = React.lazy(() => import('./features/auth/CreatorVerification'));
 const CreatorDashboard = React.lazy(() => import('./features/creator/CreatorDashboard'));
@@ -40,19 +31,25 @@ const CreatorAnalytics = React.lazy(() => import('./features/creator/CreatorAnal
 const CreatorEarnings = React.lazy(() => import('./features/creator/CreatorEarnings'));
 const CreatorSettings = React.lazy(() => import('./features/creator/CreatorSettings'));
 
-// Admin Pages
+// --- Import Admin Panel Components (Lazy Loaded) ---
 const AdminPanel = React.lazy(() => import('./features/admin/AdminPanel'));
+const DashboardPanel = React.lazy(() => import('./features/admin/components/DashboardPanel'));
+const UserManagementPanel = React.lazy(() => import('./features/admin/components/UserManagementPanel'));
+const ContentModerationPanel = React.lazy(() => import('./features/admin/components/ContentModerationPanel'));
+const AnalyticsPanel = React.lazy(() => import('./features/admin/components/AnalyticsPanel'));
+const ReportsPanel = React.lazy(() => import('./features/admin/components/ReportsPanel'));
+const SupportTicketsPanel = React.lazy(() => import('./features/admin/components/SupportTicketsPanel'));
+const SettingsPanel = React.lazy(() => import('./features/admin/components/SettingsPanel'));
+
 
 // --- Prop Type Definitions for Pages ---
-interface CreatorProfilePageProps { creator: Creator; content: Content[]; }
+// Note: These are kept for components that are passed props, like ContentViewerPage
 interface ContentViewerPageProps { content: Content; creator: Creator; relatedContent: Content[]; }
 interface FanFeedProps { posts: any[]; creatorsFollowing: Creator[]; }
 interface FanGalleryProps { galleryData: any[]; }
 interface FanSubscriptionsProps { initialSubscriptions: any[]; }
 interface FanMessagesProps { initialConversations: any[]; currentFanId: string; }
 interface FanSettingsProps { fan: User; settings: any; }
-interface CreatorOnboardingProps { onSubmit: (data: any) => void; }
-interface CreatorVerificationProps { onSubmit: (data: any) => void; }
 interface CreatorDashboardProps { creator: Creator; metrics: any; recentActivity: any[]; monthlyEarnings: any[]; }
 interface CreatorContentProps { initialContent: Content[]; }
 interface CreatorMessagesProps { initialConversations: any[]; existingContent: Content[]; currentCreatorId: string; }
@@ -60,17 +57,11 @@ interface CreatorAnalyticsProps { metrics: any; subscriberGrowth: any[]; revenue
 interface CreatorEarningsProps { summary: any; monthlyEarnings: any[]; transactions: any[]; }
 interface CreatorSettingsProps { creator: Creator; }
 
-// --- Page Loader Components ---
 
-const CreatorProfileLoader = () => {
-    const { username } = useParams<{ username: string }>();
-    const [isLoading, setIsLoading] = useState(true);
-    const [creator, setCreator] = useState<Creator | null>(null);
-    const [content, setContent] = useState<Content[]>([]);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setCreator({} as Creator); setContent([]); }, [username]);
-    if (isLoading || !creator) return <div>Loading Profile...</div>;
-    return <CreatorProfilePage creator={creator} content={content} />;
-};
+// --- Page Loader Components ---
+// This component now just renders the lazy-loaded CreatorProfilePage,
+// which handles its own data fetching.
+const CreatorProfileLoader = () => <CreatorProfilePage />;
 
 const ContentViewerLoader = () => {
     const { contentId } = useParams<{ contentId: string }>();
@@ -81,102 +72,27 @@ const ContentViewerLoader = () => {
     return <ContentViewerPage content={data.content} creator={data.creator} relatedContent={data.relatedContent} />;
 };
 
-const FanFeedLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<{ posts: any[], creatorsFollowing: Creator[] } | null>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({ posts: [], creatorsFollowing: [] }); }, []);
-    if (isLoading || !data) return <div>Loading Feed...</div>;
-    return <FanFeed posts={data.posts} creatorsFollowing={data.creatorsFollowing} />;
-};
+const FanFeedLoader = () => { return <FanFeed posts={[]} creatorsFollowing={[]} />; };
+const FanGalleryLoader = () => { return <FanGallery galleryData={[]} />; };
+const FanSubscriptionsLoader = () => { return <FanSubscriptions initialSubscriptions={[]} />; };
+const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
+const FanSettingsLoader = () => { const fan = {} as User; const settings = {} as any; return <FanSettings fan={fan} settings={settings} />; };
+const CreatorDashboardLoader = () => { return <CreatorDashboard creator={{} as any} metrics={{} as any} recentActivity={[]} monthlyEarnings={[]} />; };
+const CreatorContentLoader = () => { return <CreatorContent initialContent={[]} />; };
+const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
+const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
+const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any} monthlyEarnings={[]} transactions={[]} />; };
+const CreatorSettingsLoader = () => { return <CreatorSettings creator={{} as any} />; };
 
-const FanGalleryLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [galleryData, setGalleryData] = useState<any[]>([]);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); }, []);
-    if (isLoading) return <div>Loading Gallery...</div>;
-    return <FanGallery galleryData={galleryData} />;
-};
+// Corrected Loaders: These components are self-contained and don't need props passed from the router.
+const CreatorOnboardingLoader = () => <CreatorOnboarding />;
 
-const FanSubscriptionsLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [subscriptions, setSubscriptions] = useState<any[]>([]);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); }, []);
-    if (isLoading) return <div>Loading Subscriptions...</div>;
-    return <FanSubscriptions initialSubscriptions={subscriptions} />;
-};
-
-const FanMessagesLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [conversations, setConversations] = useState<any[]>([]);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); }, []);
-    if (isLoading) return <div>Loading Messages...</div>;
-    return <FanMessages initialConversations={conversations} currentFanId="fan123" />;
-};
-
-const FanSettingsLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [fan, setFan] = useState<User | null>(null);
-    const [settings, setSettings] = useState<any>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setFan({} as User); setSettings({}); }, []);
-    if (isLoading || !fan) return <div>Loading Settings...</div>;
-    return <FanSettings fan={fan} settings={settings} />;
-};
-
-const CreatorDashboardLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({ creator: {}, metrics: {}, recentActivity: [], monthlyEarnings: [] }); }, []);
-    if (isLoading || !data) return <div>Loading Dashboard...</div>;
-    return <CreatorDashboard creator={data.creator} metrics={data.metrics} recentActivity={data.recentActivity} monthlyEarnings={data.monthlyEarnings} />;
-};
-
-const CreatorContentLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [content, setContent] = useState<Content[]>([]);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); }, []);
-    if (isLoading) return <div>Loading Content...</div>;
-    return <CreatorContent initialContent={content} />;
-};
-
-const CreatorMessagesLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({ conversations: [], existingContent: [] }); }, []);
-    if (isLoading || !data) return <div>Loading Messages...</div>;
-    return <CreatorMessages initialConversations={data.conversations} existingContent={data.existingContent} currentCreatorId="creator123" />;
-};
-
-const CreatorAnalyticsLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({ metrics: {}, subscriberGrowth: [], revenueBreakdown: [], topContent: [] }); }, []);
-    if (isLoading || !data) return <div>Loading Analytics...</div>;
-    return <CreatorAnalytics metrics={data.metrics} subscriberGrowth={data.subscriberGrowth} revenueBreakdown={data.revenueBreakdown} topContent={data.topContent} />;
-};
-
-const CreatorEarningsLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({ summary: {}, monthlyEarnings: [], transactions: [] }); }, []);
-    if (isLoading || !data) return <div>Loading Earnings...</div>;
-    return <CreatorEarnings summary={data.summary} monthlyEarnings={data.monthlyEarnings} transactions={data.transactions} />;
-};
-
-const CreatorSettingsLoader = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [creator, setCreator] = useState<Creator | null>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setCreator({} as Creator); }, []);
-    if (isLoading || !creator) return <div>Loading Settings...</div>;
-    return <CreatorSettings creator={creator} />;
-};
-
-const CreatorOnboardingLoader = () => {
-    const handleOnboardingSubmit = (data: any) => { console.log("Onboarding Submitted:", data); };
-    return <CreatorOnboarding onSubmit={handleOnboardingSubmit} />;
-};
-
+// This loader now provides the required onSubmit prop to the CreatorVerification component.
 const CreatorVerificationLoader = () => {
-    const handleVerificationSubmit = (data: any) => { console.log("Verification Submitted:", data); };
+    const handleVerificationSubmit = (data: any) => {
+        console.log("Verification Submitted:", data);
+        // In a real app, you would make an API call here.
+    };
     return <CreatorVerification onSubmit={handleVerificationSubmit} />;
 };
 
@@ -202,6 +118,7 @@ const App = () => {
                         {/* --- Auth Routes --- */}
                         <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
                         <Route path="/verification" element={<CreatorVerificationLoader />} />
+                        <Route path="/admin/login" element={<AdminLoginPage />} />
 
                         {/* --- Fan Routes (Protected) --- */}
                         <Route path="/fan" element={<FanLayout />}>
@@ -225,9 +142,20 @@ const App = () => {
                         </Route>
 
                         {/* --- Admin Routes (Protected) --- */}
-                        <Route path="/admin/login" element={<AdminLoginPage />} />
-                        <Route path="/admin" element={<AdminLayout />}>
-                            <Route path="*" element={<AdminPanel />} />
+                        <Route element={<ProtectedRoute requiredRole="admin" />}>
+                            <Route path="/admin" element={<AdminLayout />}>
+                                {/* The AdminPanel now acts as a data loader and provides the Outlet */}
+                                <Route element={<AdminPanel />}>
+                                    <Route index element={<DashboardPanel />} />
+                                    <Route path="dashboard" element={<DashboardPanel />} />
+                                    <Route path="users" element={<UserManagementPanel />} />
+                                    <Route path="content" element={<ContentModerationPanel />} />
+                                    <Route path="analytics" element={<AnalyticsPanel />} />
+                                    <Route path="reports" element={<ReportsPanel />} />
+                                    <Route path="support" element={<SupportTicketsPanel />} />
+                                    <Route path="settings" element={<SettingsPanel />} />
+                                </Route>
+                            </Route>
                         </Route>
 
                     </Routes>

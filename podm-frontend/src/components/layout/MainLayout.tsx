@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom'; // Import Link and useLocation
 import type { LucideIcon } from 'lucide-react';
 
 // --- Types ---
@@ -8,7 +9,6 @@ export interface NavItem {
     label: string;
     icon: LucideIcon;
     href: string;
-    active?: boolean;
 }
 
 interface SidebarProps {
@@ -25,25 +25,33 @@ interface MainLayoutProps {
 // --- Sidebar Component ---
 
 const Sidebar = ({ logoText, navItems }: SidebarProps) => {
+    const location = useLocation(); // Get the current location
+
     return (
         <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
             <div className="text-purple-500 font-bold text-2xl mb-10">{logoText}</div>
             <ul className="space-y-2">
-                {navItems.map(item => (
-                    <li key={item.key}>
-                        <a 
-                            href={item.href} 
-                            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                                item.active 
-                                ? 'bg-purple-600 text-white shadow-lg' 
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <item.icon className="w-5 h-5" />
-                            <span className="font-medium">{item.label}</span>
-                        </a>
-                    </li>
-                ))}
+                {navItems.map(item => {
+                    // Determine if the link is active by checking if the current path starts with the link's href
+                    const isActive = location.pathname.startsWith(item.href);
+                    
+                    return (
+                        <li key={item.key}>
+                            {/* Replace <a> with <Link> and href with to */}
+                            <Link 
+                                to={item.href} 
+                                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                                    isActive 
+                                    ? 'bg-purple-600 text-white shadow-lg' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                }`}
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span className="font-medium">{item.label}</span>
+                            </Link>
+                        </li>
+                    );
+                })}
             </ul>
         </nav>
     );

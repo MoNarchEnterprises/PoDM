@@ -1,12 +1,29 @@
 import { Request, Response, NextFunction } from 'express';
-// In a real app, you would import your Supabase client here
-import supabase from '../config/supabaseClient';
+import { createClient, User as SupabaseAuthUser } from '@supabase/supabase-js';
+import { findUserById } from '../models/user.model';
+import { AppError } from './error.middleware';
+import { User } from '@common/types/User';
+import { reshapeUserForApp } from '../utils/user.utils';
+
+// --- Local Supabase Client for Token Verification ---
+// This client uses the public ANON key and is ONLY used to verify incoming user tokens.
+// It is separate from the global service_role client used for admin operations.
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase URL and Anon Key must be provided for the auth middleware.");
+}
+const authSupabase = createClient(supabaseUrl, supabaseAnonKey);
+
+
+
 
 // Extend the Express Request type to include a 'user' property
 declare global {
     namespace Express {
         interface Request {
-            user?: any; // In a real app, replace 'any' with your User type from common/types
+            user?: User;
         }
     }
 }
@@ -14,40 +31,45 @@ declare global {
 /**
  * @desc    Middleware to protect routes by verifying a JWT token.
  * It checks for a token in the Authorization header, verifies it with Supabase,
- * and attaches the user's data to the request object.
+ * and attaches the user's full profile (including role) to the request object.
  */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // Get token from header
+            // 1. Get token from header
             token = req.headers.authorization.split(' ')[1];
-
-            // Verify token with Supabase
-            const { data: { user }, error } = await supabase.auth.getUser(token);
-
-            if (error || !user) {
-                return res.status(401).json({ message: 'Not authorized, token failed' });
+            if (!token) {
+                return next(new AppError('Not authorized, no token provided', 401));
             }
 
-            // Attach user to the request object
-            req.user = user;
+            // 2. **FIX:** Verify token with the local Supabase client that uses the ANON key.
+            const { data: { user: authUser }, error: authError } = await authSupabase.auth.getUser(token);
 
-            // --- Placeholder Logic ---
-            // console.log("Token received and processed by 'protect' middleware.");
-            // req.user = { id: 'user123', role: 'fan' }; // Mock user for demonstration
-            // --- End Placeholder ---
+            if (authError || !authUser) {
+                return next(new AppError('Not authorized, token failed', 401));
+            }
+
+            // 3. Fetch the user's public profile to get their correct role
+            // The user model uses the global service_role client, which is correct for this DB query.
+            const userProfile = await findUserById(authUser.id);
+            
+            if (!userProfile) {
+                return next(new AppError('User profile not found for this token.', 404));
+            }
+
+            // 4. Attach the complete user profile to the request object
+            req.user = reshapeUserForApp(userProfile, authUser);
 
             next();
         } catch (error) {
-            console.error(error);
-            res.status(401).json({ message: 'Not authorized, token failed' });
+            return next(new AppError('Not authorized, token processing error', 401));
         }
     }
 
     if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
+        return next(new AppError('Not authorized, no token provided', 401));
     }
 };
 
@@ -59,7 +81,7 @@ export const creatorOnly = (req: Request, res: Response, next: NextFunction) => 
     if (req.user && req.user.role === 'creator') {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Creator role required.' });
+        return next(new AppError('Access denied. Creator role required.', 403));
     }
 };
 
@@ -71,6 +93,6 @@ export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
     if (req.user && req.user.role === 'admin') {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Admin role required.' });
+        return next(new AppError('Access denied. Admin role required.', 403));
     }
 };

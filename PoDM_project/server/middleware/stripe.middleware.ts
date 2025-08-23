@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { AppError } from './error.middleware';
 
-// In a real app, you would initialize your Stripe client here
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' });
+// --- Import the initialized Stripe client ---
+import stripe from '../config/stripeClient';
 
 /**
  * Verifies the signature of an incoming Stripe webhook request.
@@ -15,7 +15,6 @@ import { AppError } from './error.middleware';
  * BEFORE `express.json()`.
  */
 export const verifyStripeSignature = (req: Request, res: Response, next: NextFunction) => {
-    // In a real app, you would get this from your environment variables
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
@@ -30,22 +29,16 @@ export const verifyStripeSignature = (req: Request, res: Response, next: NextFun
     }
 
     try {
-        // Use a placeholder for the stripe object in this example
-        const stripe = {} as Stripe; 
-        
-        // In a real app, you would construct the event like this:
-        // const event = stripe.webhooks.constructEvent(
-        //     req.body, // The raw request body buffer
-        //     signature,
-        //     webhookSecret
-        // );
+        // Construct the event using the raw request body, signature, and secret.
+        // This will throw an error if the signature is invalid.
+        const event = stripe.webhooks.constructEvent(
+            req.body, // The raw request body buffer
+            signature,
+            webhookSecret
+        );
 
-        // Attach the verified event to the request object for the controller to use
-        // req.body = event;
-
-        // --- Placeholder Logic ---
-        console.log("Stripe signature would be verified here.");
-        // --- End Placeholder ---
+        // Attach the verified event to the request object for the controller to use.
+        req.body = event;
 
         next();
     } catch (err: any) {

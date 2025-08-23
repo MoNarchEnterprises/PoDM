@@ -9,8 +9,9 @@ import * as api from '../lib/apiClient';
 // --- Local Types ---
 interface AuthContextType {
     user: User | null;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>; // Expose setter
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<User>; // Updated return type
+    login: (email: string, password: string) => Promise<User>;
     signup: (username: string, email: string, password: string, userType: UserRole) => Promise<void>;
     logout: () => void;
 }
@@ -18,6 +19,7 @@ interface AuthContextType {
 // --- Auth Context ---
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    setUser: () => {}, // Default empty function
     isLoading: true,
     login: async () => Promise.reject(),
     signup: async () => {},
@@ -34,15 +36,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Check for an existing session on initial app load
         const checkUserSession = async () => {
             setIsLoading(true);
             const token = localStorage.getItem('authToken');
             if (token) {
                 try {
-                    // In a real app, you'd have an endpoint like /auth/me to verify the token
-                    // const response = await api.getMe(); 
-                    // setUser(response.data.user);
+                    const response = await api.getMe(); 
+                    setUser(response.data);
                 } catch (error) {
                     console.error("Session token is invalid, logging out.", error);
                     localStorage.removeItem('authToken');
@@ -60,10 +60,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             const { data } = await api.login(email, password);
             localStorage.setItem('authToken', data.token);
             setUser(data.user);
-            return data.user; // Return the user object on success
+            return data.user;
         } catch (error) {
             console.error("Login failed:", error);
-            // Re-throw the error so the component can display a message
             throw error;
         }
     };
@@ -86,6 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const value = {
         user,
+        setUser, // Provide the setter function to the context
         isLoading,
         login,
         signup,

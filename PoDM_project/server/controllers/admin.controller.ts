@@ -15,6 +15,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         const stats = await AdminService.getDashboardStats();
         res.status(200).json({ success: true, data: stats });
     } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
         next(error);
     }
 };
@@ -27,6 +28,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const users = await AdminService.getAllUsers(req.query);
+        console.log(`Users: ${users[0]?.profile?.name}, ${users[0]?.email}, ${users[0]?.role}, ${users[0]?.status}`);
         res.status(200).json({ success: true, data: users });
     } catch (error) {
         next(error);
@@ -126,6 +128,20 @@ export const generateReport = async (req: Request, res: Response, next: NextFunc
         const reportData = req.body; // Assume the report data is in the request body
         const report = await AdminService.generateReport(reportData);
         res.status(200).json({ success: true, data: report });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get all saved reports
+ * @route   GET /api/v1/admin/reports
+ * @access  Private (Admins only)
+ */
+export const getSavedReports = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const reports = await AdminService.getSavedReports();
+        res.status(200).json({ success: true, data: reports });
     } catch (error) {
         next(error);
     }

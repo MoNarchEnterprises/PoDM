@@ -3,18 +3,25 @@ import { createClient } from '@supabase/supabase-js';
 // --- Supabase Client Initialization ---
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+// This key has elevated privileges required for admin tasks.
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and Anon Key must be provided in the environment variables.");
+
+if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase URL and Service Role Key must be provided in the environment variables.");
 }
 
 /**
- * The Supabase client instance.
- * This is the primary object you will use to interact with your Supabase project,
- * including authentication, database queries, and storage operations.
+ * The Supabase client instance for server-side operations.
+ * Initialized with the Service Role Key to perform admin-level actions.
  */
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+        // It's good practice to disable auto-refreshing tokens on the server
+        autoRefreshToken: false,
+        persistSession: false
+    }
+});
 
 export default supabase;

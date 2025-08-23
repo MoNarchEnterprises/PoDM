@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useOutletContext } from 'react-router-dom';
 
 // --- Import Shared Types ---
 import { User } from '@common/types/User';
@@ -11,23 +11,44 @@ import apiClient from '../../lib/apiClient';
 
 
 // --- Local Types ---
-type AdminData = {
-    dashboard: any; // Replace with actual type for dashboard data
+export type AdminData = {
+    dashboard: {
+        keyMetrics: {
+            totalUsers: number;
+            activeCreators: number;
+            monthlyRevenue: number;
+            openTickets: number;
+        };
+        userGrowth: { name: string; Users: number; }[];
+    };
     users: User[];
     flaggedContent: Content[];
-    analytics: any; // Replace with actual type for analytics data
-    reports: any[]; // Replace with actual type for reports
+    analytics: {
+        revenueGrowth: { name: string; Revenue: number; }[];
+        engagement: { name: string; 'Messages Sent': number; 'Content Unlocked': number; }[];
+        topCreators: { name: string; revenue: number; }[];
+    };
+    reports: any[];
     supportTickets: SupportTicket[];
     settings: {
-        admins: User[]; // Assuming admins are also users
+        admins: User[];
     };
 };
 
-const EMPTY: AdminData = {
-    dashboard: null,
+// --- Helper to provide a default empty state ---
+// This prevents "cannot read properties of undefined" errors on initial render
+const EMPTY_DATA: AdminData = {
+    dashboard: {
+        keyMetrics: { totalUsers: 0, activeCreators: 0, monthlyRevenue: 0, openTickets: 0 },
+        userGrowth: []
+    },
     users: [],
     flaggedContent: [],
-    analytics: null,
+    analytics: {
+        revenueGrowth: [],
+        engagement: [],
+        topCreators: []
+    },
     reports: [],
     supportTickets: [],
     settings: {
@@ -35,17 +56,21 @@ const EMPTY: AdminData = {
     },
 };
 
-const AdminContainer = () => {
+/**
+ * A container component that fetches all data for the admin panel
+ * and provides it to the child routes via context.
+ */
+const AdminPanel = () => {
     const [isLoading, setIsLoading] = useState(true);
-    const [data, setData] = useState<AdminData>(EMPTY);
+    const [data, setData] = useState<AdminData>(EMPTY_DATA);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(()=>{
+    useEffect(() => {
         const fetchAdminData = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                console.log('Fetching admin data...');
+                // Use Promise.all to fetch all data concurrently for better performance
                 const [
                     dashboardRes,
                     usersRes,
@@ -61,9 +86,10 @@ const AdminContainer = () => {
                     apiClient.get('/admin/analytics'),
                     apiClient.get('/admin/reports'),
                     apiClient.get('/admin/support-tickets'),
-                    apiClient.get('/admin/settings/admins') // Assuming an endpoint for admins
+                    apiClient.get('/admin/settings/admins')
                 ]);
-                console.log('Admin data fetched successfully');
+
+                // Populate the state with the data from the API responses
                 setData({
                     dashboard: dashboardRes.data.data,
                     users: usersRes.data.data,
@@ -75,29 +101,33 @@ const AdminContainer = () => {
                         admins: settingsRes.data.data
                     }
                 });
-            } catch (error) {
-                console.error("Failed to fetch admin data:", error);
+            } catch (err) {
+                console.error("Failed to fetch admin data:", err);
                 setError('Failed to load admin data. Please try again later.');
-                setData(EMPTY); // Reset data on error
-            }
-            finally {
+                setData(EMPTY_DATA); // Reset data on error to prevent crashes
+            } finally {
                 setIsLoading(false);
-            }   
+            }
         };
+
         fetchAdminData();
     }, []);
 
+    // Display loading or error states to the user
     if (isLoading) return <div className="p-8 text-center text-gray-500">Loading Admin Panel...</div>;
     if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
-    return (
-        <div className="admin-panel">
-            <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
-            <Outlet context={{ data, setData }} />
-        </div>
-    );
+
+    // If data is loaded, render the child route (e.g., DashboardPanel)
+    // and provide the fetched data and a setter function via context.
+    return <Outlet context={{ data, setData }} />;
 };
 
-export type { AdminData };
-export default AdminContainer;
+/**
+ * A custom hook to easily access the admin data from child components.
+ * This avoids having to pass props down through multiple levels.
+ */
+export function useAdminData() {
+    return useOutletContext<{ data: AdminData; setData: React.Dispatch<React.SetStateAction<AdminData>> }>();
+}
 
-
+export default AdminPanel;

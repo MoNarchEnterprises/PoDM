@@ -125,3 +125,19 @@ export const findSuccessfulTransactionByFanAndContent = async (fanId: string, co
     }
     return data as Transaction;
 }
+
+/**
+ * Find all reports saved by the admin.
+ */
+export const findAllReports = async (): Promise<Transaction[] | null> => {
+    const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error finding all reports:', error.message);
+        return null;
+    }
+    return data as Transaction[];
+}

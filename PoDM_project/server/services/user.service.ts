@@ -3,6 +3,8 @@ import * as GalleryModel from '../models/gallery.model';
 import { AppError } from '../middleware/error.middleware';
 import { UserProfile } from '@common/types/User';
 import { GalleryItem } from '@common/types/Gallery';
+import supabase from '../config/supabaseClient'; // Import the Supabase client
+
 
 /**
  * Handles the business logic for fetching a user's public profile.
@@ -20,17 +22,44 @@ export const getPublicUserProfile = async (username: string) => {
 
 /**
  * Handles the business logic for updating a user's profile.
+ * It separates email updates (which go to Supabase Auth) from other
+ * profile updates (which go to the public 'profiles' table).
  * @param userId - The ID of the user to update.
- * @param profileUpdates - The profile data to update.
+ * @param updates - The profile data to update.
  * @returns The updated user profile.
  */
-export const updateUserProfile = async (userId: string, profileUpdates: Partial<UserProfile>) => {
-    const updatedUser = await UserModel.updateProfile(userId, profileUpdates);
-    if (!updatedUser) {
-        throw new AppError('Failed to update user profile.', 500);
+export const updateUserProfile = async (userId: string, updates: Partial<UserProfile & { email: string }>) => {
+    const { email, ...profileUpdates } = updates;
+
+    // Step 1: Handle email update if an email is provided
+    if (email) {
+        const { error: authError } = await supabase.auth.admin.updateUserById(
+            userId,
+            { email: email }
+        );
+        if (authError) {
+            console.error("Supabase auth update error:", authError);
+            throw new AppError('Failed to update email.', 500);
+        }
     }
-    return updatedUser;
+
+    // Step 2: Handle other profile updates if there are any
+    if (Object.keys(profileUpdates).length > 0) {
+        const updatedUser = await UserModel.updateProfile(userId, profileUpdates);
+        if (!updatedUser) {
+            throw new AppError('Failed to update user profile.', 500);
+        }
+        return updatedUser;
+    }
+    
+    // If only the email was updated, refetch the user to return the complete, updated profile
+    const refetchedUser = await UserModel.findUserById(userId);
+    if (!refetchedUser) {
+        throw new AppError('Could not find user after update.', 404);
+    }
+    return refetchedUser;
 };
+
 
 /**
  * Handles the business logic for adding content to a fan's gallery.

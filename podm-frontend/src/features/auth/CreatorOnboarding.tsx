@@ -182,7 +182,6 @@ const CreatorOnboardingPage = ({ onSubmit }: CreatorOnboardingPageProps) => {
 
 export default function App() {
     const handleOnboardingSubmit = (data: OnboardingData) => {
-        console.log("Onboarding data submitted:", data);
         // Here you would make an API call to your backend to save the creator's profile and tiers.
         // After a successful response, you would redirect the user to the verification page or dashboard.
         alert("Onboarding complete! Check the console for the submitted data.");

@@ -1,18 +1,46 @@
 import { AppError } from '../middleware/error.middleware';
-
 // --- Import Model Functions ---
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as SupportTicketModel from '../models/supportTicket.model';
 import * as ContentModel from '../models/content.model';
+import { User } from '@common/types/User';
+
+// --- Local Type Definitions ---
+type UserGrowthData = {
+    name: string; // e.g., "Jan", "Feb", "Mar"
+    Users: number;
+};
+
+// --- Helper Function to Reshape User Data ---
+/**
+ * Transforms a flat user object from the database into the nested structure
+ * expected by the frontend, which includes a 'profile' object.
+ * @param dbUser - The user object directly from the Supabase 'profiles' table.
+ * @returns A user object that matches the frontend's expected User type.
+ */
+const reshapeUserForFrontend = (dbUser: any): User => {
+    const {id, username, avatar_url, bio, ...restOfUser } = dbUser;
+    console.log('admin.service: Name:', username, 'Avatar:', avatar_url, 'Bio:', bio);
+    return {
+        _id: id,
+        username: username || 'Unknown User',
+        ...restOfUser,
+        profile: {
+            name: username || 'Unknown User',
+            email: dbUser.email || '', // Ensure email is included
+            // **FIX:** Provide a default placeholder if the avatar is missing.
+            avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
+            bio: bio || '',
+        },
+    } as User;
+};
 
 
 /**
  * Fetches and aggregates key metrics for the main admin dashboard.
- * This service function calls the data access layer (models) to get the data.
  */
 export const getDashboardStats = async () => {
-    // Use Promise.all to fetch all metrics concurrently for better performance
     const [
         totalUsers,
         activeCreators,
@@ -21,40 +49,42 @@ export const getDashboardStats = async () => {
     ] = await Promise.all([
         UserModel.countAllUsers(),
         UserModel.countActiveCreators(),
-        TransactionModel.sumPlatformFeeForPeriod(30), // Get revenue from the last 30 days
+        TransactionModel.sumPlatformFeeForPeriod(30),
         SupportTicketModel.countOpenTickets()
     ]);
 
+    const userGrowth: UserGrowthData[] = []; 
+
     return {
-        totalUsers,
-        activeCreators,
-        monthlyRevenue,
-        openTickets,
+        keyMetrics: {
+            totalUsers: totalUsers || 0,
+            activeCreators: activeCreators || 0,
+            monthlyRevenue: monthlyRevenue || 0,
+            openTickets: openTickets || 0,
+        },
+        userGrowth,
     };
 };
 
 /**
- * Fetches a list of all users with optional filtering.
- * @param query - The query parameters from the request (for filtering).
+ * Fetches a list of all users and reshapes them for the frontend.
  */
 export const getAllUsers = async (query: any) => {
-    // In a real app, you would pass the filters to the model function
-    const users = await UserModel.findAll(query);
-    return users;
-    
+    const usersFromDb = await UserModel.findAll(query);
+    if (!usersFromDb) return [];
+    console.log('Users from DB:', usersFromDb);
+    return usersFromDb.map(reshapeUserForFrontend);
 };
 
 /**
  * Updates the status of a specific user.
- * @param userId - The ID of the user to update.
- * @param status - The new status to set.
  */
 export const updateUserStatus = async (userId: string, status: string) => {
     const updatedUser = await UserModel.updateProfile(userId, { status });
     if (!updatedUser) {
         throw new AppError('User not found or failed to update.', 404);
     }
-    return updatedUser;
+    return reshapeUserForFrontend(updatedUser); // Reshape the updated user too
 };
 
 /**
@@ -62,13 +92,11 @@ export const updateUserStatus = async (userId: string, status: string) => {
  */
 export const getFlaggedContent = async () => {
     const flaggedContent = await ContentModel.findContentByStatus('flagged');
-    return flaggedContent;
+    return flaggedContent || [];
 };
 
 /**
  * Updates the status of a piece of content.
- * @param contentId - The ID of the content to update.
- * @param status - The new status (e.g., 'published' or 'removed').
  */
 export const updateContentStatus = async (contentId: string, status: string) => {
     const updatedContent = await ContentModel.updateContent(contentId, { status });
@@ -82,31 +110,28 @@ export const updateContentStatus = async (contentId: string, status: string) => 
  * Fetches platform-wide analytics data.
  */
 export const getPlatformAnalytics = async () => {
-    // Example: Fetch total users, active users, and content statistics
-    const totalUsers = await UserModel.countAllUsers();
-    const activeUsers = await UserModel.countActiveUsers();
-    const totalContent = await ContentModel.countAllContent();
-
-    return {
-        totalUsers,
-        activeUsers,
-        totalContent,
+    const analyticsData = {
+        revenueGrowth: [],
+        engagement: [],
+        topCreators: [],
     };
+    return analyticsData;
 };
 
 /**
  * Generates a custom report based on provided parameters.
- * @param reportParams - The parameters for the report.
  */
 export const generateReport = async (reportParams: any) => {
-    // This function would typically call a model function to generate the report
-    // For simplicity, let's assume it returns a mock report
-    const report = {
-        title: 'Custom Report',
-        date: new Date(),
-        data: [], // Populate with actual data based on reportParams
-    };
+    const report = { title: 'Custom Report', date: new Date(), data: [] };
     return report;
+};
+
+/**
+ * Fetches all saved reports.
+ */
+export const getSavedReports = async () => {
+    const reports = await TransactionModel.findAllReports();
+    return reports || [];
 };
 
 /**
@@ -114,13 +139,11 @@ export const generateReport = async (reportParams: any) => {
  */
 export const getSupportTickets = async () => {
     const tickets = await SupportTicketModel.findAllSupportTickets();
-    return tickets;
+    return tickets || [];
 };
 
 /**
- * Updates a specific support ticket (e.g., change status, add reply).
- * @param ticketId - The ID of the ticket to update.
- * @param updates - An object containing the fields to update.
+ * Updates a specific support ticket.
  */
 export const updateSupportTicket = async (ticketId: string, updates: any) => {
     const updatedTicket = await SupportTicketModel.updateSupportTicket(ticketId, updates);
@@ -131,12 +154,13 @@ export const updateSupportTicket = async (ticketId: string, updates: any) => {
 };
 
 /**
- * Fetches a list of all admin users.
+ * Fetches a list of all admin users and reshapes them for the frontend.
  */
 export const getAdminUsers = async () => {
-    // This function would typically fetch admin users from the database
-    const admins = await UserModel.findAdmins();
-    if (!admins) {
-        throw new AppError('No admin users found.', 404);
-    }   
-   };
+    const adminsFromDb = await UserModel.findAdmins();
+    if (!adminsFromDb) {
+        return [];
+    }
+    // **FIX:** Map over the database results and transform each admin object.
+    return adminsFromDb.map(reshapeUserForFrontend);
+};

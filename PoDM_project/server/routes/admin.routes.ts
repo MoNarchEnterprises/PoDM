@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers } from '../controllers/admin.controller';
+import { getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports } from '../controllers/admin.controller';
 import { protect, adminOnly } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -56,6 +56,13 @@ router.get('/analytics', getPlatformAnalytics);
  * @access  Private (Admins only)
  */
 router.post('/reports', generateReport);
+
+/**
+ * @route   GET /api/v1/admin/reports
+ * @desc    Get all saved reports
+ */
+router.get('/reports', getSavedReports);
+
 
 /**
  * @route   GET /api/v1/admin/support-tickets

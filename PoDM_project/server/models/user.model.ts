@@ -31,7 +31,6 @@ export const findUserByUsername = async (username: string): Promise<User | null>
         .select('*')
         .eq('username', username)
         .single();
-
     if (error) {
         console.error('Error finding user by username:', error.message);
         return null;
@@ -66,6 +65,7 @@ export const createProfile = async (profileData: Partial<User>): Promise<User | 
  * @returns The updated profile object.
  */
 export const updateProfile = async (id: string, updates: Partial<UserProfile>): Promise<User | null> => {
+    console.log('Updating profile for user ID:', id, 'with updates:', updates);
     const { data, error } = await supabase
         .from('profiles')
         .update(updates)
@@ -122,6 +122,7 @@ export const findAll = async (query: any): Promise<User[]> => {
         .select('*')
         .match(query);
 
+    
     if (error) {
         console.error('Error finding users:', error.message);
         return [];
