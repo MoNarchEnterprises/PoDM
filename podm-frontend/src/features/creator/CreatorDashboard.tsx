@@ -66,7 +66,8 @@ interface CreatorDashboardProps {
 
 const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }: CreatorDashboardProps) => {
     const [copied, setCopied] = useState(false);
-    const profileLink = `https://yourplatform.com/creator/${creator.username}`;
+    const baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    const profileLink = `${baseUrl}/creator/${creator.username}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(profileLink).then(() => {

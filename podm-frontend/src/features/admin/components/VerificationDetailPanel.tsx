@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Add useState and useEffect
 import { ArrowLeft } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User } from '@common/types/User';
 
-// --- Import Reusable Components ---
+// --- Import Reusable Components & API Client ---
 import Button from '../../../components/ui/Button';
+import * as apiClient from '../../../lib/apiClient'; // 2. Import the apiClient
 
 // --- Local Types ---
 // In a real application, the URLs for verification documents would likely
@@ -31,15 +32,31 @@ interface VerificationDetailPanelProps {
 
 // --- Main Verification Detail Panel Component ---
 const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: VerificationDetailPanelProps) => {
-    if (!user) return null;
+    const [isLoading, setIsLoading] = useState(true);
+    const [docUrls, setDocUrls] = useState<{ idUrl: string | null, selfieUrl: string | null }>({
+        idUrl: null,
+        selfieUrl: null,
+    });
 
-    // Placeholder data for document URLs, as the final data structure is not defined.
-    // In a real app, these would come from `user.verification.idUrl` or similar.
-    const verificationDocs = {
-        idUrl: 'https://placehold.co/600x400/1F2937/FFFFFF?text=ID+Document',
-        selfieUrl: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Selfie+with+ID',
-        signature: user.profile.name, // Use the user's name as a placeholder signature
-    };
+    // 4. Fetch the secure URLs when the component mounts
+    useEffect(() => {
+        const fetchDocs = async () => {
+            if (!user) return;
+            setIsLoading(true);
+            try {
+                const response = await apiClient.getVerificationDocs(user._id);
+                setDocUrls(response.data);
+            } catch (error) {
+                console.error("Failed to fetch verification documents:", error);
+                // Optionally set an error state here to show a message
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchDocs();
+    }, [user]); // Re-run if the user prop changes
+
+    if (!user) return null;
 
     return (
         <div>
@@ -54,20 +71,27 @@ const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: Verifica
             
             <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md">
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 5. Update the image display logic */}
                     <div>
                         <h4 className="font-semibold mb-2">Government ID</h4>
-                        <img src={verificationDocs.idUrl} alt="Government ID" className="rounded-lg w-full border dark:border-gray-700" />
+                        {isLoading ? <p>Loading document...</p> : (
+                            <img src={docUrls.idUrl || ''} alt="Government ID" className="rounded-lg w-full border dark:border-gray-700" />
+                        )}
                     </div>
                     <div>
                         <h4 className="font-semibold mb-2">Selfie with ID</h4>
-                        <img src={verificationDocs.selfieUrl} alt="Selfie with ID" className="rounded-lg w-full border dark:border-gray-700" />
+                        {isLoading ? <p>Loading document...</p> : (
+                            <img src={docUrls.selfieUrl || ''} alt="Selfie with ID" className="rounded-lg w-full border dark:border-gray-700" />
+                        )}
                     </div>
                     <div className="md:col-span-2">
                         <h4 className="font-semibold mb-2">Signed Affidavit</h4>
                         <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Signed as: <span className="font-mono bg-gray-100 dark:bg-gray-700 p-1 rounded">{verificationDocs.signature}</span>
-                            </p>
+                                Signed as: 
+                                <span className="font-mono bg-gray-100 dark:bg-gray-700 p-1 rounded">
+                                    {user.verification_data?.signature || 'Not provided'}
+                                </span>                            </p>
                         </div>
                     </div>
                 </div>

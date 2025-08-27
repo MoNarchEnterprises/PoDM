@@ -79,6 +79,27 @@ export const findSubscriptionsByCreator = async (creatorId: string): Promise<Sub
 };
 
 /**
+ * Counts new subscribers for a creator within a given date range.
+ * @param creatorId - The UUID of the creator.
+ * @param startDate - The start of the date range.
+ * @returns The number of new subscribers.
+ */
+export const countNewSubscribersInPeriod = async (creatorId: string, startDate: Date): Promise<number> => {
+    const { count, error } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', creatorId)
+        .eq('status', 'active')
+        .gte('created_at', startDate.toISOString());
+
+    if (error) {
+        console.error('Error counting new subscribers:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
+
+/**
  * Updates a subscription's status or tier.
  * @param id - The ID of the subscription to update.
  * @param updates - An object containing the fields to update.

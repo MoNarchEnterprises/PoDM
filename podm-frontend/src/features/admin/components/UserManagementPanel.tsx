@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, MoreVertical, Eye, Percent, Ban, Slash, Undo, Shield, X } from 'lucide-react';
 
 // --- Import Shared Types ---
-import { User } from '@common/types/User';
+import { User, UserStatus } from '@common/types/User';
 
 // --- Import Reusable Components & Hooks ---
 import StatusBadge from '../../../components/shared/StatusBadge';
@@ -11,27 +11,75 @@ import { useModal } from '../../../hooks/useModal';
 import { useOnClickOutside } from '../../../hooks/useOnClickOutside';
 import { formatDate } from '../../../lib/formatters';
 import { useAdminData } from '../AdminPanel';
+import * as apiClient from '../../../lib/apiClient';
+import Input from '../../../components/ui/Input'; // Add Input import
+import Button from '../../../components/ui/Button'; // Add Button import
+import { DEFAULT_COMMISSION_RATE } from '../../../lib/constants'; // Import default rate
+
 
 // --- Reusable Sub-Components ---
 
-const ManageCommissionModal = ({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: User | null }) => {
+const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: boolean; onClose: () => void; user: User | null; onSave: (userId: string, rate: number | null) => Promise<void>; }) => {
+    const [rate, setRate] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        // When the modal opens, set the input value to the user's current rate
+        // or the platform default if they don't have a custom one.
+        if (user) {
+            setRate(user.commission_rate?.toString() || DEFAULT_COMMISSION_RATE.toString());
+        }
+    }, [user]);
+
     if (!isOpen || !user) return null;
+
+    const handleSave = async () => {
+        setIsLoading(true);
+        const newRate = rate === '' ? null : parseFloat(rate);
+        await onSave(user._id, newRate);
+        setIsLoading(false);
+        onClose();
+    };
+
+    const handleResetToDefault = () => {
+        setRate('');
+    };
+
     return (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col">
                  <header className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                    <h2 className="text-xl font-bold">Manage Commission for {user.profile.name}</h2>
+                    <h2 className="text-xl font-bold">Manage Commission</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-6 h-6 text-gray-500" /></button>
                 </header>
-                <main className="p-6">
-                    <p>Commission settings for {user.profile.name} would be here.</p>
+                <main className="p-6 space-y-4">
+                    <p className="text-sm text-gray-500">
+                        Set a custom commission rate for <span className="font-bold">{user.profile.name}</span>. 
+                        The platform default is {DEFAULT_COMMISSION_RATE}%.
+                    </p>
+                    <Input
+                        id="commission-rate"
+                        label="Custom Rate (%)"
+                        type="number"
+                        value={rate}
+                        onChange={(e) => setRate(e.target.value)}
+                        leftIcon={Percent}
+                        placeholder={`${DEFAULT_COMMISSION_RATE}`}
+                    />
+                    <Button variant="ghost" size="sm" onClick={handleResetToDefault}>
+                        Reset to Default
+                    </Button>
                 </main>
+                <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <Button onClick={handleSave} isLoading={isLoading}>Save Commission Rate</Button>
+                </footer>
             </div>
         </div>
     ); 
 };
 
-const UserActionsMenu = ({ user, onManageCommission, onViewVerification }: { user: User; onManageCommission: () => void; onViewVerification: () => void; }) => {
+
+const UserActionsMenu = ({ user, onManageCommission, onViewVerification, onUpdateStatus }: { user: User; onManageCommission: () => void; onViewVerification: () => void; onUpdateStatus: (user: User, status: UserStatus) => void; }) => {
     const { isOpen, openModal, closeModal } = useModal();
     const menuRef = useRef<HTMLDivElement>(null);
     useOnClickOutside(menuRef, closeModal);
@@ -40,10 +88,10 @@ const UserActionsMenu = ({ user, onManageCommission, onViewVerification }: { use
         { label: 'View Verification', icon: Shield, show: user.status === 'pending verification', action: onViewVerification },
         { label: 'Impersonate User', icon: Eye, show: true, action: () => {} },
         { label: 'Manage Commission', icon: Percent, show: user.role === 'creator', action: onManageCommission },
-        { label: 'Suspend User', icon: Ban, show: user.status === 'active', action: () => {} },
-        { label: 'Un-suspend User', icon: Undo, show: user.status === 'suspended', action: () => {} },
-        { label: 'Ban User', icon: Slash, show: user.status !== 'banned', action: () => {} },
-        { label: 'Un-ban User', icon: Undo, show: user.status === 'banned', action: () => {} },
+        { label: 'Suspend User', icon: Ban, show: user.status === 'active', action: () => onUpdateStatus(user, 'suspended') },
+        { label: 'Un-suspend User', icon: Undo, show: user.status === 'suspended', action: () => onUpdateStatus(user, 'active') },
+        { label: 'Ban User', icon: Slash, show: user.status !== 'banned', action: () => onUpdateStatus(user, 'banned') },
+        { label: 'Un-ban User', icon: Undo, show: user.status === 'banned', action: () => onUpdateStatus(user, 'active') },
     ];
 
     return (
@@ -69,14 +117,38 @@ const UserActionsMenu = ({ user, onManageCommission, onViewVerification }: { use
     );
 };
 
+
 // --- Main User Management Panel Component ---
 const UserManagementPanel = () => {
-    const { data } = useAdminData();
+    // 2. GET THE setData FUNCTION FROM THE HOOK
+    const { data, setData } = useAdminData();
     const [viewingVerificationId, setViewingVerificationId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ type: 'All', status: 'All' });
     const { isOpen: isCommissionModalOpen, openModal: openCommissionModal, closeModal: closeCommissionModal } = useModal();
     const [selectedUserForModal, setSelectedUserForModal] = useState<User | null>(null);
+
+    // 3. CREATE THE HANDLER FUNCTION
+    const handleUpdateStatus = async (user: User, status: UserStatus) => {
+        if (!confirm(`Are you sure you want to ${status} the user "${user.profile.name}"?`)) {
+            return;
+        }
+
+        try {
+            const updatedUser = await apiClient.updateUserStatus(user._id, status);
+            // Update the user in the shared admin panel state
+            setData(prevData => ({
+                ...prevData,
+                users: prevData.users.map(u => 
+                    u._id === updatedUser.data._id ? updatedUser.data : u
+                ),
+            }));
+            alert(`User has been ${status}.`);
+        } catch (error) {
+            console.error("Failed to update user status:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
 
     if (!data) {
         return <div className="p-8 text-center text-gray-500">Loading user data...</div>;
@@ -88,10 +160,59 @@ const UserManagementPanel = () => {
         setSelectedUserForModal(user);
         openCommissionModal(); 
     };
-    
-    const handleApprove = (userId: string) => { console.log(`Approving user ${userId}`); setViewingVerificationId(null); };
-    const handleReject = (userId: string) => { console.log(`Rejecting user ${userId}`); setViewingVerificationId(null); };
 
+    const handleUpdateCommission = async (userId: string, commissionRate: number | null) => {
+        try {
+            const response = await apiClient.updateCreatorCommission(userId, commissionRate);
+            const updatedUser = response.data;
+
+            setData(prevData => ({
+                ...prevData,
+                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+            }));
+        } catch (error) {
+            console.error("Failed to update commission:", error);
+            alert("An error occurred while updating the commission rate.");
+        }
+    };
+    
+    const handleApprove = async (userId: string) => {
+        try {
+            const response = await apiClient.updateUserStatus(userId, 'active');
+            const updatedUser = response.data;
+            // Update the state to reflect the change
+            setData(prevData => ({
+                ...prevData,
+                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+            }));
+            // Close the verification panel
+            setViewingVerificationId(null);
+            alert('Creator has been approved and is now active.');
+        } catch (error) {
+            console.error("Failed to approve user:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
+
+    const handleReject = async (userId: string) => {
+        // We'll set the status to 'suspended' upon rejection for this example
+        try {
+            const response = await apiClient.updateUserStatus(userId, 'suspended');
+            const updatedUser = response.data;
+            // Update the state
+            setData(prevData => ({
+                ...prevData,
+                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+            }));
+            // Close the verification panel
+            setViewingVerificationId(null);
+            alert('Creator has been rejected and their account is suspended.');
+        } catch (error) {
+            console.error("Failed to reject user:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
+    
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
             if (!user || !user.profile) return false;
@@ -124,8 +245,13 @@ const UserManagementPanel = () => {
 
     return (
         <>
-            <ManageCommissionModal isOpen={isCommissionModalOpen} onClose={closeCommissionModal} user={selectedUserForModal} />
-             <div className="p-4 sm:p-6 lg:p-8">
+            <ManageCommissionModal 
+                isOpen={isCommissionModalOpen} 
+                onClose={closeCommissionModal} 
+                user={selectedUserForModal}
+                onSave={handleUpdateCommission}
+            />
+            <div className="p-4 sm:p-6 lg:p-8">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Search, filter, and manage all users on the platform.</p>
@@ -161,7 +287,14 @@ const UserManagementPanel = () => {
                                        <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><span className="font-medium">{user.profile.name}</span></div></td>
                                        <td className="px-4 py-3 text-center"><StatusBadge status={user.status} /></td>
                                        <td className="px-4 py-3 text-center text-sm">{formatDate(user.createdAt)}</td>
-                                       <td className="px-4 py-3 text-center"><UserActionsMenu user={user} onManageCommission={() => handleManageCommission(user)} onViewVerification={() => setViewingVerificationId(user._id)} /></td>
+                                       <td className="px-4 py-3 text-center">
+                                           <UserActionsMenu 
+                                               user={user} 
+                                               onManageCommission={() => handleManageCommission(user)} 
+                                               onViewVerification={() => setViewingVerificationId(user._id)}
+                                               onUpdateStatus={handleUpdateStatus}
+                                           />
+                                       </td>
                                    </tr>
                                ))}
                             </tbody>

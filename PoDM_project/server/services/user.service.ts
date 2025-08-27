@@ -4,6 +4,8 @@ import { AppError } from '../middleware/error.middleware';
 import { UserProfile } from '@common/types/User';
 import { GalleryItem } from '@common/types/Gallery';
 import supabase from '../config/supabaseClient'; // Import the Supabase client
+import { reshapeUserForApp } from '../utils/user.utils';
+import { SubscriptionTier } from '@common/types/Creator';
 
 
 /**
@@ -13,10 +15,10 @@ import supabase from '../config/supabaseClient'; // Import the Supabase client
  */
 export const getPublicUserProfile = async (username: string) => {
     const user = await UserModel.findUserByUsername(username);
-    if (!user) {
+    // Only return a profile if the user exists AND their status is 'active'
+    if (!user || user.status !== 'active') {
         throw new AppError('User not found.', 404);
     }
-    // In a real app, you would filter out sensitive data before returning
     return user;
 };
 
@@ -44,20 +46,33 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
     }
 
     // Step 2: Handle other profile updates if there are any
+    let updatedDbProfile = null;
+
+    // Step 2: Handle other profile updates if there are any
     if (Object.keys(profileUpdates).length > 0) {
-        const updatedUser = await UserModel.updateProfile(userId, profileUpdates);
-        if (!updatedUser) {
-            throw new AppError('Failed to update user profile.', 500);
+        // --- FIX STARTS HERE ---
+        const dbUpdates: { [key: string]: any } = { ...profileUpdates };
+        if (dbUpdates.name) {
+            dbUpdates.username = dbUpdates.name;
+            delete dbUpdates.name;
         }
-        return updatedUser;
+        // --- END OF PREVIOUS FIX ---
+
+        updatedDbProfile = await UserModel.updateProfile(userId, dbUpdates);
+        if (!updatedDbProfile) {
+            throw new AppError('Failed to update user profile in database.', 500);
+        }
+    } else {
+        // If only email was updated, we still need the profile to reshape it
+        updatedDbProfile = await UserModel.findUserById(userId);
     }
     
-    // If only the email was updated, refetch the user to return the complete, updated profile
-    const refetchedUser = await UserModel.findUserById(userId);
-    if (!refetchedUser) {
-        throw new AppError('Could not find user after update.', 404);
+    if (!updatedDbProfile) {
+        throw new AppError('Could not find user profile after update.', 404);
     }
-    return refetchedUser;
+ 
+    // Step 4: Reshape the data into the consistent format the frontend expects
+    return reshapeUserForApp(updatedDbProfile);
 };
 
 
@@ -99,4 +114,146 @@ export const removeFromUserGallery = async (fanId: string, contentId: string) =>
     }
 
     return updatedGallery;
+};
+
+/**
+ * Handles the business logic for uploading a new user avatar.
+ * @param userId - The ID of the user uploading the avatar.
+ * @param file - The avatar file object from Multer.
+ * @returns The updated user profile with the new avatar URL.
+ */
+export const uploadUserAvatar = async (userId: string, file: Express.Multer.File) => {
+    if (!file) {
+        throw new AppError('No avatar file provided.', 400);
+    }
+
+    // 1. Define the file path in Supabase Storage
+    const fileName = `avatar-${userId}-${Date.now()}`;
+    const filePath = `avatars/${fileName}`;
+
+    // 2. Upload the new avatar to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+        .from('avatars') // Assuming you have a bucket named 'avatars'
+        .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true, // This will overwrite any existing file, which is good for avatars
+        });
+
+    if (uploadError) {
+        throw new AppError('Failed to upload avatar to storage.', 500);
+    }
+
+    // 3. Get the public URL of the uploaded file
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+    if (!publicUrl) {
+        throw new AppError('Could not get public URL for the uploaded avatar.', 500);
+    }
+
+    // 4. Update the avatar_url in the user's profile
+    await UserModel.updateProfile(userId, { avatar_url: publicUrl });
+    
+    // 5. Fetch the complete, updated user data to return
+    const updatedDbProfile = await UserModel.findUserById(userId);
+
+    
+    // 6. Reshape and return the full user object
+    return reshapeUserForApp(updatedDbProfile);
+};
+
+/**
+ * Handles the business logic for a creator's initial onboarding.
+ * @param userId - The ID of the creator being onboarded.
+ * @param onboardingData - The data from the onboarding form.
+ * @returns The fully updated user profile.
+ */
+export const onboardCreator = async (userId: string, onboardingData: { profile: Partial<UserProfile>, tiers: Partial<SubscriptionTier>[] }) => {
+    const { profile, tiers } = onboardingData;
+
+    // 1. Fetch the user's existing profile to not overwrite anything
+    const existingProfile = await UserModel.findUserById(userId);
+    if (!existingProfile) {
+        throw new AppError('User profile not found.', 404);
+    }
+
+    // 2. Prepare the updates
+    // Update top-level fields like bio
+    const profileUpdates: Partial<UserProfile> = {
+        bio: profile.bio,
+    };
+    
+    // Prepare the creator_data JSONB field update
+    const creatorDataUpdate = {
+        ...existingProfile.creator_data, // Preserve existing data
+        subscriptionTiers: tiers, // Add the new tiers
+    };
+
+    // 3. Save the updates to the database
+    const updatedUser = await UserModel.updateProfile(userId, {
+        ...profileUpdates,
+        creator_data: creatorDataUpdate,
+        onboarding_complete: true, // <-- ADD THIS FLAG
+    });
+
+    if (!updatedUser) {
+        throw new AppError('Failed to update profile during onboarding.', 500);
+    }
+
+    // 4. Reshape and return the full user object
+
+    return reshapeUserForApp(updatedUser);
+};
+
+/**
+ * Handles uploading verification documents and updating the user's profile.
+ * @param userId The ID of the user submitting documents.
+ * @param files The file objects from Multer.
+ * @param signature The user's electronic signature.
+ */
+export const submitVerificationDocs = async (
+    userId: string, 
+    files: { [fieldname: string]: Express.Multer.File[] },
+    signature: string
+) => {
+    const idFile = files?.idFile?.[0];
+    const selfieFile = files?.selfieFile?.[0];
+
+    if (!idFile || !selfieFile || !signature) {
+        throw new AppError('ID file, selfie file, and signature are all required.', 400);
+    }
+
+    const uploadFile = async (file: Express.Multer.File, fileName: string) => {
+        const filePath = `${userId}/${fileName}`;
+        const { error } = await supabase.storage
+            .from('verification-documents')
+            .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
+        
+        if (error) throw new AppError(`Failed to upload ${fileName}.`, 500);
+        return filePath;
+    };
+
+    // Upload both files concurrently
+    const [idFilePath, selfieFilePath] = await Promise.all([
+        uploadFile(idFile, 'id-document'),
+        uploadFile(selfieFile, 'selfie-document'),
+    ]);
+
+    // Prepare the data to be saved in the profile's jsonb column
+    const verificationData = {
+        idFilePath,
+        selfieFilePath,
+        signature,
+        submittedAt: new Date().toISOString(),
+    };
+
+    // Update the user's profile with the verification data
+    const updatedUser = await UserModel.updateProfile(userId, {
+        verification_data: verificationData
+    });
+
+    if (!updatedUser) {
+        throw new AppError('Failed to save verification data to profile.', 500);
+    }
+
+    return { success: true, message: 'Verification documents submitted successfully.' };
 };

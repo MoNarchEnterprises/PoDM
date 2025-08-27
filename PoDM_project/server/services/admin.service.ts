@@ -1,10 +1,14 @@
 import { AppError } from '../middleware/error.middleware';
 // --- Import Model Functions ---
+import * as SettingsModel from '../models/settings.model';
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as SupportTicketModel from '../models/supportTicket.model';
 import * as ContentModel from '../models/content.model';
 import { User } from '@common/types/User';
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import supabase from '../config/supabaseClient';
+import { reshapeUserForApp } from '../utils/user.utils';
 
 // --- Local Type Definitions ---
 type UserGrowthData = {
@@ -12,29 +16,7 @@ type UserGrowthData = {
     Users: number;
 };
 
-// --- Helper Function to Reshape User Data ---
-/**
- * Transforms a flat user object from the database into the nested structure
- * expected by the frontend, which includes a 'profile' object.
- * @param dbUser - The user object directly from the Supabase 'profiles' table.
- * @returns A user object that matches the frontend's expected User type.
- */
-const reshapeUserForFrontend = (dbUser: any): User => {
-    const {id, username, avatar_url, bio, ...restOfUser } = dbUser;
-    console.log('admin.service: Name:', username, 'Avatar:', avatar_url, 'Bio:', bio);
-    return {
-        _id: id,
-        username: username || 'Unknown User',
-        ...restOfUser,
-        profile: {
-            name: username || 'Unknown User',
-            email: dbUser.email || '', // Ensure email is included
-            // **FIX:** Provide a default placeholder if the avatar is missing.
-            avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
-            bio: bio || '',
-        },
-    } as User;
-};
+
 
 
 /**
@@ -66,14 +48,12 @@ export const getDashboardStats = async () => {
     };
 };
 
-/**
- * Fetches a list of all users and reshapes them for the frontend.
- */
-export const getAllUsers = async (query: any) => {
-    const usersFromDb = await UserModel.findAll(query);
+export const getAllUsers = async () => { // Removed 'query' parameter for simplicity
+    const usersFromDb = await UserModel.findAll();
     if (!usersFromDb) return [];
-    console.log('Users from DB:', usersFromDb);
-    return usersFromDb.map(reshapeUserForFrontend);
+
+    // The data is now complete, we just need to reshape it
+    return usersFromDb.map(user => reshapeUserForApp(user));
 };
 
 /**
@@ -84,7 +64,10 @@ export const updateUserStatus = async (userId: string, status: string) => {
     if (!updatedUser) {
         throw new AppError('User not found or failed to update.', 404);
     }
-    return reshapeUserForFrontend(updatedUser); // Reshape the updated user too
+    
+    
+    // 3. UPDATE to use reshapeUserForApp
+    return reshapeUserForApp(updatedUser);
 };
 
 /**
@@ -161,6 +144,96 @@ export const getAdminUsers = async () => {
     if (!adminsFromDb) {
         return [];
     }
-    // **FIX:** Map over the database results and transform each admin object.
-    return adminsFromDb.map(reshapeUserForFrontend);
+    
+    const shapedAdmins = await Promise.all(adminsFromDb.map(async (admin: User) => {
+        const { data: { user: authUser } } = await supabase.auth.admin.getUserById(admin.id);
+        // 3. UPDATE to use reshapeUserForApp
+        return authUser ? reshapeUserForApp(admin, authUser) : null;
+    }));
+    console.log('Shaped admins:', shapedAdmins);
+    return shapedAdmins.filter(admin => admin !== null) as User[];
+};
+
+/**
+ * Fetches platform-wide settings.
+ */
+export const getPlatformSettings = async () => {
+    const commissionRateSetting = await SettingsModel.getSetting('platform_commission_rate');
+    return {
+        commissionRate: commissionRateSetting?.value || DEFAULT_COMMISSION_RATE,
+    };
+};
+
+/**
+ * Updates platform-wide settings.
+ */
+export const updatePlatformSettings = async (settings: { commissionRate: number }) => {
+    const { commissionRate } = settings;
+    if (typeof commissionRate !== 'number') {
+        throw new AppError('Commission rate must be a number.', 400);
+    }
+
+    await SettingsModel.updateSetting('platform_commission_rate', commissionRate);
+
+    return { success: true, message: 'Platform settings updated.' };
+};
+
+/**
+ * Updates the custom commission rate for a specific creator.
+ */
+export const updateCreatorCommission = async (creatorId: string, commissionRate: number | null) => {
+    const user = await UserModel.findUserById(creatorId);
+    if (!user || user.role !== 'creator') {
+        throw new AppError('Creator not found.', 404);
+    }
+
+    if (commissionRate !== null && (commissionRate < 0 || commissionRate > 100)) {
+        throw new AppError('Commission rate must be between 0 and 100.', 400);
+    }
+
+    const updatedUser = await UserModel.updateProfile(creatorId, { commission_rate: commissionRate });
+    if (!updatedUser) {
+        throw new AppError('Failed to update creator commission.', 500);
+    }
+    
+    // 3. UPDATE to use reshapeUserForApp
+    return reshapeUserForApp(updatedUser);
+};
+
+/**
+ * Generates secure, temporary (signed) URLs for a creator's verification documents.
+ * @param userId The ID of the creator whose documents are being requested.
+ * @returns An object containing the signed URLs for the ID and selfie.
+ */
+export const getVerificationDocs = async (userId: string) => {
+    const user = await UserModel.findUserById(userId);
+
+    if (!user || !user.verification_data) {
+        throw new AppError('No verification data found for this user.', 404);
+    }
+
+    const { idFilePath, selfieFilePath } = user.verification_data;
+
+    if (!idFilePath || !selfieFilePath) {
+        throw new AppError('Document file paths are missing.', 404);
+    }
+
+    // Generate signed URLs that are valid for 60 seconds
+    const expiresIn = 60; 
+    const { data: idData, error: idError } = await supabase.storage
+        .from('verification-documents')
+        .createSignedUrl(idFilePath, expiresIn);
+
+    const { data: selfieData, error: selfieError } = await supabase.storage
+        .from('verification-documents')
+        .createSignedUrl(selfieFilePath, expiresIn);
+
+    if (idError || selfieError || !idData || !selfieData) {
+        throw new AppError('Could not generate secure URLs for documents.', 500);
+    }
+
+    return {
+        idUrl: idData.signedUrl,
+        selfieUrl: selfieData.signedUrl,
+    };
 };

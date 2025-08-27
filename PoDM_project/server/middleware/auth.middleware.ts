@@ -60,7 +60,8 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             }
 
             // 4. Attach the complete user profile to the request object
-            req.user = reshapeUserForApp(userProfile, authUser);
+            req.user = reshapeUserForApp(userProfile);
+            console.log(`protect middleware: Authenticated user ${req.user.username} with role ${req.user.role} created at ${req.user.createdAt}`);
 
             next();
         } catch (error) {

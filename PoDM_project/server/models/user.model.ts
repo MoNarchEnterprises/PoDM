@@ -2,21 +2,22 @@ import supabase from '../config/supabaseClient';
 import { User, UserProfile } from '@common/types/User';
 
 /**
- * Finds a user's public profile by their unique ID.
+ * Finds a user's complete profile by their unique ID using an RPC.
  * @param id - The UUID of the user to find.
  * @returns The user's profile object or null if not found.
  */
 export const findUserById = async (id: string): Promise<User | null> => {
     const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
+        .rpc('get_user_details', { user_id: id }) // Call the new database function
         .single();
 
     if (error) {
-        console.error('Error finding user by ID:', error.message);
+        console.error('Error finding user by ID via RPC:', error.message);
         return null;
     }
+
+    console.log('findUserById RPC result:', data); 
+    // The RPC returns a single JSON object, which is our data
     return data as User;
 };
 
@@ -77,6 +78,8 @@ export const updateProfile = async (id: string, updates: Partial<UserProfile>): 
         console.error('Error updating profile:', error.message);
         return null;
     }
+
+    
     return data as User;
 };
 
@@ -113,20 +116,18 @@ export const countActiveUsers = async (): Promise<number> => {
 };
 
 /**
- * Finds all users with optional filtering.
- * @param query - The query parameters for filtering.      
+ * Finds all users with their complete data using an RPC.
  */
-export const findAll = async (query: any): Promise<User[]> => {
+export const findAll = async (): Promise<User[] | null> => {
+    // We no longer need the 'query' parameter for this basic version
     const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .match(query);
+        .rpc('get_all_users_details');
 
-    
     if (error) {
-        console.error('Error finding users:', error.message);
+        console.error('Error finding all users via RPC:', error.message);
         return [];
     }
+    // The RPC returns a single JSON object which is an array of users
     return data as User[];
 }
 

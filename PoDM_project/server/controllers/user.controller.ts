@@ -47,6 +47,30 @@ export const updateMe = async (req: Request, res: Response, next: NextFunction) 
 };
 
 /**
+ * @desc    Update the avatar of the currently logged-in user
+ * @route   PUT /api/v1/users/me/avatar
+ * @access  Private
+ */
+export const updateMyAvatar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const file = req.file; // From the uploadAvatar middleware
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!file) {
+            throw new AppError('No file uploaded.', 400);
+        }
+
+        const updatedUser = await UserService.uploadUserAvatar(userId, file);
+        res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * @desc    Add a piece of content to the current user's gallery
  * @route   POST /api/v1/users/me/gallery
  * @access  Private
@@ -101,6 +125,49 @@ export const getPublicProfile = async (req: Request, res: Response, next: NextFu
         const { username } = req.params;
         const userProfile = await UserService.getPublicUserProfile(username);
         res.status(200).json({ success: true, data: userProfile });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Complete the onboarding process for a new creator
+ * @route   POST /api/v1/users/me/onboarding
+ * @access  Private (Creators only)
+ */
+export const completeOnboarding = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const updatedUser = await UserService.onboardCreator(userId, req.body);
+        res.status(200).json({ success: true, data: updatedUser });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Submit documents for creator verification
+ * @route   POST /api/v1/users/me/verification
+ * @access  Private (Creators only)
+ */
+export const submitVerification = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        const { signature } = req.body;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const result = await UserService.submitVerificationDocs(userId, files, signature);
+        res.status(200).json(result);
     } catch (error) {
         next(error);
     }

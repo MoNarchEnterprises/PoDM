@@ -1,28 +1,23 @@
 import React, { useState } from 'react';
 import { Shield, UploadCloud, Camera, CheckCircle, ArrowRight } from 'lucide-react';
 
-// --- Import Reusable Components ---
+// --- Import Reusable Components & API Client ---
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/ui/Button';
+import * as apiClient from '../../lib/apiClient'; // Import the apiClient
 
-// --- Local Types ---
-interface VerificationData {
-    idFile: File;
-    selfieFile: File;
-    signature: string;
-}
-
-// --- Main Verification Page Component ---
-interface CreatorVerificationPageProps {
-    onSubmit: (data: VerificationData) => void;
-}
-
-const CreatorVerificationPage = ({ onSubmit }: CreatorVerificationPageProps) => {
+// --- The component no longer needs the onSubmit prop ---
+const CreatorVerificationPage = () => {
     const [idFile, setIdFile] = useState<File | null>(null);
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [signature, setSignature] = useState('');
     const [agreed, setAgreed] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    
+    // --- Add loading and error state ---
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
         const file = e.target.files?.[0];
@@ -31,13 +26,28 @@ const CreatorVerificationPage = ({ onSubmit }: CreatorVerificationPageProps) => 
         }
     };
 
-    const canSubmit = idFile && selfieFile && signature.trim() !== '' && agreed;
+    const canSubmit = idFile && selfieFile && signature.trim() !== '' && agreed && !isLoading;
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (canSubmit) {
-            onSubmit({ idFile, selfieFile, signature });
+        if (!canSubmit) return;
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            // Create a FormData object to send files
+            const formData = new FormData();
+            formData.append('idFile', idFile);
+            formData.append('selfieFile', selfieFile);
+            formData.append('signature', signature);
+
+            await apiClient.submitVerification(formData);
             setIsSubmitted(true);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Submission failed. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 

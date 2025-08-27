@@ -4,6 +4,8 @@ import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
 import { Message } from '@common/types/Message';
 import { Conversation } from '@common/types/Conversation';
+import * as UserModel from '../models/user.model';
+
 
 /**
  * Fetches all conversations for a specific user.
@@ -47,6 +49,13 @@ export const getMessagesForConversation = async (conversationId: string, userId:
  * @returns The newly created message object.
  */
 export const sendDirectMessage = async (senderId: string, receiverId: string, messageData: Partial<Message>) => {
+    const sender = await UserModel.findUserById(senderId);
+    if (!sender) {
+        throw new AppError('Sender not found.', 404);
+    }
+    if (sender.role === 'creator' && sender.status !== 'active') {
+        throw new AppError('Your account must be verified to send messages.', 403);
+    }
     // Step 1: Find if a conversation already exists between the two users.
     let conversation = await ConversationModel.findConversationByParticipants(senderId, receiverId);
 
@@ -82,6 +91,13 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
  * @param messageData - The content of the message.
  */
 export const sendMassMessageToSubscribers = async (creatorId: string, messageData: Partial<Message>) => {
+    const sender = await UserModel.findUserById(creatorId);
+    if (!sender) {
+        throw new AppError('Sender not found.', 404);
+    }
+    if (sender.role === 'creator' && sender.status !== 'active') {
+        throw new AppError('Your account must be verified to send messages.', 403);
+    }
     // Step 1: Get all active subscribers for the creator.
     const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creatorId);
     if (!subscriptions || subscriptions.length === 0) {

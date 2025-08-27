@@ -29,6 +29,14 @@ export interface UserProfile {
   socialLinks?: SocialLinks;
 }
 
+// Add this new interface to describe the shape of the verification data
+export interface VerificationData {
+  signature: string;
+  idFilePath: string;
+  selfieFilePath: string;
+  submittedAt: string;
+}
+
 /**
  * The base User interface, representing the core data for any user.
  */
@@ -40,6 +48,10 @@ export interface User {
   profile: UserProfile;
   role: UserRole;
   status: UserStatus;
+  verificationStatus?: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
+  verification_data?: VerificationData; 
+  onboarding_complete?: boolean; 
+  commission_rate?: number; 
   createdAt: string; // ISO 8601 date string
   updatedAt: string; // ISO 8601 date string
 }

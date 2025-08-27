@@ -105,6 +105,30 @@ export const sumPlatformFeeForPeriod = async (days: number): Promise<number> => 
 };
 
 /**
+ * Calculates the sum of a creator's payouts over a given period.
+ * @param creatorId - The UUID of the creator.
+ * @param startDate - The start of the date range.
+ * @param endDate - The end of the date range.
+ * @returns The total payout amount in cents.
+ */
+export const sumCreatorEarningsForPeriod = async (creatorId: string, startDate: Date, endDate: Date): Promise<number> => {
+    const { data, error } = await supabase
+        .from('transactions')
+        .select('creator_payout')
+        .eq('creator_id', creatorId)
+        .in('status', ['Cleared', 'Pending']) // Sum both cleared and pending for total earnings
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+
+    if (error) {
+        console.error('Error summing creator earnings:', error.message);
+        return 0;
+    }
+
+    return data.reduce((sum, transaction) => sum + transaction.creator_payout, 0);
+};
+
+/**
  * Find successful transaction by fan and content ID.
  * @param fanId - The ID of the fan.
  * @param contentId - The ID of the content.

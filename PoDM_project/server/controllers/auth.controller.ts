@@ -95,3 +95,27 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
         next(error);
     }
 };
+
+/**
+ * @desc    Change the password for the current user
+ * @route   PUT /api/v1/auth/change-password
+ * @access  Private (requires auth token)
+ */
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!currentPassword || !newPassword) {
+            throw new AppError('Please provide current and new passwords.', 400);
+        }
+
+        await AuthService.changeUserPassword(userId, currentPassword, newPassword);
+        res.status(200).json({ success: true, message: 'Password changed successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};

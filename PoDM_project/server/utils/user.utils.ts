@@ -2,28 +2,44 @@ import { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { User } from '@common/types/User';
 
 /**
- * A centralized helper function to transform a user object from the database 
- * and merge it with authenticated user data into the nested structure 
- * expected by the application.
- * * @param dbProfile - The user profile object from the public.profiles table.
- * @param authUser - The user object from supabase.auth.getUser(), which contains the email.
+ * A centralized helper function to transform a flat user object from the database RPC
+ * into the nested structure expected by the application.
+ * @param flatUser - The flat user object from the get_user_details RPC.
  * @returns A complete User object ready for the application.
  */
-export const reshapeUserForApp = (dbProfile: any, authUser: SupabaseAuthUser): User => {
-    if (!dbProfile) {
-        // Return a structured null or throw an error if the profile is essential
+export const reshapeUserForApp = (flatUser: any): User => {
+    if (!flatUser) {
         return null as any;
     }
     
-    const { id, username, avatar_url, bio, ...restOfProfile } = dbProfile;
+    // Destructure all properties from the flat object
+    const { id, username, avatar_url, bio, email, created_at, role, status, verification_data, ...restOfProfile } = flatUser;
+    
+    // --- ADD THIS LOGIC BLOCK ---
+    let verificationStatus: User['verificationStatus'] = 'not_applicable'; // Default for fans/admins
+
+    if (role === 'creator') {
+        if (status === 'active') {
+            verificationStatus = 'verified';
+        } else if (status === 'pending verification' && verification_data) {
+            verificationStatus = 'pending';
+        } else {
+            verificationStatus = 'not_submitted';
+        }
+    }
     
     return {
-        _id: id, // Map the database 'id' to '_id'
-        ...restOfProfile,
-        email: authUser.email || '', // Get the email from the secure authUser object
+        _id: id,
         username: username || 'unknown_user',
+        email: email || '',
+        createdAt: created_at,
+        role,
+        status,
+        verificationStatus,
+        verification_data,
+        ...restOfProfile,
         profile: {
-            name: username || 'Unknown User', // Use username as the display name
+            name: username || 'Unknown User',
             avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
             bio: bio || '',
         },

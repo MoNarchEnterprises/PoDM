@@ -11,11 +11,13 @@ import cors from 'cors';
 // --- Import Routes ---
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import creatorRoutes from './routes/creator.routes'; 
 import contentRoutes from './routes/content.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import paymentRoutes from './routes/payment.routes';
 import messageRoutes from './routes/message.routes';
 import adminRoutes from './routes/admin.routes';
+import analyticsRoutes from './routes/analytics.routes'; 
 
 // --- Import Middleware ---
 import { errorHandler } from './middleware/error.middleware';
@@ -43,10 +45,12 @@ app.use(express.json());
 // --- Other API Routes ---
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/creator', creatorRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/payments', paymentRoutes); // For other payment routes like /tip
 app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 

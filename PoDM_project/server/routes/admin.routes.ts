@@ -1,6 +1,7 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports } from '../controllers/admin.controller';
+import { getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports, getSettings, 
+    updateSettings, setCreatorCommission, getCreatorVerificationDocs } from '../controllers/admin.controller';
 import { protect, adminOnly } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -85,5 +86,34 @@ router.put('/support-tickets/:id', updateSupportTicket);
  * @access  Private (Admins only)
  */
 router.get('/settings/admins', getAdminUsers);
+
+/**
+ * @route   GET /api/v1/admin/settings/platform
+ * @desc    Get platform-wide settings
+ * @access  Private (Admins only)
+ */
+router.get('/settings/platform', getSettings);
+
+/**
+ * @route   PUT /api/v1/admin/settings/platform
+ * @desc    Update platform-wide settings
+ * @access  Private (Admins only)
+ */
+router.put('/settings/platform', updateSettings);
+
+/**
+ * @route   PUT /api/v1/admin/users/:id/commission
+ * @desc    Update a creator's custom commission rate
+ * @access  Private (Admins only)
+ */
+router.put('/users/:id/commission', setCreatorCommission);
+
+/**
+ * @route   GET /api/v1/admin/users/:id/verification-docs
+ * @desc    Get secure URLs for a creator's verification documents
+ * @access  Private (Admins only)
+ */
+router.get('/users/:id/verification-docs', getCreatorVerificationDocs);
+
     
 export default router;

@@ -92,6 +92,26 @@ export const findContentByCreatorId = async (creatorId: string): Promise<Content
 };
 
 /**
+ * Calculates the sum of all views for a creator's content.
+ * @param creatorId - The UUID of the creator.
+ * @returns The total number of views.
+ */
+export const sumCreatorContentViews = async (creatorId: string): Promise<number> => {
+    const { data, error } = await supabase
+        .from('content')
+        .select('stats')
+        .eq('creator_id', creatorId);
+
+    if (error) {
+        console.error('Error summing content views:', error.message);
+        return 0;
+    }
+
+    // The 'stats' column is JSON, so we need to access the 'views' property
+    return data.reduce((sum, item) => sum + (item.stats?.views || 0), 0);
+};
+
+/**
  * Updates a piece of content in the database.
  * @param id - The ID of the content to update.
  * @param updates - An object containing the fields to update.

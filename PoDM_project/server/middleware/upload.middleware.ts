@@ -49,3 +49,20 @@ const upload = multer({
  * The files will be available on `req.files`.
  */
 export const uploadContent = upload.array('contentFiles', 10);
+
+/**
+ * Middleware for handling a single avatar file upload.
+ * This will process one file from a field named 'avatar'.
+ * The file will be available on `req.file`.
+ */
+export const uploadAvatar = upload.single('avatar');
+
+/**
+ * Middleware for handling creator verification document uploads.
+ * This will process one file from 'idFile' and one from 'selfieFile'.
+ * The files will be available on `req.files`.
+ */
+export const uploadVerificationDocs = upload.fields([
+    { name: 'idFile', maxCount: 1 },
+    { name: 'selfieFile', maxCount: 1 },
+]);

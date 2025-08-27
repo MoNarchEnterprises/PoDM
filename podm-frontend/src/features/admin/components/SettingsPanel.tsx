@@ -19,7 +19,8 @@ interface AdminUser extends User {}
 
 const AdminProfileSettings = () => {
     const { user, setUser } = useAuth(); // Get the currently logged-in admin and the state setter
-    
+    const { setData } = useAdminData(); // 2. GET THE SETTER FUNCTION
+
     // State for the form fields
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -55,7 +56,6 @@ const AdminProfileSettings = () => {
     };
 
     const handleSaveProfile = async () => {
-        console.log("SettingsPanel: user before update:", user);
         if (!user) return;
 
         setIsLoading(true);
@@ -63,39 +63,49 @@ const AdminProfileSettings = () => {
         setSuccess(null);
 
         try {
-            // 1. Update Profile Information (Name, Email)
-            console.log("SettingsPanel: Updating profile with:", { name, email, currentPassword, newPassword, avatarFile });
-            const profileData = { name, email };
-            const updatedUserResponse = await apiClient.updateMe(profileData);
-            
-            // 2. Update the user in the global auth context
-            setUser(updatedUserResponse.data);
-
-            // TODO: Implement password change logic
-            // This would require a separate, dedicated API endpoint
-            if (newPassword && currentPassword) {
-                console.log("Password change requested. API endpoint needed.");
-                // await apiClient.changePassword(currentPassword, newPassword);
-            }
-
-            // TODO: Implement avatar upload logic
-            // This would require a separate API endpoint that handles file uploads
-            if (avatarFile) {
-                console.log("Avatar upload requested. API endpoint needed.");
-                // const formData = new FormData();
-                // formData.append('avatar', avatarFile);
-                // await apiClient.uploadAvatar(formData);
-            }
-
-            setSuccess("Profile updated successfully!");
-
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to update profile.");
-        } finally {
-            setIsLoading(false);
-            // Clear success message after a few seconds
-            setTimeout(() => setSuccess(null), 3000);
+        // --- This part remains the same ---
+        const profileData = { name, email };
+        // We only update text fields if they have changed.
+        if (name !== user.profile.name || email !== user.email) {
+            await apiClient.updateMe(profileData);
         }
+
+        // If a new password is entered, attempt to change it
+        if (newPassword && currentPassword) {
+            await apiClient.changePassword({ currentPassword, newPassword });
+            // Clear the password fields on success
+            setCurrentPassword('');
+            setNewPassword('');
+        }
+        // If an avatar file was selected, upload it.
+        if (avatarFile) {
+            console.log("Avatar upload requested. Sending file to backend...");
+            const updatedUserFromAvatar = await apiClient.uploadAvatar(avatarFile);
+            const freshUser = updatedUserFromAvatar.data;
+                
+                // This updates the local auth context (for the header, etc.)
+                setUser(freshUser);
+
+                // --- 3. ADD THIS LOGIC ---
+                // This updates the shared AdminPanel state so User Management has the fresh data
+                setData(prevData => ({
+                    ...prevData,
+                    users: prevData.users.map(u => 
+                        u._id === freshUser._id ? freshUser : u
+                    ),
+                }));
+        }
+
+        setSuccess("Profile updated successfully!");
+
+    } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to update profile.");
+    } finally {
+        setIsLoading(false);
+        // Clear success message and reset the avatar file state
+        setTimeout(() => setSuccess(null), 3000);
+        setAvatarFile(null);
+    }
     };
 
     if (!user) {
@@ -179,6 +189,46 @@ const AdminProfileSettings = () => {
 // --- Main Settings Panel Component ---
 const SettingsPanel = () => {
     const { data } = useAdminData();
+    // 1. ADD STATE FOR FINANCIAL SETTINGS
+    const [commissionRate, setCommissionRate] = useState('');
+    const [isSaving, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    // 2. FETCH CURRENT SETTINGS ON LOAD
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await apiClient.getPlatformSettings();
+                setCommissionRate(response.data.commissionRate.toString());
+            } catch (err) {
+                console.error("Failed to fetch settings:", err);
+                setError("Could not load current settings.");
+            }
+        };
+        fetchSettings();
+    }, []);
+    
+    // 3. CREATE HANDLER FOR SAVING
+    const handleSaveFinancialSettings = async () => {
+        setIsLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const rate = parseFloat(commissionRate);
+            if (isNaN(rate)) {
+                throw new Error("Commission rate must be a valid number.");
+            }
+            await apiClient.updatePlatformSettings({ commissionRate: rate });
+            setSuccess("Settings saved successfully!");
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err: any) {
+            setError(err.message || "Failed to save settings.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     if (!data || !data.settings) {
         return <div className="p-8 text-center text-gray-500">Loading settings data...</div>;
@@ -204,12 +254,21 @@ const SettingsPanel = () => {
                             id="commission-rate"
                             label="Platform Commission Rate (%)"
                             type="number"
-                            defaultValue="20"
+                            value={commissionRate}
+                            onChange={(e) => setCommissionRate(e.target.value)}
                             containerClassName="md:w-1/3"
                         />
-                         <Button leftIcon={Save}>
-                            Save Financial Settings
-                        </Button>
+                         <div className="flex justify-end items-center gap-4">
+                            {success && <p className="text-sm text-green-600">{success}</p>}
+                            {error && <p className="text-sm text-red-600">{error}</p>}
+                            <Button 
+                                leftIcon={Save}
+                                onClick={handleSaveFinancialSettings}
+                                isLoading={isSaving}
+                            >
+                                Save Financial Settings
+                            </Button>
+                         </div>
                     </div>
                 </Card>
                 <Card noPadding>

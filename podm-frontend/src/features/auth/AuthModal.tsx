@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { X, Mail, KeyRound, User as UserIcon } from 'lucide-react';
 
 // --- Import Shared Types ---
@@ -17,6 +18,7 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) => {
+    const navigate = useNavigate(); // 2. Initialize the navigate function
     const [mode, setMode] = useState(initialMode);
     const [userType, setUserType] = useState<UserRole>('fan');
     
@@ -54,10 +56,37 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
 
         try {
             if (mode === 'login') {
-                await login(email, password);
+                const loggedInUser = await login(email, password);
+                
+                switch (loggedInUser.role) {
+                    case 'admin':
+                        navigate('/admin/dashboard');
+                        break;
+                    case 'creator':
+                        // --- UPDATE THIS LOGIC ---
+                        if (loggedInUser.verificationStatus === 'not_submitted') {
+                            navigate('/verification');
+                        } else if (loggedInUser.onboarding_complete) {
+                            navigate('/creator/dashboard');
+                        } else {
+                            navigate('/onboarding');
+                        }
+                        break;
+                    case 'fan':
+                    default:
+                        navigate('/fan/feed');
+                        break;
+                }
+                // --- END OF REDIRECTION LOGIC ---
+
             } else {
-                // Pass the userType to the signup function
-                await signup(username, email, password, userType); 
+                // The signup logic can also be enhanced to redirect
+                await signup(username, email, password, userType);
+                if (userType === 'creator') {
+                    navigate('/onboarding');
+                } else {
+                    navigate('/fan/feed');
+                }
             }
             handleClose(); // Close modal on success
         } catch (err: any) {

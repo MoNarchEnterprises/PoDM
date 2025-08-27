@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
+import * as apiClient from '../../lib/apiClient'; // 2. Import apiClient
 import { CheckCircle, Twitter, Instagram } from 'lucide-react';
 
 // --- Import Shared Types ---
@@ -20,6 +22,16 @@ interface CreatorProfilePageProps {
 }
 
 const CreatorProfilePage = ({ creator, content }: CreatorProfilePageProps) => {
+    const { user } = useAuth(); // 3. Get the current logged-in user
+
+    // 4. Add useEffect to log the visit
+    useEffect(() => {
+        // Log the event, the backend will prevent logging self-views
+        apiClient.logAnalyticsEvent({
+            eventType: 'profile_visit',
+            creatorId: creator._id,
+        });
+    }, [creator._id]); // Run only when the creator ID changes
     const [selectedTierId, setSelectedTierId] = useState(creator.creatorData.subscriptionTiers[1]?.id || creator.creatorData.subscriptionTiers[0]?.id);
     const selectedTier = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
 

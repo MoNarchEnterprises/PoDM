@@ -181,3 +181,63 @@ export const updateSupportTicket = async (req: Request, res: Response, next: Nex
         next(error);
     }
 };
+
+/**
+ * @desc    Get platform-wide settings
+ * @route   GET /api/v1/admin/settings/platform
+ * @access  Private (Admins only)
+ */
+export const getSettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const settings = await AdminService.getPlatformSettings();
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update platform-wide settings
+ * @route   PUT /api/v1/admin/settings/platform
+ * @access  Private (Admins only)
+ */
+export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await AdminService.updatePlatformSettings(req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update a creator's custom commission rate
+ * @route   PUT /api/v1/admin/users/:id/commission
+ * @access  Private (Admins only)
+ */
+export const setCreatorCommission = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: creatorId } = req.params;
+        const { commissionRate } = req.body; // Can be a number or null
+
+        const updatedUser = await AdminService.updateCreatorCommission(creatorId, commissionRate);
+        res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get secure URLs for a creator's verification documents
+ * @route   GET /api/v1/admin/users/:id/verification-docs
+ * @access  Private (Admins only)
+ */
+export const getCreatorVerificationDocs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: userId } = req.params;
+        const urls = await AdminService.getVerificationDocs(userId);
+        res.status(200).json({ success: true, data: urls });
+    } catch (error) {
+        next(error);
+    }
+};

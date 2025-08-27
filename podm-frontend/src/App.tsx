@@ -11,6 +11,12 @@ import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './hooks/useAuth';
 import { FAN_NAV_ITEMS, CREATOR_NAV_ITEMS, ADMIN_NAV_ITEMS } from './lib/constants';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import CreatorRouteGuard from './components/auth/CreatorRouteGuard';
+
+import { useAuth } from './hooks/useAuth';
+import { useCreatorData } from './hooks/useCreatorData'; // Import the new hook
+
+
 
 // --- Import Page Components (Lazy Loaded) ---
 const SplashPage = React.lazy(() => import('./pages/SplashPage'));
@@ -77,7 +83,21 @@ const FanGalleryLoader = () => { return <FanGallery galleryData={[]} />; };
 const FanSubscriptionsLoader = () => { return <FanSubscriptions initialSubscriptions={[]} />; };
 const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
 const FanSettingsLoader = () => { const fan = {} as User; const settings = {} as any; return <FanSettings fan={fan} settings={settings} />; };
-const CreatorDashboardLoader = () => { return <CreatorDashboard creator={{} as any} metrics={{} as any} recentActivity={[]} monthlyEarnings={[]} />; };
+
+const CreatorDashboardLoader = () => {
+    const { user } = useAuth(); // Get the logged-in user, who is the creator
+    const { dashboardData, isLoading, error } = useCreatorData(user as Creator);
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading dashboard...</div>;
+    }
+    if (error || !dashboardData) {
+        return <div className="p-8 text-center text-red-500">{error || 'Could not load data.'}</div>;
+    }
+
+    return <CreatorDashboard creator={user as Creator} metrics={dashboardData.keyMetrics} recentActivity={dashboardData.recentActivity} monthlyEarnings={dashboardData.monthlyEarnings} />;
+};
+
 const CreatorContentLoader = () => { return <CreatorContent initialContent={[]} />; };
 const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
@@ -87,14 +107,9 @@ const CreatorSettingsLoader = () => { return <CreatorSettings creator={{} as any
 // Corrected Loaders: These components are self-contained and don't need props passed from the router.
 const CreatorOnboardingLoader = () => <CreatorOnboarding />;
 
-// This loader now provides the required onSubmit prop to the CreatorVerification component.
-const CreatorVerificationLoader = () => {
-    const handleVerificationSubmit = (data: any) => {
-        console.log("Verification Submitted:", data);
-        // In a real app, you would make an API call here.
-    };
-    return <CreatorVerification onSubmit={handleVerificationSubmit} />;
-};
+
+
+
 
 
 // --- Layout Wrapper Components ---
@@ -117,7 +132,7 @@ const App = () => {
                         
                         {/* --- Auth Routes --- */}
                         <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
-                        <Route path="/verification" element={<CreatorVerificationLoader />} />
+                        <Route path="/verification" element={<CreatorVerification />} />
                         <Route path="/admin/login" element={<AdminLoginPage />} />
 
                         {/* --- Fan Routes (Protected) --- */}
@@ -131,14 +146,17 @@ const App = () => {
                         </Route>
 
                         {/* --- Creator Routes (Protected) --- */}
-                        <Route path="/creator" element={<CreatorLayout />}>
-                           <Route index element={<CreatorDashboardLoader />} />
-                           <Route path="dashboard" element={<CreatorDashboardLoader />} />
-                           <Route path="content" element={<CreatorContentLoader />} />
-                           <Route path="messages" element={<CreatorMessagesLoader />} />
-                           <Route path="analytics" element={<CreatorAnalyticsLoader />} />
-                           <Route path="earnings" element={<CreatorEarningsLoader />} />
-                           <Route path="settings" element={<CreatorSettingsLoader />} />
+                        {/* 2. WRAP THE CREATOR ROUTES WITH THE NEW GUARD */}
+                        <Route element={<CreatorRouteGuard />}>
+                            <Route path="/creator" element={<CreatorLayout />}>
+                               <Route index element={<CreatorDashboardLoader />} />
+                               <Route path="dashboard" element={<CreatorDashboardLoader />} />
+                               <Route path="content" element={<CreatorContentLoader />} />
+                               <Route path="messages" element={<CreatorMessagesLoader />} />
+                               <Route path="analytics" element={<CreatorAnalyticsLoader />} />
+                               <Route path="earnings" element={<CreatorEarningsLoader />} />
+                               <Route path="settings" element={<CreatorSettingsLoader />} />
+                            </Route>
                         </Route>
 
                         {/* --- Admin Routes (Protected) --- */}

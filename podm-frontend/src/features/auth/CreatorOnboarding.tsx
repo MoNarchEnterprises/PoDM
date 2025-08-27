@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft } from 'lucide-react';
-
-// --- Import Shared Types ---
+import * as apiClient from '../../lib/apiClient';
 import { SubscriptionTier } from '@common/types/Creator';
 import { UserProfile } from '@common/types/User';
+import Button from '../../components/ui/Button';
 
 // --- Local Types ---
 interface OnboardingData {
@@ -11,33 +12,63 @@ interface OnboardingData {
     tiers: Partial<SubscriptionTier>[];
 }
 
-// --- Main Onboarding Component ---
-interface CreatorOnboardingPageProps {
-    onSubmit: (data: OnboardingData) => void;
-}
+// --- 1. MOVE OnboardingStep and StepTracker OUTSIDE the main component ---
+const OnboardingStep = ({ children }: { children: React.ReactNode }) => (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-2xl">
+        {children}
+    </div>
+);
 
-const CreatorOnboardingPage = ({ onSubmit }: CreatorOnboardingPageProps) => {
+const StepTracker = ({ totalSteps, step }: { totalSteps: number; step: number; }) => (
+    <div className="flex items-center justify-center space-x-4">
+        {[...Array(totalSteps)].map((_, i) => {
+            const stepNumber = i + 1;
+            const isActive = stepNumber === step;
+            const isCompleted = stepNumber < step;
+            return (
+                <div key={stepNumber} className="flex items-center space-x-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors ${
+                        isActive ? 'bg-purple-600 text-white' : 
+                        isCompleted ? 'bg-green-500 text-white' : 
+                        'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                    }`}>
+                        {isCompleted ? <CheckCircle className="w-5 h-5" /> : stepNumber}
+                    </div>
+                    {stepNumber < totalSteps && <div className={`h-0.5 w-12 transition-colors ${isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>}
+                </div>
+            );
+        })}
+    </div>
+);
+
+
+const CreatorOnboardingPage = () => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<OnboardingData>({
         profile: { name: '', bio: '' },
-        tiers: [{ name: '', price: undefined }]
+        tiers: [{ name: 'Default Tier', price: 9.99, features: ["All content access", "Direct Messages (DMs)"] }]
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const totalSteps = 4;
 
     const nextStep = () => setStep(prev => Math.min(prev + 1, totalSteps));
     const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            profile: { ...prev.profile, [e.target.id]: e.target.value }
+            profile: { ...prev.profile, [id]: value }
         }));
     };
 
     const handleTierChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        const field = id.split('-')[1] as keyof SubscriptionTier;
         const newTiers = [...formData.tiers];
-        const field = e.target.id.split('-')[1] as keyof SubscriptionTier;
-        (newTiers[index] as any)[field] = e.target.value;
+        (newTiers[index] as any)[field] = value;
         setFormData(prev => ({ ...prev, tiers: newTiers }));
     };
     
@@ -48,38 +79,17 @@ const CreatorOnboardingPage = ({ onSubmit }: CreatorOnboardingPageProps) => {
         }));
     };
 
-    const handleSubmit = () => {
-        // In a real app, you'd do validation here before submitting
-        onSubmit(formData);
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            await apiClient.completeCreatorOnboarding(formData);
+            navigate('/verification');
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'An error occurred.');
+            setIsLoading(false);
+        }
     };
-
-    const StepTracker = () => (
-        <div className="flex items-center justify-center space-x-4">
-            {[...Array(totalSteps)].map((_, i) => {
-                const stepNumber = i + 1;
-                const isActive = stepNumber === step;
-                const isCompleted = stepNumber < step;
-                return (
-                    <div key={stepNumber} className="flex items-center space-x-2">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors ${
-                            isActive ? 'bg-purple-600 text-white' : 
-                            isCompleted ? 'bg-green-500 text-white' : 
-                            'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                        }`}>
-                            {isCompleted ? <CheckCircle className="w-5 h-5" /> : stepNumber}
-                        </div>
-                        {stepNumber < totalSteps && <div className={`h-0.5 w-12 transition-colors ${isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>}
-                    </div>
-                );
-            })}
-        </div>
-    );
-
-    const OnboardingStep = ({ children }: { children: React.ReactNode }) => (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-2xl">
-            {children}
-        </div>
-    );
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-4 font-sans">
@@ -88,7 +98,7 @@ const CreatorOnboardingPage = ({ onSubmit }: CreatorOnboardingPageProps) => {
             <p className="text-gray-500 dark:text-gray-400 mb-8">Let's get your account set up for success.</p>
             
             <div className="mb-8 w-full max-w-2xl">
-                <StepTracker />
+                <StepTracker totalSteps={totalSteps} step={step} />
             </div>
 
             {step === 1 && (
@@ -160,32 +170,26 @@ const CreatorOnboardingPage = ({ onSubmit }: CreatorOnboardingPageProps) => {
             )}
 
             <div className="mt-8 flex justify-between w-full max-w-2xl">
-                <button onClick={prevStep} disabled={step === 1} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>Back</span>
-                </button>
+                <Button onClick={prevStep} disabled={step === 1 || isLoading} leftIcon={ArrowLeft}>
+                    Back
+                </Button>
                 {step < totalSteps ? (
-                    <button onClick={nextStep} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
-                        <span>Next Step</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <Button onClick={nextStep} rightIcon={ArrowRight} disabled={isLoading}>
+                        Next Step
+                    </Button>
                 ) : (
-                    <button onClick={handleSubmit} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-                        <span>Finish Setup</span>
-                        <CheckCircle className="w-4 h-4" />
-                    </button>
+                    <Button 
+                        onClick={handleSubmit} 
+                        isLoading={isLoading} 
+                        className="bg-green-600 hover:bg-green-700" 
+                        rightIcon={CheckCircle}
+                    >
+                        Finish Setup & Proceed to Verification
+                    </Button>
                 )}
             </div>
         </div>
     );
 };
 
-export default function App() {
-    const handleOnboardingSubmit = (data: OnboardingData) => {
-        // Here you would make an API call to your backend to save the creator's profile and tiers.
-        // After a successful response, you would redirect the user to the verification page or dashboard.
-        alert("Onboarding complete! Check the console for the submitted data.");
-    };
-
-    return <CreatorOnboardingPage onSubmit={handleOnboardingSubmit} />;
-}
+export default CreatorOnboardingPage;

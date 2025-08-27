@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Bookmark, DollarSign, PlayCircle, Maximize, Volume2, Settings, MoreVertical } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
+import * as apiClient from '../../lib/apiClient'; // 2. Import apiClient
 
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
@@ -31,6 +33,17 @@ interface ContentViewerPageProps {
 }
 
 const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPageProps) => {
+    const { user } = useAuth(); // 3. Get the current logged-in user
+
+    // 4. Add useEffect to log the view
+    useEffect(() => {
+        apiClient.logAnalyticsEvent({
+            eventType: 'post_view',
+            creatorId: creator._id,
+            contentId: content._id,
+        });
+    }, [creator._id, content._id]); // Run only when the content ID changes
+    
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const { isOpen: isReportModalOpen, openModal: openReportModal, closeModal: closeReportModal } = useModal();

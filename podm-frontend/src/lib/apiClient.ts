@@ -129,6 +129,130 @@ export const updateMe = async (profileData: Record<string, any>) => {
     return response.data;
 };
 
+/**
+ * Sends a request to update the current user's avatar.
+ * @param avatarFile - The avatar file to upload.
+ */
+export const uploadAvatar = async (avatarFile: File) => {
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
 
+    const response = await apiClient.put<{ success: boolean, data: User }>('/users/me/avatar', formData, {
+        headers: {
+            // The browser will automatically set the correct Content-Type for FormData
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+/**
+ * Sends a request to change the current user's password.
+ * @param currentPassword - The user's current password.
+ * @param newPassword - The new password to set.
+ */
+export const changePassword = async (data: { currentPassword: string, newPassword: string }) => {
+    const response = await apiClient.post('/auth/change-password', data);
+    return response.data;
+};
+
+/**
+ * Gets the current platform settings.
+ */
+export const getPlatformSettings = async () => {
+    const response = await apiClient.get('/admin/settings/platform');
+    return response.data;
+};
+
+/**
+ * Sends a request to update the platform settings.
+ * @param settings - The settings object to update.
+ */
+export const updatePlatformSettings = async (settings: { commissionRate: number }) => {
+    const response = await apiClient.put('/admin/settings/platform', settings);
+    return response.data;
+};
+
+/**
+ * Sends a request to update a user's status (e.g., active, suspended, banned).
+ * @param userId - The ID of the user to update.
+ * @param status - The new status to set.
+ */
+export const updateUserStatus = async (userId: string, status: string) => {
+    const response = await apiClient.put<{ success: boolean, data: User }>(
+        `/admin/users/${userId}/status`, 
+        { status }
+    );
+    return response.data;
+};
+
+/**
+ * Sends a request to update a creator's custom commission rate.
+ * @param creatorId - The ID of the creator to update.
+ * @param commissionRate - The new rate to set (or null to reset to default).
+ */
+export const updateCreatorCommission = async (creatorId: string, commissionRate: number | null) => {
+    const response = await apiClient.put<{ success: boolean, data: User }>(
+        `/admin/users/${creatorId}/commission`,
+        { commissionRate }
+    );
+    return response.data;
+};
+
+/**
+ * Sends a request to complete the creator onboarding process.
+ * @param onboardingData - The data from the onboarding form.
+ */
+export const completeCreatorOnboarding = async (onboardingData: any) => {
+    const response = await apiClient.post<{ success: boolean, data: User }>('/users/me/onboarding', onboardingData);
+    return response.data;
+};
+
+/**
+ * Submits creator verification documents.
+ * @param formData The FormData object containing files and signature.
+ */
+export const submitVerification = async (formData: FormData) => {
+    const response = await apiClient.post('/users/me/verification', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+/**
+ * Gets the secure, temporary URLs for a creator's verification documents.
+ * @param userId The ID of the user whose documents are needed.
+ */
+export const getVerificationDocs = async (userId: string) => {
+    const response = await apiClient.get(`/admin/users/${userId}/verification-docs`);
+    return response.data;
+};
+
+/**
+ * Gets all the necessary data for the creator dashboard.
+ */
+export const getCreatorDashboardData = async () => {
+    const response = await apiClient.get('/creator/dashboard');
+    return response.data;
+};
+
+/**
+ * Logs an analytics event like a profile or post view.
+ */
+export const logAnalyticsEvent = async (data: {
+    eventType: 'profile_visit' | 'post_view';
+    creatorId: string;
+    contentId?: string;
+}) => {
+    // We use a try/catch here because we don't want analytics
+    // failures to block the user experience.
+    try {
+        await apiClient.post('/analytics/log', data);
+    } catch (error) {
+        console.warn('Analytics event failed to log:', error);
+    }
+};
 
 export default apiClient;

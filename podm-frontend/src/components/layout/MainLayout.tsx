@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Import Link and useLocation
 import type { LucideIcon } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
 
 // --- Types ---
 
@@ -26,12 +27,17 @@ interface MainLayoutProps {
 
 const Sidebar = ({ logoText, navItems }: SidebarProps) => {
     const location = useLocation(); // Get the current location
+    const { user } = useAuth(); // 2. Get the current user from the auth context
 
     return (
         <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
             <div className="text-purple-500 font-bold text-2xl mb-10">{logoText}</div>
             <ul className="space-y-2">
                 {navItems.map(item => {
+                    // Hide messages link for creators who are not fully verified ('active')
+                    if (item.key === 'messages' && user?.role === 'creator' && user.status !== 'active') {
+                        return null;
+                    }
                     // Determine if the link is active by checking if the current path starts with the link's href
                     const isActive = location.pathname.startsWith(item.href);
                     

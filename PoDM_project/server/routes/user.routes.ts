@@ -1,7 +1,10 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery } from '../controllers/user.controller';
-import { protect } from '../middleware/auth.middleware';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification } from '../controllers/user.controller';
+import { protect, creatorOnly  } from '../middleware/auth.middleware';
+// --- Add the avatar upload middleware import ---
+import { uploadAvatar } from '../middleware/upload.middleware';
+import { uploadVerificationDocs } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -18,6 +21,14 @@ router.get('/me', protect, getMe);
  * @access  Private
  */
 router.put('/me', protect, updateMe);
+
+/**
+ * @route   PUT /api/v1/users/me/avatar
+ * @desc    Update the current user's avatar
+ * @access  Private
+ */
+router.put('/me/avatar', protect, uploadAvatar, updateMyAvatar);
+
 
 /**
  * @route   POST /api/v1/users/me/gallery
@@ -39,6 +50,20 @@ router.delete('/me/gallery/:contentId', protect, removeFromGallery);
  * @access  Public
  */
 router.get('/:username', getPublicProfile);
+
+/**
+ * @route   POST /api/v1/users/me/onboarding
+ * @desc    Complete the onboarding process for the current creator
+ * @access  Private (Creators only)
+ */
+router.post('/me/onboarding', protect, creatorOnly, completeOnboarding);
+
+/**
+ * @route   POST /api/v1/users/me/verification
+ * @desc    Submit creator verification documents
+ * @access  Private (Creators only)
+ */
+router.post('/me/verification', protect, creatorOnly, uploadVerificationDocs, submitVerification);
 
 
 export default router;

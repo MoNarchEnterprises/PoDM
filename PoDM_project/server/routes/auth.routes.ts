@@ -3,7 +3,7 @@ import { Router } from 'express';
 // We will create these controller functions in the next step
 import { signup, login, logout } from '../controllers/auth.controller';
 
-import { getMe } from '../controllers/auth.controller';
+import { getMe, changePassword } from '../controllers/auth.controller';
 import { protect } from '../middleware/auth.middleware';
 
 
@@ -36,6 +36,13 @@ router.post('/logout', logout);
  * @access  Private
  */
 router.get('/me', protect, getMe);
+
+/**
+ * @route   PUT /api/v1/auth/change-password
+ * @desc    Change password for the currently logged-in user
+ * @access  Private
+ */
+router.put('/change-password', protect, changePassword);
 
 
 export default router;
