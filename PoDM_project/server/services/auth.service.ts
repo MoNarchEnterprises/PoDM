@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { findUserById } from '../models/user.model';
-import { generateToken } from '../utils/token.utils';
 import { AppError } from '../middleware/error.middleware';
 import { User, UserRole } from '@common/types/User';
 import e from 'express';

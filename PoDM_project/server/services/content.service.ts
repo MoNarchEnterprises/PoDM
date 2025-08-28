@@ -7,6 +7,15 @@ import { AppError } from '../middleware/error.middleware';
 import { Content, MediaFile } from '@common/types/Content';
 import sharp from 'sharp';
 
+// Define a type for the query parameters for clarity
+interface ContentQuery {
+    type?: 'photo' | 'video' | 'text' | 'audio';
+    searchTerm?: string;
+    sortKey?: string;
+    sortDirection?: 'asc' | 'desc';
+}
+
+
 /**
  * Generates a thumbnail from an image buffer.
  * @param buffer - The buffer of the original image file.
@@ -69,6 +78,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             }
         }
 
+        
         uploadedFiles.push({
             id: originalFileName,
             url: filePath, // Store the path, NOT the public URL
@@ -78,11 +88,36 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
         });
     }
 
+    // 1. Determine the content's status based on scheduling
+    let status: Content['status'] = 'published';
+    let publishDate: string | undefined = undefined;
+
+    if (contentData.schedule?.isScheduled && contentData.schedule?.publishDate) {
+        status = 'scheduled';
+        publishDate = new Date(contentData.schedule.publishDate).toISOString();
+    }
+
+    // 2. Validate price for PPV content
+    if (contentData.visibility === 'pay_per_view') {
+        if (!contentData.price || isNaN(Number(contentData.price)) || Number(contentData.price) <= 0) {
+            throw new AppError('A valid price is required for Pay-Per-View content.', 400);
+        }
+    } else {
+        // Ensure price is null if not PPV
+        contentData.price = undefined;
+    }
+
+    // 3. Assemble the final data for the database
     const newContentData: Partial<Content> = {
         ...contentData,
         creator_id: creatorId,
         files: uploadedFiles,
         stats: { views: 0, galleryAdds: 0, tips: 0 },
+        status: status,
+        schedule: {
+            isScheduled: contentData.schedule?.isScheduled || false,
+            publishDate: publishDate,
+        },
     };
 
     try {
@@ -102,17 +137,49 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
 };
 
 /**
- * Fetches all content for a specific creator and shapes it for the frontend.
+ * Fetches all content for a specific creator with optional filtering and sorting.
  * @param creatorId - The ID of the creator.
- * @returns An array of content objects with '_id' instead of 'id'.
+ * @param query - An object with filter and sort parameters.
+ * @returns An array of content objects.
  */
-export const getContentByCreatorId = async (creatorId: string) => {
-    const contentFromDb = await ContentModel.findContentByCreatorId(creatorId);
-    if (!contentFromDb) {
-        return [];
+export const getContentByCreatorId = async (creatorId: string, query: ContentQuery = {}) => {
+    const { 
+        type, 
+        searchTerm, 
+        sortKey = 'created_at', // Default sort key
+        sortDirection = 'desc' // Default sort direction
+    } = query;
+
+    // Start building the query
+    let queryBuilder = supabase
+        .from('content')
+        .select('*')
+        .eq('creator_id', creatorId);
+
+    // Apply filter by content type if provided
+    if (type && type !== 'All') {
+        queryBuilder = queryBuilder.eq('type', type);
     }
+
+    // Apply search filter if a search term is provided
+    if (searchTerm) {
+        // 'ilike' is a case-insensitive "like" operator, perfect for searching
+        queryBuilder = queryBuilder.ilike('title', `%${searchTerm}%`);
+    }
+
+    // Apply sorting
+    queryBuilder = queryBuilder.order(sortKey, { ascending: sortDirection === 'asc' });
+
+    // Execute the final query
+    const { data, error } = await queryBuilder;
+
+    if (error) {
+        console.error('Error finding content by creator ID:', error.message);
+        return null;
+    }
+    
     // Map the database 'id' to the frontend '_id'
-    return contentFromDb.map(item => ({
+    return data.map(item => ({
         ...item,
         _id: item.id.toString(),
     }));
@@ -221,6 +288,11 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
         throw new AppError('You are not authorized to update this content.', 403);
     }
 
+    // 3. Prevent certain fields from being updated directly via this endpoint
+    delete updates.creator_id;
+    delete updates.files;
+    delete updates.stats;
+
     const updatedContent = await ContentModel.updateContent(contentId, updates);
     if (!updatedContent) {
         throw new AppError('Failed to update content.', 500);
@@ -244,13 +316,25 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
         throw new AppError('You are not authorized to delete this content.', 403);
     }
 
-    const filePaths = content.files.map(file => `${creatorId}/${file.id}`);
+    const filePaths: string[] = [];
+    if (content.files && content.files.length > 0) {
+        content.files.forEach((file: MediaFile) => {
+            if (file.url) filePaths.push(file.url);
+            if (file.thumbnailUrl && file.thumbnailUrl !== file.url) {
+                filePaths.push(file.thumbnailUrl);
+            }
+        });
+    }
+
     if (filePaths.length > 0) {
         const { error: storageError } = await supabase.storage.from('creator-content').remove(filePaths);
         if (storageError) {
+            // Log the error but proceed to delete the DB record.
+            // In a production system, you might add this to a retry queue.
             console.error('Error deleting files from storage:', storageError.message);
         }
     }
+
 
     const deletedContent = await ContentModel.deleteContent(contentId);
     if (!deletedContent) {
@@ -267,41 +351,69 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
  * @param userId The ID of the user requesting access.
  */
 export const getSecureUrlForThumbnail = async (contentId: string, userId: string) => {
+    console.log(`[Service] getSecureUrlForThumbnail: Verifying access for userId="${userId}" to contentId="${contentId}"`);
+    
     const content = await ContentModel.findContentById(contentId);
     if (!content) {
+        console.error(`[Service] Content not found in database for id="${contentId}"`);
         throw new AppError('Content not found.', 404);
     }
+    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creator_id})`);
 
-    // If the user requesting the URL is NOT the owner of the content,
-    // run the standard permission check (are they subscribed?).
+    // Owner check
     if (content.creator_id !== userId) {
-        await getContentForFan(contentId, userId);
+        console.log('[Service] User is not owner, checking permissions...');
+        await getContentForFan(contentId, userId); // This function contains the permission logic
+        console.log('[Service] Permission check passed.');
+    } else {
+        console.log('[Service] User is the owner. Granting access.');
     }
-    // If they ARE the owner, we skip the check and proceed.
 
     const fullThumbnailUrl = content.files?.[0]?.thumbnailUrl;
     if (!fullThumbnailUrl) {
+        console.error(`[Service] Content id="${contentId}" is missing a thumbnailUrl path in its files array.`);
         throw new AppError('Content has no thumbnail file path.', 404);
     }
+    console.log(`[Service] Full thumbnail URL from DB: ${fullThumbnailUrl}`);
 
-    // --- FIX STARTS HERE ---
-    // The database stores the full URL, but createSignedUrl needs the relative path.
-    // We parse the relative path from the full URL.
-    const bucketName = 'creator-content';
-    const thumbnailPath = fullThumbnailUrl.split(`${bucketName}/`)[1];
-
-    if (!thumbnailPath) {
-        throw new AppError('Could not parse a valid thumbnail path from the URL.', 500);
+    const storedThumbnailPath = content.files?.[0]?.thumbnailUrl;
+    if (!storedThumbnailPath) {
+        throw new AppError('Content has no thumbnail file path.', 404);
     }
-    // --- FIX ENDS HERE ---
+    console.log(`[Service] Path from DB: ${storedThumbnailPath}`);
 
+    let relativePath: string;
+    const bucketName = 'creator-content';
+
+    // Check if the stored path is a full URL or a relative path
+    if (storedThumbnailPath.includes(bucketName)) {
+        // It's a full URL, so we parse it
+        const pathParts = storedThumbnailPath.split(`${bucketName}/`);
+        relativePath = pathParts[1];
+    } else {
+        // It's already a relative path
+        relativePath = storedThumbnailPath;
+    }
+
+    if (!relativePath) {
+        console.error(`[Service] Could not determine a relative path from: ${storedThumbnailPath}`);
+        throw new AppError('Could not determine a valid file path.', 500);
+    }
+    console.log(`[Service] Using relative path for Supabase: ${relativePath}`);
+    
     const { data, error } = await supabase.storage
         .from(bucketName)
-        .createSignedUrl(thumbnailPath, 60); // Use the parsed relative path
-
-    if (error || !data) {
-        throw new AppError('Could not generate secure URL.', 500);
+        .createSignedUrl(relativePath, 60);
+    
+    if (error) {
+        console.error(`[Service] Supabase storage error for path "${relativePath}":`, error.message);
+        throw new AppError('Could not generate secure URL from storage.', 500);
+    }
+    if (!data?.signedUrl) {
+        console.error(`[Service] Supabase returned no data for signed URL for path "${relativePath}"`);
+        throw new AppError('Storage did not return a signed URL.', 500);
     }
 
+    console.log(`[Service] Generated signed URL successfully for path "${relativePath}"`);
     return { secureUrl: data.signedUrl };
 };

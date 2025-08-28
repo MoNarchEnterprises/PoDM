@@ -2,6 +2,12 @@ import axios from 'axios';
 import { User, UserRole, UserProfile } from '@common/types/User';
 
 // --- Configuration ---
+interface GetContentParams {
+    type?: string;
+    searchTerm?: string;
+    sortKey?: string;
+    sortDirection?: 'asc' | 'desc';
+}
 
 /**
  * The base URL for all API requests.
@@ -256,10 +262,17 @@ export const logAnalyticsEvent = async (data: {
 };
 
 /**
- * Gets all content for the currently logged-in creator.
+ * Gets all content for the currently logged-in creator, with filtering and sorting.
  */
-export const getMyCreatorContent = async () => {
-    const response = await apiClient.get('/content/my-content');
+export const getMyCreatorContent = async (params: GetContentParams = {}) => {
+    // Use URLSearchParams to easily build the query string
+    const query = new URLSearchParams();
+    if (params.type && params.type !== 'All') query.append('type', params.type);
+    if (params.searchTerm) query.append('searchTerm', params.searchTerm);
+    if (params.sortKey) query.append('sortKey', params.sortKey);
+    if (params.sortDirection) query.append('sortDirection', params.sortDirection);
+    
+    const response = await apiClient.get(`/content/my-content?${query.toString()}`);
     return response.data;
 };
 
@@ -273,6 +286,25 @@ export const createContent = async (formData: FormData) => {
             'Content-Type': 'multipart/form-data',
         },
     });
+    return response.data;
+};
+
+/**
+ * Sends a request to delete a piece of content.
+ * @param contentId The ID of the content to delete.
+ */
+export const deleteContent = async (contentId: string) => {
+    const response = await apiClient.delete(`/content/${contentId}`);
+    return response.data;
+};
+
+/**
+ * Sends a request to update a piece of content's metadata.
+ * @param contentId The ID of the content to update.
+ * @param updates The data to update (e.g., title, description).
+ */
+export const updateContent = async (contentId: string, updates: { title: string; description: string }) => {
+    const response = await apiClient.put(`/content/${contentId}`, updates);
     return response.data;
 };
 

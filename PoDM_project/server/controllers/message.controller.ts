@@ -9,7 +9,7 @@ import { AppError } from '../middleware/error.middleware';
  */
 export const getConversations = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?._id;
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -28,7 +28,7 @@ export const getConversations = async (req: Request, res: Response, next: NextFu
  */
 export const getMessagesInConversation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?._id;
         const { conversationId } = req.params;
 
         if (!userId) {
@@ -49,7 +49,7 @@ export const getMessagesInConversation = async (req: Request, res: Response, nex
  */
 export const sendMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const senderId = req.user?.id;
+        const senderId = req.user?._id;
         const { receiverId, text, content } = req.body;
 
         if (!senderId) {
@@ -73,7 +73,7 @@ export const sendMessage = async (req: Request, res: Response, next: NextFunctio
  */
 export const sendMassMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?.id;
+        const creatorId = req.user?._id;
         const { text, content } = req.body;
 
         if (!creatorId) {

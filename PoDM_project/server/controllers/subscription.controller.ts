@@ -11,7 +11,7 @@ import * as SubscriptionService from '../services/subscription.service';
  */
 export const getMySubscriptions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -30,7 +30,7 @@ export const getMySubscriptions = async (req: Request, res: Response, next: Next
  */
 export const createSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         const { creatorId, tierId, paymentMethodId } = req.body;
 
         if (!fanId) {
@@ -54,7 +54,7 @@ export const createSubscription = async (req: Request, res: Response, next: Next
  */
 export const updateSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         const { id: subscriptionId } = req.params;
         const { newTierId } = req.body;
 
@@ -79,7 +79,7 @@ export const updateSubscription = async (req: Request, res: Response, next: Next
  */
 export const cancelSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         const { id: subscriptionId } = req.params;
 
         if (!fanId) {

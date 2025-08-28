@@ -11,7 +11,7 @@ import * as PaymentService from '../services/payment.service';
  */
 export const sendTip = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         const { creatorId, amount, message } = req.body; // amount should be in cents
 
         if (!fanId) {

@@ -16,15 +16,22 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
         }
 
         // Multer handles the files, other data is in the body
-        const { title, description, type, visibility, price, tags, schedule } = req.body;
+        const { title, description, type, visibility, price, tags, scheduleIsScheduled, schedulePublishDate } = req.body;
         const files = req.files as Express.Multer.File[];
 
         if (!title || !type || !visibility || !files || files.length === 0) {
             throw new AppError('Title, type, visibility, and at least one file are required.', 400);
         }
 
+        // --- MODIFICATION: Assemble the schedule object ---
+        const schedule = {
+            isScheduled: scheduleIsScheduled === 'true', // FormData sends booleans as strings
+            publishDate: schedulePublishDate,
+        };
+
         const newContent = await ContentService.createNewContent(
             creatorId,
+            // --- MODIFICATION: Pass the new fields to the service ---
             { title, description, type, visibility, price, tags, schedule },
             files
         );
@@ -47,7 +54,9 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const content = await ContentService.getContentByCreatorId(creatorId);
+        // Pass the request query object directly to the service
+        const content = await ContentService.getContentByCreatorId(creatorId, req.query);
+        
         res.status(200).json({ success: true, data: content });
     } catch (error) {
         next(error);
@@ -77,7 +86,7 @@ export const getContentByCreator = async (req: Request, res: Response, next: Nex
  */
 export const getContentById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
+        const fanId = req.user?._id;
         const { id: contentId } = req.params;
 
         if (!fanId) {
@@ -98,7 +107,7 @@ export const getContentById = async (req: Request, res: Response, next: NextFunc
  */
 export const updateContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?.id;
+        const creatorId = req.user?._id;
         const { id: contentId } = req.params;
         const updates = req.body;
 
@@ -120,7 +129,7 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
  */
 export const deleteContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?.id;
+        const creatorId = req.user?._id;
         const { id: contentId } = req.params;
 
         if (!creatorId) {
@@ -144,17 +153,22 @@ export const getSecureContentUrl = async (req: Request, res: Response, next: Nex
         const userId = req.user?._id;
         const { id: contentId } = req.params;
 
-        console.log(`[Controller] getSecureContentUrl: Received request for contentId="${contentId}" by userId="${userId}"`);
-
+        console.log(`[Controller] getSecureContentUrl: Request for contentId="${contentId}" by userId="${userId}"`);
 
         if (!userId) {
-            throw new AppError('Authentication error', 401);
+            return next(new AppError('Authentication error, user ID not found on request.', 401));
+        }
+        if (!contentId) {
+            return next(new AppError('Content ID is missing from request parameters.', 400));
         }
 
-        // The service function will handle access control
         const { secureUrl } = await ContentService.getSecureUrlForThumbnail(contentId, userId);
+        
+        console.log(`[Controller] Successfully generated secure URL for contentId="${contentId}"`);
         res.status(200).json({ success: true, data: { secureUrl } });
+
     } catch (error) {
+        console.error(`[Controller] ERROR in getSecureContentUrl for contentId="${req.params.id}":`, error);
         next(error);
     }
 };

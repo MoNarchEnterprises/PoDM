@@ -65,7 +65,6 @@ export const createProfile = async (profileData: Partial<User>): Promise<User | 
  * @returns The updated profile object.
  */
 export const updateProfile = async (id: string, updates: Partial<UserProfile>): Promise<User | null> => {
-    console.log('Updating profile for user ID:', id, 'with updates:', updates);
     const { data, error } = await supabase
         .from('profiles')
         .update(updates)
