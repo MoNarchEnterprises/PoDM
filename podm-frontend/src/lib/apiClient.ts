@@ -255,4 +255,34 @@ export const logAnalyticsEvent = async (data: {
     }
 };
 
+/**
+ * Gets all content for the currently logged-in creator.
+ */
+export const getMyCreatorContent = async () => {
+    const response = await apiClient.get('/content/my-content');
+    return response.data;
+};
+
+/**
+ * Creates a new piece of content by uploading files and metadata.
+ * @param formData The FormData object containing files and content data.
+ */
+export const createContent = async (formData: FormData) => {
+    const response = await apiClient.post('/content', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+/**
+ * Gets a secure, temporary URL for a piece of content.
+ * @param contentId The ID of the content.
+ */
+export const getSecureContentUrl = async (contentId: string) => {
+    const response = await apiClient.get(`/content/${contentId}/secure-url`);
+    return response.data;
+};
+
 export default apiClient;

@@ -32,43 +32,47 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
 
     for (const file of files) {
         const originalFileName = `${Date.now()}-${file.originalname}`;
-        const originalFilePath = `${creatorId}/${originalFileName}`;
-        filePaths.push(originalFilePath);
+        const filePath = `${creatorId}/${originalFileName}`;
+        filePaths.push(filePath);
 
-        // Upload the original file
+        // Upload the original file to the private 'creator-content' bucket
         const { error: uploadError } = await supabase.storage
             .from('creator-content')
-            .upload(originalFilePath, file.buffer, { contentType: file.mimetype });
+            .upload(filePath, file.buffer, { contentType: file.mimetype });
 
         if (uploadError) {
+            // If upload fails, attempt to clean up any files that might have been uploaded
+            if (filePaths.length > 0) {
+                await supabase.storage.from('creator-content').remove(filePaths);
+            }
             throw new AppError(`Failed to upload file: ${file.originalname}`, 500);
         }
 
-        const { data: { publicUrl: originalUrl } } = supabase.storage.from('creator-content').getPublicUrl(originalFilePath);
-        let thumbnailUrl = originalUrl; // Default for non-image files
+        // Default thumbnail path is the original file path (for videos, etc.)
+        let thumbnailPath = filePath;
 
-        // If it's an image, generate and upload a thumbnail
+        // If it's an image, generate and upload a specific thumbnail
         if (file.mimetype.startsWith('image/')) {
             const thumbnailBuffer = await generateThumbnail(file.buffer);
             const thumbnailFileName = `thumb-${originalFileName}.webp`;
-            const thumbnailFilePath = `${creatorId}/${thumbnailFileName}`;
-            filePaths.push(thumbnailFilePath);
+            thumbnailPath = `${creatorId}/${thumbnailFileName}`;
+            filePaths.push(thumbnailPath);
 
             const { error: thumbUploadError } = await supabase.storage
                 .from('creator-content')
-                .upload(thumbnailFilePath, thumbnailBuffer, { contentType: 'image/webp' });
+                .upload(thumbnailPath, thumbnailBuffer, { contentType: 'image/webp' });
 
             if (thumbUploadError) {
-                console.error(`Failed to upload thumbnail for ${file.originalname}`);
-            } else {
-                thumbnailUrl = supabase.storage.from('creator-content').getPublicUrl(thumbnailFilePath).data.publicUrl;
+                console.error(`Failed to upload thumbnail for ${file.originalname}, will use original file as thumbnail.`);
+                // If thumbnail fails, revert to using the original file's path
+                thumbnailPath = filePath; 
             }
         }
 
         uploadedFiles.push({
             id: originalFileName,
-            url: originalUrl,
-            thumbnailUrl: thumbnailUrl,
+            url: filePath, // Store the path, NOT the public URL
+            thumbnailUrl: thumbnailPath, // Store the path, NOT the public URL
             size: file.size,
             mimeType: file.mimetype,
         });
@@ -76,7 +80,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
 
     const newContentData: Partial<Content> = {
         ...contentData,
-        creatorId,
+        creator_id: creatorId,
         files: uploadedFiles,
         stats: { views: 0, galleryAdds: 0, tips: 0 },
     };
@@ -89,9 +93,43 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
         return newContent;
     } catch (dbError) {
         console.error('Database insert failed. Cleaning up storage...', dbError);
-        await supabase.storage.from('creator-content').remove(filePaths);
+        // If the database insert fails, we must remove the files we just uploaded
+        if (filePaths.length > 0) {
+            await supabase.storage.from('creator-content').remove(filePaths);
+        }
         throw new AppError('Failed to save content to database after upload.', 500);
     }
+};
+
+/**
+ * Fetches all content for a specific creator and shapes it for the frontend.
+ * @param creatorId - The ID of the creator.
+ * @returns An array of content objects with '_id' instead of 'id'.
+ */
+export const getContentByCreatorId = async (creatorId: string) => {
+    const contentFromDb = await ContentModel.findContentByCreatorId(creatorId);
+    if (!contentFromDb) {
+        return [];
+    }
+    // Map the database 'id' to the frontend '_id'
+    return contentFromDb.map(item => ({
+        ...item,
+        _id: item.id.toString(),
+    }));
+};
+
+/**
+ * Fetches all content for a specific creator and shapes it for the frontend.
+ * @param creatorName - The username of the creator.
+ * @returns An array of content objects with '_id' instead of 'id'.
+ */
+export const getContentByCreatorName = async (creatorName: string) => {
+    const creator = await UserModel.findUserByUsername(creatorName);
+    if (!creator) {
+        throw new AppError('Creator not found.', 404);
+    }
+
+    return getContentByCreatorId(creator._id);
 };
 
 /**
@@ -143,13 +181,15 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
         throw new AppError('Content not found.', 404);
     }
 
-    if (content.creatorId === fanId) {
+    // FIX: Check against the snake_case property `creator_id` from the database.
+    if (content.creator_id === fanId) {
         return content;
     }
 
     if (content.visibility === 'subscribers_only') {
         const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
-        const isSubscribed = subscriptions?.some(sub => sub.creatorId === content.creatorId);
+        // FIX: Check against the snake_case property `creator_id`.
+        const isSubscribed = subscriptions?.some(sub => sub.creator_id === content.creator_id);
         if (!isSubscribed) {
             throw new AppError('You must be subscribed to view this content.', 403);
         }
@@ -177,7 +217,7 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     if (!content) {
         throw new AppError('Content not found.', 404);
     }
-    if (content.creatorId !== creatorId) {
+    if (content.creator_id !== creatorId) {
         throw new AppError('You are not authorized to update this content.', 403);
     }
 
@@ -200,7 +240,7 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
         throw new AppError('Content not found.', 404);
     }
 
-    if (content.creatorId !== creatorId) {
+    if (content.creator_id !== creatorId) {
         throw new AppError('You are not authorized to delete this content.', 403);
     }
 
@@ -218,4 +258,50 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
     }
 
     return deletedContent;
+};
+
+/**
+ * Generates a secure URL for a content thumbnail, giving the owner automatic access.
+ * For other users, it falls back to the standard access check.
+ * @param contentId The ID of the content.
+ * @param userId The ID of the user requesting access.
+ */
+export const getSecureUrlForThumbnail = async (contentId: string, userId: string) => {
+    const content = await ContentModel.findContentById(contentId);
+    if (!content) {
+        throw new AppError('Content not found.', 404);
+    }
+
+    // If the user requesting the URL is NOT the owner of the content,
+    // run the standard permission check (are they subscribed?).
+    if (content.creator_id !== userId) {
+        await getContentForFan(contentId, userId);
+    }
+    // If they ARE the owner, we skip the check and proceed.
+
+    const fullThumbnailUrl = content.files?.[0]?.thumbnailUrl;
+    if (!fullThumbnailUrl) {
+        throw new AppError('Content has no thumbnail file path.', 404);
+    }
+
+    // --- FIX STARTS HERE ---
+    // The database stores the full URL, but createSignedUrl needs the relative path.
+    // We parse the relative path from the full URL.
+    const bucketName = 'creator-content';
+    const thumbnailPath = fullThumbnailUrl.split(`${bucketName}/`)[1];
+
+    if (!thumbnailPath) {
+        throw new AppError('Could not parse a valid thumbnail path from the URL.', 500);
+    }
+    // --- FIX ENDS HERE ---
+
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(thumbnailPath, 60); // Use the parsed relative path
+
+    if (error || !data) {
+        throw new AppError('Could not generate secure URL.', 500);
+    }
+
+    return { secureUrl: data.signedUrl };
 };

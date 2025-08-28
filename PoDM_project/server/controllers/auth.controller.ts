@@ -48,7 +48,6 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         }
 
         const { user, token } = await AuthService.loginUser(email, password);
-        console.log(`auth.controller: User logged in: ${user.username} email: ${user.email} role: ${user.role}`);
         // In a real app, you would likely send the token back in a secure cookie
         res.status(200).json({
             success: true,

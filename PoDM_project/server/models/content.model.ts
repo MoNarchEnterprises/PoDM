@@ -41,16 +41,27 @@ export const countAllContent = async (): Promise<number> => {
  * @returns The content object or null if not found.
  */
 export const findContentById = async (id: string): Promise<Content | null> => {
+    // Convert the incoming string ID to a number for the database query
+    const contentId = parseInt(id, 10);
+    if (isNaN(contentId)) {
+        console.error('Invalid content ID provided:', id);
+        return null;
+    }
+
+    console.log(`[Model] findContentById: Querying for content with id=${contentId}`);
+
+
     const { data, error } = await supabase
         .from('content')
         .select('*')
-        .eq('id', id)
+        .eq('id', contentId) // Use the parsed number
         .single();
 
     if (error) {
         console.error('Error finding content by ID:', error.message);
         return null;
     }
+    console.log(`[Model] findContentById Result:`, data);
     return data as Content;
 };
 
@@ -84,6 +95,8 @@ export const findContentByCreatorId = async (creatorId: string): Promise<Content
         .eq('creator_id', creatorId)
         .order('created_at', { ascending: false });
 
+    
+    console.log('findContentByCreatorId:', { creatorId, data, error });
     if (error) {
         console.error('Error finding content by creator ID:', error.message);
         return null;

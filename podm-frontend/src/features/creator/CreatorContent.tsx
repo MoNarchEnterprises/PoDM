@@ -12,30 +12,61 @@ import Modal from '../../components/ui/Modal';
 import StatusBadge from '../../components/shared/StatusBadge';
 import { useModal } from '../../hooks/useModal';
 import { formatCurrency } from '../../lib/formatters';
+import * as apiClient from '../../lib/apiClient';
 
 // --- Reusable Sub-Components ---
 
-const ContentRow = ({ item }: { item: Content }) => (
-    <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-        <td className="px-4 py-3">
-            <div className="flex items-center">
-                <img src={item.files[0]?.thumbnailUrl || 'https://placehold.co/100x100/1F2937/FFFFFF?text=...'} alt={item.title} className="w-10 h-10 rounded-md object-cover mr-4" />
-                <span className="font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
-            </div>
-        </td>
-        <td className="px-4 py-3 text-center">
-            <StatusBadge status={item.status} />
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.views.toLocaleString()}</td>
-        <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.galleryAdds.toLocaleString()}</td>
-        <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats.tips)}</td>
-        <td className="px-4 py-3 text-center">
-            <Button variant="ghost" size="sm" className="p-2 h-auto">
-                <MoreVertical className="w-5 h-5 text-gray-500" />
-            </Button>
-        </td>
-    </tr>
-);
+const ContentRow = ({ item }: { item: Content }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            // Check if there is a files array and if the first item has a thumbnailUrl path
+            const thumbnailPath = item.files?.[0]?.thumbnailUrl;
+            if (thumbnailPath) {
+                try {
+                    // This function should get a signed URL for a specific path.
+                    // We will need to create this endpoint.
+                    const response = await apiClient.getSecureContentUrl(item._id); 
+                    setImageUrl(response.data.secureUrl);
+                } catch (error) {
+                    console.error("Failed to fetch secure thumbnail URL for", item.title, error);
+                    setImageUrl('https://placehold.co/100x100/1F2937/FFFFFF?text=Error');
+                }
+            } else {
+                setImageUrl('https://placehold.co/100x100/1F2937/FFFFFF?text=...');
+            }
+        };
+        fetchImageUrl();
+    }, [item._id, item.files]);
+
+    return (
+        <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+            <td className="px-4 py-3">
+                <div className="flex items-center">
+                    <img
+                        src={imageUrl || 'https://placehold.co/100x100/1F2937/FFFFFF?text=...'}
+                        alt={item.title}
+                        className="w-10 h-10 rounded-md object-cover mr-4"
+                    />
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
+                </div>
+            </td>
+            <td className="px-4 py-3 text-center">
+                <StatusBadge status={item.status} />
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.views.toLocaleString()}</td>
+            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.galleryAdds.toLocaleString()}</td>
+            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats.tips)}</td>
+            <td className="px-4 py-3 text-center">
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                    <MoreVertical className="w-5 h-5 text-gray-500" />
+                </Button>
+            </td>
+        </tr>
+    );
+};
+
 
 type SortKey = 'createdAt' | 'views' | 'galleryAdds' | 'tips';
 
@@ -62,25 +93,85 @@ const SortableHeader = ({ label, sortKey, currentSort, setSort, Icon }: { label:
     );
 };
 
-const UploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-    // This component would have its own state for form fields, file uploads, etc.
+const UploadModal = ({ isOpen, onClose, onUploadSuccess }: { isOpen: boolean; onClose: () => void; onUploadSuccess: (newContent: Content) => void; }) => {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [files, setFiles] = useState<FileList | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFiles(e.target.files);
+    };
+
+    const handleSubmit = async () => {
+        if (!files || files.length === 0 || !title) {
+            setError('A title and at least one file are required.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('type', 'photo');
+        formData.append('visibility', 'subscribers_only');
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('contentFiles', files[i]);
+        }
+
+        try {
+            const response = await apiClient.createContent(formData);
+            onUploadSuccess(response.data);
+            handleClose();
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Upload failed.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleClose = () => {
+        setTitle('');
+        setDescription('');
+        setFiles(null);
+        setError(null);
+        setIsLoading(false);
+        onClose();
+    };
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
-             <div className="flex flex-col max-h-[90vh]">
+        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-3xl">
+            <div className="flex flex-col max-h-[90vh]">
                 <header className="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upload New Content</h2>
                 </header>
-                 <main className="flex-1 overflow-y-auto p-6">
-                    {/* Form content would go here */}
-                     <div className="p-6 border-2 border-dashed rounded-lg text-center transition-colors border-gray-300 dark:border-gray-600">
-                        <UploadCloud className="w-12 h-12 mx-auto text-gray-400" />
-                        <p className="mt-2 text-gray-600 dark:text-gray-300">Upload form fields would be here...</p>
+                <main className="flex-1 overflow-y-auto p-6 space-y-4">
+                    <Input id="title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="My new photo set" />
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A little bit about this content..." className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Media Files</label>
+                        <div className="relative p-6 border-2 border-dashed rounded-lg text-center transition-colors border-gray-300 dark:border-gray-600 hover:border-purple-500">
+                            <label htmlFor="file-upload" className="cursor-pointer">
+                                <UploadCloud className="w-12 h-12 mx-auto text-gray-400" />
+                                <p className="mt-2 text-sm text-gray-500">
+                                    {files && files.length > 0 ? `${files.length} file(s) selected` : "Drag & drop or click to upload"}
+                                </p>
+                            </label>
+                            <input id="file-upload" type="file" multiple onChange={handleFileChange} className="sr-only" />
+                        </div>
+                    </div>
+                    {error && <p className="text-sm text-red-500">{error}</p>}
                 </main>
                 <footer className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3 bg-gray-50 dark:bg-gray-800">
-                    <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                    <Button variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-200 hover:bg-purple-200 dark:hover:bg-purple-900">Save Draft</Button>
-                    <Button>Post Now</Button>
+                    <Button variant="secondary" onClick={handleClose} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSubmit} isLoading={isLoading}>Post Now</Button>
                 </footer>
             </div>
         </Modal>
@@ -99,6 +190,10 @@ const CreatorContentPage = ({ initialContent }: CreatorContentPageProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sort, setSort] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'createdAt', direction: 'desc' });
     const { isOpen: isModalOpen, openModal, closeModal } = useModal();
+
+    const handleUploadSuccess = (newContent: Content) => {
+        setContent(prevContent => [newContent, ...prevContent]);
+    };
 
     const filteredAndSortedContent = useMemo(() => {
         let filtered = [...content];
@@ -131,7 +226,7 @@ const CreatorContentPage = ({ initialContent }: CreatorContentPageProps) => {
 
     return (
         <>
-            <UploadModal isOpen={isModalOpen} onClose={closeModal} />
+            <UploadModal isOpen={isModalOpen} onClose={closeModal} onUploadSuccess={handleUploadSuccess} />
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useParams } from 'react-router-dom';
-
+import * as apiClient from './lib/apiClient';
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
@@ -98,7 +98,41 @@ const CreatorDashboardLoader = () => {
     return <CreatorDashboard creator={user as Creator} metrics={dashboardData.keyMetrics} recentActivity={dashboardData.recentActivity} monthlyEarnings={dashboardData.monthlyEarnings} />;
 };
 
-const CreatorContentLoader = () => { return <CreatorContent initialContent={[]} />; };
+const CreatorContentLoader = () => {
+    const [content, setContent] = useState<Content[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const response = await apiClient.getMyCreatorContent();
+                const shapedContent = response.data.map((item: any) => ({
+                    ...item,
+                    _id: item.id.toString(),
+                }));
+                setContent(shapedContent);
+            } catch (err) {
+                setError('Failed to load your content.');
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchContent();
+    }, []);
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading your content...</div>;
+    }
+
+    if (error) {
+        return <div className="p-8 text-center text-red-500">{error}</div>;
+    }
+
+    return <CreatorContent initialContent={content} />;
+};
+
 const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
 const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any} monthlyEarnings={[]} transactions={[]} />; };
@@ -181,6 +215,7 @@ const App = () => {
             </BrowserRouter>
         </AuthProvider>
     );
+
 };
 
 export default App;

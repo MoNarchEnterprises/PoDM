@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as ContentService from '../services/content.service';
 import { AppError } from '../middleware/error.middleware';
+import { getSecureContentUrl as getSecureContentUrlController } from '../controllers/content.controller'; // Renaming for clarity
 
 /**
  * @desc    Create a new piece of content
@@ -9,11 +10,12 @@ import { AppError } from '../middleware/error.middleware';
  */
 export const createContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?.id;
+        const creatorId = req.user?._id; // Changed from .id
         if (!creatorId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
+        // Multer handles the files, other data is in the body
         const { title, description, type, visibility, price, tags, schedule } = req.body;
         const files = req.files as Express.Multer.File[];
 
@@ -34,6 +36,25 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
 };
 
 /**
+ * @desc    Get all content for the currently logged-in creator
+ * @route   GET /api/v1/content/my-content
+ * @access  Private (Creators only)
+ */
+export const getMyContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?._id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const content = await ContentService.getContentByCreatorId(creatorId);
+        res.status(200).json({ success: true, data: content });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * @desc    Get all content for a specific creator (public view)
  * @route   GET /api/v1/content/creator/:username
  * @access  Public
@@ -42,7 +63,7 @@ export const getContentByCreator = async (req: Request, res: Response, next: Nex
     try {
         const { username } = req.params;
         
-        const content = await ContentService.getContentByCreator(username);
+        const content = await ContentService.getContentByCreatorName(username);
         res.status(200).json({ success: true, data: content });
     } catch (error) {
         next(error);
@@ -108,6 +129,31 @@ export const deleteContent = async (req: Request, res: Response, next: NextFunct
 
         const deletedContent = await ContentService.deleteCreatorContent(contentId, creatorId);
         res.status(200).json({ success: true, data: deletedContent });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get a secure, temporary URL for a content file
+ * @route   GET /api/v1/content/:id/secure-url
+ * @access  Private (Subscribers, Admins, or Owner)
+ */
+export const getSecureContentUrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { id: contentId } = req.params;
+
+        console.log(`[Controller] getSecureContentUrl: Received request for contentId="${contentId}" by userId="${userId}"`);
+
+
+        if (!userId) {
+            throw new AppError('Authentication error', 401);
+        }
+
+        // The service function will handle access control
+        const { secureUrl } = await ContentService.getSecureUrlForThumbnail(contentId, userId);
+        res.status(200).json({ success: true, data: { secureUrl } });
     } catch (error) {
         next(error);
     }

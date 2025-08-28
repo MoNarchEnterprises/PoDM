@@ -16,7 +16,6 @@ export const findUserById = async (id: string): Promise<User | null> => {
         return null;
     }
 
-    console.log('findUserById RPC result:', data); 
     // The RPC returns a single JSON object, which is our data
     return data as User;
 };

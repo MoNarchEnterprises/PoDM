@@ -47,7 +47,7 @@ export const findSubscriptionById = async (id: string): Promise<Subscription | n
 export const findActiveSubscriptionsByFan = async (fanId: string): Promise<Subscription[] | null> => {
     const { data, error } = await supabase
         .from('subscriptions')
-        .select('*, creator:profiles(*)') // Also fetches the creator's profile
+        .select('*, creator:creator_id(*)') // Also fetches the creator's profile
         .eq('fan_id', fanId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -67,7 +67,8 @@ export const findActiveSubscriptionsByFan = async (fanId: string): Promise<Subsc
 export const findSubscriptionsByCreator = async (creatorId: string): Promise<Subscription[] | null> => {
     const { data, error } = await supabase
         .from('subscriptions')
-        .select('*, fan:profiles(*)') // Also fetches the fan's profile
+        // CHANGE THIS LINE:
+        .select('*, fan:fan_id(id, username, avatar_url)') // Select specific, existing columns
         .eq('creator_id', creatorId)
         .eq('status', 'active');
 

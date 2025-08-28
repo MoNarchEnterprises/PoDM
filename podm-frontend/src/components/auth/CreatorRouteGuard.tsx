@@ -8,25 +8,28 @@ const CreatorRouteGuard = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-                Loading User...
+                Verifying Creator Access...
             </div>
         );
     }
-    console.log("CreatorRouteGuard - is onboarding complete?", user?.onboarding_complete);
-    
+
+    // If loading is finished and there's no user, redirect to the homepage
+    if (!user) {
+        return <Navigate to="/" replace />;
+    }
+
     // If the user is a creator but hasn't completed onboarding, redirect them.
-    if (user && user.role === 'creator' && !user.onboarding_complete) {
+    if (user.role === 'creator' && !user.onboarding_complete) {
         return <Navigate to="/onboarding" replace />;
     }
 
-    // If they are not a creator at all, send them to the fan feed.
-    // (Or you could send them to a generic homepage or an error page)
-    if (user && user.role !== 'creator') {
-        return <Navigate to="/fan/feed" replace />;
+    // If the user is a logged-in creator who is onboarded, show the page.
+    if (user.role === 'creator') {
+        return <Outlet />;
     }
 
-    // If they are an onboarded creator, show the intended page.
-    return <Outlet />;
+    // If the user is logged in but NOT a creator, send them to the fan feed.
+    return <Navigate to="/fan/feed" replace />;
 };
 
 export default CreatorRouteGuard;
