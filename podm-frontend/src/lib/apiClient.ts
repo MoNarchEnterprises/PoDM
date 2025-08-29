@@ -298,12 +298,22 @@ export const deleteContent = async (contentId: string) => {
     return response.data;
 };
 
+interface UpdateContentPayload {
+    title: string;
+    description: string;
+    visibility: 'subscribers_only' | 'pay_per_view';
+    price?: number; // Price in cents
+    scheduleIsScheduled: boolean;
+    schedulePublishDate?: string; // ISO String
+}
+
 /**
  * Sends a request to update a piece of content's metadata.
  * @param contentId The ID of the content to update.
- * @param updates The data to update (e.g., title, description).
+ * @param updates The data to update.
  */
-export const updateContent = async (contentId: string, updates: { title: string; description: string }) => {
+export const updateContent = async (contentId: string, updates: UpdateContentPayload) => {
+    // We send a JSON object now, not FormData
     const response = await apiClient.put(`/content/${contentId}`, updates);
     return response.data;
 };

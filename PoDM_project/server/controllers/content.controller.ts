@@ -15,17 +15,28 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        // Multer handles the files, other data is in the body
-        const { title, description, type, visibility, price, tags, scheduleIsScheduled, schedulePublishDate } = req.body;
+        const title = req.body.title || '';
+        const description = req.body.description || '';
+        const type = req.body.type || 'photo'; // Fallback to 'photo' if type is somehow missing
+        const visibility = req.body.visibility || 'subscribers_only';
+        const price = req.body.price ? Number(req.body.price) : undefined;
+        const tags = req.body.tags || []; // Assuming tags might be an array or comma-separated string
+        const scheduleIsScheduled = req.body.scheduleIsScheduled === 'true';
+        const schedulePublishDate = req.body.schedulePublishDate || undefined;
+
         const files = req.files as Express.Multer.File[];
+
+        console.log('[Controller] createContent: Processing request body:', {
+            title, description, type, visibility, price, tags, scheduleIsScheduled, schedulePublishDate
+        });
+        console.log('[Controller] createContent: Files received:', files ? files.length : 0);
 
         if (!title || !type || !visibility || !files || files.length === 0) {
             throw new AppError('Title, type, visibility, and at least one file are required.', 400);
         }
 
-        // --- MODIFICATION: Assemble the schedule object ---
         const schedule = {
-            isScheduled: scheduleIsScheduled === 'true', // FormData sends booleans as strings
+            isScheduled: scheduleIsScheduled,
             publishDate: schedulePublishDate,
         };
 
@@ -38,6 +49,8 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
 
         res.status(201).json({ success: true, data: newContent });
     } catch (error) {
+        console.error('Error creating content:', error);
+       
         next(error);
     }
 };
@@ -115,11 +128,33 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
+        // The updateContent payload coming from apiClient is a JSON object, not FormData.
+        // It has scheduleIsScheduled and schedulePublishDate properties if present.
+        if (updates.scheduleIsScheduled !== undefined) {
+            updates.schedule = {
+                isScheduled: updates.scheduleIsScheduled, // This is already a boolean from apiClient
+                publishDate: updates.schedulePublishDate,
+            };
+            delete updates.scheduleIsScheduled;
+            delete updates.schedulePublishDate;
+        }
+
+        // --- Added for updateContent consistency ---
+        if (updates.type === undefined || updates.type === null || updates.type === '') {
+            updates.type = 'photo'; // Default to photo if type is missing or empty
+        }
+        if (updates.visibility === undefined || updates.visibility === null || updates.visibility === '') {
+            updates.visibility = 'subscribers_only'; // Default visibility
+        }
+        // --- End additions for updateContent consistency ---
+
         const updatedContent = await ContentService.updateCreatorContent(contentId, creatorId, updates);
         res.status(200).json({ success: true, data: updatedContent });
-    } catch (error) {
-        next(error);
-    }
+        } 
+        catch (error) {
+            console.error('Error updating content:', error);
+            next(error);
+        }
 };
 
 /**

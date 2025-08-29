@@ -15,69 +15,185 @@ import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { formatCurrency } from '../../lib/formatters';
 import * as apiClient from '../../lib/apiClient';
 
-// --- Edit Modal Component ---
-interface EditModalProps {
+// --- NEW UNIFIED CONTENT MODAL ---
+interface ContentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    content: Content | null;
-    onSave: (contentId: string, updates: { title: string; description: string }) => Promise<void>;
+    onSave: (formData: FormData, contentId?: string) => Promise<void>;
+    initialContent?: Content | null; // If provided, we are in "edit" mode
 }
 
-const EditModal = ({ isOpen, onClose, content, onSave }: EditModalProps) => {
+const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalProps) => {
+    const isEditMode = !!initialContent;
+
+    // Form state
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [files, setFiles] = useState<FileList | null>(null);
+    const [visibility, setVisibility] = useState<Content['visibility']>('subscribers_only');
+    const [price, setPrice] = useState('');
+    const [isScheduled, setIsScheduled] = useState(false);
+    const [publishDate, setPublishDate] = useState('');
+
+    // Modal control state
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Populate form when in edit mode
     useEffect(() => {
-        if (content) {
-            setTitle(content.title);
-            setDescription(content.description || '');
+        // Reset fields when the modal is opened
+        if (!isOpen) {
+            setTitle('');
+            setDescription('');
+            // ... reset other fields ...
+            setPublishDate('');
+            return;
         }
-    }, [content]);
-
-    if (!content) return null;
-
-    const handleSubmit = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            await onSave(content._id, { title, description });
-            handleClose();
-        } catch (err: any) {
-            setError(err.message || 'Failed to save changes.');
-            setIsLoading(false); // Keep modal open on error
+        if (isEditMode && initialContent) {
+            setTitle(initialContent.title);
+            setDescription(initialContent.description || '');
+            setVisibility(initialContent.visibility);
+            setPrice(initialContent.price ? (initialContent.price / 100).toString() : '');
+            setIsScheduled(initialContent.schedule?.isScheduled || false);
+            // Format date for the datetime-local input
+            if (initialContent.schedule?.isScheduled && initialContent.schedule.publishDate) {
+                try {
+                    const dateFromDb = new Date(initialContent.schedule.publishDate);
+                    // Create a new date that is offset by the timezone difference to get the correct "local" time
+                    const localDate = new Date(dateFromDb.getTime() - (dateFromDb.getTimezoneOffset() * 60000));
+                    // Format to 'YYYY-MM-DDTHH:mm'
+                    const formattedDate = localDate.toISOString().slice(0, 16);
+                    setPublishDate(formattedDate);
+                    console.log(`[ContentModal] Setting schedule date. DB Value: ${initialContent.schedule.publishDate}, Formatted Value: ${formattedDate}`);
+                } catch (e) {
+                    console.error("Error formatting schedule date:", e);
+                    setPublishDate('');
+                }
+            } else {
+                 setPublishDate('');
+            }
         }
-    };
+        else {
+            console.log('[ContentModal] Create mode detected.');
+        }
+    }, [initialContent, isEditMode, isOpen]);
 
     const handleClose = () => {
+        // Reset all state variables
+        setTitle('');
+        setDescription('');
+        setFiles(null);
+        setVisibility('subscribers_only');
+        setPrice('');
+        setIsScheduled(false);
+        setPublishDate('');
         setError(null);
         setIsLoading(false);
         onClose();
     };
 
+    const handleSubmit = async () => {
+        // --- Validation ---
+        if (!title) {
+            setError('A title is required.');
+            return;
+        }
+        if (!isEditMode && (!files || files.length === 0)) {
+            setError('Media files are required when creating new content.');
+            return;
+        }
+        if (visibility === 'pay_per_view' && (!price || parseFloat(price) <= 0)) {
+            setError('A valid price is required for Pay-Per-View content.');
+            return;
+        }
+        if (isScheduled && !publishDate) {
+            setError('Please select a date and time to schedule your post.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        // --- Assemble FormData ---
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('visibility', visibility);
+        if (visibility === 'pay_per_view') {
+            formData.append('price', (parseFloat(price) * 100).toString());
+        }
+        formData.append('scheduleIsScheduled', String(isScheduled));
+        if (isScheduled) {
+            formData.append('schedulePublishDate', new Date(publishDate).toISOString());
+        }
+        
+        // Only append files if they are selected (for create mode)
+        if (files) {
+            for (let i = 0; i < files.length; i++) {
+                formData.append('contentFiles', files[i]);
+            }
+        }
+
+        try {
+            // Call the universal onSave handler from the parent
+            await onSave(formData, initialContent?._id);
+            handleClose();
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'An error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl">
-            <header className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Content</h2>
-            </header>
-            <main className="p-6 space-y-4">
-                <Input id="edit-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                    <textarea 
-                        rows={6} 
-                        value={description} 
-                        onChange={(e) => setDescription(e.target.value)} 
-                        className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    ></textarea>
-                </div>
-                 {error && <p className="text-sm text-red-500">{error}</p>}
-            </main>
-            <footer className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3 bg-gray-50 dark:bg-gray-800">
-                <Button variant="secondary" onClick={handleClose} disabled={isLoading}>Cancel</Button>
-                <Button onClick={handleSubmit} isLoading={isLoading}>Save Changes</Button>
-            </footer>
+        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-3xl">
+            <div className="flex flex-col max-h-[90vh]">
+                <header className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {isEditMode ? 'Edit Content' : 'Upload New Content'}
+                    </h2>
+                </header>
+                <main className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <Input id="title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
+                        <div className="flex space-x-4">
+                            <label className="flex items-center space-x-2 cursor-pointer"><input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio text-purple-600"/><span>Subscribers Only</span></label>
+                            <label className="flex items-center space-x-2 cursor-pointer"><input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio text-purple-600"/><span>Pay Per View (PPV)</span></label>
+                        </div>
+                    </div>
+                    {visibility === 'pay_per_view' && (
+                        <Input id="price" label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="10.00" leftIcon={DollarSign} />
+                    )}
+                    
+                    {!isEditMode && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Media Files</label>
+                            <div className="relative p-6 border-2 border-dashed rounded-lg text-center transition-colors border-gray-300 dark:border-gray-600 hover:border-purple-500">
+                                <label htmlFor="file-upload" className="cursor-pointer"><UploadCloud className="w-12 h-12 mx-auto text-gray-400" /><p className="mt-2 text-sm text-gray-500">{files && files.length > 0 ? `${files.length} file(s) selected` : "Drag & drop or click to upload"}</p></label>
+                                <input id="file-upload" type="file" multiple onChange={(e) => setFiles(e.target.files)} className="sr-only" />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <label className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="form-checkbox text-purple-600 h-5 w-5 rounded"/><span className="font-medium">Schedule for later</span></label>
+                        {isScheduled && (
+                            <Input id="publishDate" type="datetime-local" value={publishDate} onChange={(e) => setPublishDate(e.target.value)} containerClassName="mt-4" />
+                        )}
+                    </div>
+                    {error && <p className="text-sm text-red-500 text-center pt-4">{error}</p>}
+                </main>
+                <footer className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3 bg-gray-50 dark:bg-gray-800">
+                    <Button variant="secondary" onClick={handleClose} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSubmit} isLoading={isLoading}>{isEditMode ? 'Save Changes' : (isScheduled ? 'Schedule Post' : 'Post Now')}</Button>
+                </footer>
+            </div>
         </Modal>
     );
 };
@@ -317,9 +433,8 @@ const CreatorContentPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sort, setSort] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'created_at', direction: 'desc' });
     
-    // Modal states
-    const { isOpen: isUploadModalOpen, openModal: openUploadModal, closeModal: closeUploadModal } = useModal();
-    const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+    // State for the unified modal
+    const { isOpen: isModalOpen, openModal, closeModal } = useModal();
     const [editingContent, setEditingContent] = useState<Content | null>(null);
 
     // Data fetching logic
@@ -357,30 +472,50 @@ const CreatorContentPage = () => {
     }, [filter, searchTerm, sort]);
     
     // Handler Functions
-    const handleUploadSuccess = (newContent: Content) => {
-    // FIX: Reshape the incoming object to have the correct '_id' property
-        const contentWithFrontendId = { ...newContent, _id: (newContent as any).id.toString() };
-        
-        // Add the correctly shaped object to the state
-        setContent(prevContent => [contentWithFrontendId, ...prevContent]);
-    };
+    const handleSaveContent = async (formData: FormData, contentId?: string) => {
+    try {
+        if (contentId) { // This is an EDIT operation
+            // --- NEW LOGIC FOR EDIT ---
+            const updates = {
+                title: formData.get('title') as string,
+                description: formData.get('description') as string,
+                visibility: formData.get('visibility') as 'subscribers_only' | 'pay_per_view',
+                price: formData.has('price') ? Number(formData.get('price')) : undefined,
+                scheduleIsScheduled: formData.get('scheduleIsScheduled') === 'true',
+                schedulePublishDate: formData.has('schedulePublishDate') ? formData.get('schedulePublishDate') as string : undefined,
+            };
+            const response = await apiClient.updateContent(contentId, updates);
+
+            // The API response.data *should* have `_id`, but we'll be extra safe.
+            const updatedItemFromApi = response.data;
+            // Ensure the item we put back into state has the `_id` property.
+            const reshapedItem = { ...updatedItemFromApi, _id: updatedItemFromApi._id || updatedItemFromApi.id.toString() };
+
+            setContent(prev => prev.map(item => item._id === contentId ? reshapedItem : item));
+            
+
+        } else { // This is a CREATE operation (remains the same)
+            const response = await apiClient.createContent(formData);
+            const newItem = { ...response.data, _id: (response.data as any).id.toString() };
+            setContent(prev => [newItem, ...prev]);
+        }
+    } 
+    catch (error) {
+        console.error("Failed to save content:", error);
+        throw error;
+    }
+};
+
     
     const handleOpenEditModal = (contentItem: Content) => {
         setEditingContent(contentItem);
-        openEditModal();
+        openModal();
+    };
+    const handleOpenCreateModal = () => {
+        setEditingContent(null); // Ensure we are in create mode
+        openModal();
     };
 
-    const handleUpdateContent = async (contentId: string, updates: { title: string; description: string }) => {
-        try {
-            const response = await apiClient.updateContent(contentId, updates);
-            const updatedItem = response.data;
-            setContent(prev => prev.map(item => item._id === contentId ? { ...item, ...updatedItem } : item));
-        } catch (error) {
-            console.error("Failed to update content:", error);
-            alert('Failed to save changes. Please try again.');
-            throw error; // Re-throw to keep modal open
-        }
-    };
 
     const handleDeleteContent = async (contentId: string) => {
         if (window.confirm('Are you sure you want to permanently delete this content? This action cannot be undone.')) {
@@ -396,8 +531,12 @@ const CreatorContentPage = () => {
     
     return (
         <>
-            <UploadModal isOpen={isUploadModalOpen} onClose={closeUploadModal} onUploadSuccess={handleUploadSuccess} />
-            <EditModal isOpen={isEditModalOpen} onClose={closeEditModal} content={editingContent} onSave={handleUpdateContent} />
+            <ContentModal 
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+                onSave={handleSaveContent}
+                initialContent={editingContent}
+            />
             
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
@@ -405,7 +544,8 @@ const CreatorContentPage = () => {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Content</h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and track your posts.</p>
                     </div>
-                    <Button onClick={openUploadModal} leftIcon={PlusCircle} className="mt-4 sm:mt-0">
+                    {/* This button now opens the unified modal in create mode */}
+                    <Button onClick={handleOpenCreateModal} leftIcon={PlusCircle} className="mt-4 sm:mt-0">
                         Upload New Content
                     </Button>
                 </header>

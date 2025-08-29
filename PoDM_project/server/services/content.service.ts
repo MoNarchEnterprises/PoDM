@@ -288,6 +288,29 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
         throw new AppError('You are not authorized to update this content.', 403);
     }
 
+    // Validate price for PPV content
+    if (updates.visibility === 'pay_per_view') {
+        if (!updates.price || isNaN(Number(updates.price)) || Number(updates.price) <= 0) {
+            throw new AppError('A valid price is required for Pay-Per-View content.', 400);
+        }
+    } else if (updates.visibility === 'subscribers_only') {
+        // If switching back to subscribers_only, nullify the price
+        updates.price = undefined; 
+    }
+
+    // Determine the content's new status based on scheduling updates
+    if (updates.schedule) {
+        if (updates.schedule.isScheduled && updates.schedule.publishDate) {
+            updates.status = 'scheduled';
+            updates.schedule.publishDate = new Date(updates.schedule.publishDate).toISOString();
+        } else {
+            // If scheduling is turned off, set status to published
+            updates.status = 'published';
+            updates.schedule.isScheduled = false;
+            updates.schedule.publishDate = undefined;
+        }
+    }
+
     // 3. Prevent certain fields from being updated directly via this endpoint
     delete updates.creator_id;
     delete updates.files;
@@ -297,7 +320,7 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     if (!updatedContent) {
         throw new AppError('Failed to update content.', 500);
     }
-    return updatedContent;
+    return {...updatedContent, _id: updatedContent.id.toString() };
 };
 
 
