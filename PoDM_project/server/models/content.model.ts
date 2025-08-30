@@ -108,6 +108,28 @@ export const findContentByCreatorId = async (creatorId: string): Promise<Content
 };
 
 /**
+ * Finds a limited number of the most recent published content pieces for a specific creator.
+ * @param creatorId - The UUID of the creator.
+ * @param limit - The maximum number of content pieces to return.
+ * @returns An array of content objects.
+ */
+export const findRecentContentByCreator = async (creatorId: string, limit: number): Promise<Content[] | null> => {
+    const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .eq('creator_id', creatorId)
+        .eq('status', 'published') // Only show published content
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error(`Error finding recent content for creator ${creatorId}:`, error.message);
+        return null;
+    }
+    return data.map(item => ({ ...item, _id: item.id.toString() })) as Content[];
+};
+
+/**
  * Calculates the sum of all views for a creator's content.
  * @param creatorId - The UUID of the creator.
  * @returns The total number of views.

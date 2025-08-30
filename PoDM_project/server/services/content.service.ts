@@ -6,6 +6,7 @@ import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { Content, MediaFile } from '@common/types/Content';
 import sharp from 'sharp';
+import { User } from 'common/types/User';
 
 // Define a type for the query parameters for clarity
 interface ContentQuery {
@@ -15,6 +16,84 @@ interface ContentQuery {
     sortDirection?: 'asc' | 'desc';
 }
 
+
+/**
+ * Creates a watermarked version of an image for a specific fan.
+ * @param content - The content object containing the image.
+ * @param fan - The user object for the fan viewing the content.
+ * @returns The path to the temporary, watermarked file in storage.
+ */
+const createWatermarkedImage = async (content: Content, fan: User) => {
+    const originalFilePath = content.files[0]?.url;
+    if (!originalFilePath || !content.files[0]?.mimeType.startsWith('image/')) {
+        console.log(`[Watermark] Skipping watermark for non-image or missing file: ${content.title}`);
+        return originalFilePath; // Return original path if not an image
+    }
+
+    try {
+        console.log(`[Watermark] Starting process for content: ${content._id}`);
+        // 1. Download the original image from Supabase Storage into a buffer
+        const { data: fileBlob, error: downloadError } = await supabase.storage
+            .from('creator-content')
+            .download(originalFilePath);
+
+        if (downloadError || !fileBlob) {
+            throw new Error(`Failed to download original file: ${downloadError?.message}`);
+        }
+        console.log(`[Watermark] Original file (as Blob) downloaded successfully.`);
+        
+        // --- THIS IS THE FIX ---
+        // 2. Convert the Blob to a Buffer that Sharp can understand
+        const fileArrayBuffer = await fileBlob.arrayBuffer();
+        const fileBuffer = Buffer.from(fileArrayBuffer);
+       
+        // 2. Define watermark properties
+        const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
+        const tempFileName = `wm-${fan._id}-${Date.now()}.webp`;
+        const tempFilePath = `temp/${tempFileName}`;
+
+        // 3. Use Sharp to composite the watermark text onto the image
+        const watermarkedBuffer = await sharp(fileBuffer)
+            .composite([{
+                input: Buffer.from(
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100">
+                        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
+                              font-size="20" fill="rgba(255, 255, 255, 0.4)" 
+                              font-family="sans-serif" font-weight="bold">
+                            ${watermarkText}
+                        </text>
+                    </svg>`
+                ),
+                tile: true, // Tile the watermark across the entire image
+                gravity: 'center',
+            }])
+            .webp({ quality: 90 }) // Convert to WebP for efficient delivery
+            .toBuffer();
+        
+        console.log(`[Watermark] Image buffer processed with Sharp.`);
+
+        // 4. Upload the watermarked buffer to a temporary folder in storage
+        const { error: uploadError } = await supabase.storage
+            .from('creator-content')
+            .upload(tempFilePath, watermarkedBuffer, {
+                contentType: 'image/webp',
+                upsert: true,
+                // Set cache control to delete the file after a short time (e.g., 5 minutes)
+                cacheControl: 'max-age=300' 
+            });
+
+        if (uploadError) {
+            throw new Error(`Failed to upload watermarked file: ${uploadError.message}`);
+        }
+        console.log(`[Watermark] Temporary watermarked file uploaded to: ${tempFilePath}`);
+        
+        return tempFilePath;
+
+    } catch (error) {
+        console.error(`[Watermark] Error creating watermarked image for content ${content._id}:`, error);
+        return originalFilePath; // If anything fails, fall back to serving the original image
+    }
+};
 
 /**
  * Generates a thumbnail from an image buffer.
@@ -438,5 +517,44 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
     }
 
     console.log(`[Service] Generated signed URL successfully for path "${relativePath}"`);
+    return { secureUrl: data.signedUrl };
+};
+
+/**
+ * Generates a secure URL for a full-size content file, applying a watermark if applicable.
+ * @param contentId The ID of the content.
+ * @param userId The ID of the user requesting access.
+ */
+export const getSecureContentUrl = async (contentId: string, userId: string) => {
+    // 1. Verify user has access (getContentForFan already does this)
+    const content = await getContentForFan(contentId, userId);
+    const user = await UserModel.findUserById(userId);
+    
+    if (!user) throw new AppError('User not found.', 404);
+
+    // 2. Determine which file path to use (watermarked or original)
+    let filePathToSign: string | undefined;
+    
+    // Only apply watermarks to images being viewed by fans (not the creator themselves)
+    if (content.files[0]?.mimeType.startsWith('image/') && content.creator_id !== userId) {
+        filePathToSign = await createWatermarkedImage(content, user);
+    } else {
+        // For videos or if the viewer is the owner, serve the original file
+        filePathToSign = content.files[0]?.url;
+    }
+
+    if (!filePathToSign) {
+        throw new AppError('Content file path not found.', 404);
+    }
+
+    // 3. Generate the signed URL for the determined file path
+    const { data, error } = await supabase.storage
+        .from('creator-content')
+        .createSignedUrl(filePathToSign, 60); // 60-second validity
+
+    if (error || !data) {
+        throw new AppError('Could not generate secure URL.', 500);
+    }
+
     return { secureUrl: data.signedUrl };
 };

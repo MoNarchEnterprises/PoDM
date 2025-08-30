@@ -6,7 +6,7 @@ import { GalleryItem } from '@common/types/Gallery';
 import supabase from '../config/supabaseClient'; // Import the Supabase client
 import { reshapeUserForApp } from '../utils/user.utils';
 import { SubscriptionTier } from '@common/types/Creator';
-
+import * as ContentModel from '../models/content.model';
 
 /**
  * Handles the business logic for fetching a user's public profile.
@@ -256,4 +256,29 @@ export const submitVerificationDocs = async (
     }
 
     return { success: true, message: 'Verification documents submitted successfully.' };
+};
+
+/**
+ * Gathers all necessary data for a creator's public-facing profile page.
+ * @param username - The username of the creator.
+ * @returns An object containing the creator's profile and a preview of their content.
+ */
+export const getFullPublicProfile = async (username: string) => {
+    // 1. Find the creator by their username
+    const user = await UserModel.findUserByUsername(username);
+    if (!user || user.role !== 'creator' || user.status !== 'active') {
+        throw new AppError('Creator profile not found.', 404);
+    }
+
+    // 2. Fetch a preview of their content (e.g., the 12 most recent posts)
+    // Note: We'll create this model function next.
+    const contentPreview = await ContentModel.findRecentContentByCreator(user.id, 12);
+
+    // 3. Reshape the user data for the frontend
+    const creatorProfile = reshapeUserForApp(user);
+
+    return {
+        creator: creatorProfile,
+        content: contentPreview || [],
+    };
 };

@@ -172,3 +172,18 @@ export const submitVerification = async (req: Request, res: Response, next: Next
         next(error);
     }
 };
+
+/**
+ * @desc    Get a creator's full public profile data (profile, tiers, content)
+ * @route   GET /api/v1/users/profile/:username
+ * @access  Public
+ */
+export const getFullPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { username } = req.params;
+        const profileData = await UserService.getFullPublicProfile(username);
+        res.status(200).json({ success: true, data: profileData });
+    } catch (error) {
+        next(error);
+    }
+};

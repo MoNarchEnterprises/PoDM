@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification } from '../controllers/user.controller';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile } from '../controllers/user.controller';
 import { protect, creatorOnly  } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar } from '../middleware/upload.middleware';
@@ -43,6 +43,14 @@ router.post('/me/gallery', protect, addToGallery);
  * @access  Private
  */
 router.delete('/me/gallery/:contentId', protect, removeFromGallery);
+
+/**
+ * @route   GET /api/v1/users/profile/:username
+ * @desc    Get a creator's full public profile for their page
+ * @access  Public
+ */
+router.get('/profile/:username', getFullPublicProfile);
+
 
 /**
  * @route   GET /api/v1/users/:username
