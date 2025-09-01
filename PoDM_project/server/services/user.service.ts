@@ -7,6 +7,7 @@ import supabase from '../config/supabaseClient'; // Import the Supabase client
 import { reshapeUserForApp } from '../utils/user.utils';
 import { SubscriptionTier } from '@common/types/Creator';
 import * as ContentModel from '../models/content.model';
+import * as SubscriptionModel from '../models/subscription.model';
 
 /**
  * Handles the business logic for fetching a user's public profile.
@@ -281,4 +282,42 @@ export const getFullPublicProfile = async (username: string) => {
         creator: creatorProfile,
         content: contentPreview || [],
     };
+};
+
+/**
+ * Generates a personalized content feed for a specific fan.
+ * @param fanId - The UUID of the fan.
+ * @param page - The page number for pagination.
+ * @returns An array of content objects from subscribed creators.
+ */
+export const generateFanFeed = async (fanId: string, page: number = 1) => {
+    const limit = 20; // Number of posts per page
+    const offset = (page - 1) * limit;
+
+    // 1. Find all of the fan's active subscriptions
+    const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
+    if (!subscriptions || subscriptions.length === 0) {
+        return []; // The fan isn't subscribed to anyone, so their feed is empty
+    }
+
+    // 2. Extract the creator IDs from the subscriptions
+    const creatorIds = subscriptions.map(sub => sub.creator_id);
+
+    // 3. Fetch the content from all those creators using our new model function
+    const feedContent = await ContentModel.findContentByCreatorIds(creatorIds, { limit, offset });
+    if (!feedContent) {
+        throw new AppError('Could not retrieve feed content.', 500);
+    }
+
+    // 4. Reshape the data for the frontend
+    return feedContent.map(post => ({
+        ...post,
+        _id: post.id.toString(),
+        // Reshape the joined creator data to match what PostCard expects
+        creator: {
+            name: (post.creator as any)?.username || 'Unknown',
+            avatar: (post.creator as any)?.avatar_url || '',
+            verified: true, // We'd add a 'verified' column to the profiles table for this
+        }
+    }));
 };

@@ -85,12 +85,14 @@ interface AuthResponse {
  * Sends a signup request to the backend.
  */
 export const signup = async (username: string, email: string, password: string, role: UserRole) => {
+    console.log("API Client: Signing up user with role:", role);
     const response = await apiClient.post<AuthResponse>('/auth/signup', {
         username,
         email,
         password,
         role,
     });
+    console.log("API Client: Signup response:", response.data);
     return response.data;
 };
 
@@ -348,6 +350,15 @@ export const getPublicCreatorProfile = async (username: string) => {
  */
 export const getSecureContentUrl = async (contentId: string) => {
     const response = await apiClient.get(`/content/${contentId}/secure-url`);
+    return response.data;
+};
+
+/**
+ * Fetches the personalized content feed for the logged-in fan.
+ * @param page The page number to fetch for infinite scrolling.
+ */
+export const getFanFeed = async (page: number = 1) => {
+    const response = await apiClient.get(`/users/me/feed?page=${page}`);
     return response.data;
 };
 

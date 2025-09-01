@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile } from '../controllers/user.controller';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed } from '../controllers/user.controller';
 import { protect, creatorOnly  } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar } from '../middleware/upload.middleware';
@@ -73,5 +73,11 @@ router.post('/me/onboarding', protect, creatorOnly, completeOnboarding);
  */
 router.post('/me/verification', protect, creatorOnly, uploadVerificationDocs, submitVerification);
 
+/**
+ * @route   GET /api/v1/users/me/feed
+ * @desc    Get the personalized content feed for the current user
+ * @access  Private
+ */
+router.get('/me/feed', protect, getMyFeed);
 
 export default router;

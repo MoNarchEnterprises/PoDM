@@ -108,6 +108,39 @@ export const findContentByCreatorId = async (creatorId: string): Promise<Content
 };
 
 /**
+ * Finds all published content from a specific list of creator IDs, with pagination.
+ * @param creatorIds - An array of creator UUIDs.
+ * @param options - An object for pagination (limit, offset).
+ * @returns An array of content objects, joined with creator profile data.
+ */
+export const findContentByCreatorIds = async (creatorIds: string[], options: { limit: number; offset: number }): Promise<Content[] | null> => {
+    if (creatorIds.length === 0) {
+        return []; // Return empty array if the fan subscribes to no one
+    }
+
+    const { data, error } = await supabase
+        .from('content')
+        // This is the key: it joins the 'profiles' table where content.creator_id matches profiles.id
+        .select(`
+            *,
+            creator: creator_id (
+                username,
+                avatar_url
+            )
+        `)
+        .in('creator_id', creatorIds) // The '.in' filter is highly efficient
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .range(options.offset, options.offset + options.limit - 1);
+
+    if (error) {
+        console.error('Error finding content by creator IDs:', error.message);
+        return null;
+    }
+    return data as Content[];
+};
+
+/**
  * Finds a limited number of the most recent published content pieces for a specific creator.
  * @param creatorId - The UUID of the creator.
  * @param limit - The maximum number of content pieces to return.

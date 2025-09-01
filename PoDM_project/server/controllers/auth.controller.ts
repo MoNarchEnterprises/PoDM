@@ -10,27 +10,30 @@ import { UserRole } from '@common/types/User';
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password, username, role } = req.body;
-
-        if (!email || !password || !username || !role) {
-            throw new AppError('Please provide email, password, username, and role.', 400);
-        }
-
-        if (role !== 'fan' && role !== 'creator') {
-            throw new AppError('Invalid user role specified.', 400);
-        }
+        console.log('[Signup Controller] Received signup request:', { email, username, role });
 
         const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole);
 
-        console.log(`New user registered: ${username} (${role})`);
-        // In a real app, you would likely send the token back in a secure cookie
+        console.log(`[Signup Controller] User registered successfully: ${username} (${role})`);
         res.status(201).json({
             success: true,
             message: "User registered successfully.",
             data: { user, token }
         });
 
-    } catch (error) {
-        next(error); // Pass errors to the global error handler
+    } catch (error: any) {
+        // --- THIS IS THE CRITICAL ADDITION ---
+        console.error('--- DETAILED SIGNUP ERROR ---');
+        // Log the specific error message from the AppError
+        console.error('Message:', error.message); 
+        // If the error has more details (like from a Supabase client error), log them
+        if (error.originalError) {
+            console.error('Original Error:', error.originalError);
+        }
+        console.error('--- END DETAILED SIGNUP ERROR ---');
+        // --- END OF ADDITION ---
+        
+        next(error); // Pass the error to the global error handler
     }
 };
 

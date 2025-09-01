@@ -187,3 +187,24 @@ export const getFullPublicProfile = async (req: Request, res: Response, next: Ne
         next(error);
     }
 };
+
+/**
+ * @desc    Get the personalized content feed for the logged-in fan
+ * @route   GET /api/v1/users/me/feed
+ * @access  Private
+ */
+export const getMyFeed = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const page = parseInt(req.query.page as string) || 1;
+        const feed = await UserService.generateFanFeed(fanId, page);
+        
+        res.status(200).json({ success: true, data: feed });
+    } catch (error) {
+        next(error);
+    }
+};

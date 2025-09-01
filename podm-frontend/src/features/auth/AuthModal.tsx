@@ -80,11 +80,12 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                 // --- END OF REDIRECTION LOGIC ---
 
             } else {
-                // The signup logic can also be enhanced to redirect
+                console.log('Signing up user:', { username, email, userType });
                 await signup(username, email, password, userType);
                 if (userType === 'creator') {
                     navigate('/onboarding');
                 } else {
+                    console.log("Navigating to fan feed after signup");
                     navigate('/fan/feed');
                 }
             }

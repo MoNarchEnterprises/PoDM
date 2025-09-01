@@ -33,6 +33,10 @@ export const validateSignup = [
     body('password')
         .isLength({ min: 8 })
         .withMessage('Password must be at least 8 characters long.'),
+    body('role')
+        .isIn(['fan', 'creator'])
+        .withMessage('Invalid user role specified. Must be "fan" or "creator".'),
+   
     handleValidationErrors,
 ];
 

@@ -30,7 +30,12 @@ export const signupUser = async (email: string, password: string, username: stri
         }
     });
 
-    if (authError) throw new AppError(authError.message, 400);
+    if (authError) {
+        // Pass the original Supabase error object for better debugging
+        const appErr = new AppError(authError.message, 400);
+        (appErr as any).originalError = authError; // Attach original error
+        throw appErr;
+    }
     if (!authData.user) throw new AppError('User could not be created.', 500);
 
     await new Promise(resolve => setTimeout(resolve, 500)); 
