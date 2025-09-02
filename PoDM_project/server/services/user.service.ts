@@ -249,14 +249,15 @@ export const submitVerificationDocs = async (
 
     // Update the user's profile with the verification data
     const updatedUser = await UserModel.updateProfile(userId, {
-        verification_data: verificationData
+        verification_data: verificationData,
+        status: 'pending verification'
     });
 
     if (!updatedUser) {
         throw new AppError('Failed to save verification data to profile.', 500);
     }
 
-    return { success: true, message: 'Verification documents submitted successfully.' };
+    return reshapeUserForApp(updatedUser);
 };
 
 /**

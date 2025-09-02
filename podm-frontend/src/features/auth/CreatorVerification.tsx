@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { Shield, UploadCloud, Camera, CheckCircle, ArrowRight } from 'lucide-react';
 
 // --- Import Reusable Components & API Client ---
@@ -8,11 +10,12 @@ import * as apiClient from '../../lib/apiClient'; // Import the apiClient
 
 // --- The component no longer needs the onSubmit prop ---
 const CreatorVerificationPage = () => {
+    const navigate = useNavigate();
+    const { setUser } = useAuth();
     const [idFile, setIdFile] = useState<File | null>(null);
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [signature, setSignature] = useState('');
     const [agreed, setAgreed] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
     
     // --- Add loading and error state ---
     const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +45,9 @@ const CreatorVerificationPage = () => {
             formData.append('selfieFile', selfieFile);
             formData.append('signature', signature);
 
-            await apiClient.submitVerification(formData);
-            setIsSubmitted(true);
+            const updatedUser = await apiClient.submitVerification(formData);
+            setUser(updatedUser.data); // Update the user context with the new status
+            navigate('/creator/dashboard'); // Redirect to creator dashboard
         } catch (err: any) {
             setError(err.response?.data?.message || 'Submission failed. Please try again.');
         } finally {
@@ -51,22 +55,6 @@ const CreatorVerificationPage = () => {
         }
     };
 
-    if (isSubmitted) {
-        return (
-            <AuthLayout>
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
-                     <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
-                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Verification Submitted</h1>
-                     <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                        Thank you! Your documents have been submitted for review. This process typically takes 24-48 hours. We will notify you via email once your account has been verified.
-                     </p>
-                     <Button className="mt-8" size="lg">
-                        Go to Dashboard
-                    </Button>
-                </div>
-            </AuthLayout>
-        );
-    }
 
     return (
         <AuthLayout>

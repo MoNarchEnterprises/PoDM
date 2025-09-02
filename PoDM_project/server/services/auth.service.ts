@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { findUserById } from '../models/user.model';
+import { createProfile,findUserById } from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { User, UserRole } from '@common/types/User';
-import e from 'express';
 import {reshapeUserForApp} from "../utils/user.utils";
 import supabase from '../config/supabaseClient';
 
@@ -26,7 +25,6 @@ export const signupUser = async (email: string, password: string, username: stri
         email,
         password,
         options: {
-            data: { username, role }
         }
     });
 
@@ -38,19 +36,33 @@ export const signupUser = async (email: string, password: string, username: stri
     }
     if (!authData.user) throw new AppError('User could not be created.', 500);
 
-    await new Promise(resolve => setTimeout(resolve, 500)); 
-    const newProfile = await findUserById(authData.user.id);
+    // Step 2: Manually create the corresponding profile in the public.profiles table
+    const profileData = {
+        id: authData.user.id, // Link to the auth.users table
+        username,
+        email,
+        role,
+        status: role === 'creator' ? 'pending verification' : 'active'
+    };
+    const newProfile = await createProfile(profileData);
     
-    if (!newProfile) throw new AppError('Database error creating profile.', 400);
+    if (!newProfile){
+        // If profile creation fails, we must delete the auth user to prevent orphans
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw new AppError('Database error creating profile.', 400);
+    } 
 
     // **FIX:** Use the session token directly from Supabase
     const token = authData.session?.access_token;
     if (!token) {
         throw new AppError('Could not create a session token for the new user.', 500);
     }
-    
-    // Use the same simple reshaping here
-    const userForFrontend = reshapeUserForApp(newProfile);
+    const fullProfile = await findUserById(newProfile.id); // Fetch the full profile via RPC
+    if (!fullProfile) {
+        throw new AppError('Could not retrieve newly created profile.', 500);
+    }
+
+    const userForFrontend = reshapeUserForApp(fullProfile);
     return { user: userForFrontend, token };
 };
 

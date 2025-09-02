@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Import Link and useLocation
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
+import VerificationBanner from '../shared/VerificationBanner';
 
 // --- Types ---
 
@@ -43,7 +44,6 @@ const Sidebar = ({ logoText, navItems }: SidebarProps) => {
                     
                     return (
                         <li key={item.key}>
-                            {/* Replace <a> with <Link> and href with to */}
                             <Link 
                                 to={item.href} 
                                 className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
@@ -67,11 +67,21 @@ const Sidebar = ({ logoText, navItems }: SidebarProps) => {
 // --- Main Layout Component ---
 
 const MainLayout = ({ logoText, navItems, children }: MainLayoutProps) => {
+    // 2. Get the full user object from the auth context
+    const { user } = useAuth();
+
+    // 3. Determine if the banner should be shown
+    const shouldShowBanner = user && user.role === 'creator' && user.status !== 'active';
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
             <div className="flex">
                 <Sidebar logoText={logoText} navItems={navItems} />
-                <main className="flex-1">
+                <main className="flex-1 h-screen overflow-y-auto">
+                    {/* 4. Conditionally render the banner at the top of the main content area */}
+                    {shouldShowBanner && (
+                        <VerificationBanner status={user.status as 'pending verification' | 'suspended' | 'banned'} />
+                    )}
                     {children}
                 </main>
             </div>
