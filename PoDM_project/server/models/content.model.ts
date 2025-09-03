@@ -113,22 +113,20 @@ export const findContentByCreatorId = async (creatorId: string): Promise<Content
  * @param options - An object for pagination (limit, offset).
  * @returns An array of content objects, joined with creator profile data.
  */
-export const findContentByCreatorIds = async (creatorIds: string[], options: { limit: number; offset: number }): Promise<Content[] | null> => {
+export const findContentByCreatorIds = async (creatorIds: string[], options: { limit: number; offset: number }): Promise<any[] | null> => {
     if (creatorIds.length === 0) {
-        return []; // Return empty array if the fan subscribes to no one
+        return [];
     }
 
     const { data, error } = await supabase
         .from('content')
-        // This is the key: it joins the 'profiles' table where content.creator_id matches profiles.id
+        // THIS IS THE KEY: The syntax `creator:creator_id(*)` tells Supabase to
+        // treat `creator_id` as a foreign key and fetch all columns (*) from the linked `profiles` table.
         .select(`
             *,
-            creator: creator_id (
-                username,
-                avatar_url
-            )
+            creator: creator_id (*)
         `)
-        .in('creator_id', creatorIds) // The '.in' filter is highly efficient
+        .in('creator_id', creatorIds)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .range(options.offset, options.offset + options.limit - 1);
@@ -137,7 +135,7 @@ export const findContentByCreatorIds = async (creatorIds: string[], options: { l
         console.error('Error finding content by creator IDs:', error.message);
         return null;
     }
-    return data as Content[];
+    return data;
 };
 
 /**

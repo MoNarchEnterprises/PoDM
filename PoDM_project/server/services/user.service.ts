@@ -285,6 +285,8 @@ export const getFullPublicProfile = async (username: string) => {
     };
 };
 
+// ... (other functions)
+
 /**
  * Generates a personalized content feed for a specific fan.
  * @param fanId - The UUID of the fan.
@@ -304,21 +306,27 @@ export const generateFanFeed = async (fanId: string, page: number = 1) => {
     // 2. Extract the creator IDs from the subscriptions
     const creatorIds = subscriptions.map(sub => sub.creator_id);
 
-    // 3. Fetch the content from all those creators using our new model function
+    // 3. Fetch the content from all those creators using our model function
+    // This model function needs to join the creator's profile data
     const feedContent = await ContentModel.findContentByCreatorIds(creatorIds, { limit, offset });
     if (!feedContent) {
         throw new AppError('Could not retrieve feed content.', 500);
     }
 
-    // 4. Reshape the data for the frontend
-    return feedContent.map(post => ({
-        ...post,
-        _id: post.id.toString(),
-        // Reshape the joined creator data to match what PostCard expects
-        creator: {
-            name: (post.creator as any)?.username || 'Unknown',
-            avatar: (post.creator as any)?.avatar_url || '',
-            verified: true, // We'd add a 'verified' column to the profiles table for this
-        }
-    }));
+    // 4. Reshape the data for the frontend PostCard component
+    return feedContent.map(post => {
+        // The 'creator' property is the full joined profile from the database
+        const creatorProfile = post.creator ? reshapeUserForApp(post.creator) : null;
+
+        return {
+            ...post,
+            _id: post.id.toString(), // Ensure frontend gets _id
+            // Create the nested creator object that PostCard expects
+            creator: {
+                name: creatorProfile?.profile.name || 'Unknown Creator',
+                avatar: creatorProfile?.profile.avatar || '',
+                verified: true, // Assuming all creators in the feed are verified
+            }
+        };
+    });
 };
