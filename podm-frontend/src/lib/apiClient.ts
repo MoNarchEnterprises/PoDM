@@ -108,6 +108,15 @@ export const login = async (email: string, password: string) => {
 };
 
 /**
+ * Sends a request to the backend to initiate the password reset process.
+ * @param email - The user's email address.
+ */
+export const forgotPassword = async (email: string) => {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+};
+
+/**
  * Verifies the user's session and retrieves their data.
  * This is typically called on app load to check if the user is logged in.
  */

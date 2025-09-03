@@ -121,3 +121,25 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 };
+
+/**
+ * @desc    Initiate a password reset email
+ * @route   POST /api/v1/auth/forgot-password
+ * @access  Public
+ */
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            throw new AppError('Please provide an email address.', 400);
+        }
+
+        // The service will instruct Supabase to send the email.
+        await AuthService.requestPasswordReset(email);
+
+        // ALWAYS return a success message to prevent email enumeration attacks.
+        res.status(200).json({ success: true, message: 'If an account with this email exists, a password reset link has been sent.' });
+    } catch (error) {
+        next(error);
+    }
+};

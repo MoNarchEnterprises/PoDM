@@ -1,9 +1,7 @@
 import { Router } from 'express';
 // --- Import Controllers ---
 // We will create these controller functions in the next step
-import { signup, login, logout } from '../controllers/auth.controller';
-
-import { getMe, changePassword } from '../controllers/auth.controller';
+import { signup, login, logout, getMe, changePassword, forgotPassword } from '../controllers/auth.controller';
 import { protect } from '../middleware/auth.middleware';
 
 
@@ -15,6 +13,13 @@ const router = Router();
  * @access  Public
  */
 router.post('/signup', signup);
+
+/**
+ * @route   POST /api/v1/auth/forgot-password
+ * @desc    Initiate a password reset for a user
+ * @access  Public
+ */
+router.post('/forgot-password', forgotPassword);
 
 /**
  * @route   POST /api/v1/auth/login

@@ -22,6 +22,7 @@ import { useCreatorData } from './hooks/useCreatorData'; // Import the new hook
 
 // --- Import Page Components (Lazy Loaded) ---
 const SplashPage = React.lazy(() => import('./pages/SplashPage'));
+const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage'));
 const CreatorProfilePage = React.lazy(() => import('./features/profile/CreatorProfile'));
 const ContentViewerPage = React.lazy(() => import('./features/viewer/ContentViewer'));
@@ -174,6 +175,7 @@ const App = () => {
                         <Route path="/content/:contentId" element={<ContentViewerLoader />} />
                         
                         {/* --- Auth Routes --- */}
+                        <Route path="/reset-password" element={<ResetPasswordPage />} />
                         <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
                         <Route path="/verification" element={<CreatorVerification />} />
                         <Route path="/admin/login" element={<AdminLoginPage />} />

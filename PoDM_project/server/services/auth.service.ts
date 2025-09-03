@@ -125,3 +125,26 @@ export const changeUserPassword = async (userId: string, currentPassword: string
 
     return { success: true, message: 'Password updated successfully.' };
 };
+
+/**
+ * Handles the business logic for requesting a password reset.
+ */
+export const requestPasswordReset = async (email: string) => {
+    // This is the URL your user will be sent to *after* they click the link in the email.
+    // It must match a route in your frontend application.
+    const redirectTo = `${process.env.CLIENT_URL}/reset-password`;
+
+    const { error } = await authSupabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+    });
+
+    if (error) {
+        // We log the error on the server but don't throw it to the user,
+        // to prevent them from knowing if an email exists in the system or not.
+        console.error('Password reset request error:', error.message);
+    }
+
+    // The function resolves successfully regardless of whether the email existed.
+    return;
+};
+
