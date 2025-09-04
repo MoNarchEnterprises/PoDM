@@ -82,8 +82,71 @@ const ContentViewerLoader = () => {
 };
 
 const FanFeedLoader = () => { return <FanFeed posts={[]} creatorsFollowing={[]} />; };
-const FanGalleryLoader = () => { return <FanGallery galleryData={[]} />; };
-const FanSubscriptionsLoader = () => { return <FanSubscriptions initialSubscriptions={[]} />; };
+
+const FanGalleryLoader = () => {
+    const [galleryData, setGalleryData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchGallery = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.getFanGallery();
+                setGalleryData(response.data);
+            } catch (err) {
+                setError("Failed to load your gallery.");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchGallery();
+    }, []);
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading Gallery...</div>;
+    }
+
+    if (error) {
+        return <div className="p-8 text-center text-red-500">{error}</div>;
+    }
+    
+    return <FanGallery galleryData={galleryData} />;
+};
+
+const FanSubscriptionsLoader = () => {
+    const [subscriptions, setSubscriptions] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSubscriptions = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.getFanSubscriptions();
+                setSubscriptions(response.data);
+            } catch (err) {
+                setError("Failed to load your subscriptions.");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSubscriptions();
+    }, []);
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading Subscriptions...</div>;
+    }
+
+    if (error) {
+        return <div className="p-8 text-center text-red-500">{error}</div>;
+    }
+
+    return <FanSubscriptions initialSubscriptions={subscriptions} />;
+};
+
 const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
 const FanSettingsLoader = () => { const fan = {} as User; const settings = {} as any; return <FanSettings fan={fan} settings={settings} />; };
 

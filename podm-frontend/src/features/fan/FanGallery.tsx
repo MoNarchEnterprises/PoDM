@@ -12,7 +12,9 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 
 // --- Local Types ---
-interface PopulatedGalleryItem extends GalleryItem {
+interface PopulatedGalleryItem {
+    contentId: string;
+    addedDate: string;
     content: Content;
 }
 
@@ -26,12 +28,11 @@ interface CreatorWithContent {
 
 const ContentThumbnail = ({ item, isLocked }: { item: PopulatedGalleryItem; isLocked: boolean }) => (
     <div className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
-        <img src={item.content.files[0]?.thumbnailUrl} alt={item.content.title} className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isLocked && 'blur-md'}`} />
-        {isLocked && <div className="absolute inset-0 bg-black/50"></div>}
+        <img src={item.content.files[0]?.thumbnailUrl} alt={item.content.title} className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isLocked ? 'blur-md brightness-50' : ''}`} />
+        {isLocked && <div className="absolute inset-0 bg-black/40"></div>}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-3 text-white">
             <h4 className="font-bold text-sm truncate">{item.content.title}</h4>
-            <p className="text-xs opacity-80 capitalize">{item.content.type}</p>
         </div>
     </div>
 );
@@ -90,11 +91,8 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
         data.forEach(group => {
             group.content.sort((a, b) => {
                 switch (sortBy) {
-                    case 'Most Viewed':
-                        return b.content.stats.views - a.content.stats.views;
-                    case 'Recent':
-                    default:
-                        return new Date(b.addedDate).getTime() - new Date(a.addedDate).getTime();
+                    case 'Most Viewed': return (b.content.stats?.views || 0) - (a.content.stats?.views || 0);
+                    case 'Recent': default: return new Date(b.addedDate).getTime() - new Date(a.addedDate).getTime();
                 }
             });
         });
@@ -115,14 +113,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
 
             <Card className="mb-8 space-y-4">
                 <div className="flex flex-wrap items-center gap-4">
-                    <Input
-                        id="search-gallery"
-                        placeholder="Search in gallery..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        leftIcon={Search}
-                        containerClassName="flex-grow"
-                    />
+                    <Input id="search-gallery" placeholder="Search in gallery..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} leftIcon={Search} containerClassName="flex-grow"/>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Sort by:</span>
                         <select onChange={(e) => setSortBy(e.target.value)} value={sortBy} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
@@ -133,7 +124,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Button variant={contentTypeFilter === 'All' ? 'secondary' : 'ghost'} size="sm" onClick={() => setContentTypeFilter('All')} leftIcon={ImageIcon}>All</Button>
+                    <Button variant={contentTypeFilter === 'All' ? 'secondary' : 'ghost'} size="sm" onClick={() => setContentTypeFilter('All')}>All</Button>
                     <Button variant={contentTypeFilter === 'photo' ? 'secondary' : 'ghost'} size="sm" onClick={() => setContentTypeFilter('photo')} leftIcon={ImageIcon}>Photos</Button>
                     <Button variant={contentTypeFilter === 'video' ? 'secondary' : 'ghost'} size="sm" onClick={() => setContentTypeFilter('video')} leftIcon={Video}>Videos</Button>
                 </div>
@@ -145,7 +136,10 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
                         <CreatorContentGroup key={group.creator._id} group={group} />
                     ))
                 ) : (
-                    <div className="text-center py-16 text-gray-500"><p className="font-bold mb-2">No content found</p><p>Try adjusting your filters or add more content to your gallery!</p></div>
+                    <div className="text-center py-16 text-gray-500">
+                        <p className="font-bold mb-2">No Content Found</p>
+                        <p>Try adjusting your filters or add content to your gallery from a creator's page.</p>
+                    </div>
                 )}
             </div>
         </div>

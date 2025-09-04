@@ -208,3 +208,23 @@ export const getMyFeed = async (req: Request, res: Response, next: NextFunction)
         next(error);
     }
 };
+
+/**
+ * @desc    Get the gallery data for the currently logged-in user
+ * @route   GET /api/v1/users/me/gallery
+ * @access  Private
+ */
+export const getMyGallery = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const galleryData = await UserService.getFanGallery(fanId);
+        
+        res.status(200).json({ success: true, data: galleryData });
+    } catch (error) {
+        next(error);
+    }
+};

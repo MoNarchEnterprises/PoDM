@@ -95,7 +95,7 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="font-bold text-lg text-gray-800 dark:text-white">${subscription.price}<span className="text-sm font-normal text-gray-400">/mo</span></p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-white">${subscription.price.toFixed(2)}<span className="text-sm font-normal text-gray-400">/mo</span></p>
                     <div className={`flex items-center justify-end text-xs font-medium mt-1 ${statusStyle}`}>
                         {subscription.status === 'active' ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
                         <span className="capitalize">{subscription.status}</span>
@@ -106,7 +106,7 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
     );
 };
 
-const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, onChangeTierClick, onUpdatePaymentClick }: { subscription?: SubscriptionWithCreator; onCancelClick: (sub: SubscriptionWithCreator) => void; onResubscribeClick: (sub: SubscriptionWithCreator) => void; onChangeTierClick: (sub: SubscriptionWithCreator) => void; onUpdatePaymentClick: () => void; }) => {
+const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, onChangeTierClick }: { subscription?: SubscriptionWithCreator; onCancelClick: (sub: SubscriptionWithCreator) => void; onResubscribeClick: (sub: SubscriptionWithCreator) => void; onChangeTierClick: (sub: SubscriptionWithCreator) => void; }) => {
     if (!subscription) {
         return <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400"><p>Select a subscription to see details.</p></div>;
     }
@@ -135,7 +135,7 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
                 <h4 className="text-sm font-semibold mb-2">Payment Method</h4>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3"><CreditCard className="w-6 h-6 text-gray-400" /><p className="text-sm">Visa ending in 4242</p></div>
-                    <Button variant="ghost" onClick={onUpdatePaymentClick}>Update</Button>
+                    <Button variant="ghost">Update</Button>
                 </div>
             </div>
         </div>
@@ -156,6 +156,10 @@ const FanSubscriptionsPage = ({ initialSubscriptions }: FanSubscriptionsPageProp
 
     const handleModalOpen = (setter: () => void, sub: SubscriptionWithCreator) => { setSelectedSub(sub); setter(); };
     
+    // Split subscriptions into active and inactive for rendering
+    const activeSubs = useMemo(() => subscriptions.filter(s => s.status === 'active'), [subscriptions]);
+    const inactiveSubs = useMemo(() => subscriptions.filter(s => s.status !== 'active'), [subscriptions]);
+
     return (
         <>
             <CancelModal isOpen={isCancelModalOpen} onClose={closeCancelModal} onConfirm={() => {}} creatorName={selectedSub?.creator.profile.name} />
@@ -163,17 +167,28 @@ const FanSubscriptionsPage = ({ initialSubscriptions }: FanSubscriptionsPageProp
             <ChangeTierModal isOpen={isChangeTierModalOpen} onClose={closeChangeTierModal} onConfirm={() => {}} subscription={selectedSub} />
             
             <div className="p-4 sm:p-6 lg:p-8">
-                <header className="mb-8"><h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Subscriptions</h1><p className="text-gray-500 dark:text-gray-400 mt-1">Manage your active and expired subscriptions.</p></header>
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Subscriptions</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your active and expired subscriptions.</p>
+                </header>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-6">
-                        <div>
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Active ({subscriptions.filter(s=>s.status === 'active').length})</h2>
-                            <div className="space-y-3">{subscriptions.filter(s=>s.status === 'active').map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}</div>
-                        </div>
-                         <div>
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Inactive ({subscriptions.filter(s=>s.status !== 'active').length})</h2>
-                            <div className="space-y-3">{subscriptions.filter(s=>s.status !== 'active').map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}</div>
-                        </div>
+                        {activeSubs.length > 0 && (
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Active ({activeSubs.length})</h2>
+                                <div className="space-y-3">
+                                    {activeSubs.map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}
+                                </div>
+                            </div>
+                        )}
+                         {inactiveSubs.length > 0 && (
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Inactive ({inactiveSubs.length})</h2>
+                                <div className="space-y-3">
+                                    {inactiveSubs.map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="lg:col-span-2">
                         <SubscriptionDetails 
@@ -181,7 +196,6 @@ const FanSubscriptionsPage = ({ initialSubscriptions }: FanSubscriptionsPageProp
                             onCancelClick={(sub) => handleModalOpen(openCancelModal, sub)}
                             onResubscribeClick={(sub) => handleModalOpen(openResubscribeModal, sub)}
                             onChangeTierClick={(sub) => handleModalOpen(openChangeTierModal, sub)}
-                            onUpdatePaymentClick={() => {}}
                         />
                     </div>
                 </div>

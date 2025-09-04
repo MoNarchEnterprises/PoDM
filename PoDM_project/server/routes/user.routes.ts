@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed } from '../controllers/user.controller';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed, getMyGallery } from '../controllers/user.controller';
 import { protect, creatorOnly  } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar } from '../middleware/upload.middleware';
@@ -14,6 +14,14 @@ const router = Router();
  * @access  Private
  */
 router.get('/me', protect, getMe);
+
+/**
+ * @route   GET /api/v1/users/me/gallery
+ * @desc    Get the personalized gallery for the current user
+ * @access  Private
+ */
+// 2. Add the new route
+router.get('/me/gallery', protect, getMyGallery);
 
 /**
  * @route   PUT /api/v1/users/me

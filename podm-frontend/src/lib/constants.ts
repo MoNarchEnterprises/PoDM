@@ -12,11 +12,11 @@ export const DEFAULT_COMMISSION_RATE = 12.5;
 // --- Navigation ---
 
 export const FAN_NAV_ITEMS: NavItem[] = [
-    { key: 'Feed', label: 'Feed', icon: Home, href: '/feed' },
-    { key: 'Gallery', label: 'Gallery', icon: ImageIcon, href: '/gallery' },
-    { key: 'Subscriptions', label: 'Subscriptions', icon: Briefcase, href: '/subscriptions' },
-    { key: 'Messages', label: 'Messages', icon: MessageSquare, href: '/messages' },
-    { key: 'Settings', label: 'Settings', icon: Settings, href: '/settings' },
+    { key: 'Feed', label: 'Feed', icon: Home, href: '/fan/feed' },
+    { key: 'Gallery', label: 'Gallery', icon: ImageIcon, href: '/fan/gallery' },
+    { key: 'Subscriptions', label: 'Subscriptions', icon: Briefcase, href: '/fan/subscriptions' },
+    { key: 'Messages', label: 'Messages', icon: MessageSquare, href: '/fan/messages' },
+    { key: 'Settings', label: 'Settings', icon: Settings, href: '/fan/settings' },
 ];
 
 export const CREATOR_NAV_ITEMS: NavItem[] = [

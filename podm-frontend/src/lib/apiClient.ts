@@ -371,4 +371,20 @@ export const getFanFeed = async (page: number = 1) => {
     return response.data;
 };
 
+/**
+ * Fetches all subscriptions for the currently logged-in fan.
+ */
+export const getFanSubscriptions = async () => {
+    const response = await apiClient.get('/subscriptions');
+    return response.data;
+};
+
+/**
+ * Fetches the personalized gallery for the logged-in fan.
+ */
+export const getFanGallery = async () => {
+    const response = await apiClient.get('/users/me/gallery');
+    return response.data;
+};
+
 export default apiClient;

@@ -4,6 +4,7 @@ import * as UserModel from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { Subscription } from '@common/types/Subscription';
 import { reshapeUserForApp } from '../utils/user.utils';
+import { User } from '@common/types/User';
 
 /**
  * Finds or creates a Stripe Customer ID for a given fan.
@@ -141,25 +142,42 @@ export const cancelFanSubscription = async (subscriptionId: string, fanId: strin
 };
 
 /**
- * Retrieves all active subscriptions for a given fan.
+ * Retrieves all subscriptions for a given fan and enriches them with creator data.
  * @param fanId - The UUID of the fan.
- * @returns An array of the fan's active subscriptions.
+ * @returns An array of the fan's subscriptions, each including the creator's profile and available tiers.
  */
-export const getFanSubscriptions = async (fanId: string): Promise<(Subscription & { creator: User | null })[]> => {
+export const getFanSubscriptions = async (fanId: string) => {
+    // 1. Fetch all subscriptions for the fan from our database
     const subscriptions = await SubscriptionModel.findSubscriptionsByFanId(fanId);
-    if (!subscriptions || subscriptions.length === 0) {
+    if (!subscriptions) {
+        // Return empty array if there's an error or no subscriptions found
         return [];
     }
 
-    // For each subscription, fetch and reshape the creator's user data
-    const subscriptionsWithCreators = await Promise.all(subscriptions.map(async (sub) => {
-        const creator = await UserModel.findUserById(sub.creator_id);
-        return {
-            ...sub,
-            creator: creator ? reshapeUserForApp(creator) : null,
-        };
-    }));    
-    return subscriptionsWithCreators;
+    // 2. Use Promise.all to fetch the creator's full profile for each subscription concurrently
+    const subscriptionsWithCreators = await Promise.all(
+        subscriptions.map(async (sub) => {
+            const creator = await UserModel.findUserById(sub.creator_id);
+            if (!creator) {
+                // If a creator was deleted or something went wrong, we can skip this subscription
+                return null;
+            }
+            
+            const reshapedCreator = reshapeUserForApp(creator);
+
+            return {
+                ...sub,
+                _id: sub.id, // Ensure frontend gets _id
+                // Nest the full, reshaped creator object
+                creator: reshapedCreator,
+                // Include the creator's available tiers for the "Change Tier" modal
+                availableTiers: reshapedCreator.creatorData?.subscriptionTiers || [],
+            };
+        })
+    );
+    
+    // 3. Filter out any null results and return the final, enriched data
+    return subscriptionsWithCreators.filter(sub => sub !== null);
 };
 
 /**

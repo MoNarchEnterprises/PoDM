@@ -70,6 +70,27 @@ export const findContentById = async (id: string): Promise<Content | null> => {
 };
 
 /**
+ * Finds multiple pieces of content by an array of their unique IDs.
+ * @param ids - An array of content IDs to find.
+ * @returns An array of content objects.
+ */
+export const findContentByIds = async (ids: string[]): Promise<Content[] | null> => {
+    if (ids.length === 0) {
+        return [];
+    }
+    const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .in('id', ids);
+
+    if (error) {
+        console.error('Error finding content by IDs:', error.message);
+        return null;
+    }
+    return data as Content[];
+};
+
+/**
  * Finds content by its status (e.g., 'published', 'flagged', 'removed').
  * @param status - The status to filter content by.
  */

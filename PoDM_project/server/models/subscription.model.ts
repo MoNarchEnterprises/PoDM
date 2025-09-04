@@ -122,14 +122,16 @@ export const updateSubscription = async (id: string, updates: Partial<Subscripti
 };
 
 /**
- * Find subscriptions by fan ID.
+ * Finds all subscriptions for a specific fan, regardless of status.
  * @param fanId - The UUID of the fan.
+ * @returns An array of subscription objects.
  */
 export const findSubscriptionsByFanId = async (fanId: string): Promise<Subscription[] | null> => {
     const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
-        .eq('fan_id', fanId);
+        .eq('fan_id', fanId)
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error('Error finding subscriptions by fan ID:', error.message);

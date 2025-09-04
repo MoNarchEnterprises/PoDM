@@ -330,3 +330,56 @@ export const generateFanFeed = async (fanId: string, page: number = 1) => {
         };
     });
 };
+
+/**
+ * Gathers and structures all data needed for a fan's gallery page.
+ * @param fanId - The UUID of the fan.
+ * @returns An array of objects, where each object represents a creator and their content in the gallery.
+ */
+export const getFanGallery = async (fanId: string) => {
+    // 1. Get the fan's raw gallery data (contains content IDs)
+    const gallery = await GalleryModel.findGalleryByFanId(fanId);
+    if (!gallery || gallery.content.length === 0) {
+        return []; // Return empty if they have nothing saved
+    }
+
+    // 2. Get the fan's active subscriptions to check accessibility
+    const activeSubs = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
+    const activeCreatorIds = new Set(activeSubs?.map(sub => sub.creator_id));
+
+    // 3. Group saved content IDs by creator
+    const contentByCreator = new Map<string, string[]>();
+    for (const item of gallery.content) {
+        // We need to fetch the content to know its creator
+        const contentItem = await ContentModel.findContentById(item.contentId);
+        if (contentItem) {
+            if (!contentByCreator.has(contentItem.creator_id)) {
+                contentByCreator.set(contentItem.creator_id, []);
+            }
+            contentByCreator.get(contentItem.creator_id)?.push(item.contentId);
+        }
+    }
+
+    // 4. Build the final, structured response
+    const galleryData = [];
+    for (const [creatorId, contentIds] of contentByCreator.entries()) {
+        const [creator, contentItems] = await Promise.all([
+            UserModel.findUserById(creatorId),
+            ContentModel.findContentByIds(contentIds) // A new model function we need to create
+        ]);
+        
+        if (creator && contentItems) {
+            galleryData.push({
+                creator: reshapeUserForApp(creator),
+                content: contentItems.map(item => ({
+                    contentId: item.id.toString(),
+                    addedDate: gallery.content.find(g => g.contentId === item.id.toString())?.addedDate,
+                    content: { ...item, _id: item.id.toString() }
+                })),
+                activeSubscription: activeCreatorIds.has(creatorId)
+            });
+        }
+    }
+
+    return galleryData;
+};
