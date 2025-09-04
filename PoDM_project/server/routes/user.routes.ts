@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed, getMyGallery } from '../controllers/user.controller';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed, getMyGallery, getMySettings, updateMySettings, updateMyPaymentMethod  } from '../controllers/user.controller';
 import { protect, creatorOnly  } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar } from '../middleware/upload.middleware';
@@ -87,5 +87,29 @@ router.post('/me/verification', protect, creatorOnly, uploadVerificationDocs, su
  * @access  Private
  */
 router.get('/me/feed', protect, getMyFeed);
+
+/**
+ * @route   GET /api/v1/users/me/settings
+ * @desc    Get all settings for the currently logged-in user
+ * @access  Private
+ */
+// 2. Add the new GET route
+router.get('/me/settings', protect, getMySettings);
+
+/**
+ * @route   PUT /api/v1/users/me/settings
+ * @desc    Update all settings for the currently logged-in user
+ * @access  Private
+ */
+// 3. Add the new PUT route
+router.put('/me/settings', protect, updateMySettings);
+
+/**
+ * @route   PUT /api/v1/users/me/payment-method
+ * @desc    Update the default payment method for the logged-in user
+ * @access  Private
+ */
+// 2. Add the new route
+router.put('/me/payment-method', protect, updateMyPaymentMethod);
 
 export default router;

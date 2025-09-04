@@ -8,6 +8,9 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import { SubscriptionTier } from '@common/types/Creator';
 import * as ContentModel from '../models/content.model';
 import * as SubscriptionModel from '../models/subscription.model';
+import stripe from '../config/stripeClient';
+import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
+
 
 /**
  * Handles the business logic for fetching a user's public profile.
@@ -382,4 +385,106 @@ export const getFanGallery = async (fanId: string) => {
     }
 
     return galleryData;
+};
+
+/**
+ * Gathers all settings for a fan, combining profile data with payment info.
+ * @param fanId - The UUID of the fan.
+ */
+export const getFanSettings = async (fanId: string) => {
+    // 1. Get the user's profile from our database
+    const user = await UserModel.findUserById(fanId);
+    if (!user) {
+        throw new AppError('User not found.', 404);
+    }
+
+    let paymentMethod = null;
+
+    // 2. If the user has a Stripe customer ID, fetch their default payment method
+    if (user.stripe_customer_id) {
+        try {
+            const customer = await stripe.customers.retrieve(user.stripe_customer_id, {
+                expand: ['invoice_settings.default_payment_method'],
+            });
+            
+            const defaultPaymentMethod = customer.invoice_settings?.default_payment_method as any;
+            if (defaultPaymentMethod && defaultPaymentMethod.card) {
+                paymentMethod = {
+                    brand: defaultPaymentMethod.card.brand,
+                    last4: defaultPaymentMethod.card.last4,
+                };
+            }
+        } catch (error) {
+            console.error(`Failed to retrieve Stripe customer data for ${fanId}:`, error);
+            // Don't throw an error, just proceed without payment info
+        }
+    }
+
+    // 3. Combine and return the data
+    return {
+        fan: reshapeUserForApp(user),
+        settings: {
+            notifications: user.preferences?.notifications || {},
+            privacy: user.preferences?.privacy || {},
+            paymentMethod: paymentMethod || { brand: 'N/A', last4: 'N/A' }
+        }
+    };
+};
+
+/**
+ * Updates a fan's settings.
+ * @param fanId - The UUID of the fan.
+ * @param updates - The settings data to update.
+ */
+export const updateFanSettings = async (fanId: string, updates: any) => {
+    const { profile, preferences } = updates;
+
+    // In a real app, you'd have more robust validation here
+    if (!profile && !preferences) {
+        throw new AppError('No settings data provided to update.', 400);
+    }
+
+    const dbUpdates: any = {};
+    if (profile) {
+        dbUpdates.username = profile.name; // Assuming name and username are kept in sync
+        dbUpdates.bio = profile.bio;
+    }
+    if (preferences) {
+        dbUpdates.preferences = preferences;
+    }
+
+    const updatedUser = await UserModel.updateProfile(fanId, dbUpdates);
+    if (!updatedUser) {
+        throw new AppError('Failed to update user settings.', 500);
+    }
+
+    return getFanSettings(fanId); // Return the full, updated settings object
+};
+
+/**
+ * Attaches a new payment method to a fan's Stripe customer profile and sets it as their default.
+ * @param fanId - The UUID of the fan.
+ * @param paymentMethodId - The `pm_...` ID from the frontend.
+ */
+export const updateFanPaymentMethod = async (fanId: string, paymentMethodId: string) => {
+    const stripeCustomerId = await getOrCreateStripeCustomer(fanId);
+
+    try {
+        // 1. Attach the new payment method to the customer in Stripe
+        await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: stripeCustomerId,
+        });
+
+        // 2. Set the newly attached payment method as the default for subscriptions
+        await stripe.customers.update(stripeCustomerId, {
+            invoice_settings: {
+                default_payment_method: paymentMethodId,
+            },
+        });
+
+        return { message: 'Payment method updated successfully.' };
+    } catch (error: any) {
+        console.error("Stripe payment method update error:", error);
+        throw new AppError(`Stripe Error: ${error.message}`, 500);
+    }
 };

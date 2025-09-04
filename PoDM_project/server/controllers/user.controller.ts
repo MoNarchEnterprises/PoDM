@@ -228,3 +228,63 @@ export const getMyGallery = async (req: Request, res: Response, next: NextFuncti
         next(error);
     }
 };
+
+/**
+ * @desc    Get all settings data for the currently logged-in user
+ * @route   GET /api/v1/users/me/settings
+ * @access  Private
+ */
+export const getMySettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        const settings = await UserService.getFanSettings(userId);
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update the settings for the currently logged-in user
+ * @route   PUT /api/v1/users/me/settings
+ * @access  Private
+ */
+export const updateMySettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        const updatedSettings = await UserService.updateFanSettings(userId, req.body);
+        res.status(200).json({ success: true, data: updatedSettings });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update the default payment method for the current user
+ * @route   PUT /api/v1/users/me/payment-method
+ * @access  Private
+ */
+export const updateMyPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { paymentMethodId } = req.body;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!paymentMethodId) {
+            throw new AppError('A paymentMethodId is required.', 400);
+        }
+
+        const result = await UserService.updateFanPaymentMethod(userId, paymentMethodId);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};

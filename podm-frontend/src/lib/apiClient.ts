@@ -387,4 +387,42 @@ export const getFanGallery = async () => {
     return response.data;
 };
 
+/**
+ * Fetches all settings for the currently logged-in fan.
+ */
+export const getFanSettings = async () => {
+    const response = await apiClient.get('/users/me/settings');
+    return response.data;
+};
+
+/**
+ * Updates the settings for the currently logged-in fan.
+ * @param settings - The settings object to save.
+ */
+export const updateFanSettings = async (settings: any) => {
+    const response = await apiClient.put('/users/me/settings', settings);
+    return response.data;
+};
+
+/**
+ * Updates the fan's default payment method in Stripe.
+ * @param paymentMethodId - The secure `pm_...` token from Stripe Elements.
+ */
+export const updateFanPaymentMethod = async (paymentMethodId: string) => {
+    const response = await apiClient.put('/users/me/payment-method', { paymentMethodId });
+    return response.data;
+};
+
+/**
+ * Submits a new support ticket from a user.
+ * @param subject - The subject of the support ticket.
+ * @param description - The detailed description of the issue.
+ */
+export const submitSupportTicket = async (subject: string, description: string) => {
+    // Note: You will need to create this backend endpoint next.
+    // POST /api/v1/support/tickets
+    const response = await apiClient.post('/support/tickets', { subject, description });
+    return response.data;
+};
+
 export default apiClient;

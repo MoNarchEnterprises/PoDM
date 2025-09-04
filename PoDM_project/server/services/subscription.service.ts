@@ -5,33 +5,8 @@ import { AppError } from '../middleware/error.middleware';
 import { Subscription } from '@common/types/Subscription';
 import { reshapeUserForApp } from '../utils/user.utils';
 import { User } from '@common/types/User';
+import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 
-/**
- * Finds or creates a Stripe Customer ID for a given fan.
- * @param fanId The fan's UUID from our database.
- * @returns The Stripe Customer ID (cus_...).
- */
-const getOrCreateStripeCustomer = async (fanId: string) => {
-    const user = await UserModel.findUserById(fanId);
-    if (!user) throw new AppError('Fan not found.', 404);
-
-    if (user.stripe_customer_id) {
-        console.log(`[Stripe] Found existing customer ID for user ${fanId}: ${user.stripe_customer_id}`);
-        return user.stripe_customer_id;
-    }
-
-    console.log(`[Stripe] No customer ID found for user ${fanId}. Creating new customer...`);
-    const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.profile.name,
-        metadata: { pod_user_id: user._id },
-    });
-
-    await UserModel.updateProfile(fanId, { stripe_customer_id: customer.id });
-    console.log(`[Stripe] New customer created and saved: ${customer.id}`);
-    
-    return customer.id;
-};
 
 
 /**

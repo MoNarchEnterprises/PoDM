@@ -148,7 +148,37 @@ const FanSubscriptionsLoader = () => {
 };
 
 const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
-const FanSettingsLoader = () => { const fan = {} as User; const settings = {} as any; return <FanSettings fan={fan} settings={settings} />; };
+
+const FanSettingsLoader = () => {
+    const [settingsData, setSettingsData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.getFanSettings();
+                setSettingsData(response.data);
+            } catch (err) {
+                setError("Failed to load your settings.");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    if (isLoading || !settingsData) {
+        return <div className="p-8 text-center">Loading Settings...</div>;
+    }
+    if (error) {
+        return <div className="p-8 text-center text-red-500">{error}</div>;
+    }
+
+    return <FanSettings fan={settingsData.fan} initialSettings={settingsData.settings} />;
+};
 
 const CreatorDashboardLoader = () => {
     const { user } = useAuth(); // Get the logged-in user, who is the creator
@@ -220,7 +250,6 @@ const AdminLayout = () => ( <MainLayout logoText="PoDM - Admin" navItems={ADMIN_
 // Initialize Stripe outside of the component to avoid re-initialization on every render
 // Get your publishable key from environment variables
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
-console.log("Using Stripe Key:", stripeKey); // Debugging line to check the key
 const stripePromise = loadStripe(stripeKey);
 
 
