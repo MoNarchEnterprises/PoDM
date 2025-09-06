@@ -23,7 +23,7 @@
     // --- Add these two properties ---
     "baseUrl": ".",
     "paths": {
-      "@common/*": ["../common/*"]
+      "@common/*": ["../PoDM_project/common/*"]
     }
   },
   "include": [

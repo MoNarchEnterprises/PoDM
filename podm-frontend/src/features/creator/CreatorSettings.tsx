@@ -123,7 +123,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
 
             const payload = {
                 profile: { name: settingsData.profile.name, bio: settingsData.profile.bio },
-                creatorData: { welcomeMessage: settingsData.welcomeMessage }
+                creatorData: { welcomeMessage: settingsData.creatorData.welcomeMessage }
             };
             const settingsResponse = await apiClient.updateCreatorSettings(payload);
             setUser(settingsResponse.data);
