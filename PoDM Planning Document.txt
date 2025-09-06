@@ -1,0 +1,1759 @@
+# Comprehensive Design Documentation: Creator-Fan Interaction Platform
+## Table of Contents
+1. Executive Summary
+2. Platform Architecture
+3. User Roles & Permissions
+4. Core Features & Workflows
+5. Screen-by-Screen Design Specifications
+6. Admin Panel Design
+7. Technical Implementation Details
+8. Design System
+9. Security & Compliance
+10. Development Roadmap
+---
+## 1. Executive Summary
+### 1.1 Project Overview
+This document outlines the design for a creator-fan interaction platform similar to OnlyFans,
+Fansly, and FanVue. The platform enables creators to monetize content through subscriptions
+and direct fan interactions, with a focus on better profit splits for creators and an intuitive user
+interface.
+### 1.2 Key Differentiators
+- Better profit split for creators
+- Easier to navigate interface
+- Robust content protection measures
+- Comprehensive analytics for creators
+- Streamlined communication tools
+### 1.3 Target Audience
+- **Primary**: Adult content creators
+- **Secondary**: Fans/consumers of adult content
+---
+## 2. Platform Architecture
+### 2.1 Technology Stack
+- **Frontend**: React.js with TypeScript
+- **Backend**: Node.js with Express
+- **Databases**:
+- PostgreSQL (via Supabase) for relational data
+- MongoDB Atlas (on GCP) for unstructured content
+- **Storage**: Supabase Storage for media files
+- **Authentication**: Supabase Auth with JWT tokens
+- **Cloud Hosting**: Google Cloud Platform (GCP)
+- Compute: Google Cloud Functions (serverless)
+- Frontend Hosting: Firebase Hosting
+- CDN: Google Cloud CDN
+### 2.2 Data Flow Architecture
+```
+User (Browser/Mobile) → React App → API Gateway → Microservices
+↓
+PostgreSQL (Supabase) ←→ MongoDB Atlas
+↓
+Supabase Storage
+↓
+Stripe (Payments)
+```
+### 2.3 Security Architecture
+- Authentication: JWT tokens with refresh token rotation
+- Authorization: Role-based access control
+- Data Protection: Encryption at rest and in transit
+- Content Protection: Multi-layered approach (watermarking, access controls)
+---
+## 3. User Roles & Permissions
+### 3.1 Fans
+- Browse and discover creators
+- Subscribe to creator content
+- Add content to personal gallery
+- Message creators (if subscribed)
+- Manage subscriptions and payments
+### 3.2 Creators
+- Create and upload content
+- Set subscription tiers and pricing
+- Message subscribers
+- View analytics and earnings
+- Manage subscribers
+### 3.3 Administrators
+- Manage user accounts
+- Moderate content
+- Handle support tickets
+- View platform analytics
+- Manage financial transactions
+---
+## 4. Core Features & Workflows
+### 4.1 Content Management
+- **Upload**: Drag-and-drop interface with progress tracking
+- **Organization**: Content categorized by creator and accessibility
+- **Monetization**: Subscription-based with pay-per-view options
+- **Protection**: Watermarking, access controls, download prevention
+### 4.2 Subscription System
+- **Tiers**: Multiple subscription levels with different benefits
+- **Billing**: Automated recurring payments via Stripe
+- **Management**: Easy upgrade/downgrade/cancellation
+- **Access**: Immediate content access upon subscription
+### 4.3 Gallery System
+- **Personal Collection**: Fans can save content to personal gallery
+- **Access Control**: Content blurred if subscription expires
+- **Organization**: Content organized by creator and accessibility
+- **Analytics**: Creators can see how many galleries include their content
+### 4.4 Messaging System
+- **Real-time Communication**: WebSocket-based messaging
+- **Content Sharing**: Creators can send paid/free content in messages
+- **Prioritization**: New subscribers first, then by total spending
+- **Automation**: Welcome messages for new subscribers
+### 4.5 Analytics & Reporting
+- **Creator Analytics**: Content performance, subscriber growth, earnings
+- **Platform Analytics**: User growth, revenue, engagement metrics
+- **Custom Reports**: Build and schedule custom reports
+- **Export Options**: Download data in various formats
+---
+## 5. Screen-by-Screen Design Specifications
+### 5.1 Creator Dashboard
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Profile Dropdown |
++---------------------------------------------------------+
+| Sidebar: Dashboard | Content | Messages | Analytics | |
+| Settings | Earnings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Dashboard Overview | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Key Metrics | | |
+| | | | | |
+| | | Subscribers: 1,234 Earnings: $1,234.56 | | |
+| | | Post Views: 5,678 Profile Visits: 892 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Quick Actions | | |
+| | | | | |
+| | | [Create New Post] [View Messages] | | |
+| | | [Check Earnings] [Copy Profile Link] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Your Profile Link | | |
+| | | | | |
+| | | https://yourplatform.com/creator/username | | |
+| | | [Copy] [Twitter] [Instagram] [TikTok] | | |
+| | | [Show QR Code] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Recent Activity | | |
+| | | | | |
+| | | [Post] "New photo set" - 2 hours ago | | |
+| | | [Subscriber] @fan123 subscribed - 5h ago| | |
+| | | [Tip] Received $10 from @fan456 - 1d ago| | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Profile Link Section**: Permanent link for promotion with social sharing options
+- **Quick Actions**: Direct access to common tasks
+- **Recent Activity**: Timeline of recent interactions
+### 5.2 Fan Dashboard/Feed
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Messages | Profile |
++---------------------------------------------------------+
+| Sidebar: Feed | Gallery | Subscriptions | Settings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Feed Filters | |
+| | | |
+| | [Following] [For You] [Trending] | |
+| | [Newest First] [Most Popular] | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Post 1 | |
+| | | |
+| | [Creator Avatar] Creator Name | |
+| | Post Title | |
+| | [Thumbnail] | |
+| | [Add to Gallery] [Tip] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Post 2 | |
+| | | |
+| | [Creator Avatar] Creator Name | |
+| | Post Title | |
+| | [Thumbnail] | |
+| | [Add to Gallery] [Tip] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Feed Filters**: Content source and sorting options
+- **Post Cards**: Creator info, content preview, engagement options
+- **Engagement**: "Add to Gallery" and "Tip" actions only (no likes or comments)
+### 5.3 Gallery Page
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Messages | Profile |
++---------------------------------------------------------+
+| Sidebar: Feed | Gallery | Subscriptions | Settings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Gallery Filters | |
+| | | |
+| | [All] [Photos] [Videos] [Favorites] | |
+| | Search: [_________________] | |
+| | Sort by: [Recent] [Creator] [Most Viewed] | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Creator 1 (Active Subscription) | |
+| | | |
+| | [Creator Avatar] Creator Name | |
+| | [View Profile] [Send Message] | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Photo Grid | | |
+| | | | | |
+| | | [Photo 1] [Photo 2] [Photo 3] | | |
+| | | [Photo 4] [Photo 5] [Photo 6] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Video Grid | | |
+| | | | | |
+| | | [Video 1] [Video 2] [Video 3] | | |
+| | | [Video 4] [Video 5] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Creator 2 (Expired Subscription) | |
+| | | |
+| | [Creator Avatar] Creator Name | |
+| | [Resubscribe to Access All Content] | |
+| | [View Profile] | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Blurred Photo Grid | | |
+| | | | | |
+| | | [Blurred 1] [Blurred 2] [Blurred 3] | | |
+| | | [Blurred 4] [Blurred 5] [Blurred 6] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Blurred Video Grid | | |
+| | | | | |
+| | | [Blurred 1] [Blurred 2] [Blurred 3] | | |
+| | | [Blurred 4] [Blurred 5] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Gallery Filters**: Content type, search, and sorting options
+- **Active Subscriptions**: Fully accessible content
+- **Expired Subscriptions**: Blurred content with resubscribe option
+### 5.4 Creator Profile (Public View)
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Login/Signup | Search |
++---------------------------------------------------------+
+| |
+| +---------------------------------------------------+ |
+| | Cover Image | |
+| | | |
+| | [Profile Picture] | |
+| | Creator Name | |
+| | Verification Badge | |
+| | [Follow] [Message] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Subscription Options | |
+| | | |
+| | [Tier 1] $9.99/month - Basic access | |
+| | [Tier 2] $19.99/month - All content + DMs | |
+| | [Tier 3] $29.99/month - Premium + Custom | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | About | |
+| | | |
+| | Bio text here... | |
+| | Social Links: [Twitter] [Instagram] [TikTok] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Content Grid | |
+| | | |
+| | [Blurred Post 1] [Blurred Post 2] | |
+| | [Blurred Post 3] [Blurred Post 4] | |
+| | [Load More] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Cover Section**: Profile image, verification badge, action buttons
+- **Subscription Options**: Tier cards with pricing and features
+- **Content Grid**: Preview of creator content (blurred for non-subscribers)
+### 5.5 Content Viewer
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: [Back] Creator Name | Post Title |
++---------------------------------------------------------+
+| |
+| +---------------------------------------------------+ |
+| | Media Display Area | |
+| | | |
+| | [Full-size Image or Video Player] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Engagement Bar | |
+| | | |
+| | [Add to Gallery] [Tip] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Post Description | |
+| | | |
+| | Full post description text here... | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Related Content | |
+| | | |
+| | [Related 1] [Related 2] [Related 3] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Media Display**: Full-size image or video player with protection
+- **Engagement Bar**: "Add to Gallery" and "Tip" actions
+- **Related Content**: Additional content from the same creator
+### 5.6 Messaging Interface
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Messages | Profile |
++---------------------------------------------------------+
+| Sidebar: Feed | Gallery | Subscriptions | Settings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------+---------------------------------+
+| | | |
+| | Conversations List | Active Conversation |
+| | | |
+| | +---------------+ | +---------------------------+ |
+| | | New Fan 1 | | | Fan Name | |
+| | | Avatar | | | Total Spent: $234.56 | |
+| | | Last Message | | | [Back to Messages] | |
+| | | Timestamp | | | | |
+| | | [NEW] Badge | | | [Message History] | |
+| | +---------------+ | | | |
+| | | | [Received Message] | |
+| | +---------------+ | | [Sent Message] | |
+| | | Fan 2 | | | [Paid Content - Blurred] | |
+| | | Avatar | | | [Lock] $4.99 | |
+| | | Last Message | | | | |
+| | | Timestamp | | | [Unlocked Content] | |
+| | | $456.78 | | | | |
+| | +---------------+ | | [Message Input Area] | |
+| | | | | |
+| | +---------------+ | | [Attach Content] | |
+| | | Fan 3 | | | | |
+| | | Avatar | | +---------------------------+ |
+| | | Last Message | | |
+| | | Timestamp | | |
+| | | $234.56 | | |
+| | +---------------+ | |
+| | | |
+| +--------------------+---------------------------------+
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Conversations List**: New subscribers first, then ordered by total spending
+- **Message History**: Chronological conversation with paid content options
+- **Message Input**: Text input with content attachment and pricing
+### 5.7 Creator Analytics Dashboard
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Profile Dropdown |
++---------------------------------------------------------+
+| Sidebar: Dashboard | Content | Messages | Analytics | |
+| Settings | Earnings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Analytics Overview | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Key Metrics | | |
+| | | | | |
+| | | Total Views: 12,345 | | |
+| | | Gallery Adds: 1,234 | | |
+| | | Tips Received: $567.89 | | |
+| | | New Subscribers: 45 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Performance Chart | | |
+| | | | | |
+| | | [Line chart showing views over time] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Content Performance | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Content Table | | |
+| | | | | |
+| | | Title | Type | Views | Gallery Adds | Tips | | |
+| | | | | |
+| | | Photo Set 1 | Photo | 1,234 | 123 | $45.67 | | |
+| | | Video 1 | Video | 2,345 | 234 | $78.90 | | |
+| | | Photo Set 2 | Photo | 987 | 89 | $23.45 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Top Content by Gallery Adds | |
+| | | |
+| | 1. Photo Set 1 (123 adds) | |
+| | 2. Video 1 (234 adds) | |
+| | 3. Photo Set 2 (89 adds) | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Key Metrics**: Overview of important performance indicators
+- **Performance Chart**: Visual representation of metrics over time
+- **Content Performance Table**: Detailed breakdown of content performance
+- **Top Content by Gallery Adds**: Most popular content based on gallery additions
+### 5.8 Settings Pages
+#### Fan Settings Layout
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Messages | Profile |
++---------------------------------------------------------+
+| Sidebar: Feed | Gallery | Subscriptions | Settings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Settings Navigation | |
+| | | |
+| | [Account] [Notifications] [Privacy] [Payments] | |
+| | [Security] [Help] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Account Settings | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Profile Information | | |
+| | | | | |
+| | | [Profile Picture] | | |
+| | | Name: [Fan Name] | | |
+| | | Username: [fanusername] | | |
+| | | Email: [fan@example.com] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Change Password | | |
+| | | | | |
+| | | Current Password: [********] | | |
+| | | New Password: [********] | | |
+| | | Confirm Password: [********] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Creator Settings Layout
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Profile Dropdown |
++---------------------------------------------------------+
+| Sidebar: Dashboard | Content | Messages | Analytics | |
+| Settings | Earnings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Settings Navigation | |
+| | | |
+| | [Account] [Notifications] [Privacy] [Payments] | |
+| | [Security] [Content] [Welcome Msg] [Help] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Account Settings | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Profile Information | | |
+| | | | | |
+| | | [Profile Picture] | | |
+| | | Creator Name: [Creator Name] | | |
+| | | Username: [creatorusername] | | |
+| | | Email: [creator@example.com] | | |
+| | | Bio: [Creator bio text...] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Verification Status | | |
+| | | | | |
+| | | Status: [Verified] | | |
+| | | Verification Date: 2023-10-01 | | |
+| | | [Reverify Account] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Settings Navigation**: Category-based navigation
+- **Profile Information**: Editable profile details
+- **Security Settings**: Password change and security options
+- **Creator-Specific**: Verification status and welcome message setup
+### 5.9 Content Creation/Upload Interface
+#### Layout Structure
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Profile Dropdown |
++---------------------------------------------------------+
+| Sidebar: Dashboard | Content | Messages | Analytics | |
+| Settings | Earnings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Content Creation | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Upload Area | | |
+| | | | | |
+| | | [Drag & Drop Area] | | |
+| | | or | | |
+| | | [Browse Files] | | |
+| | | | | |
+| | | Supported formats: JPG, PNG, MP4 | | |
+| | | Max file size: 100MB | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Content Details | | |
+| | | | | |
+| | | Title: [Enter content title] | | |
+| | | Description: [Enter description...] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Content Settings | | |
+| | | | | |
+| | | Visibility: [Subscribers Only] [Pay Per View] | | |
+| | | | | |
+| | | If Pay Per View: | | |
+| | | Price: [$] [Custom Price] | | |
+| | | | | |
+| | | Content Type: [Photo] [Video] | | |
+| | | | | |
+| | | [✓] Add to Gallery by default | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Preview | | |
+| | | | | |
+| | | [Content Preview with watermark] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Schedule Options | | |
+| | | | | |
+| | | [ ] Schedule for later | | |
+| | | | | |
+| | | If scheduled: | | |
+| | | Date: [Date Picker] | | |
+| | | Time: [Time Picker] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | [Post Now] [Save Draft] [Cancel] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Upload Area**: Drag-and-drop or browse files
+- **Content Details**: Title, description, and metadata
+- **Content Settings**: Visibility, pricing, and type options
+- **Preview**: Real-time preview with watermark
+- **Schedule Options**: Publish now or schedule for later
+### 5.10 Subscription Management
+#### Fan Subscription Management Layout
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Messages | Profile |
++---------------------------------------------------------+
+| Sidebar: Feed | Gallery | Subscriptions | Settings |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | My Subscriptions | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Active Subscriptions | | |
+| | | | | |
+| | | [Creator 1] [Creator 2] [Creator 3] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Subscription Details | | |
+| | | | | |
+| | | Creator: [Creator Name] | | |
+| | | Tier: [Premium] | | |
+| | | Price: $19.99/month | | |
+| | | Next Billing: Nov 1, 2023 | | |
+| | | | | |
+| | | [Change Tier] [Cancel Subscription] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Payment Method | | |
+| | | | | |
+| | | Current: [•••• 4242] Visa | | |
+| | | [Update Payment Method] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Billing History | | |
+| | | | | |
+| | | Date | Description | Amount | | |
+| | | 2023-10-01 | Subscription | $19.99 | | |
+| | | 2023-09-01 | Subscription | $19.99 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Creator Subscription Management Layout
+```
++---------------------------------------------------------+
+| Header: Logo | Notifications | Profile Dropdown |
++---------------------------------------------------------+
+| Sidebar: Dashboard | Content | Messages | Analytics | |
+| Settings | Earnings | Subscribers |
++---------------------------------------------------------+
+| Main Content Area |
+| |
+| +---------------------------------------------------+ |
+| | Subscription Analytics | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Overview | | |
+| | | | | |
+| | | Total Subscribers: 1,234 | | |
+| | | Monthly Revenue: $12,345.56 | | |
+| | | New This Month: 45 | | |
+| | | Churn Rate: 3.2% | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Subscriber Growth Chart | | |
+| | | | | |
+| | | [Line chart showing subscriber growth] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Tier Management | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Current Tiers | | |
+| | | | | |
+| | | [Tier 1] $9.99/month - Basic access | | |
+| | | [Edit] [Delete] | | |
+| | | | | |
+| | | [Tier 2] $19.99/month - Premium | | |
+| | | [Edit] [Delete] | | |
+| | | | | |
+| | | [Tier 3] $29.99/month - VIP | | |
+| | | [Edit] [Delete] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | [Add New Tier] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Subscriber List | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Search and Filter | | |
+| | | | | |
+| | | Search: [_________________] | | |
+| | | Filter: [All] [Active] [Expired] | | |
+| | | Sort by: [Recent] [Total Spent] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Subscriber Table | | |
+| | | | | |
+| | | Fan | Tier | Spent | Status | Actions | | |
+| | | | | |
+| | | Fan1 | Premium | $123.45 | Active | [Msg] | | |
+| | | Fan2 | Basic | $45.67 | Active | [Msg] | | |
+| | | Fan3 | VIP | $234.56 | Expired | [Msg] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+#### Key Components
+- **Subscription Analytics**: Overview and growth charts
+- **Tier Management**: Create, edit, and delete subscription tiers
+- **Subscriber List**: Search, filter, and manage subscribers
+---
+## 6. Admin Panel Design
+### 6.1 Admin Dashboard Layout
+```
++---------------------------------------------------------+
+| Admin Dashboard | Users | Content | Subscriptions | |
+| Analytics | Reports | Tickets | Settings | Help |
++---------------------------------------------------------+
+| |
+| +---------------------------------------------------+ |
+| | Platform Overview | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Key Metrics | | |
+| | | | | |
+| | | Total Users: 12,345 | | |
+| | | Active Creators: 1,234 | | |
+| | | Monthly Revenue: $123,456.78 | | |
+| | | Support Tickets: 45 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Recent Activity | | |
+| | | | | |
+| | | [User Registration] Fan1 signed up | | |
+| | | [Content Flagged] Content123 reported | | |
+| | | [Payment] $19.99 subscription processed | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+### 6.2 User Management
+```
++---------------------------------------------------------+
+| User Management |
+| |
+| +---------------------------------------------------+ |
+| | Search and Filter | |
+| | | |
+| | Search: [_________________] | |
+| | User Type: [All] [Fans] [Creators] [Admins] | |
+| | Status: [All] [Active] [Suspended] [Banned] | |
+| | Date Range: [Picker] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | User Actions | |
+| | | |
+| | [Suspend User] [Delete User] [Ban User] | |
+| | [Impersonate User] [Reset Password] | |
+| | [Verify Creator] [Manual Tier Change] | |
+| | [Add Note] [Send Notification] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | User List | |
+| | | |
+| | Avatar | Name | Type | Status | Join Date | Actions | |
+| | | |
+| | [img] | Fan1 | Fan | Active | 2023-10-01 | [View] | |
+| | [img] | Creator1 | Creator | Pending | 2023-09-15 | [View] | |
+| | [img] | Admin1 | Admin | Active | 2023-08-01 | [View] | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+### 6.3 Content Moderation
+```
++---------------------------------------------------------+
+| Content Moderation |
+| |
+| +---------------------------------------------------+ |
+| | Moderation Queue | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | [Pending] [Approved] [Rejected] [Flagged] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Content Preview | | |
+| | | | | |
+| | | [Content Image/Video] | | |
+| | | Creator: CreatorName | | |
+| | | Reported: 5 times | | |
+| | | Reason: Inappropriate content | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Moderation Actions | | |
+| | | | | |
+| | | [Approve] [Reject] [Request Changes] | | |
+| | | [Suspend Creator] [Delete Content] | | |
+| | | [Warn Creator] [Ban Creator] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Decision Notes | | |
+| | | | | |
+| | | [Textarea for admin notes] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+### 6.4 Support Ticket System
+```
++---------------------------------------------------------+
+| Support Tickets |
+| |
+| +---------------------------------------------------+ |
+| | Ticket Queue | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | [New] [Open] [Pending] [Closed] [Escalated] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Ticket Details | | |
+| | | | | |
+| | | ID: #12345 | | |
+| | | User: Fan1 | | |
+| | | Subject: Billing Issue | | |
+| | | Status: Open | | |
+| | | Priority: High | | |
+| | | Assigned: Admin1 | | |
+| | | Created: 2023-10-15 10:30:00 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Conversation History | | |
+| | | | | |
+| | | Fan1: I was charged twice for my sub | | |
+| | | Admin1: I can help with that. Can you... | | |
+| | | Fan1: Here's my receipt... | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Response Area | | |
+| | | | | |
+| | | [Response Editor] | | |
+| | | [Canned Responses] [Attach Files] | | |
+| | | [Internal Note] [Send Response] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Ticket Actions | | |
+| | | | | |
+| | | [Close Ticket] [Escalate] [Assign] | | |
+| | | [Mark as Spam] [Merge with Another] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+### 6.5 Analytics & Reporting
+```
++---------------------------------------------------------+
+| Platform Analytics |
+| |
+| +---------------------------------------------------+ |
+| | Overview Dashboard | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Key Metrics | | |
+| | | | | |
+| | | Total Users: 12,345 | | |
+| | | Active Creators: 1,234 | | |
+| | | Monthly Revenue: $123,456.78 | | |
+| | | Support Tickets: 45 | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Growth Charts | | |
+| | | | | |
+| | | [User Growth Chart] | | |
+| | | [Revenue Chart] | | |
+| | | [Engagement Chart] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Custom Reports | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Report Builder | | |
+| | | | | |
+| | | Metrics: [Users] [Revenue] [Engagement] | | |
+| | | Date Range: [Picker] | | |
+| | | Filters: [User Type] [Status] | | |
+| | | | | |
+| | | [Generate Report] [Export] [Schedule] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Saved Reports | | |
+| | | | | |
+| | | Monthly Revenue Report | | |
+| | | User Growth Report | | |
+| | | Creator Performance Report | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+### 6.6 Financial Management
+```
++---------------------------------------------------------+
+| Financial Management |
+| |
+| +---------------------------------------------------+ |
+| | Revenue Overview | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Revenue Breakdown | | |
+| | | | | |
+| | | Subscriptions: 70% | | |
+| | | Pay-per-view: 20% | | |
+| | | Tips: 10% | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Payout Management | | |
+| | | | | |
+| | | Pending Payouts: $45,678.90 | | |
+| | | Next Payout Date: 2023-11-01 | | |
+| | | [Process Payouts] [View Details] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
+| +---------------------------------------------------+ |
+| | Transaction History | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Filters | | |
+| | | | | |
+| | | Type: [All] [Subscription] [PPV] [Tips] | | |
+| | | Status: [All] [Success] [Failed] [Refunded] | | |
+| | | Date Range: [Picker] | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| | +---------------------------------------------+ | |
+| | | Transaction List | | |
+| | | | | |
+| | | ID | Date | Type | Amount | Status | | |
+| | | | | |
+| | | #12345 | 2023-10-15 | Sub | $19.99 | Success | | |
+| | | #12346 | 2023-10-14 | PPV | $4.99 | Success | | |
+| | | #12347 | 2023-10-13 | Tip | $10.00 | Success | | |
+| | | | | |
+| | +---------------------------------------------+ | |
+| | | |
+| +---------------------------------------------------+ |
+| |
++---------------------------------------------------------+
+```
+---
+## 7. Technical Implementation Details
+### 7.1 Data Models
+#### User Model
+```javascript
+{
+"_id": "ObjectId",
+"username": "String",
+"email": "String",
+"passwordHash": "String",
+"profile": {
+"name": "String",
+"avatar": "String",
+"bio": "String",
+"socialLinks": {
+"twitter": "String",
+"instagram": "String",
+"tiktok": "String"
+}
+},
+"role": "fan|creator|admin",
+"status": "active|suspended|banned|pending",
+"verification": {
+"status": "unverified|pending|verified",
+"idHash": "String",
+"verifiedDate": "Date"
+},
+"preferences": {
+"notifications": {
+"email": "Boolean",
+"push": "Boolean"
+},
+"privacy": {
+"showInSearch": "Boolean",
+"showSubscriptions": "Boolean"
+}
+},
+"security": {
+"twoFactorEnabled": "Boolean",
+"lastLogin": "Date",
+"loginHistory": [{
+"ip": "String",
+"device": "String",
+"timestamp": "Date"
+}]
+},
+"createdAt": "Date",
+"updatedAt": "Date"
+}
+```
+#### Creator Model (Extends User)
+```javascript
+{
+// ... User fields ...
+"creatorData": {
+"subscriptionTiers": [{
+"id": "String",
+"name": "String",
+"price": "Number",
+"features": ["String"],
+"subscriberCount": "Number"
+}],
+"welcomeMessage": {
+"message": "String",
+"freeContentId": "String",
+"targetTiers": ["String"],
+"isActive": "Boolean"
+},
+"payoutSettings": {
+"method": "bank_transfer|paypal",
+"bankAccount": {
+"accountHolder": "String",
+"accountNumber": "String",
+"routingNumber": "String"
+},
+"schedule": "weekly|bi-weekly|monthly",
+"minimumThreshold": "Number"
+},
+"contentSettings": {
+"defaultVisibility": "subscribers_only|pay_per_view",
+"defaultPrice": "Number",
+"watermark": {
+"enabled": "Boolean",
+"text": "String",
+"position": "String",
+"opacity": "Number"
+}
+}
+}
+}
+```
+#### Content Model
+```javascript
+{
+"_id": "ObjectId",
+"creatorId": "ObjectId",
+"title": "String",
+"description": "String",
+"type": "photo|video",
+"files": [{
+"id": "String",
+"url": "String",
+"thumbnail": "String",
+"size": "Number",
+"type": "String"
+}],
+"visibility": "subscribers_only|pay_per_view",
+"price": "Number",
+"tags": ["String"],
+"stats": {
+"views": "Number",
+"galleryAdds": "Number",
+"tips": "Number"
+},
+"schedule": {
+"isScheduled": "Boolean",
+"publishDate": "Date"
+},
+"status": "draft|published|scheduled|flagged",
+"createdAt": "Date",
+"updatedAt": "Date"
+}
+```
+#### Subscription Model
+```javascript
+{
+"_id": "ObjectId",
+"fanId": "ObjectId",
+"creatorId": "ObjectId",
+"tierId": "String",
+"price": "Number",
+"billingCycle": "monthly|yearly",
+"status": "active|cancelled|expired",
+"startDate": "Date",
+"endDate": "Date",
+"nextBillingDate": "Date",
+"paymentMethod": {
+"type": "card|paypal",
+"last4": "String",
+"expiry": "String"
+},
+"createdAt": "Date",
+"updatedAt": "Date"
+}
+```
+#### Message Model
+```javascript
+{
+"_id": "ObjectId",
+"conversationId": "ObjectId",
+"senderId": "ObjectId",
+"receiverId": "ObjectId",
+"text": "String",
+"content": {
+"id": "String",
+"type": "photo|video",
+"url": "String",
+"thumbnail": "String",
+"isPaid": "Boolean",
+"price": "Number",
+"isUnlocked": "Boolean",
+"unlockDate": "Date"
+},
+"isRead": "Boolean",
+"createdAt": "Date",
+"updatedAt": "Date"
+}
+```
+#### Gallery Model
+```javascript
+{
+"_id": "ObjectId",
+"fanId": "ObjectId",
+"content": [{
+"contentId": "ObjectId",
+"addedDate": "Date",
+"isAccessible": "Boolean"
+}],
+"createdAt": "Date",
+"updatedAt": "Date"
+}
+```
+### 7.2 API Endpoints
+#### Authentication
+```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+POST /api/auth/refresh
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+POST /api/auth/verify-creator
+```
+#### User Management
+```
+GET /api/users/profile
+PUT /api/users/profile
+GET /api/users/:id
+PUT /api/users/:id
+DELETE /api/users/:id
+POST /api/users/change-password
+POST /api/users/update-preferences
+```
+#### Content Management
+```
+GET /api/content
+POST /api/content
+GET /api/content/:id
+PUT /api/content/:id
+DELETE /api/content/:id
+POST /api/content/upload
+GET /api/content/search
+POST /api/content/schedule
+```
+#### Subscription Management
+```
+GET /api/subscriptions
+POST /api/subscriptions
+GET /api/subscriptions/:id
+PUT /api/subscriptions/:id
+DELETE /api/subscriptions/:id
+GET /api/subscription-tiers
+POST /api/subscription-tiers
+PUT /api/subscription-tiers/:id
+DELETE /api/subscription-tiers/:id
+```
+#### Messaging
+```
+GET /api/messages/conversations
+GET /api/messages/conversations/:id
+POST /api/messages/conversations/:id
+GET /api/messages/:id
+POST /api/messages/:id/unlock-content
+```
+#### Gallery
+```
+GET /api/gallery
+POST /api/gallery/add
+DELETE /api/gallery/remove
+GET /api/gallery/stats
+```
+#### Payment Processing
+```
+POST /api/payments/subscribe
+POST /api/payments/unlock-content
+POST /api/payments/tip
+GET /api/payments/history
+POST /api/payments/webhook
+```
+#### Admin Panel
+```
+GET /api/admin/users
+GET /api/admin/users/:id
+PUT /api/admin/users/:id/suspend
+PUT /api/admin/users/:id/ban
+POST /api/admin/users/:id/impersonate
+GET /api/admin/content
+PUT /api/admin/content/:id/approve
+PUT /api/admin/content/:id/reject
+GET /api/admin/tickets
+POST /api/admin/tickets/:id/respond
+GET /api/admin/analytics
+GET /api/admin/reports
+POST /api/admin/reports/generate
+GET /api/admin/financials
+POST /api/admin/payouts/process
+```
+### 7.3 Security Implementation
+#### Authentication & Authorization
+```javascript
+// JWT Middleware
+const authenticateToken = (req, res, next) => {
+const authHeader = req.headers['authorization'];
+const token = authHeader && authHeader.split(' ')[1];
+if (!token) {
+return res.sendStatus(401);
+}
+jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+if (err) return res.sendStatus(403);
+req.user = user;
+next();
+});
+};
+// Role-based Authorization
+const authorizeRoles = (...roles) => {
+return (req, res, next) => {
+if (!roles.includes(req.user.role)) {
+return res.status(403).json({ message: 'Unauthorized' });
+}
+next();
+};
+};
+```
+#### Content Protection
+```javascript
+// Watermark Generation
+const addWatermark = async (imageUrl, watermarkConfig) => {
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+return new Promise((resolve) => {
+img.crossOrigin = 'anonymous';
+img.onload = function() {
+canvas.width = img.width;
+canvas.height = img.height;
+// Draw original image
+ctx.drawImage(img, 0, 0);
+// Add watermark
+ctx.font = '20px Arial';
+ctx.fillStyle = `rgba(255, 255, 255, ${watermarkConfig.opacity})`;
+ctx.textAlign = 'right';
+ctx.textBaseline = 'bottom';
+const x = watermarkConfig.position.includes('right') ?
+img.width - 10 : 10;
+const y = watermarkConfig.position.includes('bottom') ?
+img.height - 10 : 30;
+ctx.fillText(watermarkConfig.text, x, y);
+resolve(canvas.toDataURL('image/jpeg'));
+};
+img.src = imageUrl;
+});
+};
+// Access Control
+const checkContentAccess = async (req, res, next) => {
+const { contentId } = req.params;
+const userId = req.user.id;
+try {
+// Check if user has active subscription to content's creator
+const subscription = await Subscription.findOne({
+fanId: userId,
+creatorId: content.creatorId,
+status: 'active'
+});
+if (!subscription) {
+return res.status(403).json({ message: 'Subscription required' });
+}
+// Check if content is pay-per-view and unlocked
+if (content.visibility === 'pay_per_view') {
+const unlock = await Unlock.findOne({
+contentId,
+userId
+});
+if (!unlock) {
+return res.status(403).json({
+message: 'Payment required',
+price: content.price
+});
+}
+}
+next();
+} catch (error) {
+res.status(500).json({ message: error.message });
+}
+};
+```
+#### Rate Limiting
+```javascript
+const rateLimit = require('express-rate-limit');
+// General API rate limiting
+const apiLimiter = rateLimit({
+windowMs: 15 * 60 * 1000, // 15 minutes
+max: 100, // limit each IP to 100 requests per windowMs
+message: 'Too many requests from this IP, please try again later.'
+});
+// Login rate limiting
+const loginLimiter = rateLimit({
+windowMs: 60 * 60 * 1000, // 1 hour
+max: 5, // limit each IP to 5 login requests per windowMs
+message: 'Too many login attempts, please try again later.'
+});
+```
+---
+## 8. Design System
+### 8.1 Color Palette
+- **Primary**: Deep Purple (#6B46C1)
+- Used for primary buttons, active states, and key UI elements
+- **Secondary**: Pink (#EC4899)
+- Used for accents, notifications, and secondary actions
+- **Neutral Colors**:
+- Background Light (#F3F4F6)
+- Background Dark (#1F2937)
+- Border (#E5E7EB)
+- Text Primary (#111827)
+- Text Secondary (#6B7280)
+- **Status Colors**:
+- Success (#10B981)
+- Warning (#F59E0B)
+- Error (#EF4444)
+- Info (#3B82F6)
+### 8.2 Typography
+- **Font Family**: Inter (Primary), with system fonts as fallback
+- **Font Sizes**:
+- Heading Large: 24px, Bold
+- Heading Medium: 20px, Bold
+- Heading Small: 16px, Bold
+- Body Large: 16px, Regular
+- Body Medium: 14px, Regular
+- Body Small: 12px, Regular
+- Caption: 10px, Regular
+- **Line Heights**:
+- Tight: 1.25
+- Normal: 1.5
+- Relaxed: 1.75
+### 8.3 Spacing Scale
+- **Base Unit**: 4px
+- **Scale**: 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
+- **Usage**:
+- Component Padding: 16px (small), 24px (medium), 32px (large)
+- Margin Between Components: 16px (small), 24px (medium), 32px (large)
+- Grid Gaps: 16px
+### 8.4 Components
+#### Buttons
+```css
+.btn {
+padding: 12px 24px;
+border-radius: 8px;
+font-weight: 600;
+font-size: 14px;
+line-height: 20px;
+cursor: pointer;
+transition: all 0.2s ease;
+border: none;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+.btn-primary {
+background-color: #6B46C1;
+color: white;
+}
+.btn-primary:hover {
+background-color: #553C9A;
+}
+.btn-secondary {
+background-color: transparent;
+color: #6B46C1;
+border: 1px solid #6B46C1;
+}
+.btn-secondary:hover {
+background-color: #F3F4F6;
+}
+.btn-disabled {
+opacity: 0.5;
+cursor: not-allowed;
+}
+```
+#### Cards
+```css
+.card {
+background-color: white;
+border-radius: 12px;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+padding: 24px;
+}
+.card-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 16px;
+}
+.card-title {
+font-size: 18px;
+font-weight: 600;
+color: #111827;
+}
+.card-body {
+color: #4B5563;
+}
+```
+#### Forms
+```css
+.form-group {
+margin-bottom: 16px;
+}
+.form-label {
+display: block;
+font-size: 14px;
+font-weight: 500;
+color: #374151;
+margin-bottom: 6px;
+}
+.form-input {
+width: 100%;
+padding: 12px;
+border: 1px solid #E5E7EB;
+border-radius: 8px;
+font-size: 14px;
+transition: border-color 0.2s;
+}
+.form-input:focus {
+outline: none;
+border-color: #6B46C1;
+box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+}
+.form-error {
+color: #EF4444;
+font-size: 12px;
+margin-top: 4px;
+}
+```
+#### Modals
+```css
+.modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: rgba(0, 0, 0, 0.5);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 1000;
+}
+.modal {
+background-color: white;
+border-radius: 12px;
+max-width: 500px;
+width: 90%;
+max-height: 90vh;
+overflow-y: auto;
+box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+.modal-header {
+padding: 24px;
+border-bottom: 1px solid #E5E7EB;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.modal-title {
+font-size: 18px;
+font-weight: 600;
+color: #111827;
+}
+.modal-body {
+padding: 24px;
+}
+.modal-footer {
+padding: 16px 24px;
+border-top: 1px solid #E5E7EB;
+display: flex;
+justify-content: flex-end;
+gap: 12px;
+}
+```
+---
+## 9. Security & Compliance
+### 9.1 Age Verification
+- **Creators**: Photo ID + electronic affidavit process
+- Upload government-issued ID
+- Upload selfie holding ID
+- Electronic signature of age and consent affidavit
+- Manual review by admin team
+- **Fans**: Standard age verification
+- Date of birth during registration
+- Age verification checkbox
+- Optional ID verification for enhanced access
+### 9.2 Content Moderation
+- **Automated Systems**:
+- AI-powered content detection for explicit material
+- Keyword filtering for titles and descriptions
+- Image recognition for prohibited content
+- **Human Review**:
+- Admin team reviews flagged content
+- User reporting system
+- Escalation process for disputed content
+- **Content Guidelines**:
+- Clear terms of service
+- Prohibited content list
+- Consequences for violations
+### 9.3 Data Protection
+- **Encryption**:
+- Data at rest encrypted using AES-256
+- Data in transit encrypted using TLS 1.3
+- Sensitive data encrypted with additional layer
+- **Privacy Controls**:
+- Granular privacy settings for users
+- Data retention policies
+- Right to be forgotten implementation
+- **Compliance**:
+- GDPR compliance for EU users
+- CCPA compliance for California residents
+- Regular security audits
+### 9.4 Payment Security
+- **PCI Compliance**:
+- Stripe integration for PCI DSS compliance
+- No credit card data stored on platform
+- Tokenization for payment processing
+- **Fraud Prevention**:
+- Address Verification System (AVS)
+- Card Verification Value (CVV) checks
+- Suspicious activity monitoring
+- **Dispute Resolution**:
+- Clear refund policy
+- Evidence collection for disputes
+- Chargeback handling procedures
+---
+## 10. Development Roadmap
+### 10.1 Phase 1: MVP Foundation (4-6 weeks)
+#### Week 1-2: Core Infrastructure & Authentication
+- Setup development environment
+- Configure Supabase project and MongoDB Atlas
+- Implement authentication system
+- Create basic UI framework and design system
+- Build layout components and navigation
+#### Week 3: Foundational User Interfaces
+- Build core creator interfaces (dashboard, upload, settings)
+- Build core fan interfaces (dashboard, subscriptions)
+- Create shared components (cards, forms, modals)
+- Implement responsive design
+#### Week 4-5: Core Features with UI Integration
+- Implement content management system
+- Implement subscription system with Stripe integration
+- Implement gallery system
+- Implement basic messaging system
+#### Week 6: Integration & Testing
+- End-to-end user flows
+- Cross-feature integration
+- Comprehensive testing (unit, integration, E2E)
+- Performance and security testing
+### 10.2 Phase 2: Enhanced Features (3-4 weeks)
+#### Creator Tools
+- Welcome message automation
+- Advanced analytics dashboard
+- Content scheduling options
+- Enhanced watermarking controls
+#### Fan Experience
+- Content discovery and search
+- Advanced payment management
+- Notification preferences
+- Help and support system
+#### Platform Features
+- Help/support system
+- Notification system
+- Performance optimization
+- Security enhancements
+### 10.3 Phase 3: Optimization & Scaling (3-4 weeks)
+#### Performance
+- Frontend optimization (code splitting, lazy loading)
+- Backend optimization (database indexing, query optimization)
+- Caching strategies
+- CDN configuration
+#### Security Enhancements
+- Advanced content protection
+- Security audits and penetration testing
+- Anti-screenshot measures
+- Hotlink protection
+#### Additional Features
+- Mobile app development (if warranted)
+- Live streaming capability
+- Creator collaboration tools
+- Advanced analytics
+### 10.4 Admin Panel Development
+#### Phase 1 (Week 3-4): Basic Admin Functions
+- Admin authentication system
+- Basic user management
+- Simple content moderation
+- Basic analytics dashboard
+#### Phase 2 (Week 5-6): Advanced Admin Tools
+- Support ticket system
+- Financial management
+- Advanced analytics
+- User impersonation
+#### Phase 3 (Post-MVP): Comprehensive Admin Panel
+- Advanced moderation tools
+- Custom report builder
+- Automated workflows
+- Admin collaboration tools
+---
+## Conclusion
+This comprehensive design document provides a detailed blueprint for building a creator-fan
+interaction platform with a focus on better profit splits for creators and an intuitive user interface.
+The design addresses all key aspects of the platform, from user experience to technical
+implementation, with special attention to content protection and security.
+The platform differentiates itself through:
+- Better revenue share for creators
+- Simplified engagement model (Gallery instead of likes/comments)
+- Robust content protection measures
+- Comprehensive analytics for creators
+- Streamlined communication tools
+With a clear development roadmap and detailed specifications, this design is ready for
+implementation. The phased approach ensures that a viable MVP can be launched quickly while
+planning for future growth and feature expansion.
+The admin panel design ensures that platform administrators have the tools needed to
+effectively manage users, content, and financial transactions, with comprehensive analytics and
+reporting capabilities.
