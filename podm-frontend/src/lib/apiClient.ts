@@ -42,6 +42,14 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        // If the request data is FormData (i.e., a file upload),
+        // we must remove the default 'Content-Type' header.
+        // This allows the browser to automatically set the correct
+        // 'multipart/form-data' header with the required boundary.
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
+        
         return config;
     },
     (error) => {
@@ -147,6 +155,15 @@ export const updateMe = async (profileData: Record<string, any>) => {
 };
 
 /**
+ * Updates the settings for the currently logged-in creator.
+ * @param settingsData - The full settings object from the settings page.
+ */
+export const updateCreatorSettings = async (settingsData: any) => {
+    const response = await apiClient.put('/creator/settings', settingsData);
+    return response.data;
+};
+
+/**
  * Sends a request to create a new subscription to a creator.
  * @param creatorId The ID of the creator to subscribe to.
  * @param tierId The internal ID of the selected subscription tier (e.g., 't1', 't2').
@@ -169,12 +186,8 @@ export const uploadAvatar = async (avatarFile: File) => {
     const formData = new FormData();
     formData.append('avatar', avatarFile);
 
-    const response = await apiClient.put<{ success: boolean, data: User }>('/users/me/avatar', formData, {
-        headers: {
-            // The browser will automatically set the correct Content-Type for FormData
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+    const response = await apiClient.post('/users/me/avatar', formData);
+    
     return response.data;
 };
 

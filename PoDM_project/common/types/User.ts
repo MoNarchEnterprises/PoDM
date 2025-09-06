@@ -44,14 +44,9 @@ export interface User {
   _id: string; // Unique identifier from the database
   username: string;
   email: string;
-  passwordHash: string; // This should only ever exist on the backend
   profile: UserProfile;
   role: UserRole;
   status: UserStatus;
-  verificationStatus?: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
-  verification_data?: VerificationData; 
-  onboarding_complete?: boolean; 
-  commission_rate?: number; 
   createdAt: string; // ISO 8601 date string
   updatedAt: string; // ISO 8601 date string
 }

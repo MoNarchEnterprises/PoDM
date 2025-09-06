@@ -232,7 +232,24 @@ const CreatorContentLoader = () => {
 const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
 const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any} monthlyEarnings={[]} transactions={[]} />; };
-const CreatorSettingsLoader = () => { return <CreatorSettings creator={{} as any} />; };
+
+const CreatorSettingsLoader = () => {
+    // 1. Get the currently logged-in user from the auth context
+    const { user, isLoading } = useAuth();
+
+    // 2. Handle the loading state while the user session is being verified
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500">Loading Settings...</div>;
+    }
+
+    // 3. Handle the case where the user is not found (e.g., not logged in)
+    if (!user) {
+        return <div className="p-8 text-center text-red-500">Could not load creator data. Please try logging in again.</div>;
+    }
+
+    // 4. Pass the real, complete user object as the creator prop
+    return <CreatorSettings creator={user as Creator} />;
+};
 
 // Corrected Loaders: These components are self-contained and don't need props passed from the router.
 const CreatorOnboardingLoader = () => <CreatorOnboarding />;

@@ -1,6 +1,6 @@
 // /common/types/Creator.ts
 
-import { User } from './User';
+import { User, VerificationData } from './User';
 
 /**
  * Defines the structure for a single subscription tier offered by a creator.
@@ -71,6 +71,10 @@ export interface ContentSettings {
  * The Creator interface, extending the base User with all creator-specific data.
  */
 export interface Creator extends User {
+  verificationStatus: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
+  verification_data?: VerificationData;
+  onboarding_complete: boolean;
+  commission_rate?: number;
   creatorData: {
     subscriptionTiers: SubscriptionTier[];
     welcomeMessage: {

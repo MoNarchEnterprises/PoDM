@@ -31,11 +31,11 @@ router.get('/me/gallery', protect, getMyGallery);
 router.put('/me', protect, updateMe);
 
 /**
- * @route   PUT /api/v1/users/me/avatar
+ * @route   POST /api/v1/users/me/avatar  
  * @desc    Update the current user's avatar
  * @access  Private
  */
-router.put('/me/avatar', protect, uploadAvatar, updateMyAvatar);
+router.post('/me/avatar', protect, uploadAvatar, updateMyAvatar);
 
 
 /**

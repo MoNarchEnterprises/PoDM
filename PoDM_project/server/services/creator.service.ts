@@ -3,6 +3,9 @@
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as ContentModel from '../models/content.model';
+import * as UserModel from '../models/user.model';
+import { AppError } from '../middleware/error.middleware';
+import { reshapeUserForApp } from '../utils/user.utils';
 
 /**
  * Gathers and computes all data needed for the creator dashboard.
@@ -68,4 +71,46 @@ export const getDashboardData = async (creatorId: string) => {
     };
 
     return dashboardData;
+};
+
+/**
+ * Updates the settings for a creator.
+ * @param creatorId - The ID of the creator to update.
+ * @param settingsData - The new settings data from the frontend.
+ * @returns The fully updated and reshaped creator object.
+ */
+export const updateSettings = async (creatorId: string, settingsData: any) => {
+    const { profile, creatorData } = settingsData;
+
+    // 1. Fetch the user's existing profile to avoid overwriting data
+    const existingUser = await UserModel.findUserById(creatorId);
+    if (!existingUser) {
+        throw new AppError('User profile not found.', 404);
+    }
+
+    // 2. Prepare the updates for the 'profiles' table
+    const profileUpdates: any = {};
+    if (profile.name) profileUpdates.username = profile.name; // Keep name/username in sync
+    if (profile.bio) profileUpdates.bio = profile.bio;
+
+    // 3. Deep merge the creator_data JSONB field
+    // Safely merge the creator_data, providing empty objects as fallbacks.
+    const creatorDataUpdate = {
+        ...(existingUser.creator_data ?? {}),
+        ...creatorData,
+        welcomeMessage: {
+            ...(existingUser.creator_data?.welcomeMessage ?? {}),
+            ...(creatorData.welcomeMessage ?? {}),
+        },
+    };
+    profileUpdates.creator_data = creatorDataUpdate;
+
+    // 4. Save the updates to the database
+    const updatedUser = await UserModel.updateProfile(creatorId, profileUpdates);
+    if (!updatedUser) {
+        throw new AppError('Failed to update creator settings.', 500);
+    }
+
+    // 5. Reshape and return the complete user object to update the frontend state
+    return reshapeUserForApp(updatedUser);
 };
