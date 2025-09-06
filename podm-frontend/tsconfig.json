@@ -24,7 +24,6 @@
       "@common/*": [
         "../PoDM_project/common/*"
       ]
-      "@common/*": ["../PoDM_project/common/*"]
     }
   },
   "include": [
