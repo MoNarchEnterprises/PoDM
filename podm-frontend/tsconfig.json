@@ -19,15 +19,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
-    // --- Add these two properties ---
     "baseUrl": ".",
     "paths": {
-      "@common/*": ["../common/*"]
+      "@common/*": [
+        "../PoDM_project/common/*"
+      ]
     }
   },
   "include": [
     "src",
-    "../App.test.tsx"
+    "../PoDM_project/App.test.tsx"
   ]
 }
