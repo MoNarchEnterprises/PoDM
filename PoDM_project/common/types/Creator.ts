@@ -1,6 +1,6 @@
 // /common/types/Creator.ts
 
-import { User, VerificationData } from './User';
+import { User, UserProfile, VerificationData } from './User';
 
 /**
  * Defines the structure for a single subscription tier offered by a creator.
@@ -11,6 +11,7 @@ export interface SubscriptionTier {
   price: number; // Stored in cents on backend, but can be number here
   features: string[];
   subscriberCount: number;
+  stripePriceId: string; // ID from Stripe for this tier's price
 }
 
 /**
@@ -68,21 +69,41 @@ export interface ContentSettings {
 }
 
 /**
+ * Defines the structure for a creator's social media links.
+ */
+export interface SocialLinks {
+  twitter?: string;
+  instagram?: string;
+  tiktok?: string;
+}
+
+/**
+ * Defines the structure for a creator's main data block.
+ */
+export interface CreatorData {
+  subscriptionTiers: SubscriptionTier[];
+  welcomeMessage: {
+    message: string;
+    freeContentId?: string; // Optional ID of a free content piece to attach
+    isActive: boolean;
+  };
+  payoutSettings: PayoutSettings;
+  contentSettings: ContentSettings;
+  coverImageUrl?: string; 
+  socialLinks?: SocialLinks;
+}
+
+/**
  * The Creator interface, extending the base User with all creator-specific data.
  */
 export interface Creator extends User {
+  profile: UserProfile & {
+    coverImageUrl?: string;
+    socialLinks?: SocialLinks;
+  }
   verificationStatus: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
   verification_data?: VerificationData;
   onboarding_complete: boolean;
   commission_rate?: number;
-  creatorData: {
-    subscriptionTiers: SubscriptionTier[];
-    welcomeMessage: {
-      message: string;
-      freeContentId?: string;
-      isActive: boolean;
-    };
-    payoutSettings: PayoutSettings;
-    contentSettings: ContentSettings;
-  };
+  creatorData: CreatorData;
 }

@@ -15,6 +15,21 @@ declare global {
 }
 
 /**
+ * @desc    Optionally attaches the user to the request if a valid token is provided.
+ * Unlike 'protect', this does NOT throw an error if no token is found.
+ * This is useful for public routes that should show different content for logged-in users.
+ */
+export const optionalProtect = async (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        // If a token exists, run the full 'protect' logic
+        return protect(req, res, next);
+    } else {
+        // If no token, just continue to the next middleware without a user object.
+        next();
+    }
+};
+
+/**
  * @desc    Middleware to protect routes by verifying a JWT token.
  * It checks for a token, verifies it with Supabase, and attaches the
  * full user profile to the request object.

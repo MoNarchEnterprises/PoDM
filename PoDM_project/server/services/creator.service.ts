@@ -1,11 +1,15 @@
 // /server/services/creator.service.ts
 
+import stripe from '../config/stripeClient'; // <-- IMPORT STRIPE
+import { v4 as uuidv4 } from 'uuid'; // <-- 1. IMPORT UUID
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as ContentModel from '../models/content.model';
 import * as UserModel from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { reshapeUserForApp } from '../utils/user.utils';
+import supabase from '../../server/config/supabaseClient';
+import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 
 /**
  * Gathers and computes all data needed for the creator dashboard.
@@ -79,7 +83,7 @@ export const getDashboardData = async (creatorId: string) => {
  * @param settingsData - The new settings data from the frontend.
  * @returns The fully updated and reshaped creator object.
  */
-export const updateSettings = async (creatorId: string, settingsData: any) => {
+export const updateSettings = async (creatorId: string, settingsData: any, file?: Express.Multer.File) => {
     const { profile, creatorData } = settingsData;
 
     // 1. Fetch the user's existing profile to avoid overwriting data
@@ -88,29 +92,67 @@ export const updateSettings = async (creatorId: string, settingsData: any) => {
         throw new AppError('User profile not found.', 404);
     }
 
+    let newCoverImageUrl: string | undefined = existingUser.creator_data?.coverImageUrl;
+
+    if (file) {
+        const fileName = `banner-${creatorId}-${Date.now()}`;
+        const filePath = `${creatorId}/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+            .from('banners')
+            .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
+
+        if (uploadError) {
+            console.error("Supabase banner upload error:", uploadError);
+            throw new AppError('Failed to upload banner.', 500);
+        }
+        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(filePath);
+        newCoverImageUrl = publicUrl;
+    }
+
+    
     // 2. Prepare the updates for the 'profiles' table
-    const profileUpdates: any = {};
-    if (profile.name) profileUpdates.username = profile.name; // Keep name/username in sync
-    if (profile.bio) profileUpdates.bio = profile.bio;
+    const profileUpdates: { [key: string]: any } = {};
+    if (profile?.name) profileUpdates.username = profile.name;
+    if (profile?.bio) profileUpdates.bio = profile.bio;
 
-    // 3. Deep merge the creator_data JSONB field
-    // Safely merge the creator_data, providing empty objects as fallbacks.
-    const creatorDataUpdate = {
-        ...(existingUser.creator_data ?? {}),
-        ...creatorData,
-        welcomeMessage: {
-            ...(existingUser.creator_data?.welcomeMessage ?? {}),
-            ...(creatorData.welcomeMessage ?? {}),
-        },
-    };
-    profileUpdates.creator_data = creatorDataUpdate;
+    const newCreatorData = { ...(existingUser.creatorData || {}) };
 
+    if (creatorData?.welcomeMessage) {
+        newCreatorData.welcomeMessage = creatorData.welcomeMessage;
+    }
+    if (profile?.socialLinks) {
+        newCreatorData.socialLinks = profile.socialLinks;
+    }
+    
+    newCreatorData.coverImageUrl = newCoverImageUrl; // Set the new or existing URL
+
+    // In the future, you can merge other settings here too
+    // if (creatorData.payoutSettings) { ... }
+    // --- STRIPE SYNC LOGIC ---
+    if (creatorData?.subscriptionTiers) {
+        newCreatorData.subscriptionTiers = await syncTiersWithStripe(creatorData.subscriptionTiers);
+        console.log('[updateSettings] Synced tiers with Stripe:', newCreatorData.subscriptionTiers);
+    }
+    // --- END OF STRIPE SYNC LOGIC ---
+
+    
+    profileUpdates.creator_data = newCreatorData;
+    
+
+    
     // 4. Save the updates to the database
     const updatedUser = await UserModel.updateProfile(creatorId, profileUpdates);
     if (!updatedUser) {
         throw new AppError('Failed to update creator settings.', 500);
     }
 
-    // 5. Reshape and return the complete user object to update the frontend state
-    return reshapeUserForApp(updatedUser);
+    const reshapedData = await UserModel.findUserById(creatorId);
+    if (!reshapedData) {
+        throw new AppError('Could not retrieve updated user profile.', 500);
+    }
+
+    console.log('[updateSettings] Updated and reshaped user data:', reshapedData);  
+
+    return reshapeUserForApp(reshapedData);
 };
+

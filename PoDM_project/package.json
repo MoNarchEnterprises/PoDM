@@ -27,7 +27,8 @@
     "recharts": "^3.1.2",
     "sharp": "^0.34.3",
     "stripe": "^18.4.0",
-    "tailwind": "^2.3.1"
+    "tailwind": "^2.3.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
@@ -42,6 +43,7 @@
     "@types/ms": "^2.1.0",
     "@types/multer": "^2.0.0",
     "@types/sharp": "^0.31.1",
+    "@types/uuid": "^10.0.0",
     "babel-jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "ts-jest": "^29.4.1",

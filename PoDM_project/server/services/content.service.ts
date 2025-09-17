@@ -6,7 +6,7 @@ import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { Content, MediaFile } from '@common/types/Content';
 import sharp from 'sharp';
-import { User } from 'common/types/User';
+import { User } from '@common/types/User';
 
 // Define a type for the query parameters for clarity
 interface ContentQuery {

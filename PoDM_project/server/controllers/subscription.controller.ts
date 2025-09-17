@@ -40,7 +40,7 @@ export const createSubscription = async (req: Request, res: Response, next: Next
             throw new AppError('Creator ID, Tier ID, and Payment Method ID are required.', 400);
         }
 
-        const newSubscription = await SubscriptionService.createFanSubscription(fanId, creatorId, tierId, paymentMethodId);
+        const newSubscription = await SubscriptionService.createSubscriptionForUser(fanId, creatorId, tierId, paymentMethodId);
         res.status(201).json({ success: true, data: newSubscription });
     } catch (error) {
         next(error);

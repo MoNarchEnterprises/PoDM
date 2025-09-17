@@ -7,6 +7,7 @@ import * as apiClient from '../../lib/apiClient';
 
 // --- Import Shared Types ---
 import { UserRole } from '@common/types/User';
+import { Creator } from '@common/types/Creator';
 
 // --- Import Reusable UI Components & Hooks ---
 import { useAuth } from '../../hooks/useAuth';
@@ -63,12 +64,11 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
             if (mode === 'login') {
                 const loggedInUser = await login(email, password);
                 
-                // --- REDIRECTION LOGIC ---
                 switch (loggedInUser.role) {
                     case 'admin': navigate('/admin/dashboard'); break;
                     case 'creator':
-                        if (loggedInUser.onboarding_complete) {
-                            navigate('/creator/dashboard');
+                        if ((loggedInUser as Creator).onboarding_complete) {
+                            navigate('/hub/dashboard'); 
                         } else {
                             navigate('/onboarding');
                         }

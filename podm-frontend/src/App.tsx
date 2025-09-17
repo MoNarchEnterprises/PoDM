@@ -54,13 +54,11 @@ const SettingsPanel = React.lazy(() => import('./features/admin/components/Setti
 // --- Prop Type Definitions for Pages ---
 // Note: These are kept for components that are passed props, like ContentViewerPage
 interface ContentViewerPageProps { content: Content; creator: Creator; relatedContent: Content[]; }
-interface FanFeedProps { posts: any[]; creatorsFollowing: Creator[]; }
 interface FanGalleryProps { galleryData: any[]; }
 interface FanSubscriptionsProps { initialSubscriptions: any[]; }
 interface FanMessagesProps { initialConversations: any[]; currentFanId: string; }
 interface FanSettingsProps { fan: User; settings: any; }
 interface CreatorDashboardProps { creator: Creator; metrics: any; recentActivity: any[]; monthlyEarnings: any[]; }
-interface CreatorContentProps { initialContent: Content[]; }
 interface CreatorMessagesProps { initialConversations: any[]; existingContent: Content[]; currentCreatorId: string; }
 interface CreatorAnalyticsProps { metrics: any; subscriberGrowth: any[]; revenueBreakdown: any[]; topContent: Content[]; }
 interface CreatorEarningsProps { summary: any; monthlyEarnings: any[]; transactions: any[]; }
@@ -81,7 +79,6 @@ const ContentViewerLoader = () => {
     return <ContentViewerPage content={data.content} creator={data.creator} relatedContent={data.relatedContent} />;
 };
 
-const FanFeedLoader = () => { return <FanFeed posts={[]} creatorsFollowing={[]} />; };
 
 const FanGalleryLoader = () => {
     const [galleryData, setGalleryData] = useState<any[]>([]);
@@ -194,40 +191,6 @@ const CreatorDashboardLoader = () => {
     return <CreatorDashboard creator={user as Creator} metrics={dashboardData.keyMetrics} recentActivity={dashboardData.recentActivity} monthlyEarnings={dashboardData.monthlyEarnings} />;
 };
 
-const CreatorContentLoader = () => {
-    const [content, setContent] = useState<Content[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchContent = async () => {
-            try {
-                const response = await apiClient.getMyCreatorContent();
-                const shapedContent = response.data.map((item: any) => ({
-                    ...item,
-                    _id: item.id.toString(),
-                }));
-                setContent(shapedContent);
-            } catch (err) {
-                setError('Failed to load your content.');
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchContent();
-    }, []);
-
-    if (isLoading) {
-        return <div className="p-8 text-center">Loading your content...</div>;
-    }
-
-    if (error) {
-        return <div className="p-8 text-center text-red-500">{error}</div>;
-    }
-
-    return <CreatorContent />;
-};
 
 const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
@@ -236,6 +199,8 @@ const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any
 const CreatorSettingsLoader = () => {
     // 1. Get the currently logged-in user from the auth context
     const { user, isLoading } = useAuth();
+
+    console.log('[CreatorSettingsLoader] User from useAuth context:', user);
 
     // 2. Handle the loading state while the user session is being verified
     if (isLoading) {
@@ -291,8 +256,8 @@ const App = () => {
 
                         {/* --- Fan Routes (Protected) --- */}
                         <Route path="/fan" element={<FanLayout />}>
-                            <Route index element={<FanFeedLoader />} />
-                            <Route path="feed" element={<FanFeedLoader />} />
+                            <Route index element={<FanFeed />} />
+                            <Route path="feed" element={<FanFeed />} />
                             <Route path="gallery" element={<FanGalleryLoader />} />
                             <Route path="subscriptions" element={<FanSubscriptionsLoader />} />
                             <Route path="messages" element={<FanMessagesLoader />} />
@@ -300,12 +265,12 @@ const App = () => {
                         </Route>
 
                         {/* --- Creator Routes (Protected) --- */}
-                        {/* 2. WRAP THE CREATOR ROUTES WITH THE NEW GUARD */}
                         <Route element={<CreatorRouteGuard />}>
-                            <Route path="/creator" element={<CreatorLayout />}>
+                            <Route path="/hub" element={<CreatorLayout />}>
+                               {/* The nested routes are now correct relative to "/hub" */}
                                <Route index element={<CreatorDashboardLoader />} />
                                <Route path="dashboard" element={<CreatorDashboardLoader />} />
-                               <Route path="content" element={<CreatorContentLoader />} />
+                               <Route path="content" element={<CreatorContent />} />
                                <Route path="messages" element={<CreatorMessagesLoader />} />
                                <Route path="analytics" element={<CreatorAnalyticsLoader />} />
                                <Route path="earnings" element={<CreatorEarningsLoader />} />

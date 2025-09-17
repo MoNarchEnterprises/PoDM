@@ -10,7 +10,7 @@ export const findUserById = async (id: string): Promise<User | null> => {
     const { data, error } = await supabase
         .rpc('get_user_details', { user_id: id }) // Call the new database function
         .single();
-
+    console.log('findUserById RPC result:', data, error);
     if (error) {
         console.error('Error finding user by ID via RPC:', error.message);
         return null;
@@ -31,8 +31,27 @@ export const findUserByUsername = async (username: string): Promise<User | null>
         .select('*')
         .eq('username', username)
         .single();
+    console.log('findUserByUsername result:', data, error);
     if (error) {
         console.error('Error finding user by username:', error.message);
+        return null;
+    }
+    return data as User;
+};
+
+/**
+ * Finds a user by their email address.
+ * @param email - The email address to search for.
+ * @returns The user's profile object or null if not found.
+ */
+export const findUserByEmail = async (email: string): Promise<User | null> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .single();
+    if (error) {
+        console.error('Error finding user by email:', error.message);
         return null;
     }
     return data as User;
@@ -64,7 +83,8 @@ export const createProfile = async (profileData: Partial<User>): Promise<User | 
  * @param updates - An object containing the fields to update.
  * @returns The updated profile object.
  */
-export const updateProfile = async (id: string, updates: Partial<UserProfile>): Promise<User | null> => {
+// This allows us to pass any valid column name, including 'creator_data'.
+export const updateProfile = async (id: string, updates: Record<string, any>): Promise<User | null> => {
     const { data, error } = await supabase
         .from('profiles')
         .update(updates)

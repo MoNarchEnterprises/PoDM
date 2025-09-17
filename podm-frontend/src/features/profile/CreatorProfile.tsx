@@ -1,12 +1,12 @@
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+import { useStripe } from '@stripe/react-stripe-js';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
-import * as apiClient from '../../lib/apiClient'; // 2. Import apiClient
-import { CheckCircle, Twitter, Instagram } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import * as apiClient from '../../lib/apiClient';
+import { CheckCircle, MoreVertical, Twitter, Instagram } from 'lucide-react';
 
 // --- Import Shared Types ---
-import { Creator } from '@common/types/Creator';
+import { Creator, SubscriptionTier } from '@common/types/Creator';
 import { Content } from '@common/types/Content';
 
 // --- Import Reusable Components ---
@@ -14,124 +14,266 @@ import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import Container from '../../components/layout/Container';
 import TierCard from '../../components/shared/TierCard';
-import PostCard from '../../components/shared/ContentCard'; // Assuming ContentCard is renamed to PostCard
+import PostCard from '../../components/shared/ContentCard';
 import Button from '../../components/ui/Button';
-
-import AuthModal from '../auth/AuthModal';
 import { useModal } from '../../hooks/useModal';
+
+// Import BOTH subscription modals
 import SubscriptionModal from './SubscriptionModal';
+import SubscriptionAuthModal from './SubscriptionAuthModal';
 
-
-// --- Main Profile Page Component ---
+// --- Main Profile Page Component (Not exported directly) ---
 interface CreatorProfilePageProps {
     creator: Creator;
     content: Content[];
+    isSubscribed: boolean;
 }
 
-const CreatorProfilePage = ({ creator, content }: CreatorProfilePageProps) => {
+const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePageProps) => {
     const { user } = useAuth();
-    const stripe = useStripe(); // We only need the main stripe object here
-    
-    // --- State for Modals ---
-    const { isOpen: isAuthModalOpen, openModal: openAuthModal, closeModal: closeAuthModal } = useModal();
-    const { isOpen: isSubModalOpen, openModal: openSubModal, closeModal: closeSubModal } = useModal();
-    
-    // State for subscription interaction
-    const [selectedTierId, setSelectedTierId] = useState(creator.creatorData.subscriptionTiers[0]?.id || '');
-    
-    const selectedTier = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
-    const isAlreadySubscribed = false; // This would be replaced with a real subscription check
+    const stripe = useStripe();
 
-    const handleSubscribeClick = () => {
-        if (!user) {
-            // If user is not logged in, open the auth modal first
-            openAuthModal();
-        } else {
-            // If user is logged in, open the payment modal
-            openSubModal();
+    // State for the two different modals
+    const { isOpen: isSubModalOpen, openModal: openSubModal, closeModal: closeSubModal } = useModal();
+    const { isOpen: isSubAuthModalOpen, openModal: openSubAuthModal, closeModal: closeSubAuthModal } = useModal();
+
+    // State for UI selection and loading
+    const [selectedTierId, setSelectedTierId] = useState(creator.creatorData.subscriptionTiers[0]?.id || '');
+    const [isPreparing, setIsPreparing] = useState(false);
+    
+    // This state will hold the FRESH tier data right before opening a modal
+    const [tierForModal, setTierForModal] = useState<SubscriptionTier | null>(null);
+
+    // Derived state for UI display (this can be stale, which is fine for display purposes)
+    const selectedTierForDisplay = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
+    const isAlreadySubscribed = isSubscribed;
+
+    /**
+     * A dedicated function to start the subscription process for a LOGGED-IN user.
+     * It fetches fresh data to ensure the tier and price are correct before showing the payment form.
+     */
+    const initiateSubscriptionForUser = async (tierId: string) => {
+        if (!tierId) return;
+        
+        setIsPreparing(true);
+        try {
+            const response = await apiClient.getPublicCreatorProfile(creator.username);
+            const freshCreator = response.data.creator;
+            const freshTier = freshCreator.creatorData.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
+
+            if (!freshTier || !freshTier.stripePriceId) {
+                throw new Error("This tier is not available. Please refresh the page and try again.");
+            }
+            
+            setTierForModal(freshTier);
+            openSubModal(); // Open the simple payment modal
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setIsPreparing(false);
         }
     };
 
-    // --- This function now receives data from the SubscriptionModal ---
-    const handleSubscriptionConfirm = async ({ creatorId, tierId, paymentMethodId }: { creatorId: string, tierId: string, paymentMethodId: string }) => {
-        if (!stripe) {
-            throw new Error("Stripe is not initialized.");
+    /**
+     * The main click handler for the "Subscribe" button. It decides which flow to start
+     * based on whether the user is logged in or not.
+     */
+    const handleSubscribeClick = () => {
+        if (!selectedTierId) {
+            alert("Please select a tier.");
+            return;
         }
+
+        if (user) {
+            // If user is already logged in, start the payment flow directly.
+            initiateSubscriptionForUser(selectedTierId);
+        } else {
+            // If user is a guest, find the tier from the current (possibly stale) data
+            // to pass to the auth modal. The auth modal will handle fetching fresh data if needed.
+            const tier = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
+            if (tier) {
+                setTierForModal(tier);
+                openSubAuthModal();
+            }
+        }
+    };
+
+    /**
+     * A callback function passed to SubscriptionAuthModal.
+     * It's triggered after an existing fan successfully logs in.
+     */
+    const handleLoginSuccess = () => {
+        closeSubAuthModal(); // Close the auth modal
+        // Immediately start the subscription process for the now logged-in user,
+        // using the tierId that was already selected in the UI.
+        initiateSubscriptionForUser(selectedTierId); 
+    };
+
+    /**
+     * Handles the final payment confirmation for a logged-in user via SubscriptionModal.
+     */
+    const handleSubscriptionConfirm = async ({ creatorId, tierId, paymentMethodId }: { creatorId: string, tierId: string, paymentMethodId: string }) => {
+        if (!stripe) throw new Error("Stripe is not initialized.");
         
         try {
             const result = await apiClient.createSubscription(creatorId, tierId, paymentMethodId);
-            
-            const { requiresAction, clientSecret, subscription } = result.data;
+            const { requiresAction, clientSecret } = result.data;
 
             if (requiresAction && clientSecret) {
-                console.log("Payment requires further action. Confirming card payment...");
                 const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) {
-                    throw new Error(confirmationError.message);
-                }
-                alert(`Subscription to ${creator.profile.name} is processing! You will be notified upon completion.`);
-            } else if (subscription) {
+                if (confirmationError) throw new Error(confirmationError.message);
+                alert(`Your payment for ${creator.profile.name} is processing!`);
+            } else {
                 alert(`Successfully subscribed to ${creator.profile.name}!`);
             }
+            window.location.reload(); // Refresh the page to show the new subscribed state
         } catch (err: any) {
             console.error("Subscription failed:", err);
-            // Re-throw the error so the modal can display it to the user
-            throw new Error(err.response?.data?.message || err.message || "Subscription failed. Please try again.");
+            throw new Error(err.response?.data?.message || err.message || "Subscription failed.");
         }
     };
 
+    const gridColsMap: { [key: number]: string } = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' };
+    const numTiers = creator.creatorData.subscriptionTiers.length || 1;
+    const gridColsClass = gridColsMap[numTiers] || 'md:grid-cols-3';
+
     return (
         <>
-            <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
-            
-            {/* --- Render the new SubscriptionModal --- */}
-            {selectedTier && (
+            {/* Modal for LOGGED-IN users, uses the simple payment flow */}
+            {tierForModal && (
                  <SubscriptionModal 
                     isOpen={isSubModalOpen}
                     onClose={closeSubModal}
                     creator={creator}
-                    selectedTier={selectedTier}
+                    selectedTier={tierForModal}
                     onSubscriptionComplete={handleSubscriptionConfirm}
                  />
             )}
            
+            {/* Modal for GUESTS, uses the combined signup/login/payment flow */}
+            {tierForModal && (
+                <SubscriptionAuthModal
+                    isOpen={isSubAuthModalOpen}
+                    onClose={closeSubAuthModal}
+                    creator={creator}
+                    selectedTier={tierForModal}
+                    onLoginSuccess={handleLoginSuccess}
+                />
+            )}
+           
             <div className="bg-gray-50 dark:bg-gray-900 font-sans">
-                {/* ... (Header, main, Container, Profile Header, Bio Section - all remain the same) ... */}
+                {/* Header is kept simple, login/signup is handled by the subscribe button */}
+                <Header user={user} onLoginClick={() => {}} onSignUpClick={() => {}} />
 
-                {/* Tiers Section */}
-                {!isAlreadySubscribed && (
-                    <div className="mt-8">
-                        <h2 className="text-xl font-bold mb-4 text-center">Choose Your Subscription</h2>
-                        <div className={`grid grid-cols-1 md:grid-cols-${creator.creatorData.subscriptionTiers.length} gap-6`}>
-                            {creator.creatorData.subscriptionTiers.map(tier => (
-                                <TierCard key={tier.id} tier={tier} onSelect={setSelectedTierId} isSelected={selectedTierId === tier.id} />
-                            ))}
+                <main className="py-8">
+                    <Container>
+                        <div className="relative bg-white dark:bg-gray-800/50 p-6 rounded-2xl shadow-md">
+                            <div className="h-48 md:h-64 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
+                                <img 
+                                    src={creator.profile.coverImageUrl || 'https://placehold.co/1200x400/1F2937/FFFFFF?text=No+Banner'} 
+                                    alt={`${creator.profile.name}'s banner`}
+                                    className="w-full h-full object-cover" 
+                                />
+                            </div>
+                            <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 sm:-mt-12 px-4">
+                                <img 
+                                    src={creator.profile.avatar} 
+                                    alt={creator.profile.name} 
+                                    className="w-32 h-32 rounded-full border-4 border-gray-50 dark:border-gray-900 object-cover"
+                                />
+                                <div className="sm:ml-6 mt-4 sm:mt-0 text-center sm:text-left flex-grow">
+                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center justify-center sm:justify-start">
+                                        {creator.profile.name}
+                                        {creator.verificationStatus === 'verified' && <CheckCircle className="w-6 h-6 ml-2 text-blue-500" />}
+                                    </h1>
+                                    <p className="text-gray-500 dark:text-gray-400">@{creator.username}</p>
+                                </div>
+                                <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+                                    {/* Placeholder for future social link buttons */}
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-6 text-center">
-                            {/* --- This button now just opens the modal --- */}
-                            <Button size="lg" className="w-full md:w-auto md:px-12 bg-pink-500 hover:bg-pink-600" onClick={handleSubscribeClick} disabled={!selectedTier}>
-                                Subscribe for ${selectedTier?.price.toFixed(2)}/month
-                            </Button>
-                        </div>
-                    </div>
-                )}
 
-                {/* ... (Content Grid Section, Footer - all remain the same) ... */}
+                        <div className="mt-8 bg-white dark:bg-gray-800/50 p-6 rounded-2xl shadow-md">
+                            <h2 className="text-xl font-bold mb-2">About</h2>
+                            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                                {creator.profile.bio}
+                            </p>
+                        </div>
+                        
+                        {!isAlreadySubscribed && (
+                            <div className="mt-8">
+                                <h2 className="text-xl font-bold mb-4 text-center">Choose Your Subscription</h2>
+                                <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
+                                    {creator.creatorData.subscriptionTiers.map(tier => (
+                                        <TierCard key={tier.id} tier={tier} onSelect={setSelectedTierId} isSelected={selectedTierId === tier.id} />
+                                    ))}
+                                </div>
+                                <div className="mt-6 text-center">
+                                    <Button 
+                                        size="lg" 
+                                        className="w-full md:w-auto md:px-12 bg-pink-500 hover:bg-pink-600" 
+                                        onClick={handleSubscribeClick} 
+                                        isLoading={isPreparing}
+                                        disabled={!selectedTierForDisplay || isPreparing}
+                                    >
+                                        {isPreparing ? 'Preparing...' : `Subscribe for $${selectedTierForDisplay?.price.toFixed(2)}/month`}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {isAlreadySubscribed && (
+                            <div className="mt-8 text-center bg-purple-500/10 dark:bg-purple-900/50 p-6 rounded-xl">
+                                <p className="font-semibold text-lg text-purple-600 dark:text-purple-300">
+                                    You are subscribed!
+                                </p>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    Thank you for supporting {creator.profile.name}.
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="mt-12">
+                            <h2 className="text-2xl font-bold mb-6">Content</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {content.map(post => {
+                                    const postWithCreator = {
+                                        ...post,
+                                        creator: {
+                                            name: creator.profile.name,
+                                            avatar: creator.profile.avatar,
+                                            verified: creator.verificationStatus === 'verified'
+                                        }
+                                    };
+                                    return (
+                                        <PostCard 
+                                            key={post._id} 
+                                            post={postWithCreator} 
+                                            isLocked={!isAlreadySubscribed}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </Container>
+                </main>
+                
+                <Footer />
             </div>
         </>
     );
 };
 
-// --- Data Loader Component ---
+// --- Data Loader Component (This is the default export) ---
 const CreatorProfileLoader = () => {
     const { username } = useParams<{ username: string }>();
-    const [profileData, setProfileData] = useState<{ creator: Creator; content: Content[] } | null>(null);
+    const [profileData, setProfileData] = useState<{ creator: Creator; content: Content[]; isSubscribed: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!username) return;
-
         const fetchProfile = async () => {
             setIsLoading(true);
             setError(null);
@@ -145,7 +287,6 @@ const CreatorProfileLoader = () => {
                 setIsLoading(false);
             }
         };
-
         fetchProfile();
     }, [username]);
 
@@ -157,5 +298,7 @@ const CreatorProfileLoader = () => {
         return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">{error || "Profile could not be loaded."}</div>;
     }
 
-    return <CreatorProfilePage creator={profileData.creator} content={profileData.content} />;
+    return <CreatorProfilePage creator={profileData.creator} content={profileData.content} isSubscribed={profileData.isSubscribed} />;
 };
+
+export default CreatorProfileLoader;

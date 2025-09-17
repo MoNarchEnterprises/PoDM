@@ -10,17 +10,22 @@ import { Creator, SubscriptionTier } from '@common/types/Creator';
 const CARD_ELEMENT_OPTIONS = {
     style: {
         base: {
-            color: '#CBD5E1', // text-slate-300
+            // Use your brand's primary purple for the card icon
+            iconColor: '#6B46C1',
+            // Use a light text color that's easy to read on the dark modal background
+            color: '#F3F4F6', 
             fontFamily: 'sans-serif',
             fontSmoothing: 'antialiased',
             fontSize: '16px',
             '::placeholder': {
-                color: '#64748B', // text-slate-500
+                // Use your secondary text color for placeholders
+                color: '#6B7280', 
             },
         },
         invalid: {
-            color: '#EF4444', // text-red-500
+            // Use your brand's error color for both the icon and text on validation failure
             iconColor: '#EF4444',
+            color: '#EF4444',
         },
     },
 };

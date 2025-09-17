@@ -4,6 +4,10 @@ import { AppError } from '../middleware/error.middleware';
 import { User, UserRole } from '@common/types/User';
 import {reshapeUserForApp} from "../utils/user.utils";
 import supabase from '../config/supabaseClient';
+import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
+import * as SubscriptionService from './subscription.service';
+import * as UserModel from '../models/user.model';
+
 
 // --- Local Supabase Client for Authentication ---
 // This client uses the public ANON key and is ONLY used for signup/login flows.
@@ -16,6 +20,92 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const authSupabase = createClient(supabaseUrl, supabaseAnonKey);
 
 
+export const signupAndSubscribe = async (
+    email: string, 
+    password: string, 
+    fullName: string,
+    creatorId: string, 
+    tierId: string, 
+    paymentMethodId: string
+) => {
+    console.log(`[AuthService] Starting signupAndSubscribe for email: ${email}`);
+    
+    // --- Step 1: Create the Supabase Auth user ---
+    const { data: authData, error: authError } = await authSupabase.auth.signUp({ email, password });
+    let existingUser: User | null = null;
+    if (authError) {
+        // If the user already exists, then find the user and get the user ID
+        if (authError.message.includes('User already registered')) {
+            console.log('[AuthService] User already registered. Attempting to find existing user.');
+            existingUser = await UserModel.findUserByEmail(email);
+            if (existingUser) {
+                console.log(`[AuthService] Existing user found with ID: ${existingUser.id}`);
+            }
+            else{
+                // This will catch "User already registered" and other auth errors
+                console.error('[AuthService] Supabase signUp Error:', authError.message);
+                throw new AppError(authError.message, 400);
+            }
+        }
+    }
+    if (!existingUser && !authData.user) {
+        throw new AppError('User could not be created in Auth system.', 500);
+    }
+    
+    const userId = authData.user?.id ? authData.user.id : existingUser!.id;
+    console.log(`[AuthService] Auth user created successfully with ID: ${userId}`);
+
+    // --- Transaction-like Block with Cleanup ---
+    try {
+        // --- Step 2: Create the user's profile in our public table ---
+        if (existingUser) {
+            console.log('[AuthService] Skipping profile creation, using existing user profile.');
+        } 
+        else {
+            const username = `user_${Date.now()}`; 
+            const profileData = { 
+                id: userId, 
+                username, 
+                email, 
+                full_name: fullName, // <-- Save it to the database
+                role: 'fan' as const, 
+                status: 'active' as const 
+            };
+        const newProfile = await UserModel.createProfile(profileData);
+        if (!newProfile) {
+            // This is the critical failure point we need to catch
+            throw new AppError('Database error: Failed to create user profile.', 500);
+        }
+        console.log(`[AuthService] Public profile created for user: ${userId}`);
+        }
+        
+        // --- Step 4: Create the Stripe Subscription ---
+        await SubscriptionService.createSubscriptionForUser(
+            userId, 
+            creatorId, 
+            tierId, 
+            paymentMethodId
+        );
+        console.log('[AuthService] Subscription process completed.');
+
+        // --- Success ---
+        const fullUser = await UserModel.findUserById(userId);
+        if (!fullUser) throw new AppError('Could not retrieve final user profile.', 500);
+
+        return { user: reshapeUserForApp(fullUser), token: authData.session?.access_token };
+
+    } catch (error) {
+        // --- CRITICAL CLEANUP ---
+        // If any step after auth user creation fails, we must delete the auth user
+        // to prevent orphan accounts that can never log in.
+        console.error(`[AuthService] ERROR during signupAndSubscribe for ${userId}. Initiating cleanup.`, error);
+        await supabase.auth.admin.deleteUser(userId);
+        console.log(`[AuthService] Cleanup complete. Deleted orphan auth user: ${userId}`);
+        
+        // Re-throw the original error to be sent to the client
+        throw error;
+    }
+};
 
 /**
  * Handles the business logic for registering a new user.

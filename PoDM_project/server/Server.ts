@@ -4,6 +4,12 @@ import path from 'path';
 // --- Load Environment Variables ---
 dotenv.config({ path: path.resolve(__dirname, './.env') });
 
+console.log("--- SERVER STARTING ---");
+console.log("STRIPE_SECRET_KEY loaded:", process.env.STRIPE_SECRET_KEY ? `sk_test_...${process.env.STRIPE_SECRET_KEY.slice(-4)}` : "NOT FOUND");
+console.log("STRIPE_PRODUCT_ID loaded:", process.env.STRIPE_SUBSCRIPTION_PRODUCT_ID);
+console.log("-----------------------");
+
+
 import express, { Express, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';

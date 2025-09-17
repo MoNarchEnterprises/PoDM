@@ -14,6 +14,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
         // The 'protect' middleware has already attached the full user profile.
         // We can just send it back to the client.
         const user = req.user;
+        console.log('Retrieved user from request:', user);
 
         if (!user) {
             throw new AppError('Authentication error, user not found in request.', 401);
@@ -38,7 +39,7 @@ export const updateMe = async (req: Request, res: Response, next: NextFunction) 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
-
+        console.log('Profile updates received:', profileUpdates);
         const updatedUser = await UserService.updateUserProfile(userId, profileUpdates);
         res.status(200).json({ success: true, data: updatedUser });
     } catch (error) {
@@ -69,6 +70,7 @@ export const updateMyAvatar = async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 };
+
 
 /**
  * @desc    Add a piece of content to the current user's gallery
@@ -181,7 +183,8 @@ export const submitVerification = async (req: Request, res: Response, next: Next
 export const getFullPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username } = req.params;
-        const profileData = await UserService.getFullPublicProfile(username);
+        const viewerId = req.user?._id; 
+        const profileData = await UserService.getFullPublicProfile(username, viewerId);
         res.status(200).json({ success: true, data: profileData });
     } catch (error) {
         next(error);

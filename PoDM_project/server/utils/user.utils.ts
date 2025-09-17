@@ -12,18 +12,16 @@ export const reshapeUserForApp = (flatUser: any): User => {
     if (!flatUser) {
         return null as any;
     }
-    
+    console.log('[reshapeUserForApp] Input flatUser:', flatUser); // See the raw data from DB
+
     // Destructure all properties from the flat object
     const { 
-        id, username, avatar_url, bio, email, created_at, role, status,
+        id, username, fullName, avatar_url, bio, email, created_at, role, status,
         onboarding_complete, commission_rate, verification_data, stripe_customer_id,
-        // Destructure creator-specific fields with default values
-        subscriptionTiers = [],
-        welcomeMessage = { isActive: false, message: '' },
-        payoutSettings = {},
-        contentSettings = {}
+        creator_data = {} 
     } = flatUser;
-    
+
+     
     // --- ADD THIS LOGIC BLOCK ---
     // The baseUser object now ONLY contains fields common to ALL roles.
     const baseUser: User = {
@@ -35,7 +33,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
         status,
         updatedAt: flatUser.updated_at, // Assuming this field exists
         profile: {
-            name: username || 'Unknown User',
+            name: fullName ||username || 'Unknown User',
             avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
             bio: bio || '',
         },
@@ -47,21 +45,43 @@ export const reshapeUserForApp = (flatUser: any): User => {
         if (status === 'active') verificationStatus = 'verified';
         else if (status === 'pending verification' && verification_data) verificationStatus = 'pending';
 
-        return {
+        // CORRECT: Now destructure the nested properties from the creator_data object
+        const {
+            subscriptionTiers = [],
+            welcomeMessage = { isActive: false, message: '' },
+            payoutSettings = {},
+            contentSettings = {},
+            coverImageUrl,
+            socialLinks,
+        } = creator_data;
+
+        console.log('[reshapeUserForApp] Extracted welcomeMessage:', welcomeMessage); 
+        
+        // Construct the Creator object
+        const creatorUser: Creator = {
             ...baseUser,
-            // Add all creator-specific, top-level properties
+            // Add creator-specific top-level fields
             verificationStatus,
             onboarding_complete: onboarding_complete || false,
             commission_rate: commission_rate,
             verification_data: verification_data,
-            // Add the nested creatorData object for settings
+            
+            // Re-assign the profile object to include creator-specific profile fields
+            profile: {
+                ...baseUser.profile,
+                coverImageUrl, 
+                socialLinks,     
+            },
+
+            // The remaining data stays in the nested creatorData object
             creatorData: {
                 subscriptionTiers,
                 welcomeMessage,
                 payoutSettings,
                 contentSettings,
             },
-        } as Creator;
+        };
+        return creatorUser;
     }
 
     // Otherwise, return the base user object for fans/admins

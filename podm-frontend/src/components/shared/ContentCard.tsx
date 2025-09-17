@@ -7,6 +7,8 @@ import { Creator } from '@common/types/Creator';
 
 // --- Import Reusable UI Components ---
 import Button from '../ui/Button';
+import * as apiClient from '../../lib/apiClient';
+
 
 // --- Local Types ---
 // This interface represents the shape of the data this component expects.
@@ -26,11 +28,29 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
+    const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     
     // A post is locked if forced, or if it's pay-per-view.
     const isLocked = forceLocked || post.visibility === 'pay_per_view';
     
+    // --- 3. Create the handler function ---
+    const handleSaveToGallery = async () => {
+        setIsSaving(true);
+        try {
+            // Call the API with the post's ID
+            await apiClient.addContentToGallery(post._id);
+            // On success, update the UI state
+            setIsBookmarked(true); 
+        } catch (error) {
+            console.error("Failed to add to gallery:", error);
+            // Optionally show an error toast to the user
+            alert("Could not save to gallery. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1">
             <div className="relative">
@@ -74,11 +94,13 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                     <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => setIsBookmarked(!isBookmarked)}
+                        onClick={handleSaveToGallery}
+                        // Disable the button if it's already saved or currently saving
+                        disabled={isBookmarked || isSaving} 
                         className={isBookmarked ? 'text-purple-500' : ''}
                         leftIcon={Bookmark}
                     >
-                        {isBookmarked ? 'Saved' : 'Save'}
+                        {isSaving ? 'Saving...' : (isBookmarked ? 'Saved' : 'Save')}
                     </Button>
                 </div>
             </div>

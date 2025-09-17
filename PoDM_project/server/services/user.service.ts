@@ -10,6 +10,8 @@ import * as ContentModel from '../models/content.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import stripe from '../config/stripeClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
+import { createStripeConnectedAccount } from './stripe.service';
+import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 
 
 /**
@@ -187,9 +189,12 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
     };
     
     // Prepare the creator_data JSONB field update
+    // Instead of saving the raw tiers, process them with our utility first.
+    const syncedTiers = await syncTiersWithStripe(tiers);
+    
     const creatorDataUpdate = {
-        ...existingProfile.creator_data, // Preserve existing data
-        subscriptionTiers: tiers, // Add the new tiers
+        ...existingProfile.creator_data,
+        subscriptionTiers: syncedTiers, // Save the corrected, complete tier data
     };
 
     // 3. Save the updates to the database
@@ -266,29 +271,40 @@ export const submitVerificationDocs = async (
 /**
  * Gathers all necessary data for a creator's public-facing profile page.
  * @param username - The username of the creator.
- * @returns An object containing the creator's profile and a preview of their content.
+ * @param viewerId - The optional ID of the user viewing the profile. // --- ADD THIS ---
+ * @returns An object containing the creator's profile, content, and subscription status.
  */
-export const getFullPublicProfile = async (username: string) => {
+export const getFullPublicProfile = async (username: string, viewerId?: string) => { // --- ADD viewerId here ---
     // 1. Find the creator by their username
     const user = await UserModel.findUserByUsername(username);
     if (!user || user.role !== 'creator' || user.status !== 'active') {
         throw new AppError('Creator profile not found.', 404);
     }
 
-    // 2. Fetch a preview of their content (e.g., the 12 most recent posts)
-    // Note: We'll create this model function next.
+    // --- 2. ADD THIS LOGIC BLOCK to check subscription status ---
+    let isSubscribed = false;
+    if (viewerId) {
+        // Find if an active subscription exists between the viewer and the creator
+        const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(viewerId);
+        if (subscriptions) {
+            isSubscribed = subscriptions.some(sub => sub.creator_id === user.id);
+        }
+    }
+    // --- END OF NEW LOGIC BLOCK ---
+
+    // 3. Fetch a preview of their content (e.g., the 12 most recent posts)
     const contentPreview = await ContentModel.findRecentContentByCreator(user.id, 12);
 
-    // 3. Reshape the user data for the frontend
+    // 4. Reshape the user data for the frontend
     const creatorProfile = reshapeUserForApp(user);
 
     return {
         creator: creatorProfile,
         content: contentPreview || [],
+        isSubscribed: isSubscribed, // --- 5. ADD isSubscribed to the return object ---
     };
 };
 
-// ... (other functions)
 
 /**
  * Generates a personalized content feed for a specific fan.

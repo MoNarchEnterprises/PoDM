@@ -20,12 +20,12 @@ export const FAN_NAV_ITEMS: NavItem[] = [
 ];
 
 export const CREATOR_NAV_ITEMS: NavItem[] = [
-    { key: 'Dashboard', label: 'Dashboard', icon: Home, href: '/creator/dashboard' },
-    { key: 'Content', label: 'Content', icon: FileText, href: '/creator/content' },
-    { key: 'Messages', label: 'Messages', icon: MessageSquare, href: '/creator/messages' },
-    { key: 'Analytics', label: 'Analytics', icon: BarChart2, href: '/creator/analytics' },
-    { key: 'Earnings', label: 'Earnings', icon: DollarSign, href: '/creator/earnings' },
-    { key: 'Settings', label: 'Settings', icon: Settings, href: '/creator/settings' },
+    { key: 'Dashboard', label: 'Dashboard', icon: Home, href: '/hub/dashboard' },
+    { key: 'Content', label: 'Content', icon: FileText, href: '/hub/content' },
+    { key: 'Messages', label: 'Messages', icon: MessageSquare, href: '/hub/messages' },
+    { key: 'Analytics', label: 'Analytics', icon: BarChart2, href: '/hub/analytics' },
+    { key: 'Earnings', label: 'Earnings', icon: DollarSign, href: '/hub/earnings' },
+    { key: 'Settings', label: 'Settings', icon: Settings, href: '/hub/settings' },
 ];
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [

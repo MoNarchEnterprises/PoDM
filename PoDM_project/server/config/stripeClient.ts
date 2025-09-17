@@ -16,7 +16,7 @@ if (!stripeSecretKey) {
  * for creating charges, managing subscriptions, and handling payouts.
  */
 const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2025-07-30.basil', // Always use a specific API version
+    apiVersion: '2025-08-27.basil', // Always use a specific API version
     typescript: true,
 });
 

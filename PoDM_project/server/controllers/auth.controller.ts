@@ -2,6 +2,31 @@ import { Request, Response, NextFunction } from 'express';
 import * as AuthService from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { UserRole } from '@common/types/User';
+
+/**
+ * @desc Signup and subscribe a new fan in one step
+ * @route POST /api/v1/auth/signup-and-subscribe
+ * @access Public
+ */
+export const signupAndSubscribe = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password, fullName, creatorId, tierId, paymentMethodId } = req.body;
+        
+        const { user, token } = await AuthService.signupAndSubscribe(
+            email, password, fullName, creatorId, tierId, paymentMethodId
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "User created and subscribed successfully.",
+            data: { user, token }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 /**
  * @desc    Register a new user (fan or creator)
  * @route   POST /api/v1/auth/signup

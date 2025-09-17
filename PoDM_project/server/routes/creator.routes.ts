@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { getCreatorDashboard, updateCreatorSettings } from '../controllers/creator.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
+import { uploadBanner } from '../middleware/upload.middleware'; 
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.get('/dashboard', protect, creatorOnly, getCreatorDashboard);
  * @access  Private (Creators only)
  */
 // 2. Add the new PUT route
-router.put('/settings', protect, creatorOnly, updateCreatorSettings);
+router.put('/settings', protect, creatorOnly, uploadBanner, updateCreatorSettings);
+
 
 export default router;

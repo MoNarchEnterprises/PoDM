@@ -1,9 +1,12 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, updateMyAvatar, completeOnboarding, submitVerification, getFullPublicProfile, getMyFeed, getMyGallery, getMySettings, updateMySettings, updateMyPaymentMethod  } from '../controllers/user.controller';
-import { protect, creatorOnly  } from '../middleware/auth.middleware';
+import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, 
+        updateMyAvatar, completeOnboarding, submitVerification, 
+        getFullPublicProfile, getMyFeed, getMyGallery, getMySettings, 
+        updateMySettings, updateMyPaymentMethod  } from '../controllers/user.controller';
+import { optionalProtect, protect, creatorOnly  } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
-import { uploadAvatar } from '../middleware/upload.middleware';
+import { uploadAvatar, uploadBanner } from '../middleware/upload.middleware';
 import { uploadVerificationDocs } from '../middleware/upload.middleware';
 
 const router = Router();
@@ -57,7 +60,7 @@ router.delete('/me/gallery/:contentId', protect, removeFromGallery);
  * @desc    Get a creator's full public profile for their page
  * @access  Public
  */
-router.get('/profile/:username', getFullPublicProfile);
+router.get('/profile/:username', optionalProtect, getFullPublicProfile);
 
 
 /**

@@ -72,7 +72,9 @@ apiClient.interceptors.response.use(
         if (error.response?.status === 401) {
             // Handle unauthorized errors, e.g., redirect to login
             console.error("Unauthorized request. Redirecting to login.");
-            // window.location.href = '/login'; 
+            localStorage.removeItem('authToken');
+            alert("Your session has expired. Please log in again.");
+            window.location.href = '/'; 
         }
         return Promise.reject(error);
     }
@@ -158,8 +160,28 @@ export const updateMe = async (profileData: Record<string, any>) => {
  * Updates the settings for the currently logged-in creator.
  * @param settingsData - The full settings object from the settings page.
  */
-export const updateCreatorSettings = async (settingsData: any) => {
-    const response = await apiClient.put('/creator/settings', settingsData);
+export const updateCreatorSettings = async (settingsData: any, bannerFile?: File | null) => {
+    const formData = new FormData();
+
+    // Append text data as JSON strings. The backend will parse them.
+    formData.append('profile', JSON.stringify(settingsData.profile));
+    formData.append('creatorData', JSON.stringify(settingsData.creatorData));
+
+    // Append the file if it exists
+    if (bannerFile) {
+        formData.append('banner', bannerFile);
+    }
+
+    const response = await apiClient.put('/creator/settings', formData);
+    return response.data;
+};
+
+/**
+ * Signup and subscribe a new fan in one step.
+ * @param data - The signup and subscription data from the frontend.
+ */
+export const signupAndSubscribe = async (data: any) => {
+    const response = await apiClient.post('/auth/signup-and-subscribe', data);
     return response.data;
 };
 
@@ -190,6 +212,7 @@ export const uploadAvatar = async (avatarFile: File) => {
     
     return response.data;
 };
+
 
 /**
  * Sends a request to change the current user's password.
@@ -389,6 +412,17 @@ export const getFanFeed = async (page: number = 1) => {
  */
 export const getFanSubscriptions = async () => {
     const response = await apiClient.get('/subscriptions');
+    return response.data;
+};
+
+/**
+ * Adds a piece of content to the currently logged-in fan's gallery.
+ * @param contentId The ID of the content to add.
+ */
+export const addContentToGallery = async (contentId: string) => {
+    // The server route is POST /api/v1/users/me/gallery
+    // The body should contain the contentId
+    const response = await apiClient.post('/users/me/gallery', { contentId });
     return response.data;
 };
 

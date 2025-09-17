@@ -1,11 +1,21 @@
 import { Router } from 'express';
 // --- Import Controllers ---
 // We will create these controller functions in the next step
-import { signup, login, logout, getMe, changePassword, forgotPassword } from '../controllers/auth.controller';
+import { signup, login, logout, getMe, changePassword, forgotPassword, signupAndSubscribe } from '../controllers/auth.controller';
 import { protect } from '../middleware/auth.middleware';
+
+console.log('✅ auth.routes.ts file has been loaded and is running.');
 
 
 const router = Router();
+
+/**
+ * @route   POST /api/v1/auth/signup-and-subscribe
+ * @desc    Signup and subscribe a new fan in one step
+ * @access  Public
+ */
+router.post('/signup-and-subscribe', signupAndSubscribe);
+
 
 /**
  * @route   POST /api/v1/auth/signup

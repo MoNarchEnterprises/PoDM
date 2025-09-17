@@ -66,3 +66,10 @@ export const uploadVerificationDocs = upload.fields([
     { name: 'idFile', maxCount: 1 },
     { name: 'selfieFile', maxCount: 1 },
 ]);
+
+/**
+ * Middleware for handling a single banner file upload.
+ * This will process one file from a field named 'banner'.
+ * The file will be available on `req.file`.
+ */
+export const uploadBanner = upload.single('banner');

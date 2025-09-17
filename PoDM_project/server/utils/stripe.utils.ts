@@ -23,9 +23,12 @@ export const getOrCreateStripeCustomer = async (userId: string): Promise<string>
 
     // User doesn't have a Stripe ID yet, so we create one.
     console.log(`[Stripe Util] Creating new Stripe customer for user: ${userId}`);
+    // --- CRITICAL DEBUG LOG ---
+    console.log(`[Stripe Util] User object:`, JSON.stringify(user, null, 2));
+    // --- END CRITICAL DEBUG LOG ---
     const customer = await stripe.customers.create({
         email: user.email,
-        name: user.profile.name,
+        name: (user as any).fullName || 'No Name', // Fallback if fullName is missing
         metadata: {
             // This links the Stripe customer back to our internal user ID
             pod_user_id: user._id,

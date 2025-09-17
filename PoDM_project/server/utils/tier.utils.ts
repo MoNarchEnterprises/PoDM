@@ -1,0 +1,53 @@
+// server/utils/tier.utils.ts
+
+import stripe from '../config/stripeClient';
+import { v4 as uuidv4 } from 'uuid';
+import { SubscriptionTier } from '@common/types/Creator';
+
+/**
+ * A centralized utility to sync an array of subscription tiers with Stripe.
+ * It assigns permanent UUIDs to new tiers and creates corresponding prices in Stripe.
+ * @param tiers - The array of tiers from the frontend, which may contain temporary IDs.
+ * @returns A promise that resolves to a new array of tiers with permanent IDs and stripePriceIds.
+ */
+export const syncTiersWithStripe = async (tiers: SubscriptionTier[]): Promise<SubscriptionTier[]> => {
+    if (!tiers || tiers.length === 0) {
+        return [];
+    }
+
+    const syncedTiers = await Promise.all(
+        tiers.map(async (tier) => {
+            let permanentId = tier.id;
+            // If the tier has a temporary client-side ID, replace it with a permanent UUID.
+            if (tier.id && tier.id.startsWith('new-')) {
+                permanentId = uuidv4();
+            }
+
+            // If the tier already has a Stripe Price ID, it's already synced. Just ensure its ID is permanent.
+            if (tier.stripePriceId) {
+                return { ...tier, id: permanentId };
+            }
+
+            // If it's a new tier, create a corresponding Price in Stripe.
+            const stripePrice = await stripe.prices.create({
+                product: process.env.STRIPE_SUBSCRIPTION_PRODUCT_ID!,
+                unit_amount: Math.round(tier.price * 100), // Ensure price is in cents
+                currency: 'usd',
+                recurring: { interval: 'month' },
+                nickname: tier.name, // For reference in the Stripe dashboard
+            });
+
+            const finalTierObject = {
+                ...tier,
+                id: permanentId,
+                stripePriceId: stripePrice.id,
+            };
+            console.log(`[Tier Utility] Processed Tier "${tier.name}". Final Object:`, JSON.stringify(finalTierObject, null, 2));
+            // --- END CRITICAL DEBUG LOG ---
+            
+            return finalTierObject;
+        })
+    );
+
+    return syncedTiers;
+};
