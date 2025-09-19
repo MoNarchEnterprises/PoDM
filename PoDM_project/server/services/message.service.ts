@@ -5,6 +5,7 @@ import { AppError } from '../middleware/error.middleware';
 import { Message } from '@common/types/Message';
 import { Conversation } from '@common/types/Conversation';
 import * as UserModel from '../models/user.model';
+import { generateSignedUrlsForContent } from '../utils/content.utils';
 
 
 /**
@@ -36,7 +37,28 @@ export const getMessagesForConversation = async (conversationId: string, userId:
     if (!messages) {
         throw new AppError('Could not retrieve messages for this conversation.', 404);
     }
-    return messages;
+    // After fetching messages, loop through them and generate signed URLs for any attached content.
+    const messagesWithSignedUrls = await Promise.all(
+        messages.map(async (message) => {
+            if (message.content && message.content.thumbnailUrl) {
+                // We're treating the message content's thumbnail path like a mini-content object.
+                const tempContentObject = { files: [{ thumbnailUrl: message.content.thumbnailUrl }] };
+                const processedContent = await generateSignedUrlsForContent(tempContentObject);
+
+                return {
+                    ...message,
+                    content: {
+                        ...message.content,
+                        thumbnailUrl: processedContent.files[0].thumbnailUrl // Use the new signed URL
+                    }
+                };
+            }
+            return message; // Return the message as-is if there's no content
+        })
+    );
+    // --- END OF FIX ---
+
+    return messagesWithSignedUrls;
 };
 
 /**

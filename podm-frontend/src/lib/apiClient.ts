@@ -186,6 +186,25 @@ export const signupAndSubscribe = async (data: any) => {
 };
 
 /**
+ * Initiates a tip payment on the backend.
+ * @param creatorId The ID of the creator to tip.
+ * @param amount The tip amount IN DOLLARS.
+ * @param message An optional message to include with the tip.
+ * @returns The client_secret for the Stripe PaymentIntent.
+ */
+export const sendTip = async (creatorId: string, amount: number, message: string | undefined, contentId: string) => {
+    console.log(`[apiClient] Sending tip of $${amount} to creator ${creatorId} for content ${contentId}`);
+    const response = await apiClient.post('/payments/tip', {
+        creatorId,
+        amount: Math.round(amount * 100), // Convert to cents for the backend
+        message,
+        contentId,
+    });
+    // The backend returns { success: true, data: { clientSecret: 'pi_...' } }
+    return response.data.data; 
+};
+
+/**
  * Sends a request to create a new subscription to a creator.
  * @param creatorId The ID of the creator to subscribe to.
  * @param tierId The internal ID of the selected subscription tier (e.g., 't1', 't2').

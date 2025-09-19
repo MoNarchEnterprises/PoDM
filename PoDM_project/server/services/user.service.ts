@@ -12,6 +12,7 @@ import stripe from '../config/stripeClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import { createStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
+import { reshapePostForFeed, generateSignedUrlsForContent } from '../../server/utils/content.utils';
 
 
 /**
@@ -332,22 +333,13 @@ export const generateFanFeed = async (fanId: string, page: number = 1) => {
         throw new AppError('Could not retrieve feed content.', 500);
     }
 
-    // 4. Reshape the data for the frontend PostCard component
-    return feedContent.map(post => {
-        // The 'creator' property is the full joined profile from the database
-        const creatorProfile = post.creator ? reshapeUserForApp(post.creator) : null;
+    // `Promise.all` ensures we process all posts concurrently for maximum performance.
+    const reshapedFeed = await Promise.all(
+        feedContent.map(post => reshapePostForFeed(post))
+    );
+    // --- END OF REFACTOR ---
 
-        return {
-            ...post,
-            _id: post.id.toString(), // Ensure frontend gets _id
-            // Create the nested creator object that PostCard expects
-            creator: {
-                name: creatorProfile?.profile.name || 'Unknown Creator',
-                avatar: creatorProfile?.profile.avatar || '',
-                verified: true, // Assuming all creators in the feed are verified
-            }
-        };
-    });
+    return reshapedFeed;
 };
 
 /**
@@ -367,27 +359,28 @@ export const getFanGallery = async (fanId: string) => {
     const activeCreatorIds = new Set(activeSubs?.map(sub => sub.creator_id));
 
     // 3. Group saved content IDs by creator
-    const contentByCreator = new Map<string, string[]>();
-    for (const item of gallery.content) {
-        // We need to fetch the content to know its creator
-        const contentItem = await ContentModel.findContentById(item.contentId);
-        if (contentItem) {
-            if (!contentByCreator.has(contentItem.creator_id)) {
-                contentByCreator.set(contentItem.creator_id, []);
-            }
-            contentByCreator.get(contentItem.creator_id)?.push(item.contentId);
-        }
-    }
+    const contentByCreator = new Map<string, any[]>();
+    const allContentIds = gallery.content.map(item => item.contentId);
+    const allContentItems = await ContentModel.findContentByIds(allContentIds);
 
-    // 4. Build the final, structured response
+    if (!allContentItems) return [];
+    
+    // Process all content items at once to get signed URLs
+    const processedContentItems = await Promise.all(
+        allContentItems.map(item => generateSignedUrlsForContent(item))
+    );
+
+    for (const item of processedContentItems) {
+        if (!contentByCreator.has(item.creator_id)) {
+            contentByCreator.set(item.creator_id, []);
+        }
+        contentByCreator.get(item.creator_id)?.push(item);
+    }
+    
     const galleryData = [];
-    for (const [creatorId, contentIds] of contentByCreator.entries()) {
-        const [creator, contentItems] = await Promise.all([
-            UserModel.findUserById(creatorId),
-            ContentModel.findContentByIds(contentIds) // A new model function we need to create
-        ]);
-        
-        if (creator && contentItems) {
+    for (const [creatorId, contentItems] of contentByCreator.entries()) {
+        const creator = await UserModel.findUserById(creatorId);
+        if (creator) {
             galleryData.push({
                 creator: reshapeUserForApp(creator),
                 content: contentItems.map(item => ({
@@ -399,6 +392,7 @@ export const getFanGallery = async (fanId: string) => {
             });
         }
     }
+
 
     return galleryData;
 };

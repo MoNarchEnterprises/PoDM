@@ -10,31 +10,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
 import * as apiClient from '../../lib/apiClient';
 import { Mail, KeyRound, User as UserIcon } from 'lucide-react';
+import { CARD_ELEMENT_OPTIONS } from '../../lib/constants';
 
 
-// --- Stripe Card Element Styling ---
-const CARD_ELEMENT_OPTIONS = {
-    style: {
-        base: {
-            // Use your brand's primary purple for the card icon
-            iconColor: '#6B46C1',
-            // Use a light text color that's easy to read on the dark modal background
-            color: '#F3F4F6', 
-            fontFamily: 'sans-serif',
-            fontSmoothing: 'antialiased',
-            fontSize: '16px',
-            '::placeholder': {
-                // Use your secondary text color for placeholders
-                color: '#6B7280', 
-            },
-        },
-        invalid: {
-            // Use your brand's error color for both the icon and text on validation failure
-            iconColor: '#EF4444',
-            color: '#EF4444',
-        },
-    },
-};
 
 interface SubscriptionAuthModalProps {
     isOpen: boolean;

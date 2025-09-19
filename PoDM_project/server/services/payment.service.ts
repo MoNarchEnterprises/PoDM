@@ -1,9 +1,8 @@
 import stripe from '../config/stripeClient';
 import * as TransactionModel from '../models/transaction.model';
-import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
-import { Transaction } from '@common/types/Transaction';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // Assuming constants are in a shared lib
+import { getOrCreateStripeCustomer } from '../utils/stripe.utils'; // Import our utility
 
 /**
  * Handles the business logic for a fan sending a tip to a creator.
@@ -12,96 +11,96 @@ import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // Assuming const
  * @param amountInCents - The tip amount in cents.
  * @returns The newly created transaction record.
  */
-export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number) => {
-    // In a real application, you would fetch the fan's Stripe Customer ID
+export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string) => {
+    if (amountInCents < 100) { // Enforce a minimum tip of $1.00
+        throw new AppError('Tip amount must be at least $1.00.', 400);
+    }
     // and the creator's Stripe Connected Account ID from your database.
-    const fanStripeCustomerId = 'cus_...'; // Fetched from fan's profile
-    const creatorStripeAccountId = 'acct_...'; // Fetched from creator's profile
-
-    // Step 1: Create a transaction record in your database with a 'Pending' status.
-    const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
-    const creatorPayout = amountInCents - platformFee;
-
-    const pendingTransaction = await TransactionModel.createTransaction({
-        fanId,
-        creatorId,
-        type: 'Tip',
+    const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
+    // NOTE: For now, we are not transferring funds directly to the creator's
+    // connected account. We will collect the funds and handle payouts later.
+    // This simplifies the logic and defers the need for creator Stripe onboarding.
+    console.log('[payment.service] contentId:', contentId);
+    // 2. Create a PaymentIntent. This is an instruction to Stripe to collect money.
+    const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
-        platformFee,
-        creatorPayout,
-        status: 'Pending',
+        currency: 'usd',
+        customer: fanStripeCustomerId,
+        // We add metadata to link this Stripe transaction back to our application's data.
+        // This is CRITICAL for webhooks and reconciliation.
+        metadata: {
+            transaction_type: 'tip',
+            fan_id: fanId,
+            creator_id: creatorId,
+            fan_message: message || '', // Handle undefined case
+            related_content_id: contentId, // <-- Add the content ID here
+        },
     });
 
-    if (!pendingTransaction) {
-        throw new AppError('Failed to initiate transaction.', 500);
+    if (!paymentIntent.client_secret) {
+        throw new AppError('Failed to create Stripe Payment Intent.', 500);
     }
-
-    // Step 2: Create a Stripe PaymentIntent to charge the fan.
-    // We include the creator's connected account ID in the transfer_data
-    // to direct the funds to them after taking our platform fee.
-    try {
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amountInCents,
-            currency: 'usd',
-            customer: fanStripeCustomerId,
-            application_fee_amount: platformFee,
-            transfer_data: {
-                destination: creatorStripeAccountId,
-            },
-            metadata: {
-                transactionId: pendingTransaction._id, // Link the Stripe payment to our internal transaction
-                type: 'tip',
-            },
-        });
-
-        // Step 3: Return the client secret to the frontend to confirm the payment.
-        return { 
-            clientSecret: paymentIntent.client_secret,
-            transactionId: pendingTransaction._id 
-        };
-    } catch (error: any) {
-        // If Stripe fails, update our transaction to 'Failed'.
-        await TransactionModel.updateTransactionStatus(pendingTransaction.paymentGatewayId, 'Failed');
-        throw new AppError(`Stripe Error: ${error.message}`, 500);
-    }
+    
+    // 3. Return the `client_secret` to the frontend. The frontend needs this
+    //    to securely confirm the payment with Stripe without ever touching sensitive data.
+    return { 
+        clientSecret: paymentIntent.client_secret,
+    };
 };
 
 /**
- * Handles incoming webhook events from Stripe.
- * @param event - The verified Stripe event object.
+ * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
+ * @param event - The verified Stripe event object from the webhook middleware.
  */
 export const handleStripeWebhookEvent = async (event: any) => {
-    switch (event.type) {
-        case 'payment_intent.succeeded':
-            const paymentIntent = event.data.object;
-            const transactionId = paymentIntent.metadata.transactionId;
+    // We only care about successfully completed payments.
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
 
-            // Update our internal transaction record to 'Cleared'
-            await TransactionModel.updateTransactionStatus(transactionId, 'Cleared');
-            
-            // If it's a subscription payment, create the subscription record
-            if (paymentIntent.metadata.type === 'subscription') {
-                // await SubscriptionModel.createSubscription(...);
-            }
-            
-            console.log(`Payment successful for transaction: ${transactionId}`);
-            break;
-        
-        case 'payment_intent.payment_failed':
-            const failedPaymentIntent = event.data.object;
-            const failedTransactionId = failedPaymentIntent.metadata.transactionId;
-            
-            // Update our internal transaction record to 'Failed'
-            await TransactionModel.updateTransactionStatus(failedTransactionId, 'Failed');
-            
-            console.log(`Payment failed for transaction: ${failedTransactionId}`);
-            break;
+        // Check our metadata to see what kind of transaction this was.
+        const transactionType = paymentIntent.metadata.transaction_type;
 
-        // ... handle other events like 'customer.subscription.created', etc.
+        if (transactionType === 'tip') {
+            console.log('[Webhook] Successful tip PaymentIntent received:', paymentIntent.id);
+            console.log('Full PaymentIntent object:', paymentIntent);
+            // Extract the data we saved in the metadata
+            const fanId = paymentIntent.metadata.fan_id;
+            const creatorId = paymentIntent.metadata.creator_id;
+            const amountInCents = paymentIntent.amount;
+            const fanMessage = paymentIntent.metadata.fan_message; // <-- Get the message
+            const contentId = paymentIntent.metadata.related_content_id; // <-- Get the content ID
 
-        default:
-            console.log(`Unhandled Stripe event type: ${event.type}`);
+            // Calculate platform fee and creator payout
+            const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+            const creatorPayout = amountInCents - platformFee;
+
+            // --- THIS IS THE FIX ---
+            // Create the transaction record in our database NOW, because we know the payment succeeded.
+            await TransactionModel.createTransaction({
+                fan_id: fanId,
+                creator_id: creatorId,
+                type: 'Tip',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared', // Mark it as cleared immediately
+                payment_gateway_id: paymentIntent.id, // Save the Stripe PaymentIntent ID
+                related_content_id: contentId,
+                message: fanMessage,
+            });
+            console.log(`[Webhook] Tip transaction for ${amountInCents/100} USD saved to database.`);
+            // --- END OF FIX ---
+        }
+
+        // In the future, you can add more handlers here
+        // else if (transactionType === 'ppv_unlock') { ... }
+
+    } else if (event.type === 'invoice.payment_succeeded') {
+        // This is where you would handle successful SUBSCRIPTION renewals
+        const invoice = event.data.object;
+        console.log('[Webhook] Successful subscription invoice received:', invoice.id);
+        // ... logic to update subscription period and create a transaction ...
     }
-
     return { received: true };
 };
+    

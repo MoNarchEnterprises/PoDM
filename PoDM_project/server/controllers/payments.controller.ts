@@ -12,8 +12,8 @@ import * as PaymentService from '../services/payment.service';
 export const sendTip = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const fanId = req.user?._id;
-        const { creatorId, amount, message } = req.body; // amount should be in cents
-
+        const { creatorId, amount, message, contentId } = req.body; // amount should be in cents
+        console.log('[payments.controller] Tip request:', req.body);
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -24,7 +24,7 @@ export const sendTip = async (req: Request, res: Response, next: NextFunction) =
             throw new AppError('Tip amount must be at least $1.00.', 400);
         }
 
-        const result = await PaymentService.sendTipToCreator(fanId, creatorId, amount, message);
+        const result = await PaymentService.sendTipToCreator(fanId, creatorId, amount, message, contentId);
 
         res.status(200).json({ success: true, data: result });
     } catch (error) {
@@ -42,7 +42,7 @@ export const handleStripeWebhook = async (req: Request, res: Response, next: Nex
         // The `verifyStripeSignature` middleware has already validated the event
         // and attached it to the request body.
         const event = req.body;
-
+        console.log('[payments.controller] Stripe webhook event received:', event);
         await PaymentService.handleStripeWebhookEvent(event);
 
         // Return a 200 response to acknowledge receipt of the event to Stripe

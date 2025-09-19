@@ -1,5 +1,6 @@
 import { Home, FileText, MessageSquare, BarChart2, BarChart3, Settings, DollarSign, ImageIcon, Briefcase, LayoutDashboard, Users, Shield, LifeBuoy } from 'lucide-react';
 import { NavItem } from '../components/layout/MainLayout'; // Assuming MainLayout.tsx exports this type
+import { StripeCardElementOptions } from '@stripe/stripe-js';
 
 // --- Financials ---
 
@@ -49,3 +50,31 @@ export const REPORT_REASONS = [
     'Harassment',
     'Other'
 ];
+
+/**
+ * A centralized, branded style object for the Stripe Card Element.
+ * This ensures all payment forms in the application have a consistent look and feel.
+ * Colors are sourced from the Design System (Section 8 of the planning doc).
+ */
+export const CARD_ELEMENT_OPTIONS: StripeCardElementOptions = {
+    style: {
+        base: {
+            // Use your brand's primary purple for the card icon
+            iconColor: '#6B46C1',
+            // Use a light text color that's easy to read on the dark modal background
+            color: '#F3F4F6', 
+            fontFamily: 'sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                // Use your secondary text color for placeholders
+                color: '#6B7280', 
+            },
+        },
+        invalid: {
+            // Use your brand's error color for validation feedback
+            iconColor: '#EF4444',
+            color: '#EF4444',
+        },
+    },
+};

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useStripe } from '@stripe/react-stripe-js';
 import { Lock, DollarSign, Bookmark, CheckCircle } from 'lucide-react';
 
 // --- Import Shared Types ---
@@ -8,17 +9,15 @@ import { Creator } from '@common/types/Creator';
 // --- Import Reusable UI Components ---
 import Button from '../ui/Button';
 import * as apiClient from '../../lib/apiClient';
+import { useModal } from '../../hooks/useModal';
+import TipModal from './TipModal'; // Import the TipModal
 
 
 // --- Local Types ---
 // This interface represents the shape of the data this component expects.
 // Your API would be responsible for joining the creator's info with the content.
 export interface ContentWithCreator extends Content {
-    creator: {
-        name: string;
-        avatar: string;
-        verified: boolean;
-    }
+    creator: Creator;
 }
 
 // --- Main Post Card Component ---
@@ -28,6 +27,7 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
+    const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     
@@ -51,7 +51,26 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
         }
     };
 
+    /**
+     * Handles the submission of the tip modal.
+     */
+    const handleTipSubmit = async (amount: number, message: string) => {
+        // Just call the API client and return the result.
+        console.log('[PostCard] post_id:', post._id);
+        // The modal will catch any errors.
+        return apiClient.sendTip(post.creatorId, amount, message, post._id);
+    };
+
     return (
+        <>
+            {/* Render the TipModal, controlled by our useModal hook */}
+            <TipModal
+                isOpen={isTipModalOpen}
+                onClose={closeTipModal}
+                creator={post.creator} // Pass the full creator object
+                onSubmit={handleTipSubmit}
+            />
+
         <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1">
             <div className="relative">
                 <img 
@@ -73,24 +92,21 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                     {post.type}
                 </div>
             </div>
-            <div className="p-4">
-                <div className="flex items-center mb-3">
-                    <img className="w-10 h-10 rounded-full mr-3" src={post.creator.avatar} alt={post.creator.name} />
-                    <div>
-                        <p className="font-semibold text-gray-800 dark:text-white flex items-center">
-                            {post.creator.name}
-                            {post.creator.verified && <CheckCircle className="w-4 h-4 ml-1 text-blue-500" />}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                        </p>
+                <div className="p-4">
+                    <div className="flex items-center mb-3">
+                        <img className="w-10 h-10 rounded-full mr-3" src={post.creator.profile.avatar} alt={post.creator.profile.name} />
+                        <div>
+                            <p className="font-semibold ...">{post.creator.profile.name}</p>
+                            <p className="text-xs ...">{new Date(post.createdAt).toLocaleDateString()}</p>
+                        </div>
                     </div>
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 truncate">{post.title}</p>
-                <div className="flex items-center justify-between text-gray-500 dark:text-gray-400">
-                    <Button variant="ghost" size="sm" leftIcon={DollarSign}>
-                        Tip
-                    </Button>
+                    <p className="text-gray-700 ...">{post.title}</p>
+                    <div className="flex items-center justify-between ...">
+                        {/* --- THIS IS THE KEY CHANGE --- */}
+                        {/* The onClick handler now opens the tip modal */}
+                        <Button variant="ghost" size="sm" leftIcon={DollarSign} onClick={openTipModal}>
+                            Tip
+                        </Button>
                     <Button 
                         variant="ghost" 
                         size="sm" 
@@ -105,6 +121,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

@@ -16,13 +16,14 @@ const FanFeed = () => {
     const [posts, setPosts] = useState<ContentWithCreator[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeFilter, setActiveFilter] = useState('Following');
-    const filters = ['Following', 'For You', 'Trending'];
+    const [activeFilter, setActiveFilter] = useState('For You');
+    const filters = ['For You', 'Trending'];
+
 
     useEffect(() => {
         // We only fetch data for the 'Following' tab for now
-        if (activeFilter === 'Following') {
-            const fetchFeed = async () => {
+        if (activeFilter === 'For You') {
+            const fetchMyFeed = async () => {
                 setIsLoading(true);
                 setError(null);
                 try {
@@ -35,9 +36,12 @@ const FanFeed = () => {
                     setIsLoading(false);
                 }
             };
-            fetchFeed();
-        } else {
-            // For other filters, we can just clear the posts for now
+            fetchMyFeed();
+        } else if (activeFilter === 'Trending') {
+            // Logic for the Trending feed will go here in the future.
+            // For now, it correctly shows an empty state.
+            setIsLoading(true);
+            setError(null);
             setPosts([]);
             setIsLoading(false);
         }
@@ -45,18 +49,28 @@ const FanFeed = () => {
 
     const renderContent = () => {
         if (isLoading) {
-            return <div className="text-center py-12 text-gray-500">Loading your feed...</div>;
+            return <div className="text-center py-12 text-gray-500">Loading...</div>;
         }
         if (error) {
             return <div className="text-center py-12 text-red-500">{error}</div>;
         }
         if (posts.length === 0) {
-            return (
-                <div className="text-center py-12 text-gray-500">
-                    <h3 className="font-bold text-lg">It's quiet in here...</h3>
-                    <p>Your feed is empty. Subscribe to creators to see their content here!</p>
-                </div>
-            );
+            if (activeFilter === 'For You') {
+                return (
+                    <div className="text-center py-12 text-gray-500">
+                        <h3 className="font-bold text-lg">Your "For You" feed is empty!</h3>
+                        <p>Subscribe to some creators to see their latest content here.</p>
+                    </div>
+                );
+            }
+            if (activeFilter === 'Trending') {
+                 return (
+                    <div className="text-center py-12 text-gray-500">
+                        <h3 className="font-bold text-lg">Trending is Coming Soon!</h3>
+                        <p>This section will help you discover new creators to follow.</p>
+                    </div>
+                );
+            }
         }
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -77,7 +91,7 @@ const FanFeed = () => {
                         variant={activeFilter === filter ? 'primary' : 'secondary'}
                         size="sm"
                         className="rounded-full"
-                        leftIcon={filter === 'Following' ? Star : filter === 'For You' ? ThumbsUp : Compass}
+                        leftIcon={filter === 'For You' ? Star : Compass}
                     >
                         {filter}
                     </Button>
