@@ -48,6 +48,7 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
     };
 };
 
+
 /**
  * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
  * @param event - The verified Stripe event object from the webhook middleware.
@@ -103,4 +104,3 @@ export const handleStripeWebhookEvent = async (event: any) => {
     }
     return { received: true };
 };
-    

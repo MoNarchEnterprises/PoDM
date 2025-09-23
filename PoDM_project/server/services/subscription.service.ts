@@ -5,7 +5,9 @@ import { AppError } from '../middleware/error.middleware';
 import { Subscription } from '@common/types/Subscription';
 import { User } from '@common/types/User';
 import { reshapeUserForApp } from '../utils/user.utils';
+import { reshapeSubscriptionForApp } from '../utils/subscription.utils';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
+import { SubscriptionTier } from '@common/types/Creator';
 
 /**
  * Creates a new subscription for an authenticated fan. This is the primary service
@@ -32,7 +34,7 @@ export const createSubscriptionForUser = async (
 
     console.log(`[SubService] Found creator ${creatorId} with ${creator.creator_data.subscriptionTiers}`);
     console.log(`[SubService] Looking for tier ID: ${tierId}`);
-    const tier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === tierId);
+    const tier = creator.creator_data.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
     if (!tier || !tier.stripePriceId) {
         throw new AppError('Selected subscription tier is invalid or missing a Stripe Price ID.', 400);
     }
@@ -90,6 +92,7 @@ export const createSubscriptionForUser = async (
             fan_id: fanId,
             creator_id: creatorId,
             tier_id: tierId,
+            price: tier.price * 100, // <-- ADD THIS LINE (save in cents)
             status: 'active',
             start_date: new Date(periodStart * 1000).toISOString(),
             end_date: null,
@@ -121,25 +124,13 @@ export const createSubscriptionForUser = async (
  */
 export const getFanSubscriptions = async (fanId: string) => {
     const subscriptions = await SubscriptionModel.findSubscriptionsByFanId(fanId);
-    if (!subscriptions) return [];
-
-    const subscriptionsWithCreators = await Promise.all(
-        subscriptions.map(async (sub) => {
-            const creator = await UserModel.findUserById(sub.creator_id);
-            if (!creator) return null;
-            
-            const reshapedCreator = reshapeUserForApp(creator);
-
-            return {
-                ...sub,
-                _id: sub.id,
-                creator: reshapedCreator,
-                availableTiers: reshapedCreator.creatorData?.subscriptionTiers || [],
-            };
-        })
+    if (!subscriptions) {
+        return [];
+    }
+    const shapedSubscriptions = await Promise.all(
+        subscriptions.map(sub => reshapeSubscriptionForApp(sub))
     );
-    
-    return subscriptionsWithCreators.filter(sub => sub !== null);
+    return shapedSubscriptions.filter(sub => sub !== null);
 };
 
 /**
@@ -168,8 +159,12 @@ export const getCreatorSubscribers = async (creatorId: string): Promise<(Subscri
  * @returns The updated subscription object.
  */
 export const cancelFanSubscription = async (subscriptionId: string, fanId: string) => {
-    const subscription = await SubscriptionModel.findSubscriptionById(subscriptionId);
-    if (!subscription || subscription.fan_id !== fanId) {
+    const numericSubscriptionId = parseInt(subscriptionId, 10);
+    if (isNaN(numericSubscriptionId)) {
+        throw new AppError('Invalid subscription ID format.', 400);
+    }
+    
+    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId);if (!subscription || subscription.fan_id !== fanId) {
         throw new AppError('Subscription not found or does not belong to the fan.', 404);
     }
     if (subscription.status !== 'active') {
@@ -195,13 +190,19 @@ export const cancelFanSubscription = async (subscriptionId: string, fanId: strin
 /**
  * Changes the subscription tier for an active subscription.
  * @param subscriptionId - The internal ID of the subscription to update.   
- * @param newTierId - The internal ID of the new subscription tier.
  * @param fanId - The ID of the fan requesting the change.
+ * @param newTierId - The internal ID of the new subscription tier.
  */
-export const changeSubscriptionTier = async (subscriptionId: string, newTierId: string, fanId: string) => {
-    const subscription = await SubscriptionModel.findSubscriptionById(subscriptionId);
+export const changeSubscriptionTier = async (subscriptionId: string, fanId: string, newTierId: string) => {
+    const numericSubscriptionId = parseInt(subscriptionId, 10);
+    if (isNaN(numericSubscriptionId)) {
+        throw new AppError('Invalid subscription ID format.', 400);
+    }
+    
+    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId);
+    
     if (!subscription || subscription.fan_id !== fanId) {
-        throw new AppError('Subscription not found or does not belong to the fan.', 404);
+        throw new AppError('Subscription not found or you are not authorized to change it.', 404);
     }
     if (subscription.status !== 'active') {
         throw new AppError('Only active subscriptions can be changed.', 400);
@@ -211,37 +212,43 @@ export const changeSubscriptionTier = async (subscriptionId: string, newTierId: 
     if (!creator || !creator.creator_data?.subscriptionTiers) {
         throw new AppError('Creator or their subscription tiers not found.', 404);
     }
-    
     const newTier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === newTierId);
     if (!newTier || !newTier.stripePriceId) {
-        throw new AppError('Selected new subscription tier is invalid or missing a Stripe Price ID.', 400);
+        throw new AppError('The selected new tier is invalid.', 400);
     }
 
     try {
-        const stripeSubscription = await stripe.subscriptions.update(subscription.id, {
+        const stripeSub = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id);
+        const currentItemId = stripeSub.items.data[0]?.id;
+        if (!currentItemId) {
+            throw new AppError('Could not find the item to update in the Stripe subscription.', 500);
+        }
+
+        await stripe.subscriptions.update(subscription.stripe_subscription_id, {
             items: [{
-                id: (subscription as any).stripe_item_id, // Assuming you store this
+                id: currentItemId,
                 price: newTier.stripePriceId,
             }],
             proration_behavior: 'create_prorations',
         });
 
-        const updatedSubscription = await SubscriptionModel.updateSubscription(
-            subscriptionId, 
+        // --- THIS IS THE FIX ---
+        // We ONLY update the tier_id. We do NOT update the price, as that column doesn't exist.
+        const updatedDbSubscription = await SubscriptionModel.updateSubscription(
+            numericSubscriptionId.toString(), 
             {
                 tier_id: newTierId, 
-                price: newTier.price, 
-                stripe_price_id: newTier.stripePriceId,
-                current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
             }
         );
+        // --- END OF FIX ---
 
-        if (!updatedSubscription) {
-            throw new AppError('Failed to update subscription tier in database after Stripe update.', 500);
+        if (!updatedDbSubscription) {
+            throw new AppError('Failed to update subscription in our database after Stripe update.', 500);
         }
 
-        return updatedSubscription;
-
+        // The reshape utility will now correctly look up the new tier's name and price.
+        return reshapeSubscriptionForApp(updatedDbSubscription);
+        
     } catch (error: any) {
         console.error("Stripe subscription tier change error:", error);
         throw new AppError(`Stripe Error: ${error.message}`, 500);

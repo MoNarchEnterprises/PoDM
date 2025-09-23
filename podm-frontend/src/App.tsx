@@ -141,7 +141,7 @@ const FanSubscriptionsLoader = () => {
         return <div className="p-8 text-center text-red-500">{error}</div>;
     }
 
-    return <FanSubscriptions initialSubscriptions={subscriptions} />;
+    return <FanSubscriptions />;
 };
 
 const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
@@ -259,7 +259,7 @@ const App = () => {
                             <Route index element={<FanFeed />} />
                             <Route path="feed" element={<FanFeed />} />
                             <Route path="gallery" element={<FanGalleryLoader />} />
-                            <Route path="subscriptions" element={<FanSubscriptionsLoader />} />
+                            <Route path="subscriptions" element={<FanSubscriptions />} />
                             <Route path="messages" element={<FanMessagesLoader />} />
                             <Route path="settings" element={<FanSettingsLoader />} />
                         </Route>

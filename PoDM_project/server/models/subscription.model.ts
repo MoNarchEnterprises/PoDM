@@ -25,11 +25,11 @@ export const createSubscription = async (subscriptionData: Partial<Subscription>
  * @param id - The ID of the subscription to find.
  * @returns The subscription object or null if not found.
  */
-export const findSubscriptionById = async (id: string): Promise<Subscription | null> => {
+export const findSubscriptionById = async (id: number): Promise<Subscription | null> => { // <-- Change type to number
     const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
-        .eq('id', id)
+        .eq('id', id) // Now this comparison is type-safe
         .single();
 
     if (error) {

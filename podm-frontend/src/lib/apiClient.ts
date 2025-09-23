@@ -471,6 +471,16 @@ export const updateFanSettings = async (settings: any) => {
 };
 
 /**
+ * Sends a request to update a fan's subscription to a new tier.
+ * @param subscriptionId - The ID of the subscription to update.
+ * @param newTierId - The ID of the new tier.
+ */
+export const updateFanSubscription = async (subscriptionId: string, newTierId: string) => {
+    const response = await apiClient.put(`/subscriptions/${subscriptionId}`, { newTierId });
+    return response.data;
+};
+
+/**
  * Updates the fan's default payment method in Stripe.
  * @param paymentMethodId - The secure `pm_...` token from Stripe Elements.
  */

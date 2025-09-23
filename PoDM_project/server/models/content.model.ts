@@ -178,7 +178,10 @@ export const findRecentContentByCreator = async (creatorId: string, limit: numbe
         console.error(`Error finding recent content for creator ${creatorId}:`, error.message);
         return null;
     }
-    return data.map(item => ({ ...item, _id: item.id.toString() })) as Content[];
+    return data.map(item => {
+        const { id, ...rest } = item;
+        return { ...rest, _id: id.toString() } as Content;
+    });
 };
 
 /**
