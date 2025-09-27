@@ -33,6 +33,31 @@ export const sendTip = async (req: Request, res: Response, next: NextFunction) =
 };
 
 /**
+ * @desc    Create a Payment Intent to unlock a piece of paid content in a message
+ * @route   POST /api/v1/payments/unlock-message
+ * @access  Private (Fans only)
+ */
+export const unlockMessageContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        const { messageId } = req.body;
+
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!messageId) {
+            throw new AppError('A messageId is required to unlock content.', 400);
+        }
+
+        const result = await PaymentService.createMessageUnlockIntent(fanId, messageId);
+
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * @desc    Handle incoming webhooks from Stripe to confirm payments
  * @route   POST /api/v1/payments/stripe/webhooks
  * @access  Public (but protected by Stripe signature verification middleware)

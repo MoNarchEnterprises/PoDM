@@ -1,7 +1,8 @@
 // src/features/fan/FanSubscriptions.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { XCircle, CheckCircle, CreditCard, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // <-- 1. IMPORT useNavigate
+import { XCircle, CheckCircle, CreditCard, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { Subscription } from '@common/types/Subscription';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
@@ -106,14 +107,34 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
 };
 
 const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, onChangeTierClick }: { subscription?: SubscriptionWithCreator; onCancelClick: (sub: SubscriptionWithCreator) => void; onResubscribeClick: (sub: SubscriptionWithCreator) => void; onChangeTierClick: (sub: SubscriptionWithCreator) => void; }) => {
+    const navigate = useNavigate(); // <-- 3. INITIALIZE useNavigate
+
+    const handleNavigateToMessage = () => {
+        if (!subscription) return;
+        // 4. Navigate to the messages page, passing creator info in the state
+        navigate('/fan/messages', {
+            state: {
+                creatorId: subscription.creator._id,
+                creatorName: subscription.creator.profile.name,
+                creatorAvatar: subscription.creator.profile.avatar
+            }
+        });
+    };
+    
     if (!subscription) {
         return <div className="bg-gray-800/50 rounded-xl shadow-md h-full flex items-center justify-center text-gray-400"><p>Select a subscription to see details.</p></div>;
     }
     return (
         <div className="bg-gray-800/50 rounded-xl shadow-md h-full flex flex-col">
-            <div className="p-6 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-white">Subscription Details</h3>
-                <p className="text-sm text-gray-400">Managing subscription for <span className="font-bold text-gray-200">{subscription.creator.profile.name}</span></p>
+            <div className="p-6 border-b border-gray-700 flex justify-between items-center"> {/* <-- 5. ADD flex layout */}
+                <div>
+                    <h3 className="text-lg font-semibold text-white">Subscription Details</h3>
+                    <p className="text-sm text-gray-400">Managing subscription for <span className="font-bold text-gray-200">{subscription.creator.profile.name}</span></p>
+                </div>
+                {/* 6. ADD THE MESSAGE BUTTON */}
+                <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={handleNavigateToMessage}>
+                    <MessageSquare className="w-5 h-5 text-purple-400" />
+                </Button>
             </div>
             <div className="p-6 space-y-4 flex-grow">
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-400">Current Tier</span><span className="font-semibold text-gray-200">{subscription.tierName}</span></div>

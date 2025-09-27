@@ -144,7 +144,6 @@ const FanSubscriptionsLoader = () => {
     return <FanSubscriptions />;
 };
 
-const FanMessagesLoader = () => { return <FanMessages initialConversations={[]} currentFanId="fan123" />; };
 
 const FanSettingsLoader = () => {
     const [settingsData, setSettingsData] = useState<any>(null);
@@ -192,15 +191,12 @@ const CreatorDashboardLoader = () => {
 };
 
 
-const CreatorMessagesLoader = () => { return <CreatorMessages initialConversations={[]} existingContent={[]} currentCreatorId="creator123" />; };
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
 const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any} monthlyEarnings={[]} transactions={[]} />; };
 
 const CreatorSettingsLoader = () => {
     // 1. Get the currently logged-in user from the auth context
     const { user, isLoading } = useAuth();
-
-    console.log('[CreatorSettingsLoader] User from useAuth context:', user);
 
     // 2. Handle the loading state while the user session is being verified
     if (isLoading) {
@@ -260,7 +256,7 @@ const App = () => {
                             <Route path="feed" element={<FanFeed />} />
                             <Route path="gallery" element={<FanGalleryLoader />} />
                             <Route path="subscriptions" element={<FanSubscriptions />} />
-                            <Route path="messages" element={<FanMessagesLoader />} />
+                            <Route path="messages" element={<FanMessages />} />
                             <Route path="settings" element={<FanSettingsLoader />} />
                         </Route>
 
@@ -271,7 +267,7 @@ const App = () => {
                                <Route index element={<CreatorDashboardLoader />} />
                                <Route path="dashboard" element={<CreatorDashboardLoader />} />
                                <Route path="content" element={<CreatorContent />} />
-                               <Route path="messages" element={<CreatorMessagesLoader />} />
+                               <Route path="messages" element={<CreatorMessages />} />
                                <Route path="analytics" element={<CreatorAnalyticsLoader />} />
                                <Route path="earnings" element={<CreatorEarningsLoader />} />
                                <Route path="settings" element={<CreatorSettingsLoader />} />

@@ -227,8 +227,7 @@ interface CreatorSettingsPageProps {
 const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const { setUser } = useAuth();
 
-    console.log('[CreatorSettingsPage] Received "creator" prop:', creator);
-
+    
     const [activeTab, setActiveTab] = useState('Account');
     const [isSaving, setIsSaving] = useState(false);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -256,6 +255,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
             price: 10, // Default price
             features: ['Full content access'],
             subscriberCount: 0,
+            stripePriceId: undefined, // New tiers won't have a Stripe price ID yet
         };
 
         setSettingsData(prev => ({

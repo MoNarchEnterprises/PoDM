@@ -1,5 +1,6 @@
 import stripe from '../config/stripeClient';
 import * as TransactionModel from '../models/transaction.model';
+import * as MessageModel from '../models/message.model'; // <-- ADD THIS IMPORT
 import { AppError } from '../middleware/error.middleware';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // Assuming constants are in a shared lib
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils'; // Import our utility
@@ -48,6 +49,45 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
     };
 };
 
+/**
+ * Creates a Stripe Payment Intent for unlocking paid content in a message.
+ * @param fanId - The ID of the fan unlocking the content.
+ * @param messageId - The ID of the message containing the locked content.
+ * @returns An object containing the clientSecret for the Payment Intent.
+ */
+export const createMessageUnlockIntent = async (fanId: string, messageId: string) => {
+    // 1. Security validation
+    const message = await MessageModel.findMessageById(messageId);
+    if (!message) throw new AppError('Message not found.', 404);
+    if (message.receiver_id !== fanId) throw new AppError('You are not authorized to unlock this content.', 403);
+    if (!message.content || !message.content.isPaid) throw new AppError('This message does not contain paid content.', 400);
+    if (message.content.isUnlocked) throw new AppError('This content has already been unlocked.', 400);
+
+    const amountInCents = message.content.price;
+
+    // 2. Get Stripe customer and create Payment Intent
+    const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
+
+    const paymentIntent = await stripe.paymentIntents.create({
+        amount: amountInCents,
+        currency: 'usd',
+        customer: fanStripeCustomerId,
+        metadata: {
+            transaction_type: 'ppv_message',
+            fan_id: fanId,
+            creator_id: message.sender_id,
+            message_id: messageId,
+            content_id: message.content.contentId,
+        },
+    });
+
+    if (!paymentIntent.client_secret) {
+        throw new AppError('Failed to create Stripe Payment Intent.', 500);
+    }
+
+    // 3. Return the secret to the frontend for confirmation
+    return { clientSecret: paymentIntent.client_secret };
+};
 
 /**
  * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
@@ -93,6 +133,33 @@ export const handleStripeWebhookEvent = async (event: any) => {
             // --- END OF FIX ---
         }
 
+        else if (transactionType === 'ppv_message') {
+            console.log('[Webhook] Successful PPV Message PaymentIntent received:', paymentIntent.id);
+            const { fan_id, creator_id, message_id, content_id } = paymentIntent.metadata;
+            const amountInCents = paymentIntent.amount;
+
+            const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+            const creatorPayout = amountInCents - platformFee;
+
+            // Create the financial transaction record
+            await TransactionModel.createTransaction({
+                fan_id,
+                creator_id,
+                type: 'PPV Message',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: content_id,
+                related_message_id: message_id, // Link to the message
+            });
+
+            // CRITICAL: Update the message to unlock the content
+            await MessageModel.unlockContentInMessage(message_id);
+
+            console.log(`[Webhook] PPV Message transaction for ${amountInCents/100} USD saved and content unlocked.`);
+        }
         // In the future, you can add more handlers here
         // else if (transactionType === 'ppv_unlock') { ... }
 

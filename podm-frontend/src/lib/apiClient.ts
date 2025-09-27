@@ -418,6 +418,43 @@ export const getSecureContentUrl = async (contentId: string) => {
 };
 
 /**
+ * Fetches all conversations for the current user.
+ */
+export const getMyConversations = async () => {
+    const response = await apiClient.get('/messages/conversations');
+    return response.data;
+};
+
+/**
+ * Fetches all messages for a specific conversation.
+ * @param conversationId - The ID of the conversation.
+ */
+export const getMessagesInConversation = async (conversationId: string) => {
+    const response = await apiClient.get(`/messages/conversations/${conversationId}`);
+    return response.data;
+};
+
+/**
+ * Creates a Payment Intent to unlock paid content in a message.
+ * @param messageId - The ID of the message to unlock.
+ * @returns An object containing the `clientSecret` from Stripe.
+ */
+export const unlockMessageContent = async (messageId: string) => {
+    const response = await apiClient.post('/payments/unlock-message', { messageId });
+    return response.data; // This will return { success: true, data: { clientSecret: '...' } }
+};
+
+/**
+ * Sends a new direct message.
+ * @param receiverId - The ID of the user to send the message to.
+ * @param text - The text content of the message.
+ */
+export const sendMessage = async (receiverId: string, text: string) => {
+    const response = await apiClient.post('/messages', { receiverId, text });
+    return response.data;
+};
+
+/**
  * Fetches the personalized content feed for the logged-in fan.
  * @param page The page number to fetch for infinite scrolling.
  */

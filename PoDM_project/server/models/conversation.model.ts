@@ -7,10 +7,17 @@ import { Conversation } from '@common/types/Conversation';
  * @returns The conversation object or null if not found.
  */
 export const findConversationById = async (id: string): Promise<Conversation | null> => {
+
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+        console.error(`[Model] Invalid non-numeric ID passed to findConversationById: "${id}"`);
+        return null;
+    }
+   
     const { data, error } = await supabase
         .from('conversations')
         .select('*')
-        .eq('id', id)
+        .eq('id', numericId)
         .single();
 
     if (error) {
@@ -28,10 +35,10 @@ export const findConversationById = async (id: string): Promise<Conversation | n
 export const findConversationsByUserId = async (userId: string): Promise<Conversation[] | null> => {
     const { data, error } = await supabase
         .from('conversations')
-        .select('*, participants:profiles(*)') // Fetches profile data for participants
+        .select('*') 
         .contains('participants', [userId])
         .order('last_message_at', { ascending: false });
-
+    
     if (error) {
         console.error('Error finding conversations by user ID:', error.message);
         return null;

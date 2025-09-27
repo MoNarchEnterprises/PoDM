@@ -46,8 +46,13 @@ export const getDashboardData = async (creatorId: string) => {
         ...(recentTransactions || []).slice(0, 5),
         ...(recentContent || []).slice(0, 5),
     ];
-    combinedActivity.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    const recentActivity = combinedActivity.slice(0, 5);
+    
+    combinedActivity.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const recentActivity = combinedActivity.slice(0, 5).map(item => ({
+        ...item,
+        _id: `${'title' in item ? 'content' : 'txn'}-${item.id}` // Create a unique string key
+    }));
 
     // --- 3. Fetch Monthly Earnings Chart Data ---
     const monthlyEarnings = [];

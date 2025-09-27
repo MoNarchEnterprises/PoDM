@@ -6,18 +6,19 @@ import { protect, creatorOnly } from '../middleware/auth.middleware';
 const router = Router();
 
 /**
- * @route   GET /api/v1/messages
+ * @route   GET /api/v1/messages/conversations
  * @desc    Get all conversations for the currently logged-in user
  * @access  Private
  */
-router.get('/', protect, getConversations);
+router.get('/conversations', protect, getConversations);
 
 /**
- * @route   GET /api/v1/messages/:conversationId
+ * @route   GET /api/v1/messages/conversations/:id
  * @desc    Get all messages for a specific conversation
  * @access  Private (User must be a participant)
  */
-router.get('/:conversationId', protect, getMessagesInConversation);
+router.get('/conversations/:id', protect, getMessagesInConversation);
+
 
 /**
  * @route   POST /api/v1/messages

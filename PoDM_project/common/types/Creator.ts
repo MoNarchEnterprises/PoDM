@@ -11,7 +11,7 @@ export interface SubscriptionTier {
   price: number; // Stored in cents on backend, but can be number here
   features: string[];
   subscriberCount: number;
-  stripePriceId: string; // ID from Stripe for this tier's price
+  stripePriceId?: string; // ID from Stripe for this tier's price
 }
 
 /**
