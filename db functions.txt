@@ -1,0 +1,172 @@
+aggregate_monthly_logs
+
+BEGIN
+  INSERT INTO public.monthly_analytics_summary (event_month, creator_id, event_type, total_events)
+  SELECT
+    -- Get the first day of the month for the event
+    date_trunc('month', created_at)::date,
+    creator_id,
+    event_type,
+    COUNT(*) AS total_events
+  FROM
+    public.analytics_events
+  WHERE
+    -- Filter for events that occurred in the previous full calendar month
+    created_at >= date_trunc('month', now() - interval '1 month') AND
+    created_at < date_trunc('month', now())
+  GROUP BY
+    1, 2, 3
+  ON CONFLICT (event_month, creator_id, event_type)
+  DO UPDATE SET total_events = EXCLUDED.total_events;
+
+  -- Step 2: Purge the raw event data that is now summarized
+  DELETE FROM public.analytics_events
+  WHERE created_at < date_trunc('month', now() - interval '1 month');
+END;
+
+get_all_users_details
+
+DECLARE
+  all_users_details JSON;
+BEGIN
+  SELECT json_agg(
+    json_build_object(
+      'id', p.id,
+      'username', p.username,
+      'avatar_url', p.avatar_url,
+      'bio', p.bio,
+      'role', p.role,
+      'status', p.status,
+      'onboarding_complete', p.onboarding_complete,
+      'commission_rate', p.commission_rate,
+      'updated_at', p.updated_at,
+      'verification_data', p.verification_data, -- ADD THIS LINE
+      'email', u.email,
+      'created_at', u.created_at
+    )
+  )
+  INTO all_users_details
+  FROM public.profiles p
+  JOIN auth.users u ON p.id = u.id;
+
+  RETURN all_users_details;
+END;
+
+get_creator_conversations_sorted
+
+BEGIN
+    RETURN QUERY
+    WITH fan_metrics AS (
+        -- First, calculate total spending for each fan of this creator
+        SELECT
+            t.fan_id,
+            SUM(t.amount) / 100.0 AS total_fan_spend
+        FROM transactions t
+        WHERE t.creator_id = creator_uuid
+        GROUP BY t.fan_id
+    ),
+    recent_subscribers AS (
+        -- Identify fans who subscribed in the last 7 days
+        SELECT
+            s.fan_id,
+            TRUE as is_new
+        FROM subscriptions s
+        WHERE s.creator_id = creator_uuid
+          AND s.status = 'active'
+          AND s.start_date > (NOW() - INTERVAL '7 days')
+    )
+    SELECT
+        c.id as conversation_id,
+        p.id as fan_id,
+        p.username as fan_username,
+        p.avatar_url as fan_avatar_url,
+        c.last_message_text,
+        c.last_message_at,
+        COALESCE(rs.is_new, FALSE) as is_new_subscriber,
+        COALESCE(fm.total_fan_spend, 0) as total_spent,
+        (c.last_message ->> 'isRead')::BOOLEAN as is_read -- Assuming last_message has an isRead field
+    FROM conversations c
+    -- Join to find the other participant (the fan)
+    JOIN profiles p ON p.id = ANY(c.participants) AND p.id <> creator_uuid
+    LEFT JOIN fan_metrics fm ON fm.fan_id = p.id
+    LEFT JOIN recent_subscribers rs ON rs.fan_id = p.id
+    WHERE creator_uuid = ANY(c.participants)
+    ORDER BY
+        is_new_subscriber DESC, -- New subscribers first
+        total_spent DESC,       -- Then by total spend
+        c.last_message_at DESC; -- Finally by most recent message
+END;
+
+get_creator_subscribers_for_messaging
+
+BEGIN
+    RETURN QUERY
+    WITH fan_metrics AS (
+        -- This part remains the same
+        SELECT
+            t.fan_id,
+            SUM(t.amount) / 100.0 AS total_fan_spend
+        FROM transactions t
+        WHERE t.creator_id = creator_uuid
+        GROUP BY t.fan_id
+    )
+    SELECT
+        c.id as conversation_id,
+        s.fan_id,
+        p.username as fan_username,
+        p.avatar_url as fan_avatar_url,
+        
+        -- --- THIS IS THE FIX ---
+        -- Select the details from the joined 'messages' table (aliased as 'm')
+        m.text as last_message_text,
+        m.created_at as last_message_at,
+        -- --- END OF FIX ---
+        
+        (s.start_date > (NOW() - INTERVAL '7 days')) as is_new_subscriber,
+        COALESCE(fm.total_fan_spend, 0) as total_spent,
+
+        m.is_read as is_read
+
+    FROM subscriptions s
+    JOIN profiles p ON s.fan_id = p.id
+    LEFT JOIN conversations c ON creator_uuid = ANY(c.participants) AND s.fan_id = ANY(c.participants)
+    
+    -- --- THIS IS THE NEW JOIN ---
+    -- We join the messages table on the new foreign key
+    LEFT JOIN messages m ON c.last_message_id = m.id
+    -- --- END OF NEW JOIN ---
+    
+    LEFT JOIN fan_metrics fm ON fm.fan_id = s.fan_id
+    WHERE s.creator_id = creator_uuid AND s.status = 'active'
+    ORDER BY
+        is_new_subscriber DESC,
+        total_spent DESC,
+        -- Use the actual message timestamp for sorting, falling back to subscription date      
+        COALESCE(m.created_at, s.start_date) DESC;
+END;
+
+get_user_details
+
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.username,
+        p.avatar_url,
+        p.bio,
+        u.email::text,
+        u.created_at,
+        p.role::text,
+        p.status::text,
+        p.onboarding_complete,
+        p.commission_rate::real,
+        p.verification_data,
+        p.stripe_customer_id,
+        p.creator_data
+    FROM
+        public.profiles AS p
+    JOIN
+        auth.users AS u ON p.id = u.id
+    WHERE
+        p.id = user_id;
+END;

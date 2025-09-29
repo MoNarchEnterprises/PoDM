@@ -1,0 +1,156 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.analytics_events (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  event_type text NOT NULL CHECK (event_type = ANY (ARRAY['profile_visit'::text, 'post_view'::text])),
+  creator_id uuid NOT NULL,
+  viewer_id uuid,
+  content_id bigint,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT analytics_events_pkey PRIMARY KEY (id),
+  CONSTRAINT analytics_events_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id),
+  CONSTRAINT analytics_events_viewer_id_fkey FOREIGN KEY (viewer_id) REFERENCES public.profiles(id),
+  CONSTRAINT analytics_events_content_id_fkey FOREIGN KEY (content_id) REFERENCES public.content(id)
+);
+CREATE TABLE public.content (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  creator_id uuid NOT NULL,
+  title text NOT NULL,
+  description text,
+  type USER-DEFINED NOT NULL,
+  files jsonb,
+  visibility USER-DEFINED NOT NULL,
+  price integer,
+  tags ARRAY,
+  stats jsonb,
+  schedule jsonb,
+  status USER-DEFINED NOT NULL DEFAULT 'draft'::content_status,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT content_pkey PRIMARY KEY (id),
+  CONSTRAINT content_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.conversations (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  participants ARRAY NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  last_message_id bigint,
+  CONSTRAINT conversations_pkey PRIMARY KEY (id),
+  CONSTRAINT conversations_last_message_id_fkey FOREIGN KEY (last_message_id) REFERENCES public.messages(id)
+);
+CREATE TABLE public.galleries (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  fan_id uuid NOT NULL UNIQUE,
+  content jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT galleries_pkey PRIMARY KEY (id),
+  CONSTRAINT galleries_fan_id_fkey FOREIGN KEY (fan_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.messages (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  conversation_id bigint NOT NULL,
+  sender_id uuid NOT NULL,
+  receiver_id uuid NOT NULL,
+  text text,
+  content jsonb,
+  is_read boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT messages_pkey PRIMARY KEY (id),
+  CONSTRAINT messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.conversations(id),
+  CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id),
+  CONSTRAINT messages_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.monthly_analytics_summary (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  event_month date NOT NULL,
+  creator_id uuid NOT NULL,
+  event_type text NOT NULL,
+  total_events integer NOT NULL,
+  CONSTRAINT monthly_analytics_summary_pkey PRIMARY KEY (id),
+  CONSTRAINT monthly_analytics_summary_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.platform_settings (
+  key text NOT NULL,
+  value jsonb,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT platform_settings_pkey PRIMARY KEY (key)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  username text NOT NULL UNIQUE CHECK (char_length(username) >= 3),
+  avatar_url text,
+  bio text,
+  role USER-DEFINED DEFAULT 'fan'::user_role,
+  status USER-DEFINED DEFAULT 'active'::user_status,
+  updated_at timestamp with time zone,
+  commission_rate numeric,
+  creator_data jsonb,
+  onboarding_complete boolean DEFAULT false,
+  verification_data jsonb,
+  email text UNIQUE,
+  preferences jsonb DEFAULT '{}'::jsonb,
+  stripe_customer_id text UNIQUE,
+  stripe_account_id text UNIQUE,
+  full_name text,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.reports (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  parameters jsonb NOT NULL,
+  created_by uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  last_run_at timestamp with time zone,
+  CONSTRAINT reports_pkey PRIMARY KEY (id),
+  CONSTRAINT reports_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.subscriptions (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  fan_id uuid NOT NULL,
+  creator_id uuid NOT NULL,
+  tier_id text NOT NULL,
+  status USER-DEFINED NOT NULL,
+  start_date timestamp with time zone NOT NULL,
+  end_date timestamp with time zone,
+  next_billing_date timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  stripe_subscription_id text UNIQUE,
+  CONSTRAINT subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT subscriptions_fan_id_fkey FOREIGN KEY (fan_id) REFERENCES public.profiles(id),
+  CONSTRAINT subscriptions_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.support_tickets (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id uuid NOT NULL,
+  subject text NOT NULL,
+  status USER-DEFINED NOT NULL DEFAULT 'Open'::ticket_status,
+  priority USER-DEFINED NOT NULL DEFAULT 'Low'::ticket_priority,
+  assigned_admin_id uuid,
+  conversation jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT support_tickets_pkey PRIMARY KEY (id),
+  CONSTRAINT support_tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT support_tickets_assigned_admin_id_fkey FOREIGN KEY (assigned_admin_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.transactions (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  fan_id uuid NOT NULL,
+  creator_id uuid NOT NULL,
+  type USER-DEFINED NOT NULL,
+  amount integer NOT NULL,
+  platform_fee integer NOT NULL,
+  creator_payout integer NOT NULL,
+  status USER-DEFINED NOT NULL,
+  payment_gateway_id text,
+  created_at timestamp with time zone DEFAULT now(),
+  related_content_id bigint,
+  message text,
+  CONSTRAINT transactions_pkey PRIMARY KEY (id),
+  CONSTRAINT transactions_fan_id_fkey FOREIGN KEY (fan_id) REFERENCES public.profiles(id),
+  CONSTRAINT transactions_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
+);

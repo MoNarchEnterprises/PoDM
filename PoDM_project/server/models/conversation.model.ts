@@ -37,7 +37,7 @@ export const findConversationsByUserId = async (userId: string): Promise<Convers
         .from('conversations')
         .select('*') 
         .contains('participants', [userId])
-        .order('last_message_at', { ascending: false });
+        .order('updated_at', { ascending: false });
     
     if (error) {
         console.error('Error finding conversations by user ID:', error.message);

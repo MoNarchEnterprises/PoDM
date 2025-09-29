@@ -17,7 +17,7 @@ router.get('/conversations', protect, getConversations);
  * @desc    Get all messages for a specific conversation
  * @access  Private (User must be a participant)
  */
-router.get('/conversations/:id', protect, getMessagesInConversation);
+router.get('/conversations/:conversationId', protect, getMessagesInConversation);
 
 
 /**

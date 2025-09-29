@@ -88,7 +88,7 @@ export const getMessagesForConversation = async (conversationId: string, userId:
             const signedContent = await generateSignedUrlsForContent(tempContent);
             processedContent = { ...message.content, thumbnailUrl: signedContent.files[0].thumbnailUrl };
         }
-        return { ...message, _id: message.id, content: processedContent };
+        return { ...message, _id: message.id.toString(), content: processedContent };
     }));
 };
 

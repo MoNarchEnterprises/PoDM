@@ -1,0 +1,47 @@
+public
+
+user_role	fan, creator, admin	
+
+public
+
+user_status	active, suspended, banned, pending, pending verification	
+
+public
+
+subscription_status	active, canceled, expired	
+
+public
+
+transaction_type	Subscription, Tip, PPV Message, PPV Post	
+
+public
+
+transaction_status	Pending, Cleared, Failed, Refunded	
+
+public
+
+content_type	photo, video, text, audio	
+
+public
+
+content_status	draft, published, scheduled, flagged	
+
+public
+
+content_visibility	subscribers_only, pay_per_view	
+
+public
+
+ticket_status	Open, Pending, Closed, Escalated	
+
+public
+
+ticket_priority	Low, Medium, High	
+
+public
+
+report_metric	Users, Revenue, Engagement	
+
+public
+
+report_filter	User Type, User Status
