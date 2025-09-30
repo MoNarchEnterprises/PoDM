@@ -156,8 +156,7 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
         throw new AppError('Could not retrieve updated user profile.', 500);
     }
 
-    console.log('[updateSettings] Updated and reshaped user data:', reshapedData);  
-
+    
     return reshapeUserForApp(reshapedData);
 };
 

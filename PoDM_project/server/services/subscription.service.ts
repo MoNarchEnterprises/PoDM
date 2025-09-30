@@ -32,8 +32,6 @@ export const createSubscriptionForUser = async (
         throw new AppError('Creator or their subscription tiers not found.', 404);
     }
 
-    console.log(`[SubService] Found creator ${creatorId} with ${creator.creator_data.subscriptionTiers}`);
-    console.log(`[SubService] Looking for tier ID: ${tierId}`);
     const tier = creator.creator_data.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
     if (!tier || !tier.stripePriceId) {
         throw new AppError('Selected subscription tier is invalid or missing a Stripe Price ID.', 400);
@@ -61,8 +59,7 @@ export const createSubscriptionForUser = async (
                 pod_tier_id: tierId 
             }
         });
-        console.log(`[SubService] Stripe subscription ${stripeSubscription.id} created.`);
-
+        
         // 5. Handle potential 3D Secure authentication requirement
         const latestInvoice = (stripeSubscription as any).latest_invoice;
         const paymentIntent = latestInvoice?.payment_intent;

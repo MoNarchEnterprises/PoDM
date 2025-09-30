@@ -12,8 +12,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
     if (!flatUser) {
         return null as any;
     }
-    console.log('[reshapeUserForApp] Input flatUser:', flatUser); // See the raw data from DB
-
+    
     // Destructure all properties from the flat object
     const { 
         id, username, fullName, avatar_url, bio, email, created_at, role, status,
@@ -55,7 +54,6 @@ export const reshapeUserForApp = (flatUser: any): User => {
             socialLinks,
         } = creator_data;
 
-        console.log('[reshapeUserForApp] Extracted welcomeMessage:', welcomeMessage); 
         
         // Construct the Creator object
         const creatorUser: Creator = {

@@ -377,7 +377,6 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     };
 
     const handleSaveChanges = async () => {
-        console.log('[handleSaveChanges] Save clicked. Banner File:', bannerFile, 'Avatar File:', avatarFile);
         setIsSaving(true);
         setFeedback(null);
         
@@ -392,8 +391,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 creatorData: settingsData.creatorData 
             };
             
-            console.log('Payload being sent to updateCreatorSettings:', payload);
-
+            
             const settingsResponse = await apiClient.updateCreatorSettings(payload, bannerFile);
             // Second, update the avatar if a new one was selected.
             if (avatarFile) {

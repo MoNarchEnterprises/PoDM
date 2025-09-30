@@ -142,7 +142,6 @@ export const getMe = async () => {
  */
 export const updateMe = async (profileData: Record<string, any>) => {
     const payload: Record<string, any> = {};
-    console.log('apiClients: Profile data to update:', profileData);
     // Iterate over the keys in the provided data and build a payload
     // that only includes fields with actual values (not empty strings).
     for (const key in profileData) {

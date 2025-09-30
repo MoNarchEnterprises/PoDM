@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             if (token) {
                 try {
                     const response = await api.getMe(); 
-                    console.log('[useAuth] User data loaded on app start:', response.data.user);
                     setUser(response.data.user);
                 } catch (error) {
                     console.error("Session token is invalid, logging out.", error);

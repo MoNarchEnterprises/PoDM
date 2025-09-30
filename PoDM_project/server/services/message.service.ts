@@ -81,14 +81,25 @@ export const getMessagesForConversation = async (conversationId: string, userId:
     const messages = await MessageModel.findMessagesByConversationId(conversationId);
     if (!messages) return [];
 
-    return Promise.all(messages.map(async (message) => {
+    return Promise.all(messages.map(async (message: any) => {
         let processedContent = null;
         if (message.content?.thumbnailUrl) {
             const tempContent = { files: [{ thumbnailUrl: message.content.thumbnailUrl }] };
             const signedContent = await generateSignedUrlsForContent(tempContent);
             processedContent = { ...message.content, thumbnailUrl: signedContent.files[0].thumbnailUrl };
         }
-        return { ...message, _id: message.id.toString(), content: processedContent };
+
+        return {
+            _id: message.id.toString(),
+            conversationId: message.conversation_id, // Map snake_case to camelCase
+            senderId: message.sender_id,             // Map snake_case to camelCase
+            receiverId: message.receiver_id,           // Map snake_case to camelCase
+            text: message.text,
+            content: processedContent,
+            isRead: message.is_read,
+            createdAt: message.created_at,
+            updatedAt: message.updated_at,
+        } as Message;
     }));
 };
 

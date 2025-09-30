@@ -31,7 +31,6 @@ export const findUserByUsername = async (username: string): Promise<User | null>
         .select('*')
         .eq('username', username)
         .single();
-    console.log('findUserByUsername result:', data, error);
     if (error) {
         console.error('Error finding user by username:', error.message);
         return null;
