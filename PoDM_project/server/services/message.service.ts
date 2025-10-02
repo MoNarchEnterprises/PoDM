@@ -1,4 +1,5 @@
 import supabase from '../config/supabaseClient';
+import { io } from '../config/socket'; // 1. Import the IO instance
 import * as ConversationModel from '../models/conversation.model';
 import * as MessageModel from '../models/message.model';
 import * as SubscriptionModel from '../models/subscription.model';
@@ -135,8 +136,24 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
     
     const newMessage = await MessageModel.createMessage(newMessageData);
     if (!newMessage) throw new AppError('Failed to send message.', 500);
+// --- 2. BROADCAST THE NEW MESSAGE ---
+    const roomName = `conversation:${conversation.id}`;
+    const messageForFrontend = {
+        _id: newMessage.id.toString(),
+        conversationId: newMessage.conversation_id,
+        senderId: newMessage.sender_id,
+        receiverId: newMessage.receiver_id,
+        text: newMessage.text,
+        content: newMessage.content,
+        isRead: newMessage.is_read,
+        createdAt: newMessage.created_at,
+    };
+    
+    io.to(roomName).emit('new_message', messageForFrontend);
+    console.log(`[MessageService] Broadcasted to room: ${roomName}`);
+    // --- END OF BROADCAST LOGIC ---
 
-    return { ...newMessage, _id: newMessage.id.toString() };
+    return messageForFrontend;
 };
 
 /**

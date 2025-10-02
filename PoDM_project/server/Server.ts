@@ -13,6 +13,9 @@ console.log("-----------------------");
 // Use the standard "hybrid" import now that Express is updated.
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { createServer } from 'http'; // 1. Import http
+import { initSocketServer } from './config/socket'; // 2. Import our socket initializer
+
 
 // Your other imports
 import authRoutes from './routes/auth.routes';
@@ -29,6 +32,9 @@ import { verifyStripeSignature } from './middleware/stripe.middleware';
 import { handleStripeWebhook } from './controllers/payments.controller';
 
 const app = express();
+const httpServer = createServer(app); // 3. Create an http server from our app
+const io = initSocketServer(httpServer); // 4. Initialize socket.io and attach it
+
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
@@ -63,5 +69,8 @@ app.get('/', (req: Request, res: Response) => {
 // Global Error Handler
 app.use(errorHandler);
 
+// 5. Start the http server, NOT the express app
+httpServer.listen(PORT, () => console.log(`🚀 Server (with WebSockets) is running at http://localhost:${PORT}`));
+
 // Start Server
-app.listen(PORT, () => console.log(`🚀 Server is running at http://localhost:${PORT}`));
+//app.listen(PORT, () => console.log(`🚀 Server is running at http://localhost:${PORT}`));
