@@ -8,7 +8,7 @@ export type ContentType = 'photo' | 'video' | 'text' | 'audio';
 /**
  * Defines the visibility options for content.
  */
-export type ContentVisibility = 'subscribers_only' | 'pay_per_view';
+export type ContentVisibility = 'subscribers_only' | 'pay_per_view' | 'unlisted';
 
 /**
  * Defines the publishing status of content.

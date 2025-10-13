@@ -241,15 +241,19 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                     const postWithCreator = {
                                         ...post,
                                         creator: {
-                                            name: creator.profile.name,
-                                            avatar: creator.profile.avatar,
-                                            verified: creator.verificationStatus === 'verified'
+                                            _id: creator._id,
+                                            username: creator.username,
+                                            verified: creator.verificationStatus === 'verified',
+                                            profile: {
+                                                name: creator.profile.name,
+                                                avatar: creator.profile.avatar,
+                                            },                       
                                         }
                                     };
                                     return (
                                         <PostCard 
                                             key={post._id} 
-                                            post={postWithCreator} 
+                                            post={postWithCreator as any} 
                                             isLocked={!isAlreadySubscribed}
                                         />
                                     );

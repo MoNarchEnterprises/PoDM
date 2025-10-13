@@ -13,6 +13,7 @@ import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import { createStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent } from '../../server/utils/content.utils';
+import Stripe from 'stripe';
 
 
 /**
@@ -294,7 +295,7 @@ export const getFullPublicProfile = async (username: string, viewerId?: string) 
     // --- END OF NEW LOGIC BLOCK ---
 
     // 3. Fetch a preview of their content (e.g., the 12 most recent posts)
-    const contentPreview = await ContentModel.findRecentContentByCreator(user.id, 12);
+    const contentPreview = await ContentModel.findPublicContentByCreator(user.id, 12);
 
     // 4. Reshape the user data for the frontend
     const creatorProfile = reshapeUserForApp(user);
@@ -360,7 +361,7 @@ export const getFanGallery = async (fanId: string) => {
 
     // 3. Group saved content IDs by creator
     const contentByCreator = new Map<string, any[]>();
-    const allContentIds = gallery.content.map(item => item.contentId);
+    const allContentIds = gallery.content.map((item: { contentId: any; }) => item.contentId);
     const allContentItems = await ContentModel.findContentByIds(allContentIds);
 
     if (!allContentItems) return [];
@@ -385,7 +386,7 @@ export const getFanGallery = async (fanId: string) => {
                 creator: reshapeUserForApp(creator),
                 content: contentItems.map(item => ({
                     contentId: item.id.toString(),
-                    addedDate: gallery.content.find(g => g.contentId === item.id.toString())?.addedDate,
+                    addedDate: gallery.content.find((g: { contentId: any; }) => g.contentId === item.id.toString())?.addedDate,
                     content: { ...item, _id: item.id.toString() }
                 })),
                 activeSubscription: activeCreatorIds.has(creatorId)
@@ -415,7 +416,7 @@ export const getFanSettings = async (fanId: string) => {
         try {
             const customer = await stripe.customers.retrieve(user.stripe_customer_id, {
                 expand: ['invoice_settings.default_payment_method'],
-            });
+            }) as Stripe.Customer;
             
             const defaultPaymentMethod = customer.invoice_settings?.default_payment_method as any;
             if (defaultPaymentMethod && defaultPaymentMethod.card) {
@@ -480,21 +481,34 @@ export const updateFanPaymentMethod = async (fanId: string, paymentMethodId: str
     const stripeCustomerId = await getOrCreateStripeCustomer(fanId);
 
     try {
-        // 1. Attach the new payment method to the customer in Stripe
         await stripe.paymentMethods.attach(paymentMethodId, {
             customer: stripeCustomerId,
         });
 
-        // 2. Set the newly attached payment method as the default for subscriptions
         await stripe.customers.update(stripeCustomerId, {
             invoice_settings: {
                 default_payment_method: paymentMethodId,
             },
         });
 
-        return { message: 'Payment method updated successfully.' };
+        // --- THIS IS THE FIX ---
+        // Create and confirm a SetupIntent to authorize off-session use.
+        // We explicitly tell Stripe NOT to allow redirects for this specific action.
+        await stripe.setupIntents.create({
+            customer: stripeCustomerId,
+            payment_method: paymentMethodId,
+            usage: 'off_session',
+            confirm: true,
+            automatic_payment_methods: { // <-- ADD THIS OBJECT
+                enabled: true,
+                allow_redirects: 'never',
+            },
+        });
+        // --- END OF FIX ---
+
+        return { message: 'Payment method updated and verified for future use.' };
     } catch (error: any) {
-        console.error("Stripe payment method update error:", error);
+        console.error("Stripe payment method update/setup error:", error);
         throw new AppError(`Stripe Error: ${error.message}`, 500);
     }
 };

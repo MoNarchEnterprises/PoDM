@@ -447,9 +447,12 @@ export const unlockMessageContent = async (messageId: string) => {
  * Sends a new direct message.
  * @param receiverId - The ID of the user to send the message to.
  * @param text - The text content of the message.
+ * @param content - Optional: The content payload for PPV attachments.
  */
-export const sendMessage = async (receiverId: string, text: string) => {
-    const response = await apiClient.post('/messages', { receiverId, text });
+export const sendMessage = async (receiverId: string, text: string, content?: any) => {
+    // The payload now includes all three potential properties.
+    // If 'content' is undefined, it will be omitted from the JSON payload.
+    const response = await apiClient.post('/messages', { receiverId, text, content });
     return response.data;
 };
 

@@ -1,6 +1,5 @@
 import supabase from '../config/supabaseClient';
 import { Message } from '@common/types/Message';
-import { Conversation } from '@common/types/Conversation';
 
 /**
  * Creates a new message and updates the parent conversation's last message details.
@@ -44,13 +43,20 @@ export const createMessage = async (messageData: Partial<Message>): Promise<Mess
  * @returns The message object or null if not found.
  */
 export const findMessageById = async (id: string): Promise<any | null> => {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+        console.error(`[Model] Invalid non-numeric ID passed to findMessageById: "${id}"`);
+        return null;
+    }
     const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('id', id)
+        .eq('id', numericId)
         .single();
     if (error) {
-        console.error('Error finding message by ID:', error.message);
+        if (error.code !== 'PGRST116') { // Don't log "Not Found" errors
+            console.error('Error finding message by ID:', error.message);
+        }
         return null;
     }
     return data;
@@ -77,24 +83,33 @@ export const findMessagesByConversationId = async (conversationId: string): Prom
 
 /**
  * Updates a message's content field to mark it as unlocked.
- * @param messageId - The ID of the message to update.
+ * @param messageId - The ID of the message to update (as a string).
+ * @returns The updated message object.
  */
-export const unlockContentInMessage = async (messageId: string): Promise<void> => {
+export const unlockContentInMessage = async (messageId: string): Promise<any | null> => {
+    // --- THIS IS THE FIX ---
+    const numericId = parseInt(messageId, 10);
+    if (isNaN(numericId)) {
+        console.error(`[Model] Invalid non-numeric ID passed to unlockContentInMessage: "${messageId}"`);
+        return null;
+    }
+    // --- END OF FIX ---
+    
     const message = await findMessageById(messageId);
-    if (!message || !message.content) return;
+    if (!message || !message.content) return null;
 
-    const updatedContent = {
-        ...message.content,
-        isUnlocked: true,
-        unlockDate: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
+    const updatedContent = { ...message.content, isUnlocked: true, unlockDate: new Date().toISOString() };
+    console.log('[Model] Updating message content to:', updatedContent);
+    const { data, error } = await supabase
         .from('messages')
         .update({ content: updatedContent })
-        .eq('id', messageId);
+        .eq('id', numericId) // Use the parsed numeric ID
+        .select()
+        .single();
 
     if (error) {
         console.error(`Error unlocking content for message ${messageId}:`, error.message);
+        return null;
     }
+    return data; // Return the updated message object
 };

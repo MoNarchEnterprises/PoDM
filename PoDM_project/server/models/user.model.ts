@@ -10,7 +10,6 @@ export const findUserById = async (id: string): Promise<User | null> => {
     const { data, error } = await supabase
         .rpc('get_user_details', { user_id: id }) // Call the new database function
         .single();
-    console.log('findUserById RPC result:', data, error);
     if (error) {
         console.error('Error finding user by ID via RPC:', error.message);
         return null;

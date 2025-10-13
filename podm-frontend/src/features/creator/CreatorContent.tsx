@@ -162,13 +162,32 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
-                        <div className="flex space-x-4">
-                            <label className="flex items-center space-x-2 cursor-pointer"><input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio text-purple-600"/><span>Subscribers Only</span></label>
-                            <label className="flex items-center space-x-2 cursor-pointer"><input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio text-purple-600"/><span>Pay Per View (PPV)</span></label>
+                        <div className="space-y-2">
+                            <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
+                                <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <div>
+                                    <span className="font-semibold">Subscribers Only</span>
+                                    <p className="text-xs text-gray-400">Visible on your profile feed for all subscribers.</p>
+                                </div>
+                            </label>
+                            <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
+                                <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <div>
+                                    <span className="font-semibold">Pay Per View (PPV) on Profile</span>
+                                    <p className="text-xs text-gray-400">Visible on your profile feed, non-subscribers must pay to unlock.</p>
+                                </div>
+                            </label>
+                            <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
+                                <input type="radio" name="visibility" value="unlisted" checked={visibility === 'unlisted'} onChange={() => setVisibility('unlisted')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <div>
+                                    <span className="font-semibold">Unlisted (Creator's Vault)</span>
+                                    <p className="text-xs text-gray-400">Not visible on your profile. Can only be sent in messages.</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
-                    {visibility === 'pay_per_view' && (
-                        <Input id="price" label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="10.00" leftIcon={DollarSign} />
+                    {(visibility === 'pay_per_view' || visibility === 'unlisted') && (
+                        <Input id="price" label="Price to Unlock" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="10.00" leftIcon={DollarSign} />
                     )}
                     
                     {!isEditMode && (
@@ -383,6 +402,12 @@ const ContentRow = ({ item, onDelete, onEdit }: { item: Content; onDelete: (cont
         fetchImageUrl();
     }, [item._id, item.files]);
 
+    const visibilityMap = {
+        'subscribers_only': 'Subscribers',
+        'pay_per_view': 'PPV Feed',
+        'unlisted': 'Unlisted (Vault)'
+    };
+
     return (
         <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
             <td className="px-4 py-3">
@@ -392,6 +417,7 @@ const ContentRow = ({ item, onDelete, onEdit }: { item: Content; onDelete: (cont
                 </div>
             </td>
             <td className="px-4 py-3 text-center"><StatusBadge status={item.status} /></td>
+            <td className="px-4 py-3 text-center text-xs font-semibold text-gray-400">{visibilityMap[item.visibility] || 'N/A'}</td>
             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.views.toLocaleString()}</td>
             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.galleryAdds.toLocaleString()}</td>
             <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats.tips)}</td>
@@ -571,6 +597,7 @@ const CreatorContentPage = () => {
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Content</th>
                                         <th className="px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Status</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Visibility</th>
                                         <SortableHeader label="Views" sortKey="views" currentSort={sort} setSort={setSort} Icon={Eye} />
                                         <SortableHeader label="Gallery Adds" sortKey="galleryAdds" currentSort={sort} setSort={setSort} Icon={Bookmark} />
                                         <SortableHeader label="Tips" sortKey="tips" currentSort={sort} setSort={setSort} Icon={DollarSign} />
