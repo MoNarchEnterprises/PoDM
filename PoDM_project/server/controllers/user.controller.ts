@@ -291,3 +291,22 @@ export const updateMyPaymentMethod = async (req: Request, res: Response, next: N
         next(error);
     }
 };
+
+/**
+ * @desc    Create a Stripe Setup Intent for saving a payment method
+ * @route   POST /api/v1/users/me/setup-payment-method
+ * @access  Private
+ */
+export const createSetupIntent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const result = await UserService.createSetupIntent(userId);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};

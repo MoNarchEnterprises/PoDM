@@ -275,6 +275,7 @@ const CreatorProfileLoader = () => {
     const [profileData, setProfileData] = useState<{ creator: Creator; content: Content[]; isSubscribed: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { user: viewer } = useAuth();
 
     useEffect(() => {
         if (!username) return;
@@ -284,6 +285,18 @@ const CreatorProfileLoader = () => {
             try {
                 const response = await apiClient.getPublicCreatorProfile(username);
                 setProfileData(response.data);
+
+                // --- THIS IS THE FIX ---
+                // After successfully fetching the profile, log the visit event.
+                // The backend will handle not logging self-views or admin views.
+                if (response.data.creator) {
+                    apiClient.logAnalyticsEvent({
+                        eventType: 'profile_visit',
+                        creatorId: response.data.creator._id,
+                    });
+                }
+                // --- END OF FIX ---
+
             } catch (err) {
                 setError("Creator not found or there was an error loading their profile.");
                 console.error(err);

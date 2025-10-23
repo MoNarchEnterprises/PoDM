@@ -167,21 +167,21 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                                 <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio h-5 w-5 text-purple-600"/>
                                 <div>
                                     <span className="font-semibold">Subscribers Only</span>
-                                    <p className="text-xs text-gray-400">Visible on your profile feed for all subscribers.</p>
+                                    <p className="text-xs text-purple-800">Visible on your profile feed for all subscribers.</p>
                                 </div>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
                                 <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio h-5 w-5 text-purple-600"/>
                                 <div>
                                     <span className="font-semibold">Pay Per View (PPV) on Profile</span>
-                                    <p className="text-xs text-gray-400">Visible on your profile feed, non-subscribers must pay to unlock.</p>
+                                    <p className="text-xs text-purple-800">Visible on your profile feed, non-subscribers must pay to unlock.</p>
                                 </div>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
                                 <input type="radio" name="visibility" value="unlisted" checked={visibility === 'unlisted'} onChange={() => setVisibility('unlisted')} className="form-radio h-5 w-5 text-purple-600"/>
                                 <div>
                                     <span className="font-semibold">Unlisted (Creator's Vault)</span>
-                                    <p className="text-xs text-gray-400">Not visible on your profile. Can only be sent in messages.</p>
+                                    <p className="text-xs text-purple-800">Not visible on your profile. Can only be sent in messages.</p>
                                 </div>
                             </label>
                         </div>

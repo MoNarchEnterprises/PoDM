@@ -1,12 +1,14 @@
 import stripe from '../config/stripeClient';
 import * as TransactionModel from '../models/transaction.model';
-import * as MessageModel from '../models/message.model'; // <-- ADD THIS IMPORT
+import * as MessageModel from '../models/message.model';
+import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
-import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // Assuming constants are in a shared lib
-import { getOrCreateStripeCustomer } from '../utils/stripe.utils'; // Import our utility
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import Stripe from 'stripe';
 import { io } from '../config/socket';
 import { generateSignedUrlsForContent } from '../utils/content.utils';
+import supabase from '../config/supabaseClient';
 
 /**
  * Handles the business logic for a fan sending a tip to a creator.
@@ -16,28 +18,22 @@ import { generateSignedUrlsForContent } from '../utils/content.utils';
  * @returns The newly created transaction record.
  */
 export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string) => {
-    if (amountInCents < 100) { // Enforce a minimum tip of $1.00
+    if (amountInCents < 100) {
         throw new AppError('Tip amount must be at least $1.00.', 400);
     }
-    // and the creator's Stripe Connected Account ID from your database.
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
-    // NOTE: For now, we are not transferring funds directly to the creator's
-    // connected account. We will collect the funds and handle payouts later.
-    // This simplifies the logic and defers the need for creator Stripe onboarding.
     console.log('[payment.service] contentId:', contentId);
-    // 2. Create a PaymentIntent. This is an instruction to Stripe to collect money.
+    
     const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
         currency: 'usd',
         customer: fanStripeCustomerId,
-        // We add metadata to link this Stripe transaction back to our application's data.
-        // This is CRITICAL for webhooks and reconciliation.
         metadata: {
             transaction_type: 'tip',
             fan_id: fanId,
             creator_id: creatorId,
-            fan_message: message || '', // Handle undefined case
-            related_content_id: contentId, // <-- Add the content ID here
+            fan_message: message || '', 
+            related_content_id: contentId, 
         },
     });
 
@@ -45,8 +41,6 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
         throw new AppError('Failed to create Stripe Payment Intent.', 500);
     }
     
-    // 3. Return the `client_secret` to the frontend. The frontend needs this
-    //    to securely confirm the payment with Stripe without ever touching sensitive data.
     return { 
         clientSecret: paymentIntent.client_secret,
     };
@@ -59,7 +53,6 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
  * @returns An object containing the clientSecret for the Payment Intent.
  */
 export const createMessageUnlockIntent = async (fanId: string, messageId: string) => {
-    // 1. Validation
     const message = await MessageModel.findMessageById(messageId);
     if (!message) throw new AppError('Message not found.', 404);
     if (message.receiver_id !== fanId) throw new AppError('Not authorized.', 403);
@@ -67,11 +60,7 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
     if (message.content.isUnlocked) throw new AppError('Already unlocked.', 400);
 
     const amountInCents = message.content.price;
-
-    // 2. Get Stripe customer ID
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
-
-    
 
     const customer = await stripe.customers.retrieve(fanStripeCustomerId, {
         expand: ['invoice_settings.default_payment_method'],
@@ -83,7 +72,6 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
         throw new AppError('No default payment method found. Please add one in your settings.', 400);
     }
     
-    // 3. Create and immediately try to confirm the PaymentIntent on the server
     const metadataPayload = {
         transaction_type: 'ppv_message',
         fan_id: fanId,
@@ -99,26 +87,22 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
             currency: 'usd',
             customer: fanStripeCustomerId,
             payment_method: typeof defaultPaymentMethod === 'string' ? defaultPaymentMethod : defaultPaymentMethod.id,
-            off_session: true, // Crucial for charging a saved card without the user present
-            confirm: true,     // Tells Stripe to attempt the charge immediately
+            off_session: true, 
+            confirm: true,     
             metadata: metadataPayload,
         });
 
-        // 4. Return the result to the client
         return { 
             clientSecret: paymentIntent.client_secret,
             status: paymentIntent.status 
         };
     } catch (err: any) {
-        // Handle specific card errors, like insufficient funds or if authentication is required
         if (err.code === 'authentication_required') {
-            // The card requires 3D Secure. We need to send the client_secret back to the frontend to handle it.
             return {
                 clientSecret: err.raw.payment_intent.client_secret,
                 status: 'requires_action'
             };
         }
-        // For other errors (e.g., card declined), throw a generic error
         console.error("Stripe Payment Intent creation/confirmation failed:", err.message);
         throw new AppError(`Payment failed: ${err.message}`, 400);
     }
@@ -128,57 +112,41 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
  * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
  * @param event - The verified Stripe event object from the webhook middleware.
  */
-export const handleStripeWebhookEvent = async (event: any) => {
-    // We only care about successfully completed payments.
+export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
     console.log(`[Webhook] Received event: ${event.type}`);
-    if (event.type === 'payment_intent.succeeded') {
-        const paymentIntent = event.data.object;
 
-        // Check our metadata to see what kind of transaction this was.
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
         const transactionType = paymentIntent.metadata.transaction_type;
         console.log(`[Webhook] Handling payment_intent.succeeded for type: ${transactionType}`);
 
         if (transactionType === 'tip') {
             console.log('[Webhook] Successful tip PaymentIntent received:', paymentIntent.id);
-            console.log('Full PaymentIntent object:', paymentIntent);
-            // Extract the data we saved in the metadata
-            const fanId = paymentIntent.metadata.fan_id;
-            const creatorId = paymentIntent.metadata.creator_id;
+            const { fan_id, creator_id, fan_message, related_content_id } = paymentIntent.metadata;
             const amountInCents = paymentIntent.amount;
-            const fanMessage = paymentIntent.metadata.fan_message; // <-- Get the message
-            const contentId = paymentIntent.metadata.related_content_id; // <-- Get the content ID
-
-            // Calculate platform fee and creator payout
             const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
             const creatorPayout = amountInCents - platformFee;
 
-            // --- THIS IS THE FIX ---
-            // Create the transaction record in our database NOW, because we know the payment succeeded.
             await TransactionModel.createTransaction({
-                fan_id: fanId,
-                creator_id: creatorId,
+                fan_id: fan_id,
+                creator_id: creator_id,
                 type: 'Tip',
                 amount: amountInCents,
                 platform_fee: platformFee,
                 creator_payout: creatorPayout,
-                status: 'Cleared', // Mark it as cleared immediately
-                payment_gateway_id: paymentIntent.id, // Save the Stripe PaymentIntent ID
-                related_content_id: contentId,
-                message: fanMessage,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: related_content_id,
+                message: fan_message,
             });
             console.log(`[Webhook] Tip transaction for ${amountInCents/100} USD saved to database.`);
-            // --- END OF FIX ---
-        }
-
-        else if (transactionType === 'ppv_message') {
+        } else if (transactionType === 'ppv_message') {
             console.log('[Webhook] Successful PPV Message PaymentIntent received:', paymentIntent.id);
             const { fan_id, creator_id, message_id, content_id } = paymentIntent.metadata;
             const amountInCents = paymentIntent.amount;
-
             const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
             const creatorPayout = amountInCents - platformFee;
 
-            // Create the financial transaction record
             await TransactionModel.createTransaction({
                 fan_id,
                 creator_id,
@@ -189,42 +157,85 @@ export const handleStripeWebhookEvent = async (event: any) => {
                 status: 'Cleared',
                 payment_gateway_id: paymentIntent.id,
                 related_content_id: content_id,
-                related_message_id: message_id, // Link to the message
+                message: message_id,
             });
 
-            console.log('[Webhook] PPV Unlock message id:', message_id);
             const updatedMessage = await MessageModel.unlockContentInMessage(message_id);
 
-            // --- 2. BROADCAST THE UPDATE ---
             if (updatedMessage) {
                 const messageWithSignedUrl = await generateSignedUrlsForContent(updatedMessage);
                 const roomName = `conversation:${updatedMessage.conversation_id}`;
-                // Reshape the data to the camelCase format the frontend expects
                 const messageForFrontend = {
                     _id: messageWithSignedUrl.id.toString(),
                     conversationId: updatedMessage.conversation_id,
                     senderId: updatedMessage.sender_id,
                     receiverId: updatedMessage.receiver_id,
                     text: updatedMessage.text,
-                    content: updatedMessage.content, // This now has isUnlocked: true
+                    content: updatedMessage.content,
                     isRead: updatedMessage.is_read,
                     createdAt: updatedMessage.created_at,
                 };
                 io.to(roomName).emit('message_updated', messageForFrontend);
                 console.log(`[Webhook] Broadcasted message update to room: ${roomName}`);
             }
-            // --- END OF BROADCAST LOGIC ---
-
             console.log(`[Webhook] PPV Message transaction for ${amountInCents/100} USD saved and content unlocked.`);
         }
-        // In the future, you can add more handlers here
-        // else if (transactionType === 'ppv_unlock') { ... }
 
     } else if (event.type === 'invoice.payment_succeeded') {
-        // This is where you would handle successful SUBSCRIPTION renewals
-        const invoice = event.data.object;
-        console.log('[Webhook] Successful subscription invoice received:', invoice.id);
-        // ... logic to update subscription period and create a transaction ...
+        const invoice = event.data.object as Stripe.Invoice;
+        
+        // Get subscription ID from invoice lines
+        const subscriptionLineItem = invoice.lines.data.find(line => typeof line.subscription === 'string' && line?.subscription.length > 0);
+        console.log('[Webhook] Handling invoice.payment_succeeded for invoice:', invoice.id);
+        console.log('[Webhook] Subscription line item:', subscriptionLineItem);
+
+        if (!subscriptionLineItem || !subscriptionLineItem.subscription) {
+            console.error('[Webhook] Invoice paid, but no subscription line item found. Skipping transaction creation.');
+            return;
+        }
+        
+        // Get the subscription ID (it's a string in the line item)
+        const stripeSubscriptionId =  subscriptionLineItem.subscription as string;
+            
+        console.log('[Webhook] Subscription ID from invoice:', stripeSubscriptionId);
+        // Retrieve the full subscription to get metadata
+        const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        const { pod_fan_id, pod_creator_id } = stripeSubscription.metadata;
+        const amountInCents = invoice.amount_paid;
+
+        if (!pod_fan_id || !pod_creator_id) {
+            console.error(`[Webhook] Subscription ${stripeSubscriptionId} invoice paid, but missing metadata. Cannot create transaction.`);
+            return;
+        }
+        
+        const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+        const creatorPayout = amountInCents - platformFee;
+
+       
+        await TransactionModel.createTransaction({
+            fan_id: pod_fan_id,
+            creator_id: pod_creator_id,
+            type: 'Subscription',
+            amount: amountInCents,
+            platform_fee: platformFee,
+            creator_payout: creatorPayout,
+            status: 'Cleared',
+            payment_gateway_id: invoice.id,
+        });
+
+        // Get current_period_end from the subscription line item
+        const currentPeriodEnd = subscriptionLineItem.period?.end;
+        
+        if (currentPeriodEnd) {
+            const nextBillingDate = new Date(currentPeriodEnd * 1000);
+            await supabase
+                .from('subscriptions')
+                .update({ next_billing_date: nextBillingDate.toISOString(), status: 'active' })
+                .eq('stripe_subscription_id', stripeSubscriptionId);
+        }
+        
+        console.log(`[Webhook] Subscription transaction for ${amountInCents/100} USD saved to database.`);
+        
     }
     return { received: true };
 };

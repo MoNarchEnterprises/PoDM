@@ -8,7 +8,9 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import { reshapeSubscriptionForApp } from '../utils/subscription.utils';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import { SubscriptionTier } from '@common/types/Creator';
-
+import * as TransactionModel from '../models/transaction.model'; // <-- 1. IMPORT TRANSACTION MODEL
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // <-- 2. IMPORT COMMISSION RATE
+import supabase from '../config/supabaseClient';
 /**
  * Creates a new subscription for an authenticated fan. This is the primary service
  * for all subscription creations, used by both new signups and existing users.
@@ -89,12 +91,30 @@ export const createSubscriptionForUser = async (
             fan_id: fanId,
             creator_id: creatorId,
             tier_id: tierId,
-            price: tier.price * 100, // <-- ADD THIS LINE (save in cents)
             status: 'active',
             start_date: new Date(periodStart * 1000).toISOString(),
             end_date: null,
             next_billing_date: new Date(periodEnd * 1000).toISOString(),
         });
+
+        // 7. If the initial invoice was paid, create the transaction record immediately.
+        if (latestInvoice && latestInvoice.status === 'paid') {
+            const amountInCents = latestInvoice.amount_paid;
+            const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+            const creatorPayout = amountInCents - platformFee;
+
+            await TransactionModel.createTransaction({
+                fan_id: fanId,
+                creator_id: creatorId,
+                type: 'Subscription',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id,
+            });
+            console.log(`[SubService] Initial subscription transaction for ${amountInCents/100} USD saved to database.`);
+        }
 
         if (!dbSubscription) {
              // CRITICAL: If our DB save fails, we must cancel the Stripe subscription to avoid charging the user.

@@ -408,11 +408,46 @@ export const getPublicCreatorProfile = async (username: string) => {
 };
 
 /**
+ * Gets all the necessary data for the creator earnings page.
+ */
+export const getCreatorEarningsData = async () => {
+    const response = await apiClient.get('/creator/earnings');
+    return response.data;
+};
+
+/**
+ * Creates a Stripe Connect onboarding link for the current creator.
+ * @returns The single-use URL to redirect the creator to.
+ */
+export const createStripeOnboardingLink = async () => {
+    const response = await apiClient.post('/stripe/connect/onboarding-link');
+    return response.data;
+};
+
+/**
+ * Submits a payout request for the currently logged-in creator.
+ * @param amount - The amount in dollars to withdraw.
+ */
+export const requestCreatorPayout = async (amount: number) => {
+    const response = await apiClient.post('/creator/payouts', { amount });
+    return response.data;
+};
+
+/**
  * Gets a secure, temporary URL for a piece of content.
  * @param contentId The ID of the content.
  */
 export const getSecureContentUrl = async (contentId: string) => {
     const response = await apiClient.get(`/content/${contentId}/secure-url`);
+    return response.data;
+};
+
+/**
+ * Gets a secure, temporary URL for viewing a full-size piece of content.
+ * @param contentId The ID of the content to view.
+ */
+export const getSecureContentViewUrl = async (contentId: string) => {
+    const response = await apiClient.get(`/content/${contentId}/view`);
     return response.data;
 };
 
@@ -537,6 +572,15 @@ export const submitSupportTicket = async (subject: string, description: string) 
     // Note: You will need to create this backend endpoint next.
     // POST /api/v1/support/tickets
     const response = await apiClient.post('/support/tickets', { subject, description });
+    return response.data;
+};
+
+/**
+ * Creates a Stripe SetupIntent on the backend to prepare for saving a new payment method.
+ * @returns The clientSecret for the SetupIntent.
+ */
+export const createSetupIntent = async () => {
+    const response = await apiClient.post('/users/me/setup-payment-method');
     return response.data;
 };
 

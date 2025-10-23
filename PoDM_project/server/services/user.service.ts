@@ -10,7 +10,7 @@ import * as ContentModel from '../models/content.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import stripe from '../config/stripeClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
-import { createStripeConnectedAccount } from './stripe.service';
+import { getOrCreateStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent } from '../../server/utils/content.utils';
 import Stripe from 'stripe';
@@ -491,24 +491,26 @@ export const updateFanPaymentMethod = async (fanId: string, paymentMethodId: str
             },
         });
 
-        // --- THIS IS THE FIX ---
-        // Create and confirm a SetupIntent to authorize off-session use.
-        // We explicitly tell Stripe NOT to allow redirects for this specific action.
-        await stripe.setupIntents.create({
-            customer: stripeCustomerId,
-            payment_method: paymentMethodId,
-            usage: 'off_session',
-            confirm: true,
-            automatic_payment_methods: { // <-- ADD THIS OBJECT
-                enabled: true,
-                allow_redirects: 'never',
-            },
-        });
-        // --- END OF FIX ---
-
-        return { message: 'Payment method updated and verified for future use.' };
+        return { success: true, message: 'Payment method updated successfully.' };
     } catch (error: any) {
-        console.error("Stripe payment method update/setup error:", error);
+        console.error("Stripe payment method update error:", error);
         throw new AppError(`Stripe Error: ${error.message}`, 500);
     }
+};
+
+/**
+ * Creates a Stripe SetupIntent for a fan to save a new payment method for future use.
+ * @param fanId - The UUID of the fan.
+ * @returns An object containing the clientSecret for the SetupIntent.
+ */
+export const createSetupIntent = async (fanId: string) => {
+    const stripeCustomerId = await getOrCreateStripeCustomer(fanId);
+
+    const setupIntent = await stripe.setupIntents.create({
+        customer: stripeCustomerId,
+        usage: 'off_session', // Indicate this card will be charged later
+        automatic_payment_methods: { enabled: true },
+    });
+
+    return { clientSecret: setupIntent.client_secret };
 };

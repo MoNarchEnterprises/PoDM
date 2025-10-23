@@ -11,7 +11,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { useModal } from '../../hooks/useModal';
 import { formatCurrency, formatDate } from '../../lib/formatters';
-
+import * as apiClient from '../../lib/apiClient';
 
 // --- Local Types ---
 interface EarningsSummary {
@@ -27,15 +27,38 @@ interface TransactionWithFan extends Transaction {
 
 // --- Reusable Sub-Components ---
 
-const WithdrawModal = ({ isOpen, onClose, availableBalance }: { isOpen: boolean; onClose: () => void; availableBalance: number; }) => {
+const WithdrawModal = ({ isOpen, onClose, availableBalance, onPayoutSuccess }: { isOpen: boolean; onClose: () => void; availableBalance: number; onPayoutSuccess: () => void; }) => {
     const [amount, setAmount] = useState('');
     const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false); // Add isLoading state
+    const [error, setError] = useState<string | null>(null); 
 
     const processingFee = (parseFloat(amount) || 0) * 0.02;
     const totalPayout = (parseFloat(amount) || 0) - processingFee;
 
-    const handleRequestPayout = () => setStep(2);
-    const handleClose = () => { setStep(1); setAmount(''); onClose(); };
+    const handleRequestPayout = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            await apiClient.requestCreatorPayout(parseFloat(amount));
+            setStep(2); // Move to success step only after API call succeeds
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Payout request failed.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleClose = () => {
+        if (step === 2) {
+            onPayoutSuccess(); // Trigger data refresh when closing the success modal
+        }
+        setStep(1);
+        setAmount('');
+        setError(null);
+        setIsLoading(false);
+        onClose();
+    };
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose}>
@@ -65,7 +88,15 @@ const WithdrawModal = ({ isOpen, onClose, availableBalance }: { isOpen: boolean;
                         </div>
                     </main>
                     <footer className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                         <Button onClick={handleRequestPayout} disabled={!amount || parseFloat(amount) <= 0 || parseFloat(amount) * 100 > availableBalance} className="w-full" size="lg">Request Payout</Button>
+                         <Button 
+                            onClick={handleRequestPayout} 
+                            isLoading={isLoading} // Use isLoading state
+                            disabled={!amount || parseFloat(amount) <= 0 || (parseFloat(amount) * 100) > availableBalance || isLoading} 
+                            className="w-full" 
+                            size="lg"
+                         >
+                            Request Payout
+                        </Button>
                     </footer>
                 </>
             )}
@@ -73,8 +104,10 @@ const WithdrawModal = ({ isOpen, onClose, availableBalance }: { isOpen: boolean;
                 <div className="p-8 text-center">
                     <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Success!</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">Your payout request for <span className="font-bold text-gray-700 dark:text-gray-200">{formatCurrency(totalPayout * 100)}</span> has been submitted.</p>
-                    <p className="text-xs text-gray-400 mt-1">It should arrive in your bank account within 3-5 business days.</p>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">
+                        Your payout request for <span className="font-bold text-gray-700 dark:text-gray-200">{formatCurrency(parseFloat(amount) * 100)}</span> has been submitted.
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">It should arrive in your connected account within 3-5 business days.</p>
                     <Button onClick={handleClose} className="mt-6 w-full">Done</Button>
                 </div>
             )}
@@ -119,6 +152,12 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
     const [filter, setFilter] = useState('All');
     const { isOpen, openModal, closeModal } = useModal();
     
+    const handlePayoutSuccess = () => {
+        // A simple way to refresh is to reload the page.
+        // A more advanced way would be to re-trigger the loader's useEffect.
+        window.location.reload();
+    };
+
     const filteredTransactions = useMemo(() => {
         if (filter === 'All') return transactions;
         return transactions.filter(t => t.type === filter);
@@ -126,7 +165,12 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
 
     return (
         <>
-            <WithdrawModal isOpen={isOpen} onClose={closeModal} availableBalance={summary.availableForPayout} />
+            <WithdrawModal 
+                isOpen={isOpen} 
+                onClose={closeModal} 
+                availableBalance={summary.availableForPayout}
+                onPayoutSuccess={handlePayoutSuccess} // Pass the success handler
+            />
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div>

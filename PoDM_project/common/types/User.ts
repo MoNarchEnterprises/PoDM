@@ -49,5 +49,7 @@ export interface User {
   status: UserStatus;
   createdAt: string; // ISO 8601 date string
   updatedAt: string; // ISO 8601 date string
+  stripe_account_id?: string;  // For Creators (acct_...)
+  stripe_customer_id?: string; // For Fans (cus_...)
 }
 

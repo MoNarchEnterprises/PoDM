@@ -207,3 +207,25 @@ export const getSecureContentUrl = async (req: Request, res: Response, next: Nex
         next(error);
     }
 };
+
+/**
+ * @desc    Get a secure URL for viewing a full-size content file
+ * @route   GET /api/v1/content/:id/view
+ * @access  Private (Requires fan access)
+ */
+export const getContentView = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { id: contentId } = req.params;
+
+        if (!userId) {
+            return next(new AppError('Authentication error.', 401));
+        }
+
+        const result = await ContentService.getSecureUrlForViewing(contentId, userId);
+        res.status(200).json({ success: true, data: result });
+
+    } catch (error) {
+        next(error);
+    }
+};

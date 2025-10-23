@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { User as UserIcon, Bell, EyeOff, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
 
@@ -43,30 +43,93 @@ const ToggleSwitch = ({ label, description, enabled, setEnabled }: { label: stri
 const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean; onClose: () => void; onUpdateSuccess: () => void; }) => {
     const stripe = useStripe();
     const elements = useElements();
+    
+    // State for the server-side interaction
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Fetch the client secret from our new backend endpoint whenever the modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setError(null);
+            apiClient.createSetupIntent()
+                .then(response => {
+                    setClientSecret(response.data.clientSecret);
+                })
+                .catch(err => {
+                    setError("Could not prepare the payment form. Please try again.");
+                    console.error(err);
+                });
+        }
+    }, [isOpen]);
+    
     const CARD_ELEMENT_OPTIONS = { style: { base: { color: '#CBD5E1', fontFamily: 'sans-serif', fontSmoothing: 'antialiased', fontSize: '16px', '::placeholder': { color: '#64748B' } }, invalid: { color: '#EF4444', iconColor: '#EF4444' } } };
+    
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!stripe || !elements) { setError("Stripe is not ready. Please try again in a moment."); return; }
+
+        if (!stripe || !elements || !clientSecret) {
+            setError("Payment form is not ready. Please try again in a moment.");
+            return;
+        }
+
         const cardElement = elements.getElement(CardElement);
-        if (!cardElement) { setError("Payment form not found. Please refresh."); return; }
+        if (!cardElement) {
+            setError("Payment form not found. Please refresh.");
+            return;
+        }
+        
         setIsLoading(true);
         setError(null);
-        const { error: createError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-        if (createError) { setError(createError.message || "An error occurred."); setIsLoading(false); return; }
+
+        // --- Step 1: Confirm the card setup on the client-side ---
+        const { error: setupError, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+            payment_method: {
+                card: cardElement,
+            },
+        });
+        
+        if (setupError) {
+            setError(setupError.message || "An unexpected error occurred.");
+            setIsLoading(false);
+            return;
+        }
+
+        if (setupIntent.status !== 'succeeded') {
+            setError("Card setup could not be completed. Please try again.");
+            setIsLoading(false);
+            return;
+        }
+
+        // --- Step 2: Card setup is successful, now send the confirmed payment method to our server ---
         try {
-            await apiClient.updateFanPaymentMethod(paymentMethod.id);
+            await apiClient.updateFanPaymentMethod(setupIntent.payment_method as string);
             onUpdateSuccess();
             onClose();
-        } catch (apiError: any) { setError(apiError.response?.data?.message || 'Failed to update payment method.'); } finally { setIsLoading(false); }
+        } catch (apiError: any) {
+            setError(apiError.response?.data?.message || 'Failed to save the new payment method.');
+        } finally {
+            setIsLoading(false);
+        }
     };
+
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <header className="p-6 border-b border-gray-200 dark:border-gray-700"><h2 className="text-xl font-bold">Update Payment Method</h2></header>
             <form onSubmit={handleSubmit}>
-                <main className="p-6 space-y-4"><p className="text-sm text-gray-500 dark:text-gray-400">Enter your new card details below. Your information is sent securely to Stripe.</p><div className="p-3 bg-slate-800 rounded-md border border-slate-700"><CardElement options={CARD_ELEMENT_OPTIONS} /></div>{error && <p className="text-sm text-red-500 text-center">{error}</p>}</main>
-                <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end"><Button type="submit" isLoading={isLoading} disabled={!stripe || !elements}>Save Card</Button></footer>
+                <main className="p-6 space-y-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Enter your new card details below. Your information is sent securely to Stripe.</p>
+                    <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
+                        <CardElement options={CARD_ELEMENT_OPTIONS} />
+                    </div>
+                    {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+                </main>
+                <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <Button type="submit" isLoading={isLoading} disabled={!stripe || !elements || !clientSecret}>
+                        Save Card
+                    </Button>
+                </footer>
             </form>
         </Modal>
     );

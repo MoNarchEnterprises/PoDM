@@ -20,6 +20,7 @@ import { initSocketServer } from './config/socket'; // 2. Import our socket init
 // Your other imports
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import stripeRoutes from './routes/stripe.routes';
 import creatorRoutes from './routes/creator.routes';
 import contentRoutes from './routes/content.routes';
 import subscriptionRoutes from './routes/subscription.routes';
@@ -60,6 +61,7 @@ app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/stripe', stripeRoutes);
 
 // Health Check Route - with explicit types to fix the linting error
 app.get('/', (req: Request, res: Response) => {

@@ -192,7 +192,40 @@ const CreatorDashboardLoader = () => {
 
 
 const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
-const CreatorEarningsLoader = () => { return <CreatorEarnings summary={{} as any} monthlyEarnings={[]} transactions={[]} />; };
+
+const CreatorEarningsLoader = () => {
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await apiClient.getCreatorEarningsData();
+                setData(response.data);
+            } catch (err) {
+                setError('Could not load earnings data.');
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading Earnings...</div>;
+    }
+    if (error || !data) {
+        return <div className="p-8 text-center text-red-500">{error || 'Data could not be loaded.'}</div>;
+    }
+
+    return <CreatorEarnings 
+        summary={data.summary} 
+        monthlyEarnings={data.monthlyEarnings} 
+        transactions={data.transactions} 
+    />;
+};
 
 const CreatorSettingsLoader = () => {
     // 1. Get the currently logged-in user from the auth context

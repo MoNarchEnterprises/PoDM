@@ -1,7 +1,5 @@
-// src/features/fan/FanSubscriptions.tsx
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // <-- 1. IMPORT useNavigate
+import { useNavigate } from 'react-router-dom';
 import { XCircle, CheckCircle, CreditCard, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { Subscription } from '@common/types/Subscription';
@@ -14,7 +12,7 @@ import { useModal } from '../../hooks/useModal';
 interface SubscriptionWithCreator extends Subscription {
     creator: Creator;
     availableTiers: SubscriptionTier[];
-    tierName: string; // <-- ADD THIS NEW PROPERTY
+    tierName: string;
 }
 
 // --- Reusable Sub-Components (Modals & Cards) ---
@@ -95,9 +93,9 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="font-bold text-lg text-white">${(subscription.price || 0).toFixed(2)}<span className="text-sm font-normal text-gray-500">/mo</span></p>
-                    <div className={`flex items-center justify-end text-xs font-medium mt-1 ${statusStyle}`}>
-                        {subscription.status === 'active' ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                    <p className="font-bold text-lg text-white">${(subscription.price || 0).toFixed(2)}<span className="text-sm font-bold text-gray-500">/mo</span></p>
+                    <div className={`flex items-center justify-end text-xs font-bold mt-1 ${statusStyle}`}>
+                        {subscription.status === 'active' ? <CheckCircle className="w-5 h-3 mr-1" /> : <XCircle className="w-5 h-3 mr-1" />}
                         <span className="capitalize">{subscription.status}</span>
                     </div>
                 </div>
@@ -107,11 +105,10 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
 };
 
 const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, onChangeTierClick }: { subscription?: SubscriptionWithCreator; onCancelClick: (sub: SubscriptionWithCreator) => void; onResubscribeClick: (sub: SubscriptionWithCreator) => void; onChangeTierClick: (sub: SubscriptionWithCreator) => void; }) => {
-    const navigate = useNavigate(); // <-- 3. INITIALIZE useNavigate
+    const navigate = useNavigate();
 
     const handleNavigateToMessage = () => {
         if (!subscription) return;
-        // 4. Navigate to the messages page, passing creator info in the state
         navigate('/fan/messages', {
             state: {
                 creatorId: subscription.creator._id,
@@ -122,39 +119,40 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
     };
     
     if (!subscription) {
-        return <div className="bg-gray-800/50 rounded-xl shadow-md h-full flex items-center justify-center text-gray-400"><p>Select a subscription to see details.</p></div>;
+        return <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md h-full flex items-center justify-center text-gray-500 dark:text-gray-400"><p>Select a subscription to see details.</p></div>;
     }
+
+    // --- COLOR AND STYLE FIXES ARE APPLIED BELOW ---
     return (
-        <div className="bg-gray-800/50 rounded-xl shadow-md h-full flex flex-col">
-            <div className="p-6 border-b border-gray-700 flex justify-between items-center"> {/* <-- 5. ADD flex layout */}
+        <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md h-full flex flex-col">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div>
-                    <h3 className="text-lg font-semibold text-white">Subscription Details</h3>
-                    <p className="text-sm text-gray-400">Managing subscription for <span className="font-bold text-gray-200">{subscription.creator.profile.name}</span></p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Subscription Details</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Managing subscription for <span className="font-bold text-gray-700 dark:text-gray-200">{subscription.creator.profile.name}</span></p>
                 </div>
-                {/* 6. ADD THE MESSAGE BUTTON */}
                 <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={handleNavigateToMessage}>
-                    <MessageSquare className="w-5 h-5 text-purple-400" />
+                    <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </Button>
             </div>
             <div className="p-6 space-y-4 flex-grow">
-                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-400">Current Tier</span><span className="font-semibold text-gray-200">{subscription.tierName}</span></div>
-                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-400">Monthly Price</span><span className="font-semibold text-gray-200">${(subscription.price || 0).toFixed(2)}</span></div>
-                {subscription.status === 'active' && subscription.nextBillingDate && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-200">{new Date(subscription.nextBillingDate).toLocaleDateString()}</span></div>}
+                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Tier</span><span className="font-semibold text-gray-800 dark:text-gray-200">{subscription.tierName}</span></div>
+                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Price</span><span className="font-semibold text-gray-800 dark:text-gray-200">${(subscription.price || 0).toFixed(2)}</span></div>
+                {subscription.status === 'active' && subscription.nextBillingDate && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(subscription.nextBillingDate).toLocaleDateString()}</span></div>}
                 <div className="pt-4">
                     {subscription.status === 'active' ? (
                         <div className="flex items-center justify-between">
-                            <Button variant="ghost" onClick={() => onChangeTierClick(subscription)}>Change Tier</Button>
-                            <Button variant="ghost" className="text-red-500 hover:bg-red-900/50" onClick={() => onCancelClick(subscription)}>Cancel Subscription</Button>
+                            <Button variant="secondary" onClick={() => onChangeTierClick(subscription)}>Change Tier</Button>
+                            <Button variant="ghost" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50" onClick={() => onCancelClick(subscription)}>Cancel Subscription</Button>
                         </div>
                     ) : (
                         <Button className="w-full bg-green-500 hover:bg-green-600" leftIcon={RefreshCw} onClick={() => onResubscribeClick(subscription)}>Resubscribe</Button>
                     )}
                 </div>
             </div>
-             <div className="p-6 border-t border-gray-700 bg-gray-800">
-                <h4 className="text-sm font-semibold mb-2">Payment Method</h4>
+             <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Payment Method</h4>
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3"><CreditCard className="w-6 h-6 text-gray-400" /><p className="text-sm text-gray-300">Visa ending in 4242</p></div>
+                    <div className="flex items-center space-x-3"><CreditCard className="w-6 h-6 text-gray-500 dark:text-gray-400" /><p className="text-sm text-gray-600 dark:text-gray-300">Visa ending in 4242</p></div>
                     <Button variant="ghost">Update</Button>
                 </div>
             </div>
@@ -201,18 +199,14 @@ const FanSubscriptionsPage = () => {
         if (!selectedSub) return;
         setActionLoading(true);
         try {
-            // The API call remains the same.
             const response = await apiClient.updateFanSubscription(selectedSub._id.toString(), newTierId);
-            const updatedSub = response.data; // This is now a correctly shaped object.
+            const updatedSub = response.data;
 
-            // --- THIS IS THE FIX ---
-            // Update the state with the new, fully-formed subscription object.
             const newSubscriptions = subscriptions.map(sub => 
                 sub._id === updatedSub._id ? updatedSub : sub
             );
             setSubscriptions(newSubscriptions);
-            setSelectedSub(updatedSub); // Directly set the selected sub to the new object
-            // --- END OF FIX ---
+            setSelectedSub(updatedSub);
             
             closeChangeTierModal();
         } catch (err: any) {

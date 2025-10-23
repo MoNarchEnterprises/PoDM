@@ -521,40 +521,32 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
 };
 
 /**
- * Generates a secure URL for a full-size content file, applying a watermark if applicable.
+ * Generates a secure, temporary URL for viewing a full-size content file.
+ * It first verifies that the user has permission to access the content.
  * @param contentId The ID of the content.
  * @param userId The ID of the user requesting access.
+ * @returns An object containing the secure URL and the content type.
  */
-export const getSecureContentUrl = async (contentId: string, userId: string) => {
-    // 1. Verify user has access (getContentForFan already does this)
+export const getSecureUrlForViewing = async (contentId: string, userId: string) => {
+    // 1. Verify the fan has access to this content. This will throw an error if they don't.
     const content = await getContentForFan(contentId, userId);
-    const user = await UserModel.findUserById(userId);
-    
-    if (!user) throw new AppError('User not found.', 404);
 
-    // 2. Determine which file path to use (watermarked or original)
-    let filePathToSign: string | undefined;
-    
-    // Only apply watermarks to images being viewed by fans (not the creator themselves)
-    if (content.files[0]?.mimeType.startsWith('image/') && content.creator_id !== userId) {
-        filePathToSign = await createWatermarkedImage(content, user);
-    } else {
-        // For videos or if the viewer is the owner, serve the original file
-        filePathToSign = content.files[0]?.url;
-    }
-
-    if (!filePathToSign) {
+    const fullFilePath = content.files?.[0]?.url;
+    if (!fullFilePath) {
         throw new AppError('Content file path not found.', 404);
     }
 
-    // 3. Generate the signed URL for the determined file path
+    // 2. Generate a short-lived (60 seconds) signed URL for the full-size file.
     const { data, error } = await supabase.storage
         .from('creator-content')
-        .createSignedUrl(filePathToSign, 60); // 60-second validity
+        .createSignedUrl(fullFilePath, 60);
 
     if (error || !data) {
-        throw new AppError('Could not generate secure URL.', 500);
+        throw new AppError('Could not generate secure URL for content.', 500);
     }
 
-    return { secureUrl: data.signedUrl };
+    return { 
+        secureUrl: data.signedUrl,
+        contentType: content.type // Return the content type ('photo' or 'video')
+    };
 };

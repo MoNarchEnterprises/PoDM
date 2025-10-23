@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
 // We will create these in later steps
-import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl } from '../controllers/content.controller';
+import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView } from '../controllers/content.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
 import { uploadContent } from '../middleware/upload.middleware'; // 1. Import the upload middleware
 
@@ -43,6 +43,13 @@ router.get('/my-content', protect, creatorOnly, getMyContent);
  * @access  Public
  */
 router.get('/creator/:username', getContentByCreator);
+
+/**
+ * @route   GET /api/v1/content/:id/view
+ * @desc    Get a secure URL for viewing full-size content
+ * @access  Private (Requires fan access)
+ */
+router.get('/:id/view', protect, getContentView);
 
 /**
  * @route   GET /api/v1/content/:id

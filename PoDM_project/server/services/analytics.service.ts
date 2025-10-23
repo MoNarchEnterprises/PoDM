@@ -36,3 +36,32 @@ export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
 
     return { success: true, message: 'Event logged.' };
 };
+
+/**
+ * Counts analytics events for a specific creator.
+ * @param creatorId - The ID of the creator.
+ * @param eventType - The type of event to count ('profile_visit' or 'post_view').
+ * @param days - The number of days to look back.
+ * @returns The total count of the specified event.
+ */
+export const countEventsForCreator = async (creatorId: string, eventType: 'profile_visit' | 'post_view', days?: number) => {
+    let query = supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', creatorId)
+        .eq('event_type', eventType);
+
+    if (days) {
+        const date = new Date();
+        date.setDate(date.getDate() - days);
+        query = query.gte('created_at', date.toISOString());
+    }
+
+    const { count, error } = await query;
+
+    if (error) {
+        console.error(`Error counting ${eventType} for creator ${creatorId}:`, error.message);
+        return 0;
+    }
+    return count || 0;
+};

@@ -3,7 +3,7 @@
 /**
  * Defines the possible types of financial transactions on the platform.
  */
-export type TransactionType = 'Subscription' | 'Tip' | 'PPV Message' | 'PPV Post';
+export type TransactionType = 'Subscription' | 'Tip' | 'PPV Message' | 'PPV Post' | 'Payout';
 
 /**
  * Defines the possible statuses for a transaction.
