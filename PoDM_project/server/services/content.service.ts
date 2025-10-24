@@ -7,10 +7,15 @@ import { AppError } from '../middleware/error.middleware';
 import { Content, MediaFile } from '@common/types/Content';
 import sharp from 'sharp';
 import { User } from '@common/types/User';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
+
 
 // Define a type for the query parameters for clarity
 interface ContentQuery {
-    type?: 'photo' | 'video' | 'text' | 'audio';
+    type?: 'photo' | 'video' | 'text' | 'audio' | 'All';
     searchTerm?: string;
     sortKey?: string;
     sortDirection?: 'asc' | 'desc';
@@ -108,6 +113,54 @@ const generateThumbnail = async (buffer: Buffer): Promise<Buffer> => {
 };
 
 /**
+ * Generates a thumbnail from a video buffer using FFmpeg.
+ * @param videoBuffer - The buffer of the original video file.
+ * @returns A buffer of the extracted thumbnail image in JPG format.
+ */
+const generateVideoThumbnail = async (videoBuffer: Buffer): Promise<Buffer> => {
+    // FFmpeg CLI works with files, so we must write the buffer to a temporary file first.
+    const tempVideoPath = path.join(os.tmpdir(), `temp-video-${Date.now()}.mp4`);
+    const tempThumbPath = path.join(os.tmpdir(), `temp-thumb-${Date.now()}.jpg`);
+
+    try {
+        // 1. Write the video buffer to a temporary file on the server's disk.
+        await fs.writeFile(tempVideoPath, videoBuffer);
+        
+        // 2. Use fluent-ffmpeg to run the command.
+        await new Promise<void>((resolve, reject) => {
+            ffmpeg(tempVideoPath)
+                .on('end', () => resolve())
+                .on('error', (err) => reject(new Error(`FFmpeg error: ${err.message}`)))
+                // Take one screenshot at the 1-second mark.
+                .screenshots({
+                    timestamps: ['00:00:01.000'],
+                    filename: path.basename(tempThumbPath),
+                    folder: path.dirname(tempThumbPath),
+                    size: '400x?' // Set width to 400px, maintain aspect ratio
+                });
+        });
+
+        // 3. Read the generated thumbnail image file back into a buffer.
+        const thumbBuffer = await fs.readFile(tempThumbPath);
+        return thumbBuffer;
+
+    } catch (error) {
+        console.error("Error generating video thumbnail:", error);
+        // If thumbnail generation fails, throw an error to be caught by the main service.
+        throw new AppError('Could not generate video thumbnail.', 500);
+    } finally {
+        // 4. CRITICAL: Clean up the temporary files from the disk.
+        try {
+            await fs.unlink(tempVideoPath);
+            await fs.unlink(tempThumbPath);
+        } catch (cleanupError) {
+            // Log cleanup errors but don't throw, as the primary operation might have succeeded.
+            console.error("Error cleaning up temporary thumbnail files:", cleanupError);
+        }
+    }
+};
+
+/**
  * Handles the business logic for creating a new piece of content.
  * @param creatorId - The ID of the creator uploading the content.
  * @param contentData - The metadata for the content.
@@ -138,23 +191,48 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
 
         // Default thumbnail path is the original file path (for videos, etc.)
         let thumbnailPath = filePath;
+        let thumbnailMimeType = file.mimetype; // Default to original mime type
 
         // If it's an image, generate and upload a specific thumbnail
         if (file.mimetype.startsWith('image/')) {
             const thumbnailBuffer = await generateThumbnail(file.buffer);
             const thumbnailFileName = `thumb-${originalFileName}.webp`;
             thumbnailPath = `${creatorId}/${thumbnailFileName}`;
+            thumbnailMimeType = 'image/webp';
             filePaths.push(thumbnailPath);
 
             const { error: thumbUploadError } = await supabase.storage
                 .from('creator-content')
-                .upload(thumbnailPath, thumbnailBuffer, { contentType: 'image/webp' });
+                .upload(thumbnailPath, thumbnailBuffer, { contentType: thumbnailMimeType });
 
             if (thumbUploadError) {
                 console.error(`Failed to upload thumbnail for ${file.originalname}, will use original file as thumbnail.`);
                 // If thumbnail fails, revert to using the original file's path
                 thumbnailPath = filePath; 
+                thumbnailMimeType = file.mimetype;
             }
+        } else if (file.mimetype.startsWith('video/')) {
+            // --- THIS IS THE NEW LOGIC FOR VIDEOS ---
+            try {
+                const thumbnailBuffer = await generateVideoThumbnail(file.buffer);
+                const thumbnailFileName = `thumb-${originalFileName}.jpg`;
+                thumbnailPath = `${creatorId}/${thumbnailFileName}`;
+                thumbnailMimeType = 'image/jpeg';
+                filePaths.push(thumbnailPath);
+
+                const { error: thumbUploadError } = await supabase.storage
+                    .from('creator-content')
+                    .upload(thumbnailPath, thumbnailBuffer, { contentType: thumbnailMimeType });
+                
+                if (thumbUploadError) throw thumbUploadError;
+
+            } catch (videoThumbError) {
+                console.error(`Failed to generate or upload video thumbnail for ${file.originalname}.`, videoThumbError);
+                // Fallback: The thumbnail path remains the video path itself, frontend will show a generic video icon.
+                thumbnailPath = filePath;
+                thumbnailMimeType = file.mimetype;
+            }
+            // --- END OF NEW LOGIC ---
         }
 
         
@@ -304,7 +382,7 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
     if (!isSubscribed) {
         return content.map(post => ({
             ...post,
-            files: post.files.map(file => ({
+            files: post.files.map((file: any) => ({
                 ...file,
                 url: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Locked',
             }))

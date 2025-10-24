@@ -1,13 +1,16 @@
 // src/features/fan/FanMessages.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
-import { Send, ArrowLeft, Lock } from 'lucide-react';
+import { Send, ArrowLeft, Lock, Bookmark } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import { socket } from '../../lib/socket';
+import ContentViewerModal from './components/ContentViewerModal';
+import { formatMessageTimestamp, formatDate } from '../../lib/formatters';
+
 
 // --- Types (remain the same) ---
 interface MessageContent {
@@ -17,7 +20,7 @@ interface ConversationWithCreator {
     _id: string | null; creator: { _id: string; profile: { name: string; avatar: string; }; }; lastMessage?: { text?: string; isRead: boolean; }; updatedAt: string;
 }
 interface Message {
-    _id: string; senderId: string; text?: string; content?: MessageContent;
+    _id: string; senderId: string; text?: string; content?: MessageContent; createdAt: string;
 }
 
 // --- Components (remain the same) ---
@@ -34,7 +37,7 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
                     {conversation.creator.profile.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                    {new Date(conversation.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatMessageTimestamp(conversation.updatedAt)}
                 </p>
             </div>
             <p className="text-sm text-gray-400 truncate">
@@ -44,10 +47,45 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
     </div>
 );
 
-const MessageBubble = ({ message, isMe, onUnlock }: { message: Message; isMe: boolean; onUnlock: (message: Message) => Promise<void>; }) => {
+const MessageBubble = ({ message, isMe, onUnlock, onContentClick, onSaveToGallery }: {
+    message: Message;
+    isMe: boolean;
+    onUnlock: (message: Message) => Promise<void>;
+    onContentClick: (content: MessageContent) => void;
+    onSaveToGallery: (contentId: string) => void;
+}) => {
     const justifyClass = isMe ? 'justify-end' : 'justify-start';
     const bubbleClass = isMe ? 'bg-purple-600 text-white rounded-br-none' : 'bg-pink-700 text-gray-200 rounded-bl-none';
-    return (<div className={`flex ${justifyClass}`}><div className={`max-w-xs lg:max-w-md p-1 rounded-2xl ${bubbleClass}`}>{message.text && <p className="px-3 py-2">{message.text}</p>}{message.content && (<div className="space-y-2 bg-black/20 rounded-xl p-2"><img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && 'blur-md'}`} />{!message.content.isUnlocked && message.content.isPaid && !isMe && (<Button onClick={() => onUnlock(message)} className="w-full bg-pink-500 hover:bg-pink-600" size="sm" leftIcon={Lock}>Unlock for ${(message.content.price / 100).toFixed(2)}</Button>)}</div>)}</div></div>);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+
+    const handleSave = async () => {
+        if (!message.content) return;
+        setIsSaving(true);
+        try {
+            await onSaveToGallery(message.content.contentId);
+            setIsSaved(true);
+        } catch (error) {
+            alert("Failed to save to gallery.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    return (
+        <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+            <div className={`max-w-xs lg:max-w-md p-1 rounded-2xl ${bubbleClass}`}>
+                {message.text && <p className="px-3 py-2">{message.text}</p>}
+                {message.content && (
+                    <div className="space-y-2 bg-black/20 rounded-xl p-2">
+                        <div className="relative cursor-pointer" onClick={
+                            () => (message.content?.isUnlocked || isMe) && onContentClick(message.content as MessageContent)}>
+                                <img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && !isMe && 'blur-md'}`} />
+                                </div>{!message.content.isUnlocked && message.content.isPaid && !isMe ? (<Button onClick={() => onUnlock(message)} className="w-full bg-pink-500 hover:bg-pink-600" size="sm" leftIcon={Lock}>
+                                    Unlock for ${(message.content.price / 100).toFixed(2)}</Button>) : (message.content.isUnlocked || isMe) && (<Button onClick={handleSave} disabled={isSaving || isSaved} variant="secondary" size="sm" leftIcon={Bookmark} className="w-full">{isSaving ? 'Saving...' : isSaved ? 'Saved to Gallery' : 'Save to Gallery'}</Button>)}</div>)}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1 px-2">{formatMessageTimestamp(message.createdAt)}</p>
+                                </div>);
 };
 
 // --- Main Component ---
@@ -63,6 +101,30 @@ const FanMessagesPage = () => {
     const [isLoadingConvos, setIsLoadingConvos] = useState(true);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const previousConversationId = useRef<string | null>(null);
+
+    // --- NEW STATE FOR CONTENT VIEWER ---
+    const [viewingContent, setViewingContent] = useState<MessageContent | null>(null);
+
+    // --- RESHAPE DATA FOR THE MODAL ---
+    const galleryItemsForModal = useMemo(() => {
+        if (!viewingContent) return [];
+        return [{
+            contentId: viewingContent.contentId,
+            content: {
+                _id: viewingContent.contentId,
+                title: 'Attached Content', // Title isn't available, so we use a placeholder
+                files: [{ thumbnailUrl: viewingContent.thumbnailUrl }],
+            }
+        }];
+    }, [viewingContent]);
+
+    // --- HANDLERS FOR THE MODAL ---
+    const handleContentClick = (content: MessageContent) => {
+        setViewingContent(content);
+    };
+    const handleCloseViewer = () => {
+        setViewingContent(null);
+    };
 
     useEffect(() => {
         apiClient.getMyConversations().then(response => {
@@ -177,8 +239,26 @@ const FanMessagesPage = () => {
             console.error(error);
         }
     };
+    
+    // --- Helper for the date separator ---
+    const isNewDay = (date1: string, date2: string) => {
+        if (!date1 || !date2) return false;
+        const d1 = new Date(date1.replace(' ', 'T'));
+        const d2 = new Date(date2.replace(' ', 'T'));
+        return d1.getFullYear() !== d2.getFullYear() ||
+               d1.getMonth() !== d2.getMonth() ||
+               d1.getDate() !== d2.getDate();
+    };
 
     return (
+        <>
+            <ContentViewerModal
+                galleryItems={galleryItemsForModal}
+                currentIndex={viewingContent ? 0 : null}
+                onClose={handleCloseViewer}
+                onNext={() => {}} // No next in this context
+                onPrevious={() => {}} // No previous in this context
+            />
         <div className="flex h-screen bg-gray-900 text-gray-200">
             <div className={`w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
                 <div className="p-4 border-b border-gray-700"><h2 className="text-xl font-bold">Messages</h2></div>
@@ -190,8 +270,33 @@ const FanMessagesPage = () => {
                 {activeConversation ? (
                     <>
                         <div className="flex items-center p-3 border-b border-gray-700 bg-gray-800"><button onClick={() => setSelectedCreatorId(null)} className="md:hidden mr-2 p-2 rounded-full hover:bg-gray-700"><ArrowLeft className="w-5 h-5" /></button><img className="w-10 h-10 rounded-full mr-3" src={activeConversation.creator.profile.avatar} alt={activeConversation.creator.profile.name} /><p className="font-bold">{activeConversation.creator.profile.name}</p></div>
-                        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                            {isLoadingMessages ? <p className="text-center">Loading...</p> : messages.map((msg) => <MessageBubble key={msg._id} message={msg} isMe={msg.senderId === currentFan?._id} onUnlock={handleUnlockContent} />)}
+                        <div className="flex-1 p-4 space-y-2 overflow-y-auto flex flex-col-reverse">
+                            {/* The wrapping div is now the scroll container. We render messages in reverse. */}
+                            <div className="space-y-4">
+                                {isLoadingMessages ? <p className="text-center">Loading messages...</p> :
+                                    [...messages].reverse().map((msg, index) => {
+                                        const nextMsg = [...messages].reverse()[index + 1];
+                                        const showDateSeparator = !nextMsg || isNewDay(msg.createdAt, nextMsg.createdAt);
+
+                                        return (
+                                            <React.Fragment key={msg._id}>
+                                                <MessageBubble 
+                                                    message={msg} 
+                                                    isMe={msg.senderId === currentFan?._id} 
+                                                    onUnlock={handleUnlockContent} 
+                                                    onContentClick={handleContentClick} 
+                                                    onSaveToGallery={(contentId) => apiClient.addContentToGallery(contentId)} 
+                                                />
+                                                {showDateSeparator && (
+                                                    <div className="text-center text-xs text-gray-500 font-bold py-4">
+                                                        {formatDate(msg.createdAt)}
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })
+                                }
+                            </div>
                         </div>
                         <form onSubmit={handleSendMessage} className="p-4 bg-gray-800 border-t border-gray-700"><div className="flex items-center bg-gray-700 rounded-full p-1"><input type="text" value={newMessageText} onChange={e => setNewMessageText(e.target.value)} placeholder="Type a message..." className="flex-1 bg-transparent px-3 outline-none" /><Button type="submit" size="sm" className="p-2 h-auto rounded-full ml-2"><Send className="w-5 h-5" /></Button></div></form>
                     </>
@@ -200,6 +305,7 @@ const FanMessagesPage = () => {
                 )}
             </div>
         </div>
+        </>
     );
 };
 

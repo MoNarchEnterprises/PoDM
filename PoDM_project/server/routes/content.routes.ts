@@ -1,9 +1,8 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-// We will create these in later steps
 import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView } from '../controllers/content.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
-import { uploadContent } from '../middleware/upload.middleware'; // 1. Import the upload middleware
+import { uploadContent } from '../middleware/upload.middleware'; 
 
 const router = Router();
 
@@ -12,15 +11,11 @@ const router = Router();
  * @desc    Create a new piece of content
  * @access  Private (Creators only)
  */
-// 2. Add the 'uploadContent' middleware to this route
+// --- THIS IS THE FIX ---
+// The `uploadContent` middleware now handles its own errors, so we remove the extra handler.
+// The chain is now simpler and architecturally correct.
 router.post('/', protect, creatorOnly, uploadContent, createContent);
 
-/**
- * @route   POST /api/v1/content
- * @desc    Create a new piece of content
- * @access  Private (Creators only)
- */
-router.post('/', protect, creatorOnly, createContent);
 
 /**
  * @route   GET /api/v1/content/:id/secure-url

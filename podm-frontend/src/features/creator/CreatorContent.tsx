@@ -14,6 +14,8 @@ import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { formatCurrency } from '../../lib/formatters';
 import * as apiClient from '../../lib/apiClient';
+import ContentViewerModal from '../fan/components/ContentViewerModal';
+
 
 // --- NEW UNIFIED CONTENT MODAL ---
 interface ContentModalProps {
@@ -114,11 +116,26 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
         setIsLoading(true);
         setError(null);
 
+        // --- THIS IS THE FIX ---
+        // Determine the content type based on the selected files.
+        // Default to 'photo', but switch to 'video' if any video file is found.
+        let contentType: ContentType = 'photo';
+        if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].type.startsWith('video/')) {
+                    contentType = 'video';
+                    break; // A single video file makes the whole post a 'video' type
+                }
+            }
+        }
+        // --- END OF FIX ---
+
         // --- Assemble FormData ---
         const formData = new FormData();
         formData.append('title', title);
         formData.append('description', description);
         formData.append('visibility', visibility);
+        formData.append('type', contentType); // Pass the dynamically determined type
         if (visibility === 'pay_per_view') {
             formData.append('price', (parseFloat(price) * 100).toString());
         }
@@ -194,7 +211,11 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Media Files</label>
                             <div className="relative p-6 border-2 border-dashed rounded-lg text-center transition-colors border-gray-300 dark:border-gray-600 hover:border-purple-500">
-                                <label htmlFor="file-upload" className="cursor-pointer"><UploadCloud className="w-12 h-12 mx-auto text-gray-400" /><p className="mt-2 text-sm text-gray-500">{files && files.length > 0 ? `${files.length} file(s) selected` : "Drag & drop or click to upload"}</p></label>
+                                <label htmlFor="file-upload" className="cursor-pointer">
+                                    <UploadCloud className="w-12 h-12 mx-auto text-gray-400" />
+                                    <p className="mt-2 text-sm text-gray-500">{files && files.length > 0 ? `${files.length} file(s) selected` : "Drag & drop or click to upload"}</p>
+                                    <p className="mt-1 text-xs text-gray-600">Max file size: 1GB</p>
+                                </label>
                                 <input id="file-upload" type="file" multiple onChange={(e) => setFiles(e.target.files)} className="sr-only" />
                             </div>
                         </div>
@@ -378,7 +399,7 @@ const SortableHeader = ({ label, sortKey, currentSort, setSort, Icon }: { label:
     );
 };
 
-const ContentRow = ({ item, onDelete, onEdit }: { item: Content; onDelete: (contentId: string) => void; onEdit: (contentItem: Content) => void; }) => {
+const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onRowClick: () => void; onDelete: (contentId: string) => void; onEdit: (contentItem: Content) => void; }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -410,7 +431,7 @@ const ContentRow = ({ item, onDelete, onEdit }: { item: Content; onDelete: (cont
 
     return (
         <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-            <td className="px-4 py-3">
+            <td className="px-4 py-3 cursor-pointer" onClick={onRowClick}>
                 <div className="flex items-center">
                     <img src={imageUrl || 'https://placehold.co/100x100/1F2937/FFFFFF?text=...'} alt={item.title} className="w-10 h-10 rounded-md object-cover mr-4" />
                     <span className="font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
@@ -463,6 +484,9 @@ const CreatorContentPage = () => {
     const { isOpen: isModalOpen, openModal, closeModal } = useModal();
     const [editingContent, setEditingContent] = useState<Content | null>(null);
 
+    // --- NEW: State for the content viewer modal ---
+    const [currentContentIndex, setCurrentContentIndex] = useState<number | null>(null);
+
     // Data fetching logic
     useEffect(() => {
         const fetchContent = async () => {
@@ -497,6 +521,35 @@ const CreatorContentPage = () => {
         return () => clearTimeout(debounceTimer);
     }, [filter, searchTerm, sort]);
     
+    // --- NEW: Reshape data for the viewer modal ---
+    const galleryItemsForModal = useMemo(() => {
+        return content.map(item => ({
+            contentId: item._id,
+            content: item,
+        }));
+    }, [content]);
+
+    // --- NEW: Handlers for viewer modal ---
+    const handleThumbnailClick = (index: number) => {
+        setCurrentContentIndex(index);
+    };
+
+    const handleCloseViewer = () => {
+        setCurrentContentIndex(null);
+    };
+
+    const handleNext = () => {
+        if (currentContentIndex !== null && currentContentIndex < content.length - 1) {
+            setCurrentContentIndex(currentContentIndex + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (currentContentIndex !== null && currentContentIndex > 0) {
+            setCurrentContentIndex(currentContentIndex - 1);
+        }
+    };
+
     // Handler Functions
     const handleSaveContent = async (formData: FormData, contentId?: string) => {
     try {
@@ -564,6 +617,14 @@ const CreatorContentPage = () => {
                 initialContent={editingContent}
             />
             
+            <ContentViewerModal
+                galleryItems={galleryItemsForModal}
+                currentIndex={currentContentIndex}
+                onClose={handleCloseViewer}
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+            />
+            
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div>
@@ -606,17 +667,18 @@ const CreatorContentPage = () => {
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                    {content.length > 0 ? (
-                                       content.map(item => (
+                                       content.map((item, index) => (
                                            <ContentRow 
                                                key={item._id} 
                                                item={item} 
+                                               onRowClick={() => handleThumbnailClick(index)}
                                                onDelete={handleDeleteContent}
                                                onEdit={handleOpenEditModal}
                                            />
                                        ))
                                    ) : (
                                        <tr>
-                                           <td colSpan={6} className="text-center py-12 text-gray-500">
+                                           <td colSpan={7} className="text-center py-12 text-gray-500">
                                                <p className="font-semibold">No content found.</p>
                                                <p className="text-sm">Try adjusting your filters or upload your first post!</p>
                                            </td>

@@ -10,6 +10,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { Creator, SubscriptionTier, SocialLinks,CreatorData } from '@common/types/Creator';
 import { User, UserProfile, UserStatus } from '@common/types/User';
 import { TransactionType } from '@common/types/Transaction';
+import { Content } from '@common/types/Content';
+
 
 // --- Import Reusable Components & API Client ---
 import Card from '../../components/ui/Card';
@@ -45,6 +47,36 @@ const ToggleSwitch = ({ label, description, enabled, setEnabled }: { label: stri
         </button>
     </div>
 );
+
+// --- NEW COMPONENT: Modal for selecting welcome message content ---
+const WelcomeContentModal = ({ isOpen, onClose, contentItems, onSelect }: { isOpen: boolean; onClose: () => void; contentItems: Content[]; onSelect: (content: Content) => void; }) => {
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
+            <div className="flex flex-col max-h-[90vh]">
+                <header className="p-6 border-b border-gray-700">
+                    <h2 className="text-xl font-bold text-white">Select Content to Attach</h2>
+                </header>
+                <main className="flex-1 overflow-y-auto p-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {contentItems.map(item => (
+                            <div
+                                key={item._id}
+                                onClick={() => { onSelect(item); onClose(); }}
+                                className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                            >
+                                <img src={(item.files[0] as any).thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                    <p className="text-xs text-white font-bold truncate">{item.title}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </main>
+            </div>
+        </Modal>
+    );
+};
+
 
 // --- Settings Panels ---
 
@@ -128,13 +160,36 @@ const AccountSettingsPanel = ({
     );
 };
 
-const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange }: { welcomeMessage: any; onMessageChange: (field: string, value: any) => void; }) => (
+const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange, onSelectContentClick, attachedContent }: {
+    welcomeMessage: any;
+    onMessageChange: (field: string, value: any) => void;
+    onSelectContentClick: () => void;
+    attachedContent?: Content | null;
+}) => (
     <SettingsCard title="Welcome Message" subtitle="Automatically send a message to new subscribers.">
         <ToggleSwitch label="Enable Welcome Message" enabled={welcomeMessage.isActive} setEnabled={(val) => onMessageChange('isActive', val)} />
         <div>
             <label htmlFor="welcome-message" className="block text-sm font-medium mb-1">Message</label>
-            <textarea id="welcome-message" rows={5} value={welcomeMessage.message} onChange={(e) => onMessageChange('message', e.target.value)} 
-            className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+            <textarea id="welcome-message" rows={5} value={welcomeMessage.message} onChange={(e) => onMessageChange('message', e.target.value)}
+                className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+        </div>
+        <div>
+            <label className="block text-sm font-medium mb-2">Attach Free Content (Optional)</label>
+            {attachedContent ? (
+                <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                        <img src={(attachedContent.files[0] as any).thumbnailUrl} alt={attachedContent.title} className="w-10 h-10 rounded-md object-cover" />
+                        <span className="text-sm font-medium">{attachedContent.title}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-red-500" onClick={() => onMessageChange('freeContentId', null)}>
+                        Remove
+                    </Button>
+                </div>
+            ) : (
+                <Button variant="secondary" onClick={onSelectContentClick}>
+                    Select Content from Vault
+                </Button>
+            )}
         </div>
     </SettingsCard>
 );
@@ -303,6 +358,10 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const [bannerFile, setBannerFile] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(creator.profile.coverImageUrl || null);
     
+    // --- STATE FOR WELCOME MESSAGE CONTENT ---
+    const [attachableContent, setAttachableContent] = useState<Content[]>([]);
+    const [attachedContentDetails, setAttachedContentDetails] = useState<Content | null>(null);
+    const { isOpen: isWelcomeModalOpen, openModal: openWelcomeModal, closeModal: closeWelcomeModal } = useModal();
     
     
     // Effect to keep local state in sync if the global user object changes
@@ -310,6 +369,57 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(creator);
         setBannerPreview(creator.profile.coverImageUrl || null);
     }, [creator]);
+    
+    // --- THIS IS THE FIX ---
+    // This effect fetches content and processes it to include secure, viewable thumbnail URLs.
+    useEffect(() => {
+        const fetchAndProcessContent = async () => {
+            try {
+                // 1. Fetch the raw content list with private storage paths
+                const response = await apiClient.getMyCreatorContent({ type: 'All' });
+                const validContent = response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted');
+
+                // 2. Process each item to get a signed URL for its thumbnail
+                const contentWithSignedUrls = await Promise.all(
+                    validContent.map(async (contentItem: Content) => {
+                        try {
+                            const urlResponse = await apiClient.getSecureContentUrl(contentItem._id);
+                            // Create a deep copy to safely modify the nested files array
+                            const newItem = JSON.parse(JSON.stringify(contentItem));
+                            if (newItem.files && newItem.files.length > 0) {
+                                // Replace the private path with the temporary public URL
+                                newItem.files[0].thumbnailUrl = urlResponse.data.secureUrl;
+                            }
+                            return newItem;
+                        } catch (urlError) {
+                            console.error(`Failed to get signed URL for content ${contentItem._id}`, urlError);
+                            // On failure, return the original item to prevent crashes
+                            return contentItem;
+                        }
+                    })
+                );
+                
+                // 3. Set the state with the fully processed, viewable content list
+                setAttachableContent(contentWithSignedUrls);
+
+            } catch (error) {
+                console.error("Failed to fetch content for welcome message modal:", error);
+            }
+        };
+        fetchAndProcessContent();
+    }, []);
+    // --- END OF FIX ---
+
+    // Effect to find and set the details of the currently attached content
+    useEffect(() => {
+        const contentId = settingsData.creatorData?.welcomeMessage?.freeContentId;
+        if (contentId) {
+            const details = attachableContent.find(c => c._id === contentId);
+            setAttachedContentDetails(details || null);
+        } else {
+            setAttachedContentDetails(null);
+        }
+    }, [settingsData.creatorData?.welcomeMessage?.freeContentId, attachableContent]);
 
     const handleAddTier = () => {
     // DEBUG: Confirm the function is called
@@ -508,10 +618,12 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     onAvatarChange={handleAvatarChange}
                     onBannerChange={handleBannerChange}
                 />;
-            case 'Welcome Message': 
-                return <WelcomeMessagePanel 
-                    welcomeMessage={settingsData.creatorData?.welcomeMessage || {}} 
-                    onMessageChange={handleWelcomeMessageChange} 
+            case 'Welcome Message':
+                return <WelcomeMessagePanel
+                    welcomeMessage={settingsData.creatorData?.welcomeMessage || {}}
+                    onMessageChange={handleWelcomeMessageChange}
+                    onSelectContentClick={openWelcomeModal}
+                    attachedContent={attachedContentDetails}
                 />;
             case 'Payments': 
                 return <PaymentsSettingsPanel 
@@ -534,47 +646,55 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     };
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8">
-            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your profile, tiers, and payout information.</p>
+        <>
+            <WelcomeContentModal
+                isOpen={isWelcomeModalOpen}
+                onClose={closeWelcomeModal}
+                contentItems={attachableContent}
+                onSelect={(content) => handleWelcomeMessageChange('freeContentId', content._id)}
+            />
+            <div className="p-4 sm:p-6 lg:p-8">
+                <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your profile, tiers, and payout information.</p>
+                    </div>
+                    <div className="flex items-center gap-4 mt-4 sm:mt-0">
+                        {feedback && (
+                            <div className={`flex items-center gap-2 text-sm ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                                {feedback.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                {feedback.message}
+                            </div>
+                        )}
+                        <Button onClick={handleSaveChanges} isLoading={isSaving} leftIcon={Save}>
+                            Save All Changes
+                        </Button>
+                    </div>
+                </header>
+                <div className="flex flex-col md:flex-row gap-8">
+                    <aside className="md:w-1/4 lg:w-1/5">
+                        <nav className="space-y-1">
+                            {menuItems.map(item => (
+                                <button 
+                                    key={item.key} 
+                                    onClick={() => setActiveTab(item.key)} 
+                                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === item.key 
+                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-200' 
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
+                                    }
+                                >
+                                    <item.icon className="w-5 h-5" />
+                                    <span>{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </aside>
+                    <main className="flex-1">
+                        {renderContent()}
+                    </main>
                 </div>
-                <div className="flex items-center gap-4 mt-4 sm:mt-0">
-                    {feedback && (
-                        <div className={`flex items-center gap-2 text-sm ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                            {feedback.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            {feedback.message}
-                        </div>
-                    )}
-                    <Button onClick={handleSaveChanges} isLoading={isSaving} leftIcon={Save}>
-                        Save All Changes
-                    </Button>
-                </div>
-            </header>
-            <div className="flex flex-col md:flex-row gap-8">
-                <aside className="md:w-1/4 lg:w-1/5">
-                    <nav className="space-y-1">
-                        {menuItems.map(item => (
-                            <button 
-                                key={item.key} 
-                                onClick={() => setActiveTab(item.key)} 
-                                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === item.key 
-                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-200' 
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                                }
-                            >
-                                <item.icon className="w-5 h-5" />
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-                </aside>
-                <main className="flex-1">
-                    {renderContent()}
-                </main>
             </div>
-        </div>
+        </>
     );
 };
 

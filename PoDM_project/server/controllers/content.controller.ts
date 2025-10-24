@@ -15,12 +15,8 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const title = req.body.title || '';
-        const description = req.body.description || '';
-        const type = req.body.type || 'photo'; // Fallback to 'photo' if type is somehow missing
-        const visibility = req.body.visibility || 'subscribers_only';
+        const { title, description, type, visibility, tags } = req.body;
         const price = req.body.price ? Number(req.body.price) : undefined;
-        const tags = req.body.tags || []; // Assuming tags might be an array or comma-separated string
         const scheduleIsScheduled = req.body.scheduleIsScheduled === 'true';
         const schedulePublishDate = req.body.schedulePublishDate || undefined;
 

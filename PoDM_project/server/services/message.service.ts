@@ -146,7 +146,7 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
         text: newMessage.text,
         content: newMessage.content,
         isRead: newMessage.is_read,
-        createdAt: newMessage.created_at,
+        createdAt: new Date(newMessage.created_at).toISOString(),
     };
     
     io.to(roomName).emit('new_message', messageForFrontend);

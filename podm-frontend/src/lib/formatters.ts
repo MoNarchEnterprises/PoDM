@@ -63,6 +63,27 @@ export const formatDate = (dbString: string): string => {
 };
 
 /**
+ * Formats a date string into a short time string (e.g., "3:45 PM").
+ * This function is robust and handles non-standard date strings from the database.
+ * @param dbString - The date string to format.
+ * @returns A formatted time string.
+ */
+export const formatMessageTimestamp = (dbString: string): string => {
+    if (!dbString) return '';
+    try {
+        // The most reliable way to parse potentially non-standard timestamp strings
+        // is to replace the space between the date and time with a 'T'.
+        const isoString = dbString.replace(' ', 'T');
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return 'Invalid Date';
+
+        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch (e) {
+        return 'Invalid Date';
+    }
+};
+
+/**
  * Calculates a relative time string from a date string.
  * @param dbString - The date string to compare against the current time.
  * @returns A relative time string (e.g., "2 hours ago", "3 days ago").

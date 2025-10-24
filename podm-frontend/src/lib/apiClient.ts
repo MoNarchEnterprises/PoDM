@@ -325,6 +325,14 @@ export const getCreatorDashboardData = async () => {
 };
 
 /**
+ * Gets all the necessary data for the creator analytics page.
+ */
+export const getCreatorAnalyticsData = async () => {
+    const response = await apiClient.get('/creator/analytics');
+    return response.data;
+};
+
+/**
  * Logs an analytics event like a profile or post view.
  */
 export const logAnalyticsEvent = async (data: {

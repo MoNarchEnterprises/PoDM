@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { NextFunction, Request } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { AppError } from './error.middleware';
 
@@ -38,10 +38,33 @@ const fileFilter = (
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 100 * 1024 * 1024, // 100 MB limit
+        fileSize: 1024 * 1024 * 1024, // 100 MB limit
     },
     fileFilter: fileFilter,
 });
+
+/**
+ * A dedicated error handling middleware for Multer.
+ * This runs after the upload and catches specific upload errors,
+ * like the file being too large, and formats them nicely for the frontend.
+ */
+export const handleUploadErrors = (err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            // Pass a user-friendly AppError to our global error handler.
+            return next(new AppError('File is too large. The maximum size is 1GB.', 400));
+        }
+        // Handle other potential Multer errors here if needed.
+        return next(new AppError(`File upload error: ${err.message}`, 400));
+    } else if (err) {
+        // An unknown error occurred when uploading.
+        return next(err);
+    }
+
+    // If no error, proceed to the next middleware (the controller).
+    next();
+};
 
 /**
  * Middleware for handling content uploads.

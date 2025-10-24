@@ -8,9 +8,12 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import { reshapeSubscriptionForApp } from '../utils/subscription.utils';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import { SubscriptionTier } from '@common/types/Creator';
-import * as TransactionModel from '../models/transaction.model'; // <-- 1. IMPORT TRANSACTION MODEL
-import { DEFAULT_COMMISSION_RATE } from '../../lib/constants'; // <-- 2. IMPORT COMMISSION RATE
+import * as TransactionModel from '../models/transaction.model';
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import supabase from '../config/supabaseClient';
+import * as MessageService from './message.service'; // 1. IMPORT THE MESSAGE SERVICE
+import * as ContentModel from '../models/content.model'; // 2. IMPORT THE CONTENT MODEL
+
 /**
  * Creates a new subscription for an authenticated fan. This is the primary service
  * for all subscription creations, used by both new signups and existing users.
@@ -96,6 +99,39 @@ export const createSubscriptionForUser = async (
             end_date: null,
             next_billing_date: new Date(periodEnd * 1000).toISOString(),
         });
+
+        // --- 3. ADD THE WELCOME MESSAGE LOGIC HERE ---
+        try {
+            const welcomeConfig = creator.creator_data.welcomeMessage;
+            if (welcomeConfig && welcomeConfig.isActive && welcomeConfig.message) {
+                let contentPayload = undefined;
+                // If there's content to attach, fetch its details
+                if (welcomeConfig.freeContentId) {
+                    const content = await ContentModel.findContentById(welcomeConfig.freeContentId);
+                    if (content && content.files && content.files.length > 0) {
+                        contentPayload = {
+                            contentId: content.id,
+                            type: content.type,
+                            thumbnailUrl: content.files[0].thumbnailUrl,
+                            isPaid: false, // Welcome content is always free
+                            price: 0,
+                            isUnlocked: true,
+                        };
+                    }
+                }
+                // Send the message from the creator to the new fan
+                await MessageService.sendDirectMessage(creatorId, fanId, {
+                    text: welcomeConfig.message,
+                    content: contentPayload,
+                });
+                console.log(`[SubService] Successfully sent welcome message from ${creatorId} to ${fanId}.`);
+            }
+        } catch (welcomeError) {
+            // IMPORTANT: Do not throw an error. A failed welcome message should not
+            // cause the entire subscription process to fail for the user. Just log it.
+            console.error(`[SubService] CRITICAL: Failed to send welcome message for new subscription ${dbSubscription?.id}. Error:`, welcomeError);
+        }
+        // --- END OF WELCOME MESSAGE LOGIC ---
 
         // 7. If the initial invoice was paid, create the transaction record immediately.
         if (latestInvoice && latestInvoice.status === 'paid') {

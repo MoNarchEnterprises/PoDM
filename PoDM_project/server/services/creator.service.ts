@@ -10,6 +10,7 @@ import supabase from '../../server/config/supabaseClient';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import * as AnalyticsService from './analytics.service';
 import stripe from '../config/stripeClient';
+import { Content } from '@common/types/Content';
 
 
 
@@ -113,6 +114,85 @@ export const getDashboardData = async (creatorId: string) => {
 
 
     return dashboardData;
+};
+
+/**
+ * Gathers and computes all data needed for the creator analytics page.
+ * @param creatorId - The ID of the creator.
+ */
+export const getAnalyticsData = async (creatorId: string) => {
+    // --- 1. Fetch data for Key Metrics ---
+    const today = new Date();
+    const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
+
+    const [
+        totalSubscribers,
+        newSubscribersLast30Days,
+        revenueLast30Days,
+        totalViews,
+        { data: contentStats, error: contentStatsError },
+    ] = await Promise.all([
+        SubscriptionModel.findSubscriptionsByCreator(creatorId).then(subs => subs?.length || 0),
+        SubscriptionModel.countNewSubscribersInPeriod(creatorId, thirtyDaysAgo),
+        TransactionModel.sumCreatorEarningsForPeriod(creatorId, thirtyDaysAgo, today),
+        AnalyticsService.countEventsForCreator(creatorId, 'post_view'),
+        supabase.from('content').select('stats').eq('creator_id', creatorId),
+    ]);
+
+    if (contentStatsError) throw new AppError('Could not fetch content stats.', 500);
+
+    const totalGalleryAdds = contentStats.reduce((sum, item) => sum + (item.stats?.galleryAdds || 0), 0);
+
+    // --- 2. Fetch data for Subscriber Growth Chart ---
+    const subscriberGrowth = [];
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const monthName = date.toLocaleString('default', { month: 'short' });
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+
+        // For simplicity, we'll count new subs in that month. A more complex query could get the total count at that point in time.
+        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creatorId, startOfMonth);
+        subscriberGrowth.push({ name: monthName, Subscribers: newSubs });
+    }
+
+    // --- 3. Fetch data for Revenue Breakdown Pie Chart ---
+    const { data: revenueData, error: revenueError } = await supabase
+        .from('transactions')
+        .select('type, creator_payout')
+        .eq('creator_id', creatorId)
+        .eq('status', 'Cleared');
+
+    if (revenueError) throw new AppError('Could not fetch revenue data.', 500);
+
+    const revenueBreakdown = revenueData.reduce((acc, tx) => {
+        const typeName = tx.type === 'PPV Message' || tx.type === 'PPV Post' ? 'PPV' : tx.type;
+        acc[typeName] = (acc[typeName] || 0) + tx.creator_payout;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // --- 4. Fetch Top Performing Content ---
+    const { data: topContentData, error: topContentError } = await supabase
+        .from('content')
+        .select('*')
+        .eq('creator_id', creatorId)
+        .order('stats->>galleryAdds', { ascending: false, nullsFirst: false } as any) // Order by gallery adds in the JSONB field
+        .limit(5);
+
+    if (topContentError) throw new AppError('Could not fetch top content.', 500);
+
+    // --- 5. Assemble final payload ---
+    return {
+        metrics: {
+            totalSubscribers: { value: totalSubscribers, change: newSubscribersLast30Days },
+            monthlyRevenue: { value: revenueLast30Days, change: 0 }, // Change calculation requires more historical data
+            totalViews: { value: totalViews, change: 0 },
+            galleryAdds: { value: totalGalleryAdds, change: 0 },
+        },
+        subscriberGrowth,
+        revenueBreakdown: Object.entries(revenueBreakdown).map(([name, value]) => ({ name, value })),
+        topContent: topContentData.map(item => ({...item, _id: item.id.toString()})) as Content[],
+    };
 };
 
 /**

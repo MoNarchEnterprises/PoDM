@@ -1,7 +1,7 @@
 // /server/routes/creator.routes.ts
 
 import { Router } from 'express';
-import { getCreatorDashboard, updateCreatorSettings, getCreatorEarnings, requestPayout } from '../controllers/creator.controller';
+import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout } from '../controllers/creator.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
 import { uploadBanner } from '../middleware/upload.middleware'; 
 
@@ -22,6 +22,14 @@ router.get('/dashboard', protect, creatorOnly, getCreatorDashboard);
  */
 // 2. Add the new PUT route
 router.put('/settings', protect, creatorOnly, uploadBanner, updateCreatorSettings);
+
+/**
+ * @route   GET /api/v1/creator/analytics
+ * @desc    Get all data for the creator analytics page
+ * @access  Private (Creators only)
+ */
+router.get('/analytics', protect, creatorOnly, getCreatorAnalytics);
+
 
 /**
  * @route   GET /api/v1/creator/earnings

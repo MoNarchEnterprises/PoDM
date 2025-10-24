@@ -24,6 +24,23 @@ export const getCreatorDashboard = async (req: Request, res: Response, next: Nex
 };
 
 /**
+ * @desc    Get all data for the creator analytics page
+ * @route   GET /api/v1/creator/analytics
+ * @access  Private (Creators only)
+ */
+export const getCreatorAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?._id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, creator ID not found.', 401);
+        }
+        const analyticsData = await CreatorService.getAnalyticsData(creatorId);
+        res.status(200).json({ success: true, data: analyticsData });
+    } catch (error) {
+        next(error);
+    }
+};
+/**
  * @desc    Get all data for the creator earnings page
  * @route   GET /api/v1/creator/earnings
  * @access  Private (Creators only)

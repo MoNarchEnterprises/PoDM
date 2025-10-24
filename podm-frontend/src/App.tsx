@@ -191,7 +191,31 @@ const CreatorDashboardLoader = () => {
 };
 
 
-const CreatorAnalyticsLoader = () => { return <CreatorAnalytics metrics={{} as any} subscriberGrowth={[]} revenueBreakdown={[]} topContent={[]} />; };
+const CreatorAnalyticsLoader = () => {
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await apiClient.getCreatorAnalyticsData();
+                setData(response.data);
+            } catch (err) {
+                setError('Could not load analytics data.');
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (isLoading) return <div className="p-8 text-center">Loading Analytics...</div>;
+    if (error || !data) return <div className="p-8 text-center text-red-500">{error || 'Data could not be loaded.'}</div>;
+
+    return <CreatorAnalytics metrics={data.metrics} subscriberGrowth={data.subscriberGrowth} revenueBreakdown={data.revenueBreakdown} topContent={data.topContent} />;
+};
 
 const CreatorEarningsLoader = () => {
     const [data, setData] = useState<any>(null);
