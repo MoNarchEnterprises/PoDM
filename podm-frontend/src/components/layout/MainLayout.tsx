@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'; // Import Link and useLoca
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
 import VerificationBanner from '../shared/VerificationBanner';
-
+import ImpersonationBanner from '../shared/ImpersonationBanner'; 
 // --- Types ---
 
 export interface NavItem {
@@ -28,7 +28,9 @@ interface MainLayoutProps {
 
 const Sidebar = ({ logoText, navItems }: SidebarProps) => {
     const location = useLocation(); // Get the current location
-    const { user } = useAuth(); // 2. Get the current user from the auth context
+    const { user, impersonatedUser } = useAuth(); // 2. Get the current user from the auth context
+
+    const currentUser = impersonatedUser || user;
 
     return (
         <nav className="w-64 bg-white dark:bg-gray-800/30 p-4 border-r border-gray-200 dark:border-gray-700/50 hidden lg:flex flex-col">
@@ -36,7 +38,7 @@ const Sidebar = ({ logoText, navItems }: SidebarProps) => {
             <ul className="space-y-2">
                 {navItems.map(item => {
                     // Hide messages link for creators who are not fully verified ('active')
-                    if (item.key === 'messages' && user?.role === 'creator' && user.status !== 'active') {
+                    if (item.key === 'messages' && currentUser?.role === 'creator' && currentUser.status !== 'active') {
                         return null;
                     }
                     // Determine if the link is active by checking if the current path starts with the link's href
@@ -67,19 +69,17 @@ const Sidebar = ({ logoText, navItems }: SidebarProps) => {
 // --- Main Layout Component ---
 
 const MainLayout = ({ logoText, navItems, children }: MainLayoutProps) => {
-    // 2. Get the full user object from the auth context
-    const { user } = useAuth();
-
-    // 3. Determine if the banner should be shown
-    const shouldShowBanner = user && user.role === 'creator' && user.status !== 'active';
+    const { user, impersonatedUser } = useAuth();
+    const shouldShowVerificationBanner = user && user.role === 'creator' && user.status !== 'active';
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
             <div className="flex">
                 <Sidebar logoText={logoText} navItems={navItems} />
                 <main className="flex-1 h-screen overflow-y-auto">
-                    {/* 4. Conditionally render the banner at the top of the main content area */}
-                    {shouldShowBanner && (
+                    {/* 2. ADD THE IMPERSONATION BANNER HERE */}
+                    <ImpersonationBanner />
+                    {shouldShowVerificationBanner && (
                         <VerificationBanner status={user.status as 'pending verification' | 'suspended' | 'banned'} />
                     )}
                     {children}

@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Home, FileText, MessageSquare, BarChart2, Settings, DollarSign, Users, Eye, Bookmark, MoreVertical } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import React from 'react';
 
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
@@ -33,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // --- Main Analytics Page Component ---
-interface CreatorAnalyticsPageProps {
+export interface CreatorAnalyticsPageProps {
     metrics: KeyMetrics;
     subscriberGrowth: SubscriberGrowthData[];
     revenueBreakdown: RevenueBreakdownData[];

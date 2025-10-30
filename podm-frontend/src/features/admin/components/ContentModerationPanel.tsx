@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Shield, CheckCircle, Trash2, AlertTriangle, Slash } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';

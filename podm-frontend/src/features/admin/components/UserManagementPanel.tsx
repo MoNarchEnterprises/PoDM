@@ -15,7 +15,8 @@ import * as apiClient from '../../../lib/apiClient';
 import Input from '../../../components/ui/Input'; // Add Input import
 import Button from '../../../components/ui/Button'; // Add Button import
 import { DEFAULT_COMMISSION_RATE } from '../../../lib/constants'; // Import default rate
-
+import { useAuth } from '../../../hooks/useAuth'; 
+import { Creator } from '@common/types/Creator';
 
 // --- Reusable Sub-Components ---
 
@@ -27,7 +28,7 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
         // When the modal opens, set the input value to the user's current rate
         // or the platform default if they don't have a custom one.
         if (user) {
-            setRate(user.commission_rate?.toString() || DEFAULT_COMMISSION_RATE.toString());
+            setRate((user as Creator).commission_rate?.toString() || DEFAULT_COMMISSION_RATE.toString());
         }
     }, [user]);
 
@@ -79,14 +80,21 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
 };
 
 
-const UserActionsMenu = ({ user, onManageCommission, onViewVerification, onUpdateStatus }: { user: User; onManageCommission: () => void; onViewVerification: () => void; onUpdateStatus: (user: User, status: UserStatus) => void; }) => {
+const UserActionsMenu = ({ user, currentUser, onManageCommission, onViewVerification, onUpdateStatus, onImpersonate }: {
+    user: User;
+    currentUser: User | null;
+    onManageCommission: () => void;
+    onViewVerification: () => void;
+    onUpdateStatus: (user: User, status: UserStatus) => void;
+    onImpersonate: (user: User) => void;
+}) => {
     const { isOpen, openModal, closeModal } = useModal();
     const menuRef = useRef<HTMLDivElement>(null);
     useOnClickOutside(menuRef, closeModal);
 
     const actions = [
         { label: 'View Verification', icon: Shield, show: user.status === 'pending verification', action: onViewVerification },
-        { label: 'Impersonate User', icon: Eye, show: true, action: () => {} },
+        { label: 'Impersonate User', icon: Eye, show: user._id !== currentUser?._id, action: () => onImpersonate(user) },
         { label: 'Manage Commission', icon: Percent, show: user.role === 'creator', action: onManageCommission },
         { label: 'Suspend User', icon: Ban, show: user.status === 'active', action: () => onUpdateStatus(user, 'suspended') },
         { label: 'Un-suspend User', icon: Undo, show: user.status === 'suspended', action: () => onUpdateStatus(user, 'active') },
@@ -120,8 +128,8 @@ const UserActionsMenu = ({ user, onManageCommission, onViewVerification, onUpdat
 
 // --- Main User Management Panel Component ---
 const UserManagementPanel = () => {
-    // 2. GET THE setData FUNCTION FROM THE HOOK
     const { data, setData } = useAdminData();
+    const { user: currentUser, startImpersonation } = useAuth();
     const [viewingVerificationId, setViewingVerificationId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ type: 'All', status: 'All' });
@@ -212,6 +220,18 @@ const UserManagementPanel = () => {
             alert("An error occurred. Please try again.");
         }
     };
+
+    const handleImpersonate = async (targetUser: User) => {
+        if (!window.confirm(`Are you sure you want to impersonate "${targetUser.profile.name}"? You will be logged in as them.`)) {
+            return;
+        }
+        try {
+            await startImpersonation(targetUser);
+        } catch (error: any) {
+            alert(`Failed to start impersonation: ${error.message}`);
+            console.error(error);
+        }
+    };
     
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -290,9 +310,11 @@ const UserManagementPanel = () => {
                                        <td className="px-4 py-3 text-center">
                                            <UserActionsMenu 
                                                user={user} 
+                                               currentUser={currentUser}
                                                onManageCommission={() => handleManageCommission(user)} 
                                                onViewVerification={() => setViewingVerificationId(user._id)}
                                                onUpdateStatus={handleUpdateStatus}
+                                               onImpersonate={handleImpersonate}
                                            />
                                        </td>
                                    </tr>

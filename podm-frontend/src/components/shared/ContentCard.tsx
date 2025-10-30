@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useStripe } from '@stripe/react-stripe-js';
-import { Lock, DollarSign, Bookmark, CheckCircle } from 'lucide-react';
+import { Lock, DollarSign, Bookmark } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';

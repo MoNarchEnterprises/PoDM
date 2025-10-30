@@ -14,7 +14,7 @@ import { useModal } from '../../hooks/useModal';
 import * as apiClient from '../../lib/apiClient';
 
 // --- Local Type Definitions ---
-interface FanSettingsData {
+export interface FanSettingsData {
     notifications: { newContent?: boolean; creatorLive?: boolean; emailPromotions?: boolean; };
     privacy: { showInSearch?: boolean; showSubscriptions?: boolean; };
     paymentMethod: { brand: string; last4: string; };

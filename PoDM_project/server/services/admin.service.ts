@@ -148,10 +148,9 @@ export const getAdminUsers = async () => {
     const shapedAdmins = await Promise.all(adminsFromDb.map(async (admin: User) => {
         const { data: { user: authUser } } = await supabase.auth.admin.getUserById(admin.id);
         // 3. UPDATE to use reshapeUserForApp
-        return authUser ? reshapeUserForApp(admin, authUser) : null;
+        return authUser ? reshapeUserForApp(admin) : null;
     }));
-    console.log('Shaped admins:', shapedAdmins);
-    return shapedAdmins.filter(admin => admin !== null) as User[];
+    return shapedAdmins.filter((admin: null) => admin !== null) as User[];
 };
 
 /**

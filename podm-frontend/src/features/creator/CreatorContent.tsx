@@ -95,6 +95,21 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
     };
 
     const handleSubmit = async () => {
+        setError(null); // Clear previous errors
+    
+        // 1. Define the current file size limit in bytes (50MB).
+        const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+
+        // 2. Perform frontend validation before doing anything else.
+        if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].size > MAX_FILE_SIZE_BYTES) {
+                    setError(`File "${files[i].name}" is too large. The maximum size is 50MB on the current plan.`);
+                    return; // Stop the submission process
+                }
+            }
+        }
+
         // --- Validation ---
         if (!title) {
             setError('A title is required.');

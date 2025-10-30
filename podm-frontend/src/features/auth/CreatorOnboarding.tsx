@@ -50,7 +50,6 @@ const CreatorOnboardingPage = () => {
         tiers: [{ name: 'Default Tier', price: 9.99, features: ["All content access", "Direct Messages (DMs)"] }]
     });
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const totalSteps = 4;
 
     const nextStep = () => setStep(prev => Math.min(prev + 1, totalSteps));
@@ -81,12 +80,10 @@ const CreatorOnboardingPage = () => {
 
     const handleSubmit = async () => {
         setIsLoading(true);
-        setError(null);
         try {
             await apiClient.completeCreatorOnboarding(formData);
             navigate('/verification');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred.');
             setIsLoading(false);
         }
     };

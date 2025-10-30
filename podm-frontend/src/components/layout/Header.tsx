@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, LogIn, UserPlus, Bell, MessageSquare, LogOut, User as UserIcon, Settings } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+
+import { Search, MessageSquare, Bell, LogOut, User as UserIcon, Settings } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User } from '@common/types/User';
@@ -64,18 +65,20 @@ const ProfileDropdown = ({ user }: { user: User }) => {
 
 interface HeaderProps {
     user?: User | null; // User can be null if not logged in
+    impersonatedUser?: User | null;
     logoText?: string;
     onLoginClick: () => void;
     onSignUpClick: () => void;
 }
 
-const Header = ({ user, logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
+const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
+    const currentUser = impersonatedUser || user;
     return (
         <header className="bg-white dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 <div className="text-purple-500 font-bold text-2xl">{logoText}</div>
                 
-                {user ? (
+                {currentUser ? (
                     // Logged-in state
                     <div className="flex items-center space-x-2">
                         <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -84,7 +87,7 @@ const Header = ({ user, logoText = "PoDM", onLoginClick, onSignUpClick }: Header
                         <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
                             <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                         </button>
-                        <ProfileDropdown user={user} />
+                        <ProfileDropdown user={currentUser} />
                     </div>
                 ) : (
                     // Logged-out state

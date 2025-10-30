@@ -6,9 +6,9 @@ import * as apiClient from './lib/apiClient';
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
-import { User } from '@common/types/User';
+import { GalleryItem } from '@common/types/Gallery';
 
-// --- Import Reusable Layouts & Hooks ---
+// --- Reusable Layouts & Hooks ---
 import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './hooks/useAuth';
 import { FAN_NAV_ITEMS, CREATOR_NAV_ITEMS, ADMIN_NAV_ITEMS } from './lib/constants';
@@ -51,20 +51,6 @@ const SupportTicketsPanel = React.lazy(() => import('./features/admin/components
 const SettingsPanel = React.lazy(() => import('./features/admin/components/SettingsPanel'));
 
 
-// --- Prop Type Definitions for Pages ---
-// Note: These are kept for components that are passed props, like ContentViewerPage
-interface ContentViewerPageProps { content: Content; creator: Creator; relatedContent: Content[]; }
-interface FanGalleryProps { galleryData: any[]; }
-interface FanSubscriptionsProps { initialSubscriptions: any[]; }
-interface FanMessagesProps { initialConversations: any[]; currentFanId: string; }
-interface FanSettingsProps { fan: User; settings: any; }
-interface CreatorDashboardProps { creator: Creator; metrics: any; recentActivity: any[]; monthlyEarnings: any[]; }
-interface CreatorMessagesProps { initialConversations: any[]; existingContent: Content[]; currentCreatorId: string; }
-interface CreatorAnalyticsProps { metrics: any; subscriberGrowth: any[]; revenueBreakdown: any[]; topContent: Content[]; }
-interface CreatorEarningsProps { summary: any; monthlyEarnings: any[]; transactions: any[]; }
-interface CreatorSettingsProps { creator: Creator; }
-
-
 // --- Page Loader Components ---
 // This component now just renders the lazy-loaded CreatorProfilePage,
 // which handles its own data fetching.
@@ -74,14 +60,14 @@ const ContentViewerLoader = () => {
     const { contentId } = useParams<{ contentId: string }>();
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<{ content: Content; creator: Creator; relatedContent: Content[] } | null>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData({} as any); }, [contentId]);
+    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData(null); }, [contentId]);
     if (isLoading || !data) return <div>Loading Content...</div>;
     return <ContentViewerPage content={data.content} creator={data.creator} relatedContent={data.relatedContent} />;
 };
 
 
 const FanGalleryLoader = () => {
-    const [galleryData, setGalleryData] = useState<any[]>([]);
+    const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -112,41 +98,13 @@ const FanGalleryLoader = () => {
     return <FanGallery galleryData={galleryData} />;
 };
 
-const FanSubscriptionsLoader = () => {
-    const [subscriptions, setSubscriptions] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchSubscriptions = async () => {
-            setIsLoading(true);
-            try {
-                const response = await apiClient.getFanSubscriptions();
-                setSubscriptions(response.data);
-            } catch (err) {
-                setError("Failed to load your subscriptions.");
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSubscriptions();
-    }, []);
 
-    if (isLoading) {
-        return <div className="p-8 text-center">Loading Subscriptions...</div>;
-    }
 
-    if (error) {
-        return <div className="p-8 text-center text-red-500">{error}</div>;
-    }
-
-    return <FanSubscriptions />;
-};
-
+import { FanSettingsData, FanUser } from './features/fan/FanSettings';
 
 const FanSettingsLoader = () => {
-    const [settingsData, setSettingsData] = useState<any>(null);
+    const [settingsData, setSettingsData] = useState<{ fan: FanUser; settings: FanSettingsData } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -191,8 +149,11 @@ const CreatorDashboardLoader = () => {
 };
 
 
+import { CreatorAnalyticsPageProps } from './features/creator/CreatorAnalytics';
+import { CreatorEarningsPageProps } from './features/creator/CreatorEarnings';
+
 const CreatorAnalyticsLoader = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<CreatorAnalyticsPageProps | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -218,7 +179,7 @@ const CreatorAnalyticsLoader = () => {
 };
 
 const CreatorEarningsLoader = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<CreatorEarningsPageProps | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -292,69 +253,68 @@ const stripePromise = loadStripe(stripeKey);
 const App = () => {
     return (
         <Elements stripe={stripePromise}>
-        <AuthProvider>
             <BrowserRouter>
-                <React.Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading Page...</div>}>
-                    <Routes>
-                        {/* --- Public Routes --- */}
-                        <Route path="/" element={<SplashPage />} />
-                        <Route path="/creator/:username" element={<CreatorProfileLoader />} />
-                        <Route path="/content/:contentId" element={<ContentViewerLoader />} />
-                        
-                        {/* --- Auth Routes --- */}
-                        <Route path="/reset-password" element={<ResetPasswordPage />} />
-                        <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
-                        <Route path="/verification" element={<CreatorVerification />} />
-                        <Route path="/admin/login" element={<AdminLoginPage />} />
+                <AuthProvider>
+                    <React.Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading Page...</div>}>
+                        <Routes>
+                            {/* --- Public Routes --- */}
+                            <Route path="/" element={<SplashPage />} />
+                            <Route path="/creator/:username" element={<CreatorProfileLoader />} />
+                            <Route path="/content/:contentId" element={<ContentViewerLoader />} />
+                            
+                            {/* --- Auth Routes --- */}
+                            <Route path="/reset-password" element={<ResetPasswordPage />} />
+                            <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
+                            <Route path="/verification" element={<CreatorVerification />} />
+                            <Route path="/admin/login" element={<AdminLoginPage />} />
 
-                        {/* --- Fan Routes (Protected) --- */}
-                        <Route path="/fan" element={<FanLayout />}>
-                            <Route index element={<FanFeed />} />
-                            <Route path="feed" element={<FanFeed />} />
-                            <Route path="gallery" element={<FanGalleryLoader />} />
-                            <Route path="subscriptions" element={<FanSubscriptions />} />
-                            <Route path="messages" element={<FanMessages />} />
-                            <Route path="settings" element={<FanSettingsLoader />} />
-                        </Route>
-
-                        {/* --- Creator Routes (Protected) --- */}
-                        <Route element={<CreatorRouteGuard />}>
-                            <Route path="/hub" element={<CreatorLayout />}>
-                               {/* The nested routes are now correct relative to "/hub" */}
-                               <Route index element={<CreatorDashboardLoader />} />
-                               <Route path="dashboard" element={<CreatorDashboardLoader />} />
-                               <Route path="content" element={<CreatorContent />} />
-                               <Route path="messages" element={<CreatorMessages />} />
-                               <Route path="analytics" element={<CreatorAnalyticsLoader />} />
-                               <Route path="earnings" element={<CreatorEarningsLoader />} />
-                               <Route path="settings" element={<CreatorSettingsLoader />} />
+                            {/* --- Fan Routes (Protected) --- */}
+                            <Route path="/fan" element={<FanLayout />}>
+                                <Route index element={<FanFeed />} />
+                                <Route path="feed" element={<FanFeed />} />
+                                <Route path="gallery" element={<FanGalleryLoader />} />
+                                <Route path="subscriptions" element={<FanSubscriptions />} />
+                                <Route path="messages" element={<FanMessages />} />
+                                <Route path="settings" element={<FanSettingsLoader />} />
                             </Route>
-                        </Route>
 
-                        {/* --- Admin Routes (Protected) --- */}
-                        <Route element={<ProtectedRoute requiredRole="admin" />}>
-                            <Route path="/admin" element={<AdminLayout />}>
-                                {/* The AdminPanel now acts as a data loader and provides the Outlet */}
-                                <Route element={<AdminPanel />}>
-                                    <Route index element={<DashboardPanel />} />
-                                    <Route path="dashboard" element={<DashboardPanel />} />
-                                    <Route path="users" element={<UserManagementPanel />} />
-                                    <Route path="content" element={<ContentModerationPanel />} />
-                                    <Route path="analytics" element={<AnalyticsPanel />} />
-                                    <Route path="reports" element={<ReportsPanel />} />
-                                    <Route path="support" element={<SupportTicketsPanel />} />
-                                    <Route path="settings" element={<SettingsPanel />} />
+                            {/* --- Creator Routes (Protected) --- */}
+                            <Route element={<CreatorRouteGuard />}>
+                                <Route path="/hub" element={<CreatorLayout />}>
+                                {/* The nested routes are now correct relative to "/hub" */}
+                                <Route index element={<CreatorDashboardLoader />} />
+                                <Route path="dashboard" element={<CreatorDashboardLoader />} />
+                                <Route path="content" element={<CreatorContent />} />
+                                <Route path="messages" element={<CreatorMessages />} />
+                                <Route path="analytics" element={<CreatorAnalyticsLoader />} />
+                                <Route path="earnings" element={<CreatorEarningsLoader />} />
+                                <Route path="settings" element={<CreatorSettingsLoader />} />
                                 </Route>
                             </Route>
-                        </Route>
 
-                    </Routes>
-                </React.Suspense>
+                            {/* --- Admin Routes (Protected) --- */}
+                            <Route element={<ProtectedRoute requiredRole="admin" />}>
+                                <Route path="/admin" element={<AdminLayout />}>
+                                    {/* The AdminPanel now acts as a data loader and provides the Outlet */}
+                                    <Route element={<AdminPanel />}>
+                                        <Route index element={<DashboardPanel />} />
+                                        <Route path="dashboard" element={<DashboardPanel />} />
+                                        <Route path="users" element={<UserManagementPanel />} />
+                                        <Route path="content" element={<ContentModerationPanel />} />
+                                        <Route path="analytics" element={<AnalyticsPanel />} />
+                                        <Route path="reports" element={<ReportsPanel />} />
+                                        <Route path="support" element={<SupportTicketsPanel />} />
+                                        <Route path="settings" element={<SettingsPanel />} />
+                                    </Route>
+                                </Route>
+                            </Route>
+
+                        </Routes>
+                    </React.Suspense>
+                </AuthProvider>
             </BrowserRouter>
-        </AuthProvider>
         </Elements>
     );
-
 };
 
 export default App;

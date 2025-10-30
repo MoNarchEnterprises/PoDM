@@ -1,8 +1,4 @@
 import React, { useState } from 'react';
-import { Paperclip } from 'lucide-react';
-
-// --- Import Shared Types ---
-import { SupportTicket, TicketStatus } from '@common/types/SupportTicket';
 
 // --- Import Custom Hooks ---
 import { useAdminData } from '../AdminPanel';

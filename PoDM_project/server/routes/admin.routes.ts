@@ -115,5 +115,5 @@ router.put('/users/:id/commission', setCreatorCommission);
  */
 router.get('/users/:id/verification-docs', getCreatorVerificationDocs);
 
-    
+
 export default router;

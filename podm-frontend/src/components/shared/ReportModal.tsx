@@ -22,10 +22,6 @@ interface ReportModalProps {
      */
     isOpen: boolean;
     /**
-     * A function to be called when the modal is requested to be closed.
-     */
-    onClose: () => void;
-    /**
      * The type of item being reported (e.g., 'Content', 'User').
      */
     reportType: 'Content' | 'User';
@@ -39,7 +35,7 @@ interface ReportModalProps {
     onSubmit: (reason: string, details: string) => void;
 }
 
-const ReportModal = ({ isOpen, onClose, reportType, targetName, onSubmit }: ReportModalProps) => {
+const ReportModal = ({ isOpen, reportType, targetName, onSubmit }: ReportModalProps) => {
     const [reason, setReason] = useState('Inappropriate Content');
     const [details, setDetails] = useState('');
 

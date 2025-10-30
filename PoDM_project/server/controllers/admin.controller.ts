@@ -4,6 +4,8 @@ import { AppError } from '../middleware/error.middleware';
 // --- Import Service Functions ---
 import * as AdminService from '../services/admin.service';
 
+
+
 /**
  * @desc    Get key metrics for the admin dashboard
  * @route   GET /api/v1/admin/dashboard
@@ -28,7 +30,6 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const users = await AdminService.getAllUsers(req.query);
-        console.log(`Users: ${users[0]?.profile?.name}, ${users[0]?.email}, ${users[0]?.role}, ${users[0]?.status}`);
         res.status(200).json({ success: true, data: users });
     } catch (error) {
         next(error);

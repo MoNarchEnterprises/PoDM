@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 // --- Import Reusable Components & Helpers ---
-import StatCard from '../../../components/shared/StatCard';
+
 import { formatCurrency } from '../../../lib/formatters';
 import { useAdminData } from '../AdminPanel'; // Import the custom hook
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './src/App'; // Adjust path if needed
+import App from './App'; // Adjust path if needed
 
 describe('Frontend App Component', () => {
   it('should render the App component without crashing', () => {

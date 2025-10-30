@@ -35,17 +35,18 @@ const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
     (config) => {
-        // In a real app, you would get the token from a secure place like
-        // localStorage, a cookie, or your authentication context (useAuth hook).
-        const token = localStorage.getItem('authToken'); 
+        const token = localStorage.getItem('authToken');
+        const impersonatingUserId = localStorage.getItem('impersonating_user_id');
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        // If the request data is FormData (i.e., a file upload),
-        // we must remove the default 'Content-Type' header.
-        // This allows the browser to automatically set the correct
-        // 'multipart/form-data' header with the required boundary.
+
+        if (impersonatingUserId) {
+            console.log('[apiClient] Sending X-Impersonating-User-Id:', impersonatingUserId);
+            config.headers['X-Impersonating-User-Id'] = impersonatingUserId;
+        }
+
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
         }
@@ -591,5 +592,15 @@ export const createSetupIntent = async () => {
     const response = await apiClient.post('/users/me/setup-payment-method');
     return response.data;
 };
+
+/**
+ * Fetches a user by their ID.
+ * @param userId - The ID of the user to fetch.
+ */
+export const getUserById = async (userId: string) => {
+    const response = await apiClient.get<{ success: boolean, data: User }>(`/users/${userId}`);
+    return response.data;
+};
+
 
 export default apiClient;

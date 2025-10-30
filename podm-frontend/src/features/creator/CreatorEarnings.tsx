@@ -142,7 +142,7 @@ const TransactionRow = ({ transaction }: { transaction: TransactionWithFan }) =>
 };
 
 // --- Main Earnings Page Component ---
-interface CreatorEarningsPageProps {
+export interface CreatorEarningsPageProps {
     summary: EarningsSummary;
     monthlyEarnings: MonthlyEarningsData[];
     transactions: TransactionWithFan[];

@@ -10,6 +10,7 @@ declare global {
     namespace Express {
         interface Request {
             user?: User;
+            originalUser?: User; // Add originalUser for impersonation
         }
     }
 }
@@ -67,6 +68,27 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
             // Attach the complete, reshaped user profile to the request object
             req.user = reshapeUserForApp(userProfile);
+
+            // --- Impersonation Logic (moved from impersonation.middleware) ---
+            const impersonatingUserId = req.headers['x-impersonating-user-id'] as string;
+            if (impersonatingUserId && req.user.role === 'admin') {
+                try {
+                    const targetUser = await findUserById(impersonatingUserId);
+                    if (!targetUser) {
+                        console.warn(`[Protect] Impersonated user ID ${impersonatingUserId} not found.`);
+                        // Continue as admin if impersonated user not found
+                    } else {
+                        req.originalUser = req.user; // Store the original admin user
+                        req.user = reshapeUserForApp(targetUser); // Set req.user to the impersonated user
+                        console.log(`[Protect] Admin '${req.originalUser.email}' is now impersonating '${req.user.email}'.`);
+                    }
+                } catch (impersonationError) {
+                    console.error('[Protect] Error during impersonation attempt:', impersonationError);
+                    // Continue as admin if impersonation fails
+                }
+            }
+            // --- End Impersonation Logic ---
+
             console.log('[Protect] User attached to request. Proceeding...');
             
             next();
@@ -87,6 +109,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
  */
 export const creatorOnly = (req: Request, res: Response, next: NextFunction) => {
     console.log('[CreatorOnly] Checking user role...');
+    console.log(`[CreatorOnly] req.user.role: ${req.user?.role}`);
     if (req.user && req.user.role === 'creator') {
         console.log(`[CreatorOnly] Access granted for role: ${req.user.role}`);
         next();

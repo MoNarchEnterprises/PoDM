@@ -49,7 +49,12 @@ app.post(
 );
 
 // This middleware is for all other routes
-app.use(express.json()); // This will now work
+// Increase the body limit for JSON and URL-encoded requests.
+// This must be large enough to accommodate the base64/multipart encoding of large files.
+// We'll set it slightly larger than the multer limit as a safeguard.
+app.use(express.json({ limit: '1100mb' }));
+app.use(express.urlencoded({ limit: '1100mb', extended: true }));
+
 
 // Register all other API routes
 app.use('/api/v1/auth', authRoutes);

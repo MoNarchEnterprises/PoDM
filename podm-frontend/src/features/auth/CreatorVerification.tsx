@@ -19,7 +19,6 @@ const CreatorVerificationPage = () => {
     
     // --- Add loading and error state ---
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
@@ -36,7 +35,6 @@ const CreatorVerificationPage = () => {
         if (!canSubmit) return;
 
         setIsLoading(true);
-        setError(null);
 
         try {
             // Create a FormData object to send files
@@ -49,7 +47,6 @@ const CreatorVerificationPage = () => {
             setUser(updatedUser.data); // Update the user context with the new status
             navigate('/creator/dashboard'); // Redirect to creator dashboard
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Submission failed. Please try again.');
         } finally {
             setIsLoading(false);
         }

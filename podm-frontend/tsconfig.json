@@ -28,6 +28,6 @@
     }
   },
   "include": [
-    "src","../PoDM_project/common"
+    "src","../PoDM_project/common", "vite.config.ts"
   ]
 }
