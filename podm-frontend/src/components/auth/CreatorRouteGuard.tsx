@@ -23,6 +23,11 @@ const CreatorRouteGuard = () => {
         return <Navigate to="/" replace />;
     }
 
+    // Allow admins to access creator routes (e.g., after stopping impersonation)
+    if (currentUser.role === 'admin') {
+        return <Outlet />;
+    }
+
     if (currentUser.role !== 'creator') {
         return <Navigate to="/fan/feed" replace />;
     }

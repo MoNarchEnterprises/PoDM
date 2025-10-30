@@ -1,4 +1,6 @@
 import React from 'react';
+import { Users, DollarSign, Eye, Bookmark, MoreVertical } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';

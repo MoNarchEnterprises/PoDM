@@ -129,7 +129,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
     const stopImpersonation = () => {
         localStorage.removeItem('impersonating_user_id');
         setImpersonatedUser(null);
-        navigate('/admin/users');
+        navigate('/admin/dashboard');
     };
 
     const value = {
