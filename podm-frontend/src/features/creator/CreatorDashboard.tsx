@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2 } from 'lucide-react';
+import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2, X } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react'; // --- THIS IS THE FIX ---
 
 // --- Import Shared Types ---
 import { Creator } from '@common/types/Creator';
@@ -12,6 +14,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatCard from '../../components/shared/StatCard';
 import { formatCurrency, timeAgo } from '../../lib/formatters';
+import Modal from '../../components/ui/Modal';
 
 // --- Local Types ---
 interface TransactionWithFan extends Transaction {
@@ -66,6 +69,9 @@ interface CreatorDashboardProps {
 
 const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }: CreatorDashboardProps) => {
     const [copied, setCopied] = useState(false);
+    const [showQrModal, setShowQrModal] = useState(false);
+    const navigate = useNavigate();
+
     const baseUrl = import.meta.env.VITE_APP_BASE_URL;
     const profileLink = `${baseUrl}/creator/${creator.username}`;
 
@@ -76,71 +82,103 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
         }).catch(err => console.error('Failed to copy text: ', err));
     };
 
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Check out ${creator.profile.name}'s PoDM Profile!`,
+                    url: profileLink,
+                });
+                console.log('Profile shared successfully');
+            } catch (error) {
+                console.error('Error sharing profile:', error);
+            }
+        } else {
+            // Fallback for browsers that do not support the Web Share API
+            handleCopy();
+            alert('Profile link copied to clipboard!');
+        }
+    };
+
     return (
-        <div className="p-4 sm:p-6 lg:p-8">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back, {creator.profile.name}! Here's your performance overview.</p>
-            </header>
+        <>
+            <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)}>
+                <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold mb-4">Scan QR Code</h3>
+                    <div className="flex justify-center mb-4 bg-white p-4 rounded-lg">
+                        {/* --- AND THE CORRESPONDING JSX FIX --- */}
+                        <QRCodeSVG value={profileLink} size={256} level="H" />
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Scan this code to visit your profile.</p>
+                    <Button onClick={() => setShowQrModal(false)} className="mt-6">Close</Button>
+                </div>
+            </Modal>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard icon={User} title="Subscribers" value={metrics.subscribers.value.toLocaleString()} change={metrics.subscribers.change} color="purple" />
-                <StatCard icon={DollarSign} title="Earnings (Month)" value={formatCurrency(metrics.earnings.value)} change={metrics.earnings.change / 100} color="green" />
-                <StatCard icon={Eye} title="Post Views" value={metrics.postViews.value.toLocaleString()} change={metrics.postViews.change} color="blue" />
-                <StatCard icon={BarChart2} title="Profile Visits" value={metrics.profileVisits.value.toLocaleString()} change={metrics.profileVisits.change} color="pink" />
-            </div>
+            <div className="p-4 sm:p-6 lg:p-8">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back, {creator.profile.name}! Here's your performance overview.</p>
+                </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <Card className="p-4 sm:p-6">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Monthly Earnings</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={monthlyEarnings} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
-                                <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
-                                <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
-                                <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem', color: '#f9fafb' }} />
-                                <Legend wrapperStyle={{fontSize: "14px"}}/>
-                                <Bar dataKey="earnings" fill="#8B5CF6" name="Earnings" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </Card>
-
-                    <Card noPadding>
-                        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Quick Actions</h3></div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 sm:p-6">
-                            <Button variant="ghost" className="flex-col h-auto space-y-2 py-4"><PlusCircle className="w-6 h-6 text-green-500" /><span>Create Post</span></Button>
-                            <Button variant="ghost" className="flex-col h-auto space-y-2 py-4"><MessageSquare className="w-6 h-6 text-blue-500" /><span>View Messages</span></Button>
-                            <Button variant="ghost" className="flex-col h-auto space-y-2 py-4"><DollarSign className="w-6 h-6 text-purple-500" /><span>Check Earnings</span></Button>
-                            <Button variant="ghost" className="flex-col h-auto space-y-2 py-4"><Share2 className="w-6 h-6 text-pink-500" /><span>Share Profile</span></Button>
-                        </div>
-                    </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <StatCard icon={User} title="Subscribers" value={metrics.subscribers.value.toLocaleString()} change={metrics.subscribers.change} color="purple" />
+                    <StatCard icon={DollarSign} title="Earnings (Month)" value={formatCurrency(metrics.earnings.value)} change={metrics.earnings.change / 100} color="green" />
+                    <StatCard icon={Eye} title="Post Views" value={metrics.postViews.value.toLocaleString()} change={metrics.postViews.change} color="blue" />
+                    <StatCard icon={BarChart2} title="Profile Visits" value={metrics.profileVisits.value.toLocaleString()} change={metrics.profileVisits.change} color="pink" />
                 </div>
 
-                <div className="space-y-8">
-                    <Card>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Your Profile Link</h3>
-                        <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-md p-2">
-                            <Link className="w-4 h-4 text-gray-400 dark:text-gray-500 mr-2" />
-                            <input type="text" value={profileLink} readOnly className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none" />
-                            <Button size="sm" onClick={handleCopy} className="p-2 h-auto">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
-                        </div>
-                        <div className="flex items-center justify-around mt-4 text-gray-500 dark:text-gray-400">
-                             <Button variant="ghost" className="flex-col h-auto space-y-1"><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
-                             <Button variant="ghost" className="flex-col h-auto space-y-1"><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
-                        </div>
-                    </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <Card className="p-4 sm:p-6">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Monthly Earnings</h3>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={monthlyEarnings} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
+                                    <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
+                                    <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
+                                    <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem', color: '#f9fafb' }} />
+                                    <Legend wrapperStyle={{fontSize: "14px"}}/>
+                                    <Bar dataKey="earnings" fill="#8B5CF6" name="Earnings" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </Card>
 
-                    <Card noPadding>
-                         <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h3></div>
-                            <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700">
-                                {recentActivity.map((item) => <ActivityItem key={item._id} item={item} />)}
+                        <Card noPadding>
+                            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Quick Actions</h3></div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 sm:p-6">
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/content')}><PlusCircle className="w-6 h-6 text-green-500" /><span>Create Post</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/messages')}><MessageSquare className="w-6 h-6 text-blue-500" /><span>View Messages</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/earnings')}><DollarSign className="w-6 h-6 text-purple-500" /><span>Check Earnings</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={handleShare}><Share2 className="w-6 h-6 text-pink-500" /><span>Share Profile</span></Button>
                             </div>
-                        <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700"><a href="#" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">View all</a></div>
-                    </Card>
+                        </Card>
+                    </div>
+
+                    <div className="space-y-8">
+                        <Card>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Your Profile Link</h3>
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-md p-2">
+                                <Link className="w-4 h-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                <input type="text" value={profileLink} readOnly className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none" />
+                                <Button size="sm" onClick={handleCopy} className="p-2 h-auto">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
+                            </div>
+                            <div className="flex items-center justify-around mt-4 text-gray-500 dark:text-gray-400">
+                                 <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={() => setShowQrModal(true)}><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
+                                 <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={handleShare}><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
+                            </div>
+                        </Card>
+
+                        <Card noPadding>
+                             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h3></div>
+                                <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700">
+                                    {recentActivity.map((item) => <ActivityItem key={item._id} item={item} />)}
+                                </div>
+                            <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700"><a href="/hub/dashboard" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">View all</a></div>
+                        </Card>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
