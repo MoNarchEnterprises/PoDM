@@ -59,8 +59,8 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                 <main className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left Side: Content Selection */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-gray-200">Select From Your Vault</h3>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-96 overflow-y-auto pr-2 rounded-lg bg-gray-900/50 p-2">
+                        <h3 className="font-semibold text-gray-400">Select From Your Vault</h3>
+                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-2 max-h-96 overflow-y-auto pr-2 rounded-lg bg-gray-900/50 p-2">
                             {contentItems.length > 0 ? contentItems.map(item => (
                                 <div
                                     key={item._id}
@@ -82,7 +82,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                         {selectedContent ? (
                             <>
                                 <div>
-                                    <h3 className="font-semibold text-gray-200">Set Price</h3>
+                                    <h3 className="font-semibold text-gray-400">Set Price</h3>
                                     <Input 
                                         id="ppv-price" 
                                         type="number" 
@@ -93,13 +93,13 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                                     />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-200">Add Optional Message</h3>
+                                    <h3 className="font-semibold text-gray-400">Add Optional Message</h3>
                                     <textarea 
                                         rows={4} 
                                         placeholder="e.g., Here's that special video you asked for!" 
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
-                                        className="w-full bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                        className="w-full bg-gray-200 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                                     ></textarea>
                                 </div>
                                 {error && <p className="text-sm text-red-500 text-center">{error}</p>}

@@ -1,5 +1,7 @@
+// /server/services/message.service.ts
+
 import supabase from '../config/supabaseClient';
-import { io } from '../config/socket'; // 1. Import the IO instance
+import { io } from '../config/socket';
 import * as ConversationModel from '../models/conversation.model';
 import * as MessageModel from '../models/message.model';
 import * as SubscriptionModel from '../models/subscription.model';
@@ -9,7 +11,7 @@ import { Conversation } from '@common/types/Conversation';
 import * as UserModel from '../models/user.model';
 import { reshapeUserForApp } from '../utils/user.utils';
 import { generateSignedUrlsForContent } from '../utils/content.utils';
-
+import * as ContentModel from '../models/content.model';
 
 /**
  * Fetches all conversations for a specific user, with role-based sorting.
@@ -126,6 +128,14 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
         throw new AppError('Could not find or create a conversation.', 500);
     }
 
+    if (messageData.content && messageData.content.contentId) {
+        const originalContent = await ContentModel.findContentById(messageData.content.contentId);
+        if (!originalContent || !originalContent.files || originalContent.files.length === 0) {
+            throw new AppError('Attached content could not be found.', 404);
+        }
+        messageData.content.thumbnailUrl = originalContent.files[0].thumbnailUrl;
+    }
+
     const newMessageData = {
         ...messageData,
         sender_id: senderId,
@@ -136,7 +146,19 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
     
     const newMessage = await MessageModel.createMessage(newMessageData);
     if (!newMessage) throw new AppError('Failed to send message.', 500);
-// --- 2. BROADCAST THE NEW MESSAGE ---
+
+    // --- THIS IS THE FIX ---
+    // Process the new message to get signed URLs before broadcasting it.
+    let processedContent = newMessage.content;
+    if (newMessage.content?.thumbnailUrl) {
+        // We create a temporary object that matches the structure expected by the utility.
+        const tempContentWrapper = { files: [{ thumbnailUrl: newMessage.content.thumbnailUrl }] };
+        const signedContentWrapper = await generateSignedUrlsForContent(tempContentWrapper);
+        // We then put the signed URL back into our content payload.
+        processedContent = { ...newMessage.content, thumbnailUrl: signedContentWrapper.files[0].thumbnailUrl };
+    }
+    // --- END OF FIX ---
+
     const roomName = `conversation:${conversation.id}`;
     const messageForFrontend = {
         _id: newMessage.id.toString(),
@@ -144,16 +166,69 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
         senderId: newMessage.sender_id,
         receiverId: newMessage.receiver_id,
         text: newMessage.text,
-        content: newMessage.content,
+        content: processedContent, // Use the processed content with the signed URL
         isRead: newMessage.is_read,
         createdAt: new Date(newMessage.created_at).toISOString(),
     };
     
     io.to(roomName).emit('new_message', messageForFrontend);
     console.log(`[MessageService] Broadcasted to room: ${roomName}`);
-    // --- END OF BROADCAST LOGIC ---
 
     return messageForFrontend;
+};
+
+/**
+ * Deletes a message, ensuring the user is the original sender.
+ * @param messageId - The ID of the message to delete.
+ * @param userId - The ID of the user requesting the deletion.
+ */
+export const deleteMessage = async (messageId: string, userId: string) => {
+    // 1. Find the message to get its details (senderId, conversationId)
+    const message = await MessageModel.findMessageById(messageId);
+    if (!message) {
+        throw new AppError('Message not found.', 404);
+    }
+
+    // 2. CRITICAL: Security check to ensure the user owns the message
+    if (message.sender_id !== userId) {
+        throw new AppError('You are not authorized to delete this message.', 403);
+    }
+
+    // 3. Delete the message from the database
+    const deletedMessage = await MessageModel.deleteMessageById(messageId);
+    if (!deletedMessage) {
+        throw new AppError('Failed to delete message.', 500);
+    }
+
+    // 4. Broadcast the deletion event to all clients in the conversation room
+    const roomName = `conversation:${message.conversation_id}`;
+    io.to(roomName).emit('message_deleted', { messageId });
+    console.log(`[MessageService] Broadcasted message deletion for ID ${messageId} to room: ${roomName}`);
+
+    return { success: true, message: 'Message deleted successfully.' };
+};
+
+/**
+ * Marks messages in a conversation as read and notifies the client via socket.
+ * @param conversationId - The ID of the conversation.
+ * @param userId - The ID of the user who is reading the messages.
+ */
+export const markConversationAsRead = async (conversationId: string, userId: string) => {
+    const updatedMessages = await MessageModel.markMessagesAsRead(conversationId, userId);
+
+    if (updatedMessages && updatedMessages.length > 0) {
+        // Find the user's socket to emit the event directly to them
+        // This prevents notifying the other user unnecessarily
+        const sockets = await io.fetchSockets();
+        const userSocket = sockets.find(s => (s as any).data.userId === userId);
+
+        if (userSocket) {
+            userSocket.emit('conversation_read', { conversationId });
+            console.log(`[MessageService] Emitted conversation_read for convo ${conversationId} to user ${userId}`);
+        }
+    }
+
+    return { success: true, message: `${updatedMessages?.length || 0} messages marked as read.` };
 };
 
 /**
@@ -169,24 +244,17 @@ export const sendMassMessageToSubscribers = async (creatorId: string, messageDat
     if (sender.role === 'creator' && sender.status !== 'active') {
         throw new AppError('Your account must be verified to send messages.', 403);
     }
-    // Step 1: Get all active subscribers for the creator.
     const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creatorId);
     if (!subscriptions || subscriptions.length === 0) {
         throw new AppError('You have no active subscribers to message.', 404);
     }
 
     const fanIds = subscriptions.map(sub => sub.fanId);
-
-    // NOTE: This is a long-running operation. In a production application,
-    // this should be offloaded to a background job queue (e.g., BullMQ, RabbitMQ)
-    // to avoid blocking the server and timing out the request.
-
-    // Step 2: Loop through each subscriber and send them a message.
+    
     for (const fanId of fanIds) {
         try {
             await sendDirectMessage(creatorId, fanId, messageData);
         } catch (error) {
-            // Log the error but continue trying to message other fans.
             console.error(`Failed to send mass message to fan ${fanId}:`, error);
         }
     }

@@ -67,6 +67,48 @@ export const sendMessage = async (req: Request, res: Response, next: NextFunctio
 };
 
 /**
+ * @desc    Mark all messages in a conversation as read for the current user
+ * @route   PUT /api/v1/messages/conversations/:id/read
+ * @access  Private
+ */
+export const markConversationAsRead = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { conversationId } = req.params;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const result = await MessageService.markConversationAsRead(conversationId, userId);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Delete a message
+ * @route   DELETE /api/v1/messages/:id
+ * @access  Private (Owner only)
+ */
+export const deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { id: messageId } = req.params;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        const result = await MessageService.deleteMessage(messageId, userId);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * @desc    Send a message to all of a creator's subscribers
  * @route   POST /api/v1/messages/mass-message
  * @access  Private (Creators only)

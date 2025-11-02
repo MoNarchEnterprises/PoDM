@@ -488,6 +488,15 @@ export const unlockMessageContent = async (messageId: string) => {
 };
 
 /**
+ * Notifies the backend that a conversation's messages have been read.
+ * @param conversationId - The ID of the conversation.
+ */
+export const markConversationAsRead = async (conversationId: string) => {
+    const response = await apiClient.put(`/messages/conversations/${conversationId}/read`);
+    return response.data;
+};
+
+/**
  * Sends a new direct message.
  * @param receiverId - The ID of the user to send the message to.
  * @param text - The text content of the message.
@@ -497,6 +506,15 @@ export const sendMessage = async (receiverId: string, text: string, content?: an
     // The payload now includes all three potential properties.
     // If 'content' is undefined, it will be omitted from the JSON payload.
     const response = await apiClient.post('/messages', { receiverId, text, content });
+    return response.data;
+};
+
+/**
+ * Sends a request to delete a specific message.
+ * @param messageId - The ID of the message to delete.
+ */
+export const deleteMessage = async (messageId: string) => {
+    const response = await apiClient.delete(`/messages/${messageId}`);
     return response.data;
 };
 
@@ -599,6 +617,17 @@ export const createSetupIntent = async () => {
  */
 export const getUserById = async (userId: string) => {
     const response = await apiClient.get<{ success: boolean, data: User }>(`/users/${userId}`);
+    return response.data;
+};
+
+/**
+ * Fetches all recent activity for a given creator.
+ * @param creatorId - The ID of the creator.
+ * @param page - The page number for pagination.
+ * @param limit - The number of items per page.
+ */
+export const getCreatorActivity = async (creatorId: string, page: number = 1, limit: number = 10) => {
+    const response = await apiClient.get(`/creator/activity?page=${page}&limit=${limit}`);
     return response.data;
 };
 

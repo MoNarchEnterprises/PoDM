@@ -409,3 +409,69 @@ export const createPayout = async (creatorId: string, amountInCents: number) => 
         throw new AppError(`Stripe Error: ${error.message}`, 500);
     }
 };
+
+/**
+ * Fetches all recent activity for a given creator, combining content and transactions.
+ * @param creatorId - The ID of the creator.
+ * @param page - The page number for pagination.
+ * @param limit - The number of items per page.
+ */
+export const getCreatorActivity = async (creatorId: string, page: number = 1, limit: number = 10) => {
+    const offset = (page - 1) * limit;
+
+    // Fetch recent content
+    const contentPromise = ContentModel.findContentByCreatorId(creatorId, limit, offset);
+
+    // Fetch recent transactions AND join the fan's username directly.
+    const { data: transactionsData, error: txError } = await supabase
+        .from('transactions')
+        .select('*, fan:fan_id(username)')
+        .eq('creator_id', creatorId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1); // Supabase range is inclusive
+
+    if (txError) {
+        console.error("Error fetching recent transactions for activity page:", txError);
+        throw new AppError('Could not fetch transactions.', 500);
+    }
+
+    const recentContent = await contentPromise;
+    const recentTransactions = transactionsData || [];
+
+    const combinedActivity = [
+        ...(recentContent || []).map(item => ({ ...item, type: 'Content' })),
+        ...recentTransactions.map(item => ({
+            ...item,
+            fanName: (item as any).fan?.username || 'a fan',
+            type: item.type,
+        })),
+    ];
+
+    combinedActivity.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // Apply limit and offset after combining and sorting if fetching more than needed
+    // (Supabase range already handles this for transactions, but content might need slicing if not paginated at source)
+    const paginatedActivity = combinedActivity.slice(0, limit);
+
+    // Reshape the activity items to match frontend expectations
+    const reshapedActivity = paginatedActivity.map(item => {
+        if (item.type === 'Content') {
+            return {
+                _id: item.id.toString(),
+                title: item.title,
+                type: 'Content',
+                createdAt: item.created_at,
+            };
+        } else {
+            return {
+                _id: item.id.toString(),
+                fanName: item.fanName,
+                type: item.type,
+                amount: item.amount,
+                createdAt: item.created_at,
+            };
+        }
+    });
+
+    return reshapedActivity;
+};

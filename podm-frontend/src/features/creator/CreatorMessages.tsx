@@ -9,6 +9,8 @@ import { socket } from '../../lib/socket';
 import { Content } from '@common/types/Content';
 import AttachmentModal from './components/AttachmentModal';
 import { useModal } from '../../hooks/useModal';
+import MessageBubble from '../messages/components/MessageBubble';
+import { Message, MessageContent } from '@common/types/Message';
 
 // --- Local Types ---
 interface ConversationWithFan {
@@ -21,12 +23,6 @@ interface ConversationWithFan {
     };
     lastMessage?: { text?: string; isRead: boolean; };
     updatedAt: string;
-}
-interface MessageContent {
-  contentId: string; type: string; thumbnailUrl: string; isPaid: boolean; price: number; isUnlocked: boolean;
-}
-interface Message {
-    _id: string; senderId: string; text?: string; content?: MessageContent;
 }
 
 // --- Reusable Sub-Components ---
@@ -50,27 +46,6 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
     </div>
 );
 
-const MessageBubble = ({ message, isMe }: { message: Message; isMe: boolean; }) => {
-    const justifyClass = isMe ? 'justify-end' : 'justify-start';
-    const bubbleClass = isMe ? 'bg-pink-700 text-white rounded-bl-none' : 'bg-purple-600 text-gray-200 rounded-br-none';
-
-    return (
-        <div className={`flex ${justifyClass}`}>
-            <div className={`max-w-xs lg:max-w-md p-1 rounded-2xl ${bubbleClass}`}>
-                {message.text && <p className="px-3 py-2">{message.text}</p>}
-                {message.content && (
-                    <div className="space-y-2 bg-black/20 rounded-xl p-2">
-                        <img src={message.content.thumbnailUrl} alt="Content thumbnail" className="rounded-lg"/>
-                        <div className="text-center text-xs p-1 font-bold text-pink-300 bg-pink-500/20 rounded-lg">
-                            PPV Content - ${(message.content.price / 100).toFixed(2)}
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
 // --- Main Component ---
 const CreatorMessagesPage = () => {
     const { user: currentCreator } = useAuth();
@@ -85,16 +60,33 @@ const CreatorMessagesPage = () => {
     const previousConversationId = useRef<string | null>(null);
 
     useEffect(() => {
-        const fetchContent = async () => {
+        const fetchAndProcessContent = async () => {
             try {
                 const response = await apiClient.getMyCreatorContent();
-                // Show both published and unlisted content in the attachment modal
-                setExistingContent(response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted'));
+                const validContent = response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted');
+
+                const contentWithSignedUrls = await Promise.all(
+                    validContent.map(async (contentItem: Content) => {
+                        try {
+                            const urlResponse = await apiClient.getSecureContentUrl(contentItem._id);
+                            const newItem = JSON.parse(JSON.stringify(contentItem));
+                            if (newItem.files && newItem.files.length > 0) {
+                                newItem.files[0].thumbnailUrl = urlResponse.data.secureUrl;
+                            }
+                            return newItem;
+                        } catch (urlError) {
+                            console.error(`Failed to get signed URL for content ${contentItem._id}`, urlError);
+                            return contentItem;
+                        }
+                    })
+                );
+                
+                setExistingContent(contentWithSignedUrls);
             } catch (error) {
-                console.error("Failed to fetch creator content:", error);
+                console.error("Failed to fetch creator content for attachments:", error);
             }
         };
-        fetchContent();
+        fetchAndProcessContent();
     }, []);
 
     useEffect(() => {
@@ -113,7 +105,25 @@ const CreatorMessagesPage = () => {
         socket.on('new_message', (newMessage: Message) => {
             setMessages(prev => prev.some(msg => msg._id === newMessage._id) ? prev : [...prev, newMessage]);
         });
-        return () => { socket.off('new_message'); socket.disconnect(); };
+        socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
+            setMessages(prev => prev.filter(msg => msg._id !== messageId));
+        });
+        
+        // --- NEW SOCKET LISTENER ---
+        socket.on('conversation_read', ({ conversationId }: { conversationId: string }) => {
+            setConversations(prev => prev.map(c => 
+                c._id === conversationId && c.lastMessage
+                    ? { ...c, lastMessage: { ...c.lastMessage, isRead: true } }
+                    : c
+            ));
+        });
+
+        return () => { 
+            socket.off('new_message'); 
+            socket.off('message_deleted');
+            socket.off('conversation_read'); // Cleanup
+            socket.disconnect(); 
+        };
     }, []);
 
     useEffect(() => {
@@ -126,6 +136,12 @@ const CreatorMessagesPage = () => {
             apiClient.getMessagesInConversation(conversationId).then(res => setMessages(res.data)).finally(() => setIsLoadingMessages(false));
             socket.emit('join_conversation', conversationId);
             previousConversationId.current = conversationId;
+
+            // --- API CALL TO MARK AS READ ---
+            apiClient.markConversationAsRead(conversationId).catch(err => {
+                console.error("Failed to mark conversation as read:", err);
+            });
+            // --- END OF API CALL ---
         } else {
             setMessages([]);
         }
@@ -159,6 +175,15 @@ const CreatorMessagesPage = () => {
         await handleSendMessage(newMessageText);
         setNewMessageText('');
     };
+    
+    const handleDeleteMessage = async (messageId: string) => {
+        try {
+            await apiClient.deleteMessage(messageId);
+        } catch (error) {
+            console.error("Failed to delete message:", error);
+            alert("Could not delete the message. Please try again.");
+        }
+    };
 
     return (
         <>
@@ -181,7 +206,23 @@ const CreatorMessagesPage = () => {
                         <>
                             <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gray-800"><div className="flex items-center"><button onClick={() => setSelectedFanId(null)} className="md:hidden mr-2 p-2 rounded-full hover:bg-gray-700"><ArrowLeft className="w-5 h-5" /></button><img className="w-10 h-10 rounded-full mr-3" src={activeConversation.fan.profile.avatar} alt={activeConversation.fan.profile.name} /><div><p className="font-bold">{activeConversation.fan.profile.name}</p><p className="text-xs text-green-500 font-semibold flex items-center"><DollarSign className="w-3 h-3 mr-1" /> Total Spent: ${(activeConversation.fan.totalSpent || 0).toFixed(2)}</p></div></div></div>
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                                {isLoadingMessages ? <p className="text-center">Loading messages...</p> : messages.map((msg) => <MessageBubble key={msg._id} message={msg} isMe={msg.senderId === currentCreator?._id} />)}
+                                {isLoadingMessages ? <p className="text-center">Loading messages...</p> : messages.map((msg) => {
+                                    const isMe = msg.senderId === currentCreator?._id;
+                                    const senderRole = isMe ? 'creator' : 'fan';
+                                    return (
+                                        <MessageBubble 
+                                            key={msg._id} 
+                                            message={msg} 
+                                            isMe={isMe}
+                                            senderRole={senderRole}
+                                            canSaveToGallery={false}
+                                            onDelete={handleDeleteMessage}
+                                            onUnlock={async () => {}} 
+                                            onContentClick={() => {}} 
+                                            onSaveToGallery={async () => {}}
+                                        />
+                                    );
+                                })}
                             </div>
                             <form onSubmit={handleSendTextMessage} className="p-4 bg-gray-800 border-t border-gray-700">
                                 <div className="flex items-center bg-gray-700 rounded-full p-1">

@@ -38,6 +38,51 @@ export const createMessage = async (messageData: Partial<Message>): Promise<Mess
 };
 
 /**
+ * Marks all unread messages in a conversation for a specific receiver as read.
+ * @param conversationId - The ID of the conversation.
+ * @param receiverId - The ID of the user whose messages should be marked as read.
+ * @returns An array of the updated message objects.
+ */
+export const markMessagesAsRead = async (conversationId: string, receiverId: string): Promise<Message[] | null> => {
+    const { data, error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('conversation_id', conversationId)
+        .eq('receiver_id', receiverId)
+        .eq('is_read', false)
+        .select();
+
+    if (error) {
+        console.error('Error marking messages as read:', error.message);
+        return null;
+    }
+    return data as Message[];
+};
+
+/**
+ * Deletes a single message by its unique ID.
+ * @param id - The ID of the message to delete.
+ * @returns The deleted message object or null if not found.
+ */
+export const deleteMessageById = async (id: string): Promise<Message | null> => {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) return null;
+
+    const { data, error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', numericId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error deleting message by ID:', error.message);
+        return null;
+    }
+    return data as Message;
+};
+
+/**
  * Finds a single message by its unique ID.
  * @param id - The ID of the message.
  * @returns The message object or null if not found.

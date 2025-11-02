@@ -173,7 +173,7 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700">
                                     {recentActivity.map((item) => <ActivityItem key={item._id} item={item} />)}
                                 </div>
-                            <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700"><a href="/hub/dashboard" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">View all</a></div>
+                            <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700"><a href="/hub/activity" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">View all</a></div>
                         </Card>
                     </div>
                 </div>

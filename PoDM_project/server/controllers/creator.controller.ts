@@ -123,3 +123,26 @@ export const updateCreatorSettings = async (req: Request, res: Response, next: N
         next(error);
     }
 };
+
+/**
+ * @desc    Get all recent activity for the creator
+ * @route   GET /api/v1/creator/activity
+ * @access  Private (Creators only)
+ */
+export const getCreatorActivity = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?._id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, creator ID not found.', 401);
+        }
+
+        const { page = '1', limit = '10' } = req.query;
+        const pageNumber = parseInt(page as string, 10);
+        const limitNumber = parseInt(limit as string, 10);
+
+        const activityData = await CreatorService.getCreatorActivity(creatorId, pageNumber, limitNumber);
+        res.status(200).json({ success: true, data: activityData });
+    } catch (error) {
+        next(error);
+    }
+};

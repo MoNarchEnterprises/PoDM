@@ -1,7 +1,7 @@
 // /server/routes/creator.routes.ts
 
 import { Router } from 'express';
-import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout } from '../controllers/creator.controller';
+import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity } from '../controllers/creator.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
 import { uploadBanner } from '../middleware/upload.middleware'; 
 
@@ -46,5 +46,12 @@ router.get('/earnings', protect, creatorOnly, getCreatorEarnings);
  */
 // 4. Add the new POST route
 router.post('/payouts', protect, creatorOnly, requestPayout);
+
+/**
+ * @route   GET /api/v1/creator/activity
+ * @desc    Get all recent activity for the creator
+ * @access  Private (Creators only)
+ */
+router.get('/activity', protect, creatorOnly, getCreatorActivity);
 
 export default router;

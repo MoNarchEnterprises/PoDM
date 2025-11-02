@@ -113,12 +113,18 @@ export const findContentByStatus = async (status: string): Promise<Content[] | n
  * @param creatorId - The UUID of the creator.
  * @returns An array of content objects.
  */
-export const findContentByCreatorId = async (creatorId: string): Promise<Content[] | null> => {
-    const { data, error } = await supabase
+export const findContentByCreatorId = async (creatorId: string, limit?: number, offset?: number): Promise<Content[] | null> => {
+    let query = supabase
         .from('content')
         .select('*')
         .eq('creator_id', creatorId)
         .order('created_at', { ascending: false });
+
+    if (limit !== undefined && offset !== undefined) {
+        query = query.range(offset, offset + limit - 1);
+    }
+
+    const { data, error } = await query;
 
     
     if (error) {
