@@ -76,3 +76,30 @@ export const handleStripeWebhook = async (req: Request, res: Response, next: Nex
         next(error);
     }
 };
+
+
+
+/**
+ * @desc    Create a Payment Intent to unlock a paid post.
+ * @route   POST /api/v1/payments/unlock-post
+ * @access  Private (Fans only)
+ */
+export const unlockPost = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const fanId = req.user?._id;
+        const { contentId } = req.body;
+
+        if (!fanId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!contentId) {
+            throw new AppError('A contentId is required to unlock a post.', 400);
+        }
+
+        const result = await PaymentService.createPostUnlockIntent(fanId, contentId);
+
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};

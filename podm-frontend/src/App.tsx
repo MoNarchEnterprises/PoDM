@@ -39,7 +39,7 @@ const CreatorMessages = React.lazy(() => import('./features/creator/CreatorMessa
 const CreatorAnalytics = React.lazy(() => import('./features/creator/CreatorAnalytics'));
 const CreatorEarnings = React.lazy(() => import('./features/creator/CreatorEarnings'));
 const CreatorSettings = React.lazy(() => import('./features/creator/CreatorSettings'));
-const CreatorActivityPage = React.lazy(() => import('./features/creator/CreatorActivityPage'));
+
 
 // --- Import Admin Panel Components (Lazy Loaded) ---
 const AdminPanel = React.lazy(() => import('./features/admin/AdminPanel'));
@@ -61,9 +61,33 @@ const ContentViewerLoader = () => {
     const { contentId } = useParams<{ contentId: string }>();
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<{ content: Content; creator: Creator; relatedContent: Content[] } | null>(null);
-    useEffect(() => { /* Simulate API call */ setIsLoading(false); setData(null); }, [contentId]);
-    if (isLoading || !data) return <div>Loading Content...</div>;
-    return <ContentViewerPage content={data.content} creator={data.creator} relatedContent={data.relatedContent} />;
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!contentId) return;
+            setIsLoading(true);
+            try {
+                const response = await apiClient.getContentViewerData(contentId);
+                setData(response.data);
+            } catch (err) {
+                setError("Failed to load content.");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, [contentId]);
+
+    if (isLoading) return <div>Loading Content...</div>;
+    if (error || !data) return <div>{error || "Content not found"}</div>;
+
+    return <ContentViewerPage 
+        content={{ ...data.content, _id: data.content.id.toString() }} 
+        creator={data.creator} 
+        relatedContent={data.relatedContent.map(item => ({ ...item, _id: item.id.toString() }))} 
+    />;
 };
 
 
@@ -290,7 +314,7 @@ const App = () => {
                                 <Route path="analytics" element={<CreatorAnalyticsLoader />} />
                                 <Route path="earnings" element={<CreatorEarningsLoader />} />
                                 <Route path="settings" element={<CreatorSettingsLoader />} />
-                                <Route path="activity" element={<CreatorActivityPage />} />
+                                
                                 </Route>
                             </Route>
 

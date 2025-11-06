@@ -33,16 +33,34 @@ interface ContentViewerPageProps {
 }
 
 const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPageProps) => {
-    const { user } = useAuth(); // 3. Get the current logged-in user
+    console.log('ContentViewerPage content:', content);
+    const { user } = useAuth();
+    const [secureUrl, setSecureUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    // 4. Add useEffect to log the view
     useEffect(() => {
-        apiClient.logAnalyticsEvent({
-            eventType: 'post_view',
-            creatorId: creator._id,
-            contentId: content._id,
-        });
-    }, [creator._id, content._id]); // Run only when the content ID changes
+        if (content && content._id) {
+            apiClient.logAnalyticsEvent({
+                eventType: 'post_view',
+                creatorId: creator._id,
+                contentId: content._id,
+            });
+
+            if (content.type === 'video') {
+                setIsLoading(true);
+                apiClient.getSecureContentViewUrl(content._id)
+                    .then(response => {
+                        setSecureUrl(response.data.secureUrl);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching secure video URL:", error);
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
+                    });
+            }
+        }
+    }, [creator?._id, content?._id, content?.type]);
     
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
@@ -84,14 +102,8 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                 <main className="flex-1 flex flex-col lg:flex-row container mx-auto p-4 sm:p-6 lg:p-8 gap-8">
                     <div className="flex-grow flex items-center justify-center bg-black rounded-xl">
                         {content.type === 'video' ? (
-                            <div className="relative w-full max-w-5xl aspect-video bg-black rounded-lg overflow-hidden group">
-                                <img src={content.files[0]?.url} alt={content.title} className="w-full h-full object-contain" />
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><PlayCircle className="w-20 h-20 text-white/70" /></div>
-                                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-between px-4">
-                                    <div className="flex items-center space-x-4"><PlayCircle className="w-6 h-6 text-white" /><Volume2 className="w-6 h-6 text-white" /></div>
-                                    <div className="flex items-center space-x-4"><Settings className="w-6 h-6 text-white" /><Maximize className="w-6 h-6 text-white" /></div>
-                                </div>
-                            </div>
+                            isLoading ? <div>Loading...</div> : 
+                            <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         ) : (
                             <img src={content.files[0]?.url} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         )}
@@ -112,7 +124,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                         <div className="bg-gray-800/50 rounded-xl p-4">
                             <h3 className="font-semibold mb-3 text-gray-200">More from {creator.profile.name}</h3>
                             <div className="grid grid-cols-2 gap-3">
-                                {relatedContent.map(item => <RelatedContentCard key={item._id} item={item} />)}
+                                {relatedContent.map(item => <RelatedContentCard key={item.id} item={item} />)}
                             </div>
                         </div>
                     </div>

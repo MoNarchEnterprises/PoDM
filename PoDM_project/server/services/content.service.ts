@@ -11,6 +11,8 @@ import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { reshapeUserForApp } from '../utils/user.utils';
+import { generateSignedUrlsForContent } from '../utils/content.utils';
 
 
 // Define a type for the query parameters for clarity
@@ -599,25 +601,42 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
 };
 
 /**
+
  * Generates a secure, temporary URL for viewing a full-size content file.
+
  * It first verifies that the user has permission to access the content.
+
  * @param contentId The ID of the content.
+
  * @param userId The ID of the user requesting access.
+
  * @returns An object containing the secure URL and the content type.
+
  */
+
 export const getSecureUrlForViewing = async (contentId: string, userId: string) => {
     // 1. Verify the fan has access to this content. This will throw an error if they don't.
     const content = await getContentForFan(contentId, userId);
+    const fan = await UserModel.findUserById(userId);
 
-    const fullFilePath = content.files?.[0]?.url;
-    if (!fullFilePath) {
+    if (!fan) {
+        throw new AppError('User not found.', 404);
+    }
+
+    let filePath = content.files?.[0]?.url;
+    if (!filePath) {
         throw new AppError('Content file path not found.', 404);
     }
 
-    // 2. Generate a short-lived (60 seconds) signed URL for the full-size file.
+    // 2. If the content is a photo and the viewer is not the creator, create a watermark.
+    if (content.type === 'photo' && content.creator_id !== userId) {
+        filePath = await createWatermarkedImage(content, fan);
+    }
+
+    // 3. Generate a short-lived (60 seconds) signed URL for the file (original or watermarked).
     const { data, error } = await supabase.storage
         .from('creator-content')
-        .createSignedUrl(fullFilePath, 60);
+        .createSignedUrl(filePath, 60);
 
     if (error || !data) {
         throw new AppError('Could not generate secure URL for content.', 500);
@@ -626,5 +645,51 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
     return { 
         secureUrl: data.signedUrl,
         contentType: content.type // Return the content type ('photo' or 'video')
+    };
+};
+
+
+
+/**
+ * Fetches all data needed for the content viewer page.
+ * @param contentId The ID of the content being viewed.
+ * @returns An object containing the content, its creator, and related content.
+ */
+export const getViewData = async (contentId: string) => {
+    // 1. Fetch the main content
+    const rawContent = await ContentModel.findContentById(contentId);
+    if (!rawContent) {
+        throw new AppError('Content not found.', 404);
+    }
+
+    // 2. Fetch the creator of the content
+    const rawCreator = await UserModel.findUserById(rawContent.creator_id);
+    if (!rawCreator) {
+        throw new AppError('Creator not found.', 404);
+    }
+
+    // 3. Fetch related content from the same creator
+    const rawRelatedContent = await ContentModel.findContentByCreatorId(
+        rawContent.creator_id,
+        4, // Limit to 4 related items for a 2x2 grid
+    );
+
+    // --- THIS IS THE FIX ---
+    // 4. Process and reshape all data before returning it
+    const [
+        content,
+        relatedContent
+    ] = await Promise.all([
+        generateSignedUrlsForContent(rawContent),
+        Promise.all((rawRelatedContent || []).filter(c => c.id.toString() !== contentId).map(c => generateSignedUrlsForContent(c)))
+    ]);
+
+    const creator = reshapeUserForApp(rawCreator);
+    // --- END OF FIX ---
+
+    return {
+        content,
+        creator,
+        relatedContent: relatedContent || [],
     };
 };

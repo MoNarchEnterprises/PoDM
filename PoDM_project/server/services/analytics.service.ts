@@ -13,10 +13,8 @@ interface AnalyticsEvent {
 export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
     const { eventType, creatorId, viewerId, contentId } = event;
 
-    // 2. Check if there is a logged-in viewer before proceeding
     if (viewerId) {
         const viewer = await UserModel.findUserById(viewerId);
-        // 3. Prevent logging if the viewer is an admin OR if it's a self-view
         if (viewer && (viewer.role === 'admin' || viewer.id === creatorId)) {
             return { success: true, message: 'Admin or self-view not logged.' };
         }
@@ -32,6 +30,15 @@ export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
     if (error) {
         console.error('Error logging analytics event:', error);
         throw new AppError('Could not log event.', 500);
+    }
+
+    // If the event is a post view, increment the view count on the content table
+    if (eventType === 'post_view' && contentId) {
+        const { error: rpcError } = await supabase.rpc('increment_content_view_count', { content_id_to_update: contentId });
+        if (rpcError) {
+            console.error('Error incrementing content view count:', rpcError);
+            // Don't throw an error here, as the main event has been logged
+        }
     }
 
     return { success: true, message: 'Event logged.' };

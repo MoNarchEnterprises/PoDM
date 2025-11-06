@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Lock, DollarSign, Bookmark } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
+import { loadStripe } from '@stripe/stripe-js';
+
+import { AxiosError } from 'axios';
+
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
@@ -10,6 +16,8 @@ import Button from '../ui/Button';
 import * as apiClient from '../../lib/apiClient';
 import { useModal } from '../../hooks/useModal';
 import TipModal from './TipModal'; // Import the TipModal
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 
 // --- Local Types ---
@@ -26,6 +34,7 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
+    const navigate = useNavigate();
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
@@ -33,31 +42,46 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     // A post is locked if forced, or if it's pay-per-view.
     const isLocked = forceLocked || post.visibility === 'pay_per_view';
     
-    // --- 3. Create the handler function ---
     const handleSaveToGallery = async () => {
         setIsSaving(true);
         try {
-            // Call the API with the post's ID
             await apiClient.addContentToGallery(post._id);
-            // On success, update the UI state
             setIsBookmarked(true); 
         } catch (error) {
             console.error("Failed to add to gallery:", error);
-            // Optionally show an error toast to the user
             alert("Could not save to gallery. Please try again.");
         } finally {
             setIsSaving(false);
         }
     };
 
-    /**
-     * Handles the submission of the tip modal.
-     */
     const handleTipSubmit = async (amount: number, message: string) => {
-        // Just call the API client and return the result.
         console.log('[PostCard] post_id:', post._id);
-        // The modal will catch any errors.
         return apiClient.sendTip(post.creatorId, amount, message, post._id);
+    };
+
+    const handleUnlock = async () => {
+        try {
+            const { data } = await apiClient.unlockPost(post._id);
+            if (data.status === 'requires_action') {
+                const stripe = await stripePromise;
+                if (stripe) {
+                    const { error } = await stripe.confirmCardPayment(data.clientSecret);
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+                }
+            }
+            alert('Content unlocked!');
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                console.error('Failed to unlock content:', error.response?.data.message);
+                alert(`Could not unlock content: ${error.response?.data.message}`);
+            } else {
+                console.error('Failed to unlock content:', error);
+                alert('Could not unlock content: An unexpected error occurred.');
+            }
+        }
     };
 
     return (
@@ -70,7 +94,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                 onSubmit={handleTipSubmit}
             />
 
-        <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post._id}`)}>
             <div className="relative">
                 <img 
                     className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`} 
@@ -82,7 +106,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
                         <Lock className="w-12 h-12 mb-4" />
                         <h3 className="font-bold text-lg text-center">Content Locked</h3>
-                        <Button className="mt-4">
+                        <Button className="mt-4" onClick={handleUnlock}>
                             {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
                         </Button>
                     </div>

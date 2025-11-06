@@ -105,6 +105,13 @@ export const addToUserGallery = async (fanId: string, contentId: string) => {
         throw new AppError('Failed to add item to gallery.', 500);
     }
 
+    // Increment the gallery add count on the content table
+    const { error: rpcError } = await supabase.rpc('increment_gallery_add_count', { content_id_to_update: contentId });
+    if (rpcError) {
+        console.error('Error incrementing gallery add count:', rpcError);
+        // Don't throw an error here, as the main action has been completed
+    }
+
     return updatedGallery;
 };
 

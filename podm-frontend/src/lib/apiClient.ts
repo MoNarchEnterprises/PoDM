@@ -192,15 +192,15 @@ export const signupAndSubscribe = async (data: any) => {
  * @param message An optional message to include with the tip.
  * @returns The client_secret for the Stripe PaymentIntent.
  */
-export const sendTip = async (creatorId: string, amount: number, message: string | undefined, contentId: string) => {
+export const sendTip = async (creatorId: string, amount: number, message: string | undefined, contentId: string, paymentMethodId?: string) => {
     console.log(`[apiClient] Sending tip of $${amount} to creator ${creatorId} for content ${contentId}`);
     const response = await apiClient.post('/payments/tip', {
         creatorId,
-        amount: Math.round(amount * 100), // Convert to cents for the backend
+        amount: Math.round(amount * 100), // Convert to cents
         message,
         contentId,
+        paymentMethodId, // <-- ADD THIS
     });
-    // The backend returns { success: true, data: { clientSecret: 'pi_...' } }
     return response.data.data; 
 };
 
@@ -628,6 +628,26 @@ export const getUserById = async (userId: string) => {
  */
 export const getCreatorActivity = async (creatorId: string, page: number = 1, limit: number = 10) => {
     const response = await apiClient.get(`/creator/activity?page=${page}&limit=${limit}`);
+    return response.data;
+};
+
+/**
+ * Fetches all data needed for the content viewer page.
+ * @param contentId The ID of the content to fetch data for.
+ */
+export const getContentViewerData = async (contentId: string) => {
+    const response = await apiClient.get(`/content/${contentId}/viewer-data`);
+    return response.data;
+};
+
+
+
+/**
+ * Creates a Stripe Payment Intent for a fan to purchase a piece of content.
+ * @param contentId The ID of the content to purchase.
+ */
+export const unlockPost = async (contentId: string) => {
+    const response = await apiClient.post('/payments/unlock-post', { contentId });
     return response.data;
 };
 

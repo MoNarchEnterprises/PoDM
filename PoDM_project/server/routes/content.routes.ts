@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView } from '../controllers/content.controller';
+import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView, getContentViewerData } from '../controllers/content.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
 import { uploadContent } from '../middleware/upload.middleware'; 
 
@@ -66,6 +66,13 @@ router.put('/:id', protect, creatorOnly, updateContent);
  * @access  Private (Owner only)
  */
 router.delete('/:id', protect, creatorOnly, deleteContent);
+
+/**
+ * @route   GET /api/v1/content/:id/viewer-data
+ * @desc    Get all data for the content viewer page
+ * @access  Public
+ */
+router.get('/:id/viewer-data', getContentViewerData);
 
 
 export default router;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 // --- Import Controllers & Middleware ---
-import { sendTip, unlockMessageContent } from '../controllers/payments.controller';
+import { sendTip, unlockMessageContent, unlockPost } from '../controllers/payments.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -19,6 +19,15 @@ router.post('/tip', protect, sendTip);
  * @access  Private (Fans only)
  */
 router.post('/unlock-message', protect, unlockMessageContent);
+
+
+
+/**
+ * @route   POST /api/v1/payments/unlock-post
+ * @desc    Create a Payment Intent to unlock a paid post.
+ * @access  Private (Fans only)
+ */
+router.post('/unlock-post', protect, unlockPost);
 
 // The Stripe webhook route is now handled directly in server.ts
 

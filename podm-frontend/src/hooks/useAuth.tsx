@@ -1,17 +1,21 @@
+// src/hooks/useAuth.tsx
+
 import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
-
-// --- Import Shared Types ---
 import { User, UserRole } from '@common/types/User';
-
-// --- Import API Client ---
 import * as api from '../lib/apiClient';
 
 // --- Local Types ---
+interface PaymentMethod {
+    brand: string;
+    last4: string;
+}
+
 interface AuthContextType {
     user: User | null;
     impersonatedUser: User | null;
+    paymentMethod: PaymentMethod | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<User>;
@@ -29,6 +33,7 @@ interface AuthProviderProps {
 const AuthContext = createContext<AuthContextType>({
     user: null,
     impersonatedUser: null,
+    paymentMethod: null,
     setUser: () => {},
     isLoading: true,
     login: async () => Promise.reject(),
@@ -42,20 +47,41 @@ const AuthContext = createContext<AuthContextType>({
 const AuthProviderContent = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
+
+    const fetchFanSettings = async () => {
+        try {
+            const response = await api.getFanSettings();
+            setPaymentMethod(response.data.settings.paymentMethod);
+        } catch (error) {
+            console.warn("Could not fetch fan payment settings:", error);
+            setPaymentMethod(null);
+        }
+    };
 
     useEffect(() => {
         const initializeAuth = async () => {
             setIsLoading(true);
             const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
                 if (session) {
-                    setUser(session.user);
+                    // --- THIS IS THE PRIMARY FIX ---
+                    // The API returns { success, data: { user } }. We need userProfile.data.user.
+                    const userProfile = await api.getMe();
+                    const fetchedUser = userProfile.data.user;
+                    setUser(fetchedUser);
                     localStorage.setItem('authToken', session.access_token);
 
-                    // Check for impersonation after regular user is set
+                    if (fetchedUser.role === 'fan') {
+                        await fetchFanSettings();
+                    } else {
+                        setPaymentMethod(null);
+                    }
+                    // --- END OF FIX ---
+
                     const impersonatingUserId = localStorage.getItem('impersonating_user_id');
-                    if (impersonatingUserId && session.user?.role === 'admin') {
+                    if (impersonatingUserId && fetchedUser?.role === 'admin') {
                         try {
                             const { data: impersonatedUserData } = await api.getUserById(impersonatingUserId);
                             setImpersonatedUser(impersonatedUserData);
@@ -66,7 +92,8 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
                     }
                 } else {
                     setUser(null);
-                    setImpersonatedUser(null); // Clear impersonated user on logout
+                    setImpersonatedUser(null);
+                    setPaymentMethod(null);
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('impersonating_user_id');
                 }
@@ -83,10 +110,16 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
 
     const login = async (email: string, password: string): Promise<User> => {
         try {
-            const { data } = await api.login(email, password);
-            localStorage.setItem('authToken', data.token);
-            setUser(data.user);
-            return data.user;
+            // The API returns { success, data: { user, token } }
+            const response = await api.login(email, password);
+            localStorage.setItem('authToken', response.data.token);
+            setUser(response.data.user); // <-- CORRECTED
+            
+            if (response.data.user.role === 'fan') {
+                await fetchFanSettings();
+            }
+
+            return response.data.user;
         } catch (error) {
             console.error("Login failed:", error);
             throw error;
@@ -95,9 +128,10 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
 
     const signup = async (username: string, email: string, password: string, userType: UserRole) => {
         try {
-            const { data } = await api.signup(username, email, password, userType);
-            localStorage.setItem('authToken', data.token);
-            setUser(data.user);
+            // The API returns { success, data: { user, token } }
+            const response = await api.signup(username, email, password, userType);
+            localStorage.setItem('authToken', response.data.token);
+            setUser(response.data.user); // <-- CORRECTED
         } catch (error) {
             console.error("Signup failed:", error);
             throw error;
@@ -106,7 +140,11 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
 
     const logout = () => {
         setUser(null);
+        setPaymentMethod(null);
         localStorage.removeItem('authToken');
+        // Add Supabase sign out for consistency
+        supabase.auth.signOut();
+        navigate('/');
     };
     
     const startImpersonation = async (targetUser: User) => {
@@ -114,14 +152,12 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
             throw new Error("Only admins can start an impersonation session.");
         }
         localStorage.setItem('impersonating_user_id', targetUser._id);
-        console.log('[useAuth] Stored impersonating_user_id in localStorage:', targetUser._id);
         setImpersonatedUser(targetUser);
         if (targetUser.role === 'creator') {
             navigate('/hub/dashboard');
         } else if (targetUser.role === 'fan') {
             navigate('/fan/feed');
         } else {
-            // Default or error case
             navigate('/');
         }
     };
@@ -135,6 +171,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
     const value = {
         user,
         impersonatedUser,
+        paymentMethod,
         setUser,
         isLoading,
         login,

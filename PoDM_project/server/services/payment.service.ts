@@ -9,6 +9,7 @@ import Stripe from 'stripe';
 import { io } from '../config/socket';
 import { generateSignedUrlsForContent } from '../utils/content.utils';
 import supabase from '../config/supabaseClient';
+import * as ContentModel from '../models/content.model';
 
 /**
  * Handles the business logic for a fan sending a tip to a creator.
@@ -17,33 +18,60 @@ import supabase from '../config/supabaseClient';
  * @param amountInCents - The tip amount in cents.
  * @returns The newly created transaction record.
  */
-export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string) => {
+export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string, paymentMethodId?: string) => {
     if (amountInCents < 100) {
         throw new AppError('Tip amount must be at least $1.00.', 400);
     }
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
-    console.log('[payment.service] contentId:', contentId);
     
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount: amountInCents,
-        currency: 'usd',
-        customer: fanStripeCustomerId,
-        metadata: {
-            transaction_type: 'tip',
-            fan_id: fanId,
-            creator_id: creatorId,
-            fan_message: message || '', 
-            related_content_id: contentId, 
-        },
-    });
-
-    if (!paymentIntent.client_secret) {
-        throw new AppError('Failed to create Stripe Payment Intent.', 500);
-    }
-    
-    return { 
-        clientSecret: paymentIntent.client_secret,
+    const metadata = {
+        transaction_type: 'tip',
+        fan_id: fanId,
+        creator_id: creatorId,
+        fan_message: message || '', 
+        related_content_id: contentId, 
     };
+
+    // --- THIS IS THE NEW LOGIC ---
+    if (paymentMethodId) {
+        // ON-SESSION: A new payment method is being provided.
+        // We only create the intent; the client will confirm it with the card details.
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amountInCents,
+            currency: 'usd',
+            customer: fanStripeCustomerId,
+            payment_method: paymentMethodId,
+            metadata: metadata,
+        });
+        return { clientSecret: paymentIntent.client_secret, status: paymentIntent.status };
+    } else {
+        // OFF-SESSION: No new payment method. Use the customer's default.
+        // We will try to create AND confirm the payment on the server.
+        try {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amountInCents,
+                currency: 'usd',
+                customer: fanStripeCustomerId,
+                confirm: true,       // Attempt to confirm immediately
+                off_session: true,   // Mark this as an off-session payment
+                metadata: metadata,
+            });
+            return { clientSecret: paymentIntent.client_secret, status: paymentIntent.status };
+        } catch (err: any) {
+            // If the card requires authentication (like 3D Secure), Stripe throws an error.
+            if (err.code === 'authentication_required') {
+                // We return the client_secret from the failed payment intent
+                // so the frontend can complete the authentication step.
+                return {
+                    clientSecret: err.raw.payment_intent.client_secret,
+                    status: 'requires_action'
+                };
+            }
+            console.error("Stripe off-session Payment Intent creation/confirmation failed:", err.message);
+            throw new AppError(`Payment failed: ${err.message}`, 400);
+        }
+    }
+    // --- END OF NEW LOGIC ---
 };
 
 /**
@@ -109,6 +137,65 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
 };
 
 /**
+ * Creates a Stripe Payment Intent for unlocking a paid post.
+ * @param fanId - The ID of the fan unlocking the content.
+ * @param contentId - The ID of the content to unlock.
+ * @returns An object containing the clientSecret for the Payment Intent.
+ */
+export const createPostUnlockIntent = async (fanId: string, contentId: string) => {
+    const content = await ContentModel.findContentById(contentId);
+    if (!content || content.visibility !== 'pay_per_view' || !content.price) {
+        throw new AppError('This content is not available for purchase.', 400);
+    }
+
+    const amountInCents = content.price;
+    const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
+
+    const customer = await stripe.customers.retrieve(fanStripeCustomerId, {
+        expand: ['invoice_settings.default_payment_method'],
+    }) as Stripe.Customer;
+    
+    const defaultPaymentMethod = customer.invoice_settings?.default_payment_method;
+
+    if (!defaultPaymentMethod) {
+        throw new AppError('No default payment method found. Please add one in your settings.', 400);
+    }
+    
+    const metadataPayload = {
+        transaction_type: 'ppv_post',
+        fan_id: fanId,
+        creator_id: content.creator_id,
+        content_id: contentId,
+    };
+
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amountInCents,
+            currency: 'usd',
+            customer: fanStripeCustomerId,
+            payment_method: typeof defaultPaymentMethod === 'string' ? defaultPaymentMethod : defaultPaymentMethod.id,
+            off_session: true, 
+            confirm: true,     
+            metadata: metadataPayload,
+        });
+
+        return { 
+            clientSecret: paymentIntent.client_secret,
+            status: paymentIntent.status 
+        };
+    } catch (err: any) {
+        if (err.code === 'authentication_required') {
+            return {
+                clientSecret: err.raw.payment_intent.client_secret,
+                status: 'requires_action'
+            };
+        }
+        console.error("Stripe Payment Intent creation/confirmation failed:", err.message);
+        throw new AppError(`Payment failed: ${err.message}`, 400);
+    }
+};
+
+/**
  * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
  * @param event - The verified Stripe event object from the webhook middleware.
  */
@@ -119,6 +206,12 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         const transactionType = paymentIntent.metadata.transaction_type;
         console.log(`[Webhook] Handling payment_intent.succeeded for type: ${transactionType}`);
+
+        // Common transaction data
+        const { fan_id, creator_id, content_id } = paymentIntent.metadata;
+        const amountInCents = paymentIntent.amount;
+        const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+        const creatorPayout = amountInCents - platformFee;
 
         if (transactionType === 'tip') {
             console.log('[Webhook] Successful tip PaymentIntent received:', paymentIntent.id);
@@ -139,6 +232,16 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
                 related_content_id: related_content_id,
                 message: fan_message,
             });
+
+            // Increment the tip count on the content table
+            if (related_content_id) {
+                const { error: rpcError } = await supabase.rpc('increment_tip_count', { content_id_to_update: related_content_id, tip_amount: amountInCents });
+                if (rpcError) {
+                    console.error('Error incrementing tip count:', rpcError);
+                    // Don't throw an error here, as the main action has been completed
+                }
+            }
+
             console.log(`[Webhook] Tip transaction for ${amountInCents/100} USD saved to database.`);
         } else if (transactionType === 'ppv_message') {
             console.log('[Webhook] Successful PPV Message PaymentIntent received:', paymentIntent.id);
@@ -179,6 +282,23 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
                 console.log(`[Webhook] Broadcasted message update to room: ${roomName}`);
             }
             console.log(`[Webhook] PPV Message transaction for ${amountInCents/100} USD saved and content unlocked.`);
+        }
+        else if (transactionType === 'ppv_post') {
+            console.log('[Webhook] Successful PPV Post PaymentIntent received:', paymentIntent.id);
+            
+            await TransactionModel.createTransaction({
+                fan_id,
+                creator_id,
+                type: 'PPV Post',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: content_id,
+            });
+
+            console.log(`[Webhook] PPV Post transaction for ${amountInCents/100} USD saved to database.`);
         }
 
     } else if (event.type === 'invoice.payment_succeeded') {
