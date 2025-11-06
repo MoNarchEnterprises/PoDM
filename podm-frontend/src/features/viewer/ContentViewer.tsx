@@ -14,15 +14,17 @@ import TipModal from '../../components/shared/TipModal';
 import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 
+import { Link } from 'react-router-dom';
+
 // --- Reusable Sub-Components ---
 const RelatedContentCard = ({ item }: { item: Content }) => (
-    <div className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
+    <Link to={`/content/${item._id}`} className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
         <img src={item.files[0]?.thumbnailUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-2 text-white">
             <h4 className="font-bold text-xs truncate">{item.title}</h4>
         </div>
-    </div>
+    </Link>
 );
 
 // --- Main Content Viewer Component ---
@@ -69,10 +71,14 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     const menuRef = useRef<HTMLDivElement>(null);
     useOnClickOutside(menuRef, closeMenu);
 
+    const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
+        return apiClient.sendTip(creator._id, amount, message, content._id, paymentMethodId);
+    };
+
     return (
         <>
             <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={() => {}} />
-            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} onSubmit={() => {}} />
+            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} onSubmit={handleTipSubmit} />
             <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
                 <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 w-full">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">

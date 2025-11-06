@@ -19,59 +19,44 @@ import * as ContentModel from '../models/content.model';
  * @returns The newly created transaction record.
  */
 export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string, paymentMethodId?: string) => {
-    if (amountInCents < 100) {
+    if (amountInCents < 100) { // Minimum $1 tip
         throw new AppError('Tip amount must be at least $1.00.', 400);
     }
+
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
     
     const metadata = {
         transaction_type: 'tip',
         fan_id: fanId,
         creator_id: creatorId,
-        fan_message: message || '', 
-        related_content_id: contentId, 
+        fan_message: message || '',
+        related_content_id: contentId,
     };
 
-    // --- THIS IS THE NEW LOGIC ---
-    if (paymentMethodId) {
-        // ON-SESSION: A new payment method is being provided.
-        // We only create the intent; the client will confirm it with the card details.
-        const paymentIntent = await stripe.paymentIntents.create({
+    try {
+        const paymentIntentConfig: Stripe.PaymentIntentCreateParams = {
             amount: amountInCents,
             currency: 'usd',
             customer: fanStripeCustomerId,
-            payment_method: paymentMethodId,
             metadata: metadata,
-        });
-        return { clientSecret: paymentIntent.client_secret, status: paymentIntent.status };
-    } else {
-        // OFF-SESSION: No new payment method. Use the customer's default.
-        // We will try to create AND confirm the payment on the server.
-        try {
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: amountInCents,
-                currency: 'usd',
-                customer: fanStripeCustomerId,
-                confirm: true,       // Attempt to confirm immediately
-                off_session: true,   // Mark this as an off-session payment
-                metadata: metadata,
-            });
-            return { clientSecret: paymentIntent.client_secret, status: paymentIntent.status };
-        } catch (err: any) {
-            // If the card requires authentication (like 3D Secure), Stripe throws an error.
-            if (err.code === 'authentication_required') {
-                // We return the client_secret from the failed payment intent
-                // so the frontend can complete the authentication step.
-                return {
-                    clientSecret: err.raw.payment_intent.client_secret,
-                    status: 'requires_action'
-                };
-            }
-            console.error("Stripe off-session Payment Intent creation/confirmation failed:", err.message);
-            throw new AppError(`Payment failed: ${err.message}`, 400);
+        };
+
+        if (paymentMethodId) {
+            paymentIntentConfig.payment_method = paymentMethodId;
+            paymentIntentConfig.confirm = true; // Confirm immediately if payment method is provided
+            paymentIntentConfig.off_session = true; // Mark as off-session if using saved card
         }
+
+        const paymentIntent = await stripe.paymentIntents.create(paymentIntentConfig);
+
+        return {
+            clientSecret: paymentIntent.client_secret,
+            status: paymentIntent.status
+        };
+    } catch (err: any) {
+        console.error("Stripe Payment Intent creation failed:", err.message);
+        throw new AppError(`Failed to create payment intent: ${err.message}`, 500);
     }
-    // --- END OF NEW LOGIC ---
 };
 
 /**

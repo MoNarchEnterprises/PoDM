@@ -52,28 +52,23 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
         setError(null);
 
         try {
+            let tipPaymentMethodId: string | undefined = paymentMethod?.id;
+
             if (showCardForm) {
                 // ON-SESSION FLOW (NEW CARD)
                 const cardElement = elements?.getElement(CardElement);
                 if (!cardElement) throw new Error("Card element not found.");
 
-                const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-                if (pmError || !paymentMethod) throw new Error(pmError?.message || "Invalid card details.");
+                const { error: pmError, paymentMethod: newPaymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
+                if (pmError || !newPaymentMethod) throw new Error(pmError?.message || "Invalid card details.");
+                tipPaymentMethodId = newPaymentMethod.id;
+            }
 
-                const { clientSecret, status } = await onSubmit(finalAmount, message, paymentMethod.id);
-                
-                if (status === 'requires_action') {
-                    const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
-                    if (confirmationError) throw new Error(confirmationError.message);
-                }
-            } else {
-                // OFF-SESSION FLOW (SAVED CARD)
-                const { clientSecret, status } = await onSubmit(finalAmount, message); // No paymentMethodId sent
+            const { clientSecret, status } = await onSubmit(finalAmount, message, tipPaymentMethodId);
 
-                if (status === 'requires_action') {
-                    const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
-                    if (confirmationError) throw new Error(confirmationError.message);
-                }
+            if (showCardForm && (status === 'requires_action' || status === 'requires_payment_method')) {
+                const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
+                if (confirmationError) throw new Error(confirmationError.message);
             }
             
             setStep(2); // Move to success screen
