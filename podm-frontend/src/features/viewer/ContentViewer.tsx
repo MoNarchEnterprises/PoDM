@@ -14,7 +14,7 @@ import TipModal from '../../components/shared/TipModal';
 import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- Reusable Sub-Components ---
 const RelatedContentCard = ({ item }: { item: Content }) => (
@@ -37,6 +37,7 @@ interface ContentViewerPageProps {
 const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPageProps) => {
     console.log('ContentViewerPage content:', content);
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -83,7 +84,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                 <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 w-full">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                         <div className="flex items-center space-x-4">
-                            <Button variant="ghost" size="sm" className="p-2 h-auto"><ArrowLeft className="w-5 h-5" /></Button>
+                            <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
                             <div className="flex items-center space-x-3">
                                 <img src={creator.profile.avatar} alt={creator.profile.name} className="w-8 h-8 rounded-full" />
                                 <div>
