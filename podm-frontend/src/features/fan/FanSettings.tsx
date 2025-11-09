@@ -293,7 +293,7 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
             case 'Payments': return <PaymentsSettingsPanel paymentMethod={paymentMethod} onUpdateClick={openPaymentModal} />;
             case 'Security': return <SecuritySettingsPanel />;
             case 'Help': return <HelpPanel />;
-            default: return <div className="text-center p-8 bg-white dark:bg-gray-800/50 rounded-xl"><p>This section is under construction.</p></div>;
+            default: return <div className="text-center p-8 bg-white dark:bg-gray-800/50 rounded-xl"><p>Select a category.</p></div>;
         }
     };
 

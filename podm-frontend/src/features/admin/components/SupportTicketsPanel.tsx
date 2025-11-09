@@ -14,7 +14,7 @@ const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
     return <span className={`px-2 py-1 text-xs font-medium rounded-full ${style[status]}`}>{status}</span>;
 };
 
-// --- Main Support Tickets Panel Component ---
+import { Paperclip } from 'lucide-react';
 const SupportTicketsPanel = () => {
     // Get the admin data directly from the parent context
     const { data } = useAdminData();
@@ -41,9 +41,9 @@ const SupportTicketsPanel = () => {
                         <h3 className="font-semibold">Ticket Queue ({tickets.length})</h3>
                     </div>
                     <ul className="overflow-y-auto">
-                        {tickets.map(ticket => (
+                        {tickets.map((ticket, index) => (
                             <li 
-                                key={ticket._id} 
+                                key={ticket._id || index} 
                                 onClick={() => setSelectedTicketId(ticket._id)} 
                                 className={`p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${selectedTicketId === ticket._id ? 'bg-purple-50 dark:bg-purple-900/50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                             >
@@ -67,9 +67,9 @@ const SupportTicketsPanel = () => {
                             </div>
                             <div className="flex-grow p-4 overflow-y-auto space-y-4">
                                 {selectedTicket.conversation.map((msg, i) => (
-                                    <div key={i} className={`p-3 rounded-lg ${msg.senderId.startsWith('admin') ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                                    <div key={i} className={`p-3 rounded-lg ${msg.sender.startsWith('admin') ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
                                         <p className="font-bold text-sm">{msg.senderName}</p>
-                                        <p className="text-sm mt-1">{msg.text}</p>
+                                        <p className="text-sm mt-1">{msg.message}</p>
                                     </div>
                                 ))}
                             </div>

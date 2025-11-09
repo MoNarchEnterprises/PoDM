@@ -15,7 +15,7 @@ export const createSupportTicket = async (ticketData: Partial<SupportTicket>): P
 
     if (error) {
         console.error('Error creating support ticket:', error.message);
-        return null;
+        throw new Error(error.message);
     }
     return data as SupportTicket;
 };
