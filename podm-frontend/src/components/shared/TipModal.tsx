@@ -52,7 +52,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
         setError(null);
 
         try {
-            let tipPaymentMethodId: string | undefined = paymentMethod?.id;
+            let tipPaymentMethodId: string  | undefined = paymentMethod?.id || undefined;
 
             if (showCardForm) {
                 // ON-SESSION FLOW (NEW CARD)

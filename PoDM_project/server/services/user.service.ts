@@ -410,7 +410,6 @@ export const getFanGallery = async (fanId: string) => {
  * @param fanId - The UUID of the fan.
  */
 export const getFanSettings = async (fanId: string) => {
-    // 1. Get the user's profile from our database
     const user = await UserModel.findUserById(fanId);
     if (!user) {
         throw new AppError('User not found.', 404);
@@ -418,7 +417,6 @@ export const getFanSettings = async (fanId: string) => {
 
     let paymentMethod = null;
 
-    // 2. If the user has a Stripe customer ID, fetch their default payment method
     if (user.stripe_customer_id) {
         try {
             const customer = await stripe.customers.retrieve(user.stripe_customer_id, {
@@ -427,24 +425,25 @@ export const getFanSettings = async (fanId: string) => {
             
             const defaultPaymentMethod = customer.invoice_settings?.default_payment_method as any;
             if (defaultPaymentMethod && defaultPaymentMethod.card) {
+                // --- THIS IS THE FIX ---
                 paymentMethod = {
+                    id: defaultPaymentMethod.id, // Include the Payment Method ID (pm_...)
                     brand: defaultPaymentMethod.card.brand,
                     last4: defaultPaymentMethod.card.last4,
                 };
+                // --- END OF FIX ---
             }
         } catch (error) {
             console.error(`Failed to retrieve Stripe customer data for ${fanId}:`, error);
-            // Don't throw an error, just proceed without payment info
         }
     }
 
-    // 3. Combine and return the data
     return {
         fan: reshapeUserForApp(user),
         settings: {
             notifications: user.preferences?.notifications || {},
             privacy: user.preferences?.privacy || {},
-            paymentMethod: paymentMethod || { brand: 'N/A', last4: 'N/A' }
+            paymentMethod: paymentMethod || { id: null, brand: 'N/A', last4: 'N/A' } // Add null id as default
         }
     };
 };

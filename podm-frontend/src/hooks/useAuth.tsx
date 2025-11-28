@@ -8,6 +8,7 @@ import * as api from '../lib/apiClient';
 
 // --- Local Types ---
 interface PaymentMethod {
+    id: string | null; // <-- FIX: Add the id property, make it nullable
     brand: string;
     last4: string;
 }

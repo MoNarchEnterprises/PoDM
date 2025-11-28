@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { Paperclip } from 'lucide-react';
 
-// --- Import Custom Hooks ---
+// --- Import Custom Hooks & API Client ---
 import { useAdminData } from '../AdminPanel';
+import * as apiClient from '../../../lib/apiClient';
+import { SupportTicket, TicketStatus } from '@common/types/SupportTicket';
 
 // --- Reusable Components ---
 const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
@@ -14,10 +17,9 @@ const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
     return <span className={`px-2 py-1 text-xs font-medium rounded-full ${style[status]}`}>{status}</span>;
 };
 
-import { Paperclip } from 'lucide-react';
 const SupportTicketsPanel = () => {
     // Get the admin data directly from the parent context
-    const { data } = useAdminData();
+    const { data, setData } = useAdminData();
 
     // Handle the case where data might not be loaded yet
     if (!data) {
@@ -27,6 +29,37 @@ const SupportTicketsPanel = () => {
     const tickets = data.supportTickets;
     const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?._id);
     const selectedTicket = tickets.find(t => t._id === selectedTicketId);
+
+    // --- STATE FOR REPLY FUNCTIONALITY ---
+    const [replyText, setReplyText] = useState('');
+    const [isReplying, setIsReplying] = useState(false);
+
+    const handleSendReply = async () => {
+        if (!selectedTicket || !replyText.trim()) return;
+
+        setIsReplying(true);
+        try {
+            // Call the new API client function
+            const response = await apiClient.replyToSupportTicket(selectedTicket._id, replyText);
+            const updatedTicket = response.data;
+
+            // Update the global admin data state to reflect the change immediately
+            setData(prevData => ({
+                ...prevData,
+                supportTickets: prevData.supportTickets.map(ticket =>
+                    ticket._id === updatedTicket._id ? updatedTicket : ticket
+                ),
+            }));
+
+            // Clear the input field
+            setReplyText('');
+        } catch (error) {
+            console.error("Failed to send reply:", error);
+            alert("Could not send reply. Please try again.");
+        } finally {
+            setIsReplying(false);
+        }
+    };
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -66,17 +99,25 @@ const SupportTicketsPanel = () => {
                                 <h3 className="font-semibold">Ticket #{selectedTicket._id} - {selectedTicket.subject}</h3>
                             </div>
                             <div className="flex-grow p-4 overflow-y-auto space-y-4">
-                                {selectedTicket.conversation.map((msg, i) => (
-                                    <div key={i} className={`p-3 rounded-lg ${msg.sender.startsWith('admin') ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                                        <p className="font-bold text-sm">{msg.senderName}</p>
-                                        <p className="text-sm mt-1">{msg.message}</p>
-                                    </div>
-                                ))}
+                                {selectedTicket.conversation.map((msg, i) => {
+                                    const isAdminReply = msg.senderId !== selectedTicket.userId;
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            className={`p-3 rounded-lg ${isAdminReply ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}
+                                        >
+                                            <p className="font-bold text-sm">{msg.senderName}</p>
+                                            <p className="text-sm mt-1">{msg.text}</p>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                                 <textarea 
                                     rows={4} 
-                                    placeholder="Type your response..." 
+                                    placeholder="Type your response..."
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
                                     className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                                 ></textarea>
                                 <div className="flex justify-between items-center mt-2">
@@ -88,8 +129,12 @@ const SupportTicketsPanel = () => {
                                             <option>Canned Responses</option>
                                         </select>
                                     </div>
-                                    <button className="py-2 px-4 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
-                                        Send Response
+                                    <button 
+                                        onClick={handleSendReply}
+                                        disabled={isReplying || !replyText.trim()}
+                                        className="py-2 px-4 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                                    >
+                                        {isReplying ? 'Sending...' : 'Send Response'}
                                     </button>
                                 </div>
                             </div>

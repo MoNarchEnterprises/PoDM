@@ -121,8 +121,24 @@ export const getSavedReports = async () => {
  * Fetches all support tickets for admin review.
  */
 export const getSupportTickets = async () => {
-    const tickets = await SupportTicketModel.findAllSupportTickets();
-    return tickets || [];
+    const ticketsFromDb = await SupportTicketModel.findAllSupportTickets();
+    if (!ticketsFromDb) {
+        return [];
+    }
+    // --- THIS IS THE FIX ---
+    // Reshape the data to match the frontend's expected format (_id, camelCase).
+    return ticketsFromDb.map(ticket => ({
+        _id: ticket.id.toString(),
+        userId: ticket.user_id,
+        subject: ticket.subject,
+        status: ticket.status,
+        priority: ticket.priority,
+        assignedAdminId: ticket.assigned_admin_id,
+        conversation: ticket.conversation || [],
+        createdAt: ticket.created_at,
+        updatedAt: ticket.updated_at,
+    }));
+    // --- END OF FIX ---
 };
 
 /**
@@ -236,3 +252,5 @@ export const getVerificationDocs = async (userId: string) => {
         selfieUrl: selfieData.signedUrl,
     };
 };
+
+

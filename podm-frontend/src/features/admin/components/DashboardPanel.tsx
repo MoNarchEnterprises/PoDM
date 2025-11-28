@@ -19,6 +19,14 @@ const DashboardPanel = () => {
 
     const dashboardData = data.dashboard;
 
+    // --- THIS IS THE FIX ---
+    // An "open" ticket is any ticket that is not 'Closed'.
+    // This now correctly includes 'Open', 'Pending', and 'Escalated' statuses.
+    const openTicketsCount = data.supportTickets?.filter(
+        ticket => ticket.status !== 'Closed'
+    ).length || 0;
+    // --- END OF FIX ---
+
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <header className="mb-8">
@@ -47,7 +55,8 @@ const DashboardPanel = () => {
                     />
                     <StatCard 
                         title="Open Support Tickets" 
-                        value={dashboardData.keyMetrics.openTickets.toLocaleString()} 
+                        // Use the newly calculated count here
+                        value={openTicketsCount.toLocaleString()} 
                         icon={LifeBuoy} 
                         color="blue" 
                     />

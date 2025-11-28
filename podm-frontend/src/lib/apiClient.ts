@@ -92,6 +92,8 @@ interface AuthResponse {
     };
 }
 
+
+
 /**
  * Sends a signup request to the backend.
  */
@@ -596,9 +598,17 @@ export const updateFanPaymentMethod = async (paymentMethodId: string) => {
  * @param description - The detailed description of the issue.
  */
 export const submitSupportTicket = async (subject: string, description: string) => {
-    // Note: You will need to create this backend endpoint next.
-    // POST /api/v1/support/tickets
     const response = await apiClient.post('/support/tickets', { subject, description });
+    return response.data;
+};
+
+/**
+ * Submits a reply to a support ticket as an admin.
+ * @param ticketId The ID of the ticket to reply to.
+ * @param text The content of the reply message.
+ */
+export const replyToSupportTicket = async (ticketId: string, text: string) => {
+    const response = await apiClient.put(`/support/tickets/${ticketId}/reply`, { text });
     return response.data;
 };
 
