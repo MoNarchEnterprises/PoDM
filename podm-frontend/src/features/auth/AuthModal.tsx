@@ -25,7 +25,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
     const navigate = useNavigate();
     const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'forgotSuccess'>(initialMode);
     const [userType, setUserType] = useState<UserRole>('fan');
-    
+
     // Form state
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -63,12 +63,12 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
         try {
             if (mode === 'login') {
                 const loggedInUser = await login(email, password);
-                
+
                 switch (loggedInUser.role) {
                     case 'admin': navigate('/admin/dashboard'); break;
                     case 'creator':
                         if ((loggedInUser as Creator).onboarding_complete) {
-                            navigate('/hub/dashboard'); 
+                            navigate('/hub/dashboard');
                         } else {
                             navigate('/onboarding');
                         }
@@ -127,15 +127,14 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                                     </div>
                                 </div>
                             )}
-                            
+
                             {mode === 'signup' && (
-                                <Input id="username" type="text" placeholder="Username" leftIcon={UserIcon} value={username} onChange={e => setUsername(e.target.value)} required disabled={isLoading} />
+                                <Input id="username" type="text" label="Username" placeholder="Username" leftIcon={UserIcon} value={username} onChange={e => setUsername(e.target.value)} required disabled={isLoading} />
                             )}
-                            
-                            {/* THIS IS THE MISSING INPUT */}
-                            <Input id="email" type="email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
-                            
-                            <Input id="password" type="password" placeholder="Password" leftIcon={KeyRound} value={password} onChange={e => setPassword(e.target.value)} required disabled={isLoading} />
+
+                            <Input id="email" type="email" label="Email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
+
+                            <Input id="password" type="password" label="Password" placeholder="Password" leftIcon={KeyRound} value={password} onChange={e => setPassword(e.target.value)} required disabled={isLoading} />
 
                             {mode === 'login' && (
                                 <div className="text-right text-sm">
@@ -169,7 +168,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                         <h2 className="text-2xl font-bold text-center">Reset Password</h2>
                         <p className="text-center text-sm text-gray-500 mt-2">Enter your email and we'll send you a link to reset your password.</p>
                         <form onSubmit={handleForgotPassword} className="mt-8 space-y-6">
-                            <Input id="email" type="email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
+                            <Input id="email" type="email" label="Email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
                             {error && <p className="text-sm text-red-500 text-center">{error}</p>}
                             <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>Send Reset Link</Button>
                             <div className="text-center text-sm">

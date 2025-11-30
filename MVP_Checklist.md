@@ -50,5 +50,5 @@
 
 ## 5. Known Issues / Blockers
 - **Stripe Webhooks**: Signature verification is currently bypassed for local development due to a persistent environment mismatch. The endpoint is functional.
-- **E2E Tests**: Login form fields need proper labels/accessibility attributes for Playwright selectors to work correctly.
+- **E2E Tests**: Login test is partially working - modal opens and fields fill correctly, but there may be an issue with the submit button click or authentication flow. Needs further investigation.
 - **Frontend Dependencies**: Added missing `@supabase/supabase-js` package to frontend.
