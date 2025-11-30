@@ -1,20 +1,25 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 // --- Load Environment Variables ---
 dotenv.config({ path: path.resolve(__dirname, './.env') });
 
+function logToFile(message: string) {
+    const logPath = path.resolve(__dirname, 'debug.log');
+    const timestamp = new Date().toISOString();
+    fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
+}
 
+logToFile("--- SERVER STARTING ---");
 console.log("--- SERVER STARTING ---");
-console.log("STRIPE_SECRET_KEY loaded:", process.env.STRIPE_SECRET_KEY ? `sk_test_...${process.env.STRIPE_SECRET_KEY.slice(-4)}` : "NOT FOUND");
-console.log("STRIPE_WEBHOOK_SECRET loaded:", process.env.STRIPE_WEBHOOK_SECRET ? `whsec_...${process.env.STRIPE_WEBHOOK_SECRET.slice(-4)}` : "NOT FOUND");
-console.log("-----------------------");
 
 // Use the standard "hybrid" import now that Express is updated.
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http'; // 1. Import http
 import { initSocketServer } from './config/socket'; // 2. Import our socket initializer
+import bodyParser from 'body-parser';
 
 
 import supportRoutes from './routes/support.routes';
@@ -33,6 +38,7 @@ import analyticsRoutes from './routes/analytics.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { verifyStripeSignature } from './middleware/stripe.middleware';
 import { handleStripeWebhook } from './controllers/payments.controller';
+import { handleWebhook } from './controllers/stripe.controller';
 
 const app = express();
 const httpServer = createServer(app); // 3. Create an http server from our app
@@ -42,12 +48,41 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 
-// This route MUST come before app.use(express.json())
+// Stripe webhook routes MUST come before app.use(express.json())
+// Custom middleware to capture raw body for Stripe webhooks
+app.use('/api/v1/payments/stripe/webhooks', (req, res, next) => {
+    logToFile('!!! HIT WEBHOOK (Custom Capture) !!!');
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk) => {
+        chunks.push(chunk);
+    });
+    req.on('end', () => {
+        const rawBody = Buffer.concat(chunks);
+        (req as any).rawBody = rawBody;
+        logToFile(`Captured raw body length: ${rawBody.length}`);
+        next();
+    });
+});
+
 app.post(
-    '/api/v1/payments/stripe/webhooks', 
-    express.raw({ type: 'application/json' }), // This will now work
-    verifyStripeSignature, 
+    '/api/v1/payments/stripe/webhooks',
+    verifyStripeSignature,
     handleStripeWebhook
+);
+
+// Alternative webhook endpoint for Stripe CLI
+app.post(
+    '/api/v1/webhooks/stripe',
+    (req, res, next) => {
+        logToFile('👉 Hit /api/v1/webhooks/stripe');
+        const chunks: Buffer[] = [];
+        req.on('data', (chunk) => chunks.push(chunk));
+        req.on('end', () => {
+            (req as any).rawBody = Buffer.concat(chunks);
+            next();
+        });
+    },
+    handleWebhook
 );
 
 // This middleware is for all other routes
@@ -81,6 +116,3 @@ app.use(errorHandler);
 
 // 5. Start the http server, NOT the express app
 httpServer.listen(PORT, () => console.log(`🚀 Server (with WebSockets) is running at http://localhost:${PORT}`));
-
-// Start Server
-//app.listen(PORT, () => console.log(`🚀 Server is running at http://localhost:${PORT}`));

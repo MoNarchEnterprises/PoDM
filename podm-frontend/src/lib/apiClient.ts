@@ -50,7 +50,7 @@ apiClient.interceptors.request.use(
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
         }
-        
+
         return config;
     },
     (error) => {
@@ -58,6 +58,23 @@ apiClient.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
+// --- Error Handler Registration ---
+
+// Error handler callback type
+type ErrorHandlerCallback = (message: string, type: 'success' | 'error' | 'info') => void;
+
+// Store the error handler callback
+let errorHandlerCallback: ErrorHandlerCallback | null = null;
+
+/**
+ * Register an error handler to be called when API errors occur.
+ * This allows components like ToastContext to display error messages to users.
+ * @param handler - The callback function to handle errors.
+ */
+export const registerErrorHandler = (handler: ErrorHandlerCallback) => {
+    errorHandlerCallback = handler;
+};
 
 /**
  * Response Interceptor:
@@ -70,13 +87,45 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error) => {
-        if (error.response?.status === 401) {
-            // Handle unauthorized errors, e.g., redirect to login
-            console.error("Unauthorized request. Redirecting to login.");
-            localStorage.removeItem('authToken');
-            alert("Your session has expired. Please log in again.");
-            window.location.href = '/'; 
+        // Determine the error message
+        let errorMessage = 'An unexpected error occurred';
+
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+
+            if (error.response?.status === 401) {
+                // Handle unauthorized errors, e.g., redirect to login
+                console.error("Unauthorized request. Redirecting to login.");
+                localStorage.removeItem('authToken');
+                errorMessage = "Your session has expired. Please log in again.";
+
+                // Call the registered error handler if it exists
+                if (errorHandlerCallback) {
+                    errorHandlerCallback(errorMessage, 'error');
+                }
+
+                // Delay redirect to allow toast to show
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+
+                return Promise.reject(error);
+            }
+        } else if (error.request) {
+            // The request was made but no response was received
+            errorMessage = 'No response from server. Please check your connection.';
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            errorMessage = error.message || errorMessage;
         }
+
+        // Call the registered error handler if it exists
+        if (errorHandlerCallback) {
+            errorHandlerCallback(errorMessage, 'error');
+        }
+
         return Promise.reject(error);
     }
 );
@@ -201,9 +250,9 @@ export const sendTip = async (creatorId: string, amount: number, message: string
         amount: Math.round(amount * 100), // Convert to cents
         message,
         contentId,
-        paymentMethodId, // <-- ADD THIS
+        paymentMethodId,
     });
-    return response.data.data; 
+    return response.data.data;
 };
 
 /**
@@ -230,7 +279,7 @@ export const uploadAvatar = async (avatarFile: File) => {
     formData.append('avatar', avatarFile);
 
     const response = await apiClient.post('/users/me/avatar', formData);
-    
+
     return response.data;
 };
 
@@ -269,7 +318,7 @@ export const updatePlatformSettings = async (settings: { commissionRate: number 
  */
 export const updateUserStatus = async (userId: string, status: string) => {
     const response = await apiClient.put<{ success: boolean, data: User }>(
-        `/admin/users/${userId}/status`, 
+        `/admin/users/${userId}/status`,
         { status }
     );
     return response.data;
@@ -362,7 +411,7 @@ export const getMyCreatorContent = async (params: GetContentParams = {}) => {
     if (params.searchTerm) query.append('searchTerm', params.searchTerm);
     if (params.sortKey) query.append('sortKey', params.sortKey);
     if (params.sortDirection) query.append('sortDirection', params.sortDirection);
-    
+
     const response = await apiClient.get(`/content/my-content?${query.toString()}`);
     return response.data;
 };
