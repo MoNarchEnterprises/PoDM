@@ -48,7 +48,8 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
 
 // --- Main Component ---
 const CreatorMessagesPage = () => {
-    const { user: currentCreator } = useAuth();
+    const { user, impersonatedUser } = useAuth();
+    const currentCreator = impersonatedUser || user;
     const { isOpen: isAttachmentModalOpen, openModal: openAttachmentModal, closeModal: closeAttachmentModal } = useModal();
     const [existingContent, setExistingContent] = useState<Content[]>([]);
     const [conversations, setConversations] = useState<ConversationWithFan[]>([]);
@@ -80,7 +81,7 @@ const CreatorMessagesPage = () => {
                         }
                     })
                 );
-                
+
                 setExistingContent(contentWithSignedUrls);
             } catch (error) {
                 console.error("Failed to fetch creator content for attachments:", error);
@@ -108,21 +109,21 @@ const CreatorMessagesPage = () => {
         socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
             setMessages(prev => prev.filter(msg => msg._id !== messageId));
         });
-        
+
         // --- NEW SOCKET LISTENER ---
         socket.on('conversation_read', ({ conversationId }: { conversationId: string }) => {
-            setConversations(prev => prev.map(c => 
+            setConversations(prev => prev.map(c =>
                 c._id === conversationId && c.lastMessage
                     ? { ...c, lastMessage: { ...c.lastMessage, isRead: true } }
                     : c
             ));
         });
 
-        return () => { 
-            socket.off('new_message'); 
+        return () => {
+            socket.off('new_message');
             socket.off('message_deleted');
             socket.off('conversation_read'); // Cleanup
-            socket.disconnect(); 
+            socket.disconnect();
         };
     }, []);
 
@@ -146,7 +147,7 @@ const CreatorMessagesPage = () => {
             setMessages([]);
         }
     }, [activeConversation]);
-    
+
     const handleSendMessage = async (text: string, contentPayload?: any) => {
         if (!activeConversation) return;
         try {
@@ -175,7 +176,7 @@ const CreatorMessagesPage = () => {
         await handleSendMessage(newMessageText);
         setNewMessageText('');
     };
-    
+
     const handleDeleteMessage = async (messageId: string) => {
         try {
             await apiClient.deleteMessage(messageId);
@@ -210,16 +211,16 @@ const CreatorMessagesPage = () => {
                                     const isMe = msg.senderId === currentCreator?._id;
                                     const senderRole = isMe ? 'creator' : 'fan';
                                     return (
-                                        <MessageBubble 
-                                            key={msg._id} 
-                                            message={msg} 
+                                        <MessageBubble
+                                            key={msg._id}
+                                            message={msg}
                                             isMe={isMe}
                                             senderRole={senderRole}
                                             canSaveToGallery={false}
                                             onDelete={handleDeleteMessage}
-                                            onUnlock={async () => {}} 
-                                            onContentClick={() => {}} 
-                                            onSaveToGallery={async () => {}}
+                                            onUnlock={async () => { }}
+                                            onContentClick={() => { }}
+                                            onSaveToGallery={async () => { }}
                                         />
                                     );
                                 })}

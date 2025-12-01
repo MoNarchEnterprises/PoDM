@@ -48,7 +48,7 @@ const ProfileDropdown = ({ user }: { user: User }) => {
                                 </a>
                             </li>
                         ))}
-                         <li>
+                        <li>
                             <a href="#" onClick={handleLogout} className="flex items-center space-x-3 px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <LogOut className="w-4 h-4" />
                                 <span>Log Out</span>
@@ -74,10 +74,12 @@ interface HeaderProps {
 const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
     const currentUser = impersonatedUser || user;
     return (
-        <header className="bg-white dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                <div className="text-purple-500 font-bold text-2xl">{logoText}</div>
-                
+        <header className="bg-gray-900/80 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700 dark:border-gray-700">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-48">
+                <a href="/" className="flex items-center -ml-40">
+                    <img src="/assets/PoDM-logo.png" alt="PoDM Logo" className="h-40 w-auto" />
+                </a>
+
                 {currentUser ? (
                     // Logged-in state
                     <div className="flex items-center space-x-2">
@@ -95,7 +97,7 @@ const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSig
                         <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
                             <Search className="w-5 h-5 text-gray-500" />
                         </button>
-                        <button onClick={onLoginClick} className="hidden sm:block px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <button onClick={onLoginClick} className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-200 dark:text-gray-200 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700">
                             Log In
                         </button>
                         <button onClick={onSignUpClick} className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">

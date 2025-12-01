@@ -15,7 +15,7 @@ import * as apiClient from '../../../lib/apiClient';
 import Input from '../../../components/ui/Input'; // Add Input import
 import Button from '../../../components/ui/Button'; // Add Button import
 import { DEFAULT_COMMISSION_RATE } from '../../../lib/constants'; // Import default rate
-import { useAuth } from '../../../hooks/useAuth'; 
+import { useAuth } from '../../../hooks/useAuth';
 import { Creator } from '@common/types/Creator';
 
 // --- Reusable Sub-Components ---
@@ -47,15 +47,15 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
     };
 
     return (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col">
-                 <header className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <header className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <h2 className="text-xl font-bold">Manage Commission</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-6 h-6 text-gray-500" /></button>
                 </header>
                 <main className="p-6 space-y-4">
                     <p className="text-sm text-gray-500">
-                        Set a custom commission rate for <span className="font-bold">{user.profile.name}</span>. 
+                        Set a custom commission rate for <span className="font-bold">{user.profile.name}</span>.
                         The platform default is {DEFAULT_COMMISSION_RATE}%.
                     </p>
                     <Input
@@ -76,7 +76,7 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
                 </footer>
             </div>
         </div>
-    ); 
+    );
 };
 
 
@@ -147,7 +147,7 @@ const UserManagementPanel = () => {
             // Update the user in the shared admin panel state
             setData(prevData => ({
                 ...prevData,
-                users: prevData.users.map(u => 
+                users: prevData.users.map(u =>
                     u._id === updatedUser.data._id ? updatedUser.data : u
                 ),
             }));
@@ -164,9 +164,9 @@ const UserManagementPanel = () => {
 
     const users = data.users;
 
-    const handleManageCommission = (user: User) => { 
+    const handleManageCommission = (user: User) => {
         setSelectedUserForModal(user);
-        openCommissionModal(); 
+        openCommissionModal();
     };
 
     const handleUpdateCommission = async (userId: string, commissionRate: number | null) => {
@@ -183,7 +183,7 @@ const UserManagementPanel = () => {
             alert("An error occurred while updating the commission rate.");
         }
     };
-    
+
     const handleApprove = async (userId: string) => {
         try {
             const response = await apiClient.updateUserStatus(userId, 'active');
@@ -222,38 +222,44 @@ const UserManagementPanel = () => {
     };
 
     const handleImpersonate = async (targetUser: User) => {
-        if (!window.confirm(`Are you sure you want to impersonate "${targetUser.profile.name}"? You will be logged in as them.`)) {
-            return;
-        }
+        console.log('[Impersonate] Starting impersonation for user:', targetUser);
+        // Temporarily disable confirmation to test the flow
+        // if (!window.confirm(`Are you sure you want to impersonate "${targetUser.profile.name}"? You will be logged in as them.`)) {
+        //     console.log('[Impersonate] User cancelled confirmation');
+        //     return;
+        // }
+        console.log('[Impersonate] Confirmation accepted (skipped), calling startImpersonation...');
         try {
             await startImpersonation(targetUser);
+            console.log('[Impersonate] startImpersonation completed successfully');
         } catch (error: any) {
+            console.error('[Impersonate] Error during impersonation:', error);
             alert(`Failed to start impersonation: ${error.message}`);
             console.error(error);
         }
     };
-    
+
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
             if (!user || !user.profile) return false;
             console.log('User management panel: User name:', user.profile.name, 'Email:', user.email, 'Role:', user.role, 'Status:', user.status);
             const lowercasedTerm = searchTerm.toLowerCase();
-            const searchMatch = (user.profile.name?.toLowerCase() || '').includes(lowercasedTerm) || 
-                                (user.email?.toLowerCase() || '').includes(lowercasedTerm);
+            const searchMatch = (user.profile.name?.toLowerCase() || '').includes(lowercasedTerm) ||
+                (user.email?.toLowerCase() || '').includes(lowercasedTerm);
 
             const typeMatch = filters.type === 'All' || user.role === filters.type.toLowerCase();
             const statusMatch = filters.status === 'All' || user.status === filters.status.toLowerCase().replace(' ', '-');
-            
+
             return searchMatch && typeMatch && statusMatch;
         });
     }, [searchTerm, filters, users]);
-    
+
     const userToVerify = users.find(u => u._id === viewingVerificationId);
 
     if (viewingVerificationId && userToVerify) {
         return (
             <div className="p-4 sm:p-6 lg:p-8">
-                <VerificationDetailPanel 
+                <VerificationDetailPanel
                     user={userToVerify}
                     onBack={() => setViewingVerificationId(null)}
                     onApprove={handleApprove}
@@ -265,9 +271,9 @@ const UserManagementPanel = () => {
 
     return (
         <>
-            <ManageCommissionModal 
-                isOpen={isCommissionModalOpen} 
-                onClose={closeCommissionModal} 
+            <ManageCommissionModal
+                isOpen={isCommissionModalOpen}
+                onClose={closeCommissionModal}
                 user={selectedUserForModal}
                 onSave={handleUpdateCommission}
             />
@@ -283,10 +289,10 @@ const UserManagementPanel = () => {
                             <input type="text" placeholder="Search users..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
                         </div>
                         <div className="flex items-center space-x-2">
-                            <select onChange={e => setFilters(f => ({...f, type: e.target.value}))} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
+                            <select onChange={e => setFilters(f => ({ ...f, type: e.target.value }))} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
                                 <option>All</option><option>Fan</option><option>Creator</option><option>Admin</option>
                             </select>
-                            <select onChange={e => setFilters(f => ({...f, status: e.target.value}))} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
+                            <select onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
                                 <option>All</option><option>Active</option><option>Suspended</option><option>Banned</option><option>Pending Verification</option>
                             </select>
                         </div>
@@ -302,23 +308,23 @@ const UserManagementPanel = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                               {filteredUsers.map(user => (
-                                   <tr key={user._id}>
-                                       <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><span className="font-medium">{user.profile.name}</span></div></td>
-                                       <td className="px-4 py-3 text-center"><StatusBadge status={user.status} /></td>
-                                       <td className="px-4 py-3 text-center text-sm">{formatDate(user.createdAt)}</td>
-                                       <td className="px-4 py-3 text-center">
-                                           <UserActionsMenu 
-                                               user={user} 
-                                               currentUser={currentUser}
-                                               onManageCommission={() => handleManageCommission(user)} 
-                                               onViewVerification={() => setViewingVerificationId(user._id)}
-                                               onUpdateStatus={handleUpdateStatus}
-                                               onImpersonate={handleImpersonate}
-                                           />
-                                       </td>
-                                   </tr>
-                               ))}
+                                {filteredUsers.map(user => (
+                                    <tr key={user._id}>
+                                        <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><span className="font-medium">{user.profile.name}</span></div></td>
+                                        <td className="px-4 py-3 text-center"><StatusBadge status={user.status} /></td>
+                                        <td className="px-4 py-3 text-center text-sm">{formatDate(user.createdAt)}</td>
+                                        <td className="px-4 py-3 text-center">
+                                            <UserActionsMenu
+                                                user={user}
+                                                currentUser={currentUser}
+                                                onManageCommission={() => handleManageCommission(user)}
+                                                onViewVerification={() => setViewingVerificationId(user._id)}
+                                                onUpdateStatus={handleUpdateStatus}
+                                                onImpersonate={handleImpersonate}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

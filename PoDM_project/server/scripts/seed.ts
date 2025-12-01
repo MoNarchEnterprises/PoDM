@@ -77,9 +77,8 @@ const seed = async () => {
                 email: user.email,
                 role: user.role,
                 status: 'active',
-                full_name: user.name, // Assuming full_name column exists based on db schema visualization
-                // If full_name doesn't exist, we might need to check the schema again, 
-                // but db schema visualization.txt line 97 says "full_name text"
+                full_name: user.name,
+                onboarding_complete: user.role === 'creator' ? true : null, // Set onboarding complete for creators
             })
             .select()
             .single();
