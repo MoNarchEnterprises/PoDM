@@ -46,7 +46,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
             // Use the admin client to validate the user's token
             const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
-            
+
             if (authError) {
                 console.error('[Protect] Supabase auth error:', authError.message);
                 return next(new AppError(`Not authorized: ${authError.message}`, 401));
@@ -59,7 +59,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
             // Fetch the user's full profile from our public profiles table
             const userProfile = await findUserById(authUser.id);
-            
+
             if (!userProfile) {
                 console.error(`[Protect] Database profile not found for user ID: ${authUser.id}`);
                 return next(new AppError('User profile not found for this token.', 404));
@@ -90,7 +90,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             // --- End Impersonation Logic ---
 
             console.log('[Protect] User attached to request. Proceeding...');
-            
+
             next();
 
         } catch (error: any) {
@@ -110,8 +110,14 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 export const creatorOnly = (req: Request, res: Response, next: NextFunction) => {
     console.log('[CreatorOnly] Checking user role...');
     console.log(`[CreatorOnly] req.user.role: ${req.user?.role}`);
-    if (req.user && req.user.role === 'creator') {
-        console.log(`[CreatorOnly] Access granted for role: ${req.user.role}`);
+    console.log(`[CreatorOnly] req.originalUser: ${req.originalUser?.email || 'none'}`);
+
+    // Allow if user is a creator, or if admin is impersonating a creator
+    const isCreator = req.user && req.user.role === 'creator';
+    const isAdminImpersonatingCreator = req.originalUser && req.originalUser.role === 'admin' && req.user && req.user.role === 'creator';
+
+    if (isCreator || isAdminImpersonatingCreator) {
+        console.log(`[CreatorOnly] Access granted. isCreator: ${isCreator}, isAdminImpersonatingCreator: ${isAdminImpersonatingCreator}`);
         next();
     } else {
         console.error(`[CreatorOnly] Access denied. User role is: ${req.user?.role}`);

@@ -83,10 +83,10 @@ const ContentViewerLoader = () => {
     if (isLoading) return <div>Loading Content...</div>;
     if (error || !data) return <div>{error || "Content not found"}</div>;
 
-    return <ContentViewerPage 
-        content={{ ...data.content, _id: data.content.id.toString() }} 
-        creator={data.creator} 
-        relatedContent={data.relatedContent.map(item => ({ ...item, _id: item.id.toString() }))} 
+    return <ContentViewerPage
+        content={{ ...data.content, _id: data.content.id.toString() }}
+        creator={data.creator}
+        relatedContent={data.relatedContent.map(item => ({ ...item, _id: item.id.toString() }))}
     />;
 };
 
@@ -119,7 +119,7 @@ const FanGalleryLoader = () => {
     if (error) {
         return <div className="p-8 text-center text-red-500">{error}</div>;
     }
-    
+
     return <FanGallery galleryData={galleryData} />;
 };
 
@@ -160,8 +160,9 @@ const FanSettingsLoader = () => {
 };
 
 const CreatorDashboardLoader = () => {
-    const { user } = useAuth(); // Get the logged-in user, who is the creator
-    const { dashboardData, isLoading, error } = useCreatorData(user as Creator);
+    const { user, impersonatedUser } = useAuth();
+    const currentUser = (impersonatedUser || user) as Creator;
+    const { dashboardData, isLoading, error } = useCreatorData(currentUser);
 
     if (isLoading) {
         return <div className="p-8 text-center">Loading dashboard...</div>;
@@ -170,7 +171,7 @@ const CreatorDashboardLoader = () => {
         return <div className="p-8 text-center text-red-500">{error || 'Could not load data.'}</div>;
     }
 
-    return <CreatorDashboard creator={user as Creator} metrics={dashboardData.keyMetrics} recentActivity={dashboardData.recentActivity} monthlyEarnings={dashboardData.monthlyEarnings} />;
+    return <CreatorDashboard creator={currentUser} metrics={dashboardData.keyMetrics} recentActivity={dashboardData.recentActivity} monthlyEarnings={dashboardData.monthlyEarnings} />;
 };
 
 
@@ -230,29 +231,30 @@ const CreatorEarningsLoader = () => {
         return <div className="p-8 text-center text-red-500">{error || 'Data could not be loaded.'}</div>;
     }
 
-    return <CreatorEarnings 
-        summary={data.summary} 
-        monthlyEarnings={data.monthlyEarnings} 
-        transactions={data.transactions} 
+    return <CreatorEarnings
+        summary={data.summary}
+        monthlyEarnings={data.monthlyEarnings}
+        transactions={data.transactions}
     />;
 };
 
 const CreatorSettingsLoader = () => {
-    // 1. Get the currently logged-in user from the auth context
-    const { user, isLoading } = useAuth();
+    // 1. Get the currently logged-in user (or impersonated user)
+    const { user, impersonatedUser, isLoading } = useAuth();
+    const currentUser = (impersonatedUser || user) as Creator;
 
     // 2. Handle the loading state while the user session is being verified
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500">Loading Settings...</div>;
     }
 
-    // 3. Handle the case where the user is not found (e.g., not logged in)
-    if (!user) {
+    // 3. Handle the case where the user is not found
+    if (!currentUser) {
         return <div className="p-8 text-center text-red-500">Could not load creator data. Please try logging in again.</div>;
     }
 
     // 4. Pass the real, complete user object as the creator prop
-    return <CreatorSettings creator={user as Creator} />;
+    return <CreatorSettings creator={currentUser} />;
 };
 
 // Corrected Loaders: These components are self-contained and don't need props passed from the router.
@@ -264,9 +266,9 @@ const CreatorOnboardingLoader = () => <CreatorOnboarding />;
 
 
 // --- Layout Wrapper Components ---
-const FanLayout = () => ( <MainLayout logoText="PoDM" navItems={FAN_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout> );
-const CreatorLayout = () => ( <MainLayout logoText="PoDM" navItems={CREATOR_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout> );
-const AdminLayout = () => ( <MainLayout logoText="PoDM - Admin" navItems={ADMIN_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout> );
+const FanLayout = () => (<MainLayout logoText="PoDM" navItems={FAN_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout>);
+const CreatorLayout = () => (<MainLayout logoText="PoDM" navItems={CREATOR_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout>);
+const AdminLayout = () => (<MainLayout logoText="PoDM - Admin" navItems={ADMIN_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout>);
 
 // Initialize Stripe outside of the component to avoid re-initialization on every render
 // Get your publishable key from environment variables
@@ -286,7 +288,7 @@ const App = () => {
                             <Route path="/" element={<SplashPage />} />
                             <Route path="/creator/:username" element={<CreatorProfileLoader />} />
                             <Route path="/content/:contentId" element={<ContentViewerLoader />} />
-                            
+
                             {/* --- Auth Routes --- */}
                             <Route path="/reset-password" element={<ResetPasswordPage />} />
                             <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
@@ -306,15 +308,15 @@ const App = () => {
                             {/* --- Creator Routes (Protected) --- */}
                             <Route element={<CreatorRouteGuard />}>
                                 <Route path="/hub" element={<CreatorLayout />}>
-                                {/* The nested routes are now correct relative to "/hub" */}
-                                <Route index element={<CreatorDashboardLoader />} />
-                                <Route path="dashboard" element={<CreatorDashboardLoader />} />
-                                <Route path="content" element={<CreatorContent />} />
-                                <Route path="messages" element={<CreatorMessages />} />
-                                <Route path="analytics" element={<CreatorAnalyticsLoader />} />
-                                <Route path="earnings" element={<CreatorEarningsLoader />} />
-                                <Route path="settings" element={<CreatorSettingsLoader />} />
-                                
+                                    {/* The nested routes are now correct relative to "/hub" */}
+                                    <Route index element={<CreatorDashboardLoader />} />
+                                    <Route path="dashboard" element={<CreatorDashboardLoader />} />
+                                    <Route path="content" element={<CreatorContent />} />
+                                    <Route path="messages" element={<CreatorMessages />} />
+                                    <Route path="analytics" element={<CreatorAnalyticsLoader />} />
+                                    <Route path="earnings" element={<CreatorEarningsLoader />} />
+                                    <Route path="settings" element={<CreatorSettingsLoader />} />
+
                                 </Route>
                             </Route>
 

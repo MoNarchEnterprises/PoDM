@@ -57,13 +57,13 @@ export const getDashboardData = async (creatorId: string) => {
         AnalyticsService.countEventsForCreator(creatorId, 'profile_visit'),
         AnalyticsService.countEventsForCreator(creatorId, 'post_view')
     ]);
-    
+
     // --- 2. Fetch Recent Activity ---
     const combinedActivity = [
         ...recentTransactions,
-        ...recentContent ,
+        ...recentContent,
     ];
-    
+
     combinedActivity.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     // Reshape the activity items to match frontend expectations
@@ -99,7 +99,7 @@ export const getDashboardData = async (creatorId: string) => {
         const earnings = await TransactionModel.sumCreatorEarningsForPeriod(creatorId, startOfMonth, endOfMonth);
         monthlyEarnings.push({ name: monthName, earnings: earnings / 100 }); // convert to dollars
     }
-    
+
     // --- 4. Assemble Final Payload ---
     const dashboardData = {
         keyMetrics: {
@@ -163,9 +163,13 @@ export const getAnalyticsData = async (creatorId: string) => {
         .eq('creator_id', creatorId)
         .eq('status', 'Cleared');
 
-    if (revenueError) throw new AppError('Could not fetch revenue data.', 500);
+    if (revenueError) {
+        console.error('Error fetching revenue data:', revenueError);
+        throw new AppError('Could not fetch revenue data.', 500);
+    }
+    console.log('[Analytics] Revenue Data:', revenueData);
 
-    const revenueBreakdown = revenueData.reduce((acc, tx) => {
+    const revenueBreakdown = (revenueData || []).reduce((acc, tx) => {
         const typeName = tx.type === 'PPV Message' || tx.type === 'PPV Post' ? 'PPV' : tx.type;
         acc[typeName] = (acc[typeName] || 0) + tx.creator_payout;
         return acc;
@@ -191,7 +195,7 @@ export const getAnalyticsData = async (creatorId: string) => {
         },
         subscriberGrowth,
         revenueBreakdown: Object.entries(revenueBreakdown).map(([name, value]) => ({ name, value })),
-        topContent: topContentData.map(item => ({...item, _id: item.id.toString()})) as Content[],
+        topContent: topContentData.map(item => ({ ...item, _id: item.id.toString() })) as Content[],
     };
 };
 
@@ -227,7 +231,7 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
         newCoverImageUrl = publicUrl;
     }
 
-    
+
     // 2. Prepare the updates for the 'profiles' table
     const profileUpdates: { [key: string]: any } = {};
     if (profile?.name) profileUpdates.username = profile.name;
@@ -241,7 +245,7 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
     if (profile?.socialLinks) {
         newCreatorData.socialLinks = profile.socialLinks;
     }
-    
+
     newCreatorData.coverImageUrl = newCoverImageUrl; // Set the new or existing URL
 
     // In the future, you can merge other settings here too
@@ -253,11 +257,11 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
     }
     // --- END OF STRIPE SYNC LOGIC ---
 
-    
-    profileUpdates.creator_data = newCreatorData;
-    
 
-    
+    profileUpdates.creator_data = newCreatorData;
+
+
+
     // 4. Save the updates to the database
     const updatedUser = await UserModel.updateProfile(creatorId, profileUpdates);
     if (!updatedUser) {
@@ -269,7 +273,7 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
         throw new AppError('Could not retrieve updated user profile.', 500);
     }
 
-    
+
     return reshapeUserForApp(reshapedData);
 };
 
