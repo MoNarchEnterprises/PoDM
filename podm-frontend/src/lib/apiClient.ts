@@ -256,6 +256,16 @@ export const sendTip = async (creatorId: string, amount: number, message: string
 };
 
 /**
+ * Manually confirms a transaction after client-side payment confirmation.
+ * @param paymentIntentId The ID of the Stripe PaymentIntent.
+ */
+export const confirmTransaction = async (paymentIntentId: string) => {
+    console.log(`[apiClient] Confirming transaction for PaymentIntent: ${paymentIntentId}`);
+    const response = await apiClient.post('/payments/confirm-transaction', { paymentIntentId });
+    return response.data.data;
+};
+
+/**
  * Sends a request to create a new subscription to a creator.
  * @param creatorId The ID of the creator to subscribe to.
  * @param tierId The internal ID of the selected subscription tier (e.g., 't1', 't2').
@@ -282,7 +292,6 @@ export const uploadAvatar = async (avatarFile: File) => {
 
     return response.data;
 };
-
 
 /**
  * Sends a request to change the current user's password.

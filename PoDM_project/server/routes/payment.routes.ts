@@ -29,6 +29,14 @@ router.post('/unlock-message', protect, unlockMessageContent);
  */
 router.post('/unlock-post', protect, unlockPost);
 
+/**
+ * @route   POST /api/v1/payments/confirm-transaction
+ * @desc    Manually confirm a transaction after client-side payment confirmation.
+ * @access  Private (Fans only)
+ */
+import { confirmTransaction } from '../controllers/payments.controller';
+router.post('/confirm-transaction', protect, confirmTransaction);
+
 // The Stripe webhook route is now handled directly in server.ts
 
 export default router;

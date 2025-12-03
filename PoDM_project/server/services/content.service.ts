@@ -48,12 +48,12 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
             throw new Error(`Failed to download original file: ${downloadError?.message}`);
         }
         console.log(`[Watermark] Original file (as Blob) downloaded successfully.`);
-        
+
         // --- THIS IS THE FIX ---
         // 2. Convert the Blob to a Buffer that Sharp can understand
         const fileArrayBuffer = await fileBlob.arrayBuffer();
         const fileBuffer = Buffer.from(fileArrayBuffer);
-       
+
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
         const tempFileName = `wm-${fan._id}-${Date.now()}.webp`;
@@ -76,7 +76,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
             }])
             .webp({ quality: 90 }) // Convert to WebP for efficient delivery
             .toBuffer();
-        
+
         console.log(`[Watermark] Image buffer processed with Sharp.`);
 
         // 4. Upload the watermarked buffer to a temporary folder in storage
@@ -86,14 +86,14 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
                 contentType: 'image/webp',
                 upsert: true,
                 // Set cache control to delete the file after a short time (e.g., 5 minutes)
-                cacheControl: 'max-age=300' 
+                cacheControl: 'max-age=300'
             });
 
         if (uploadError) {
             throw new Error(`Failed to upload watermarked file: ${uploadError.message}`);
         }
         console.log(`[Watermark] Temporary watermarked file uploaded to: ${tempFilePath}`);
-        
+
         return tempFilePath;
 
     } catch (error) {
@@ -127,7 +127,7 @@ const generateVideoThumbnail = async (videoBuffer: Buffer): Promise<Buffer> => {
     try {
         // 1. Write the video buffer to a temporary file on the server's disk.
         await fs.writeFile(tempVideoPath, videoBuffer);
-        
+
         // 2. Use fluent-ffmpeg to run the command.
         await new Promise<void>((resolve, reject) => {
             ffmpeg(tempVideoPath)
@@ -210,7 +210,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             if (thumbUploadError) {
                 console.error(`Failed to upload thumbnail for ${file.originalname}, will use original file as thumbnail.`);
                 // If thumbnail fails, revert to using the original file's path
-                thumbnailPath = filePath; 
+                thumbnailPath = filePath;
                 thumbnailMimeType = file.mimetype;
             }
         } else if (file.mimetype.startsWith('video/')) {
@@ -225,7 +225,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
                 const { error: thumbUploadError } = await supabase.storage
                     .from('creator-content')
                     .upload(thumbnailPath, thumbnailBuffer, { contentType: thumbnailMimeType });
-                
+
                 if (thumbUploadError) throw thumbUploadError;
 
             } catch (videoThumbError) {
@@ -237,7 +237,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             // --- END OF NEW LOGIC ---
         }
 
-        
+
         uploadedFiles.push({
             id: originalFileName,
             url: filePath, // Store the path, NOT the public URL
@@ -302,9 +302,9 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
  * @returns An array of content objects.
  */
 export const getContentByCreatorId = async (creatorId: string, query: ContentQuery = {}) => {
-    const { 
-        type, 
-        searchTerm, 
+    const {
+        type,
+        searchTerm,
         sortKey = 'created_at', // Default sort key
         sortDirection = 'desc' // Default sort direction
     } = query;
@@ -336,7 +336,7 @@ export const getContentByCreatorId = async (creatorId: string, query: ContentQue
         console.error('Error finding content by creator ID:', error.message);
         return null;
     }
-    
+
     // Map the database 'id' to the frontend '_id'
     return data.map(item => ({
         ...item,
@@ -381,17 +381,46 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
         return [];
     }
 
-    if (!isSubscribed) {
-        return content.map(post => ({
-            ...post,
-            files: post.files.map((file: any) => ({
-                ...file,
-                url: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Locked',
-            }))
-        }));
+    // Fetch all successful PPV transactions for this viewer if they exist
+    let unlockedContentIds = new Set<string>();
+    if (viewerId) {
+        const transactions = await TransactionModel.findTransactionsByUser(viewerId);
+        if (transactions) {
+            transactions.forEach(tx => {
+                if (tx.status === 'Cleared' && (tx.type === 'PPV Post' || tx.type === 'PPV Message') && tx.related_content_id) {
+                    unlockedContentIds.add(tx.related_content_id);
+                }
+            });
+        }
     }
 
-    return content;
+    return content.map(post => {
+        // Determine if the post is unlocked for this viewer
+        const isUnlocked = isSubscribed || (viewerId ? unlockedContentIds.has(post.id.toString()) : false);
+
+        // If it's PPV and unlocked, or Subscribers Only and subscribed, show the content.
+        // Otherwise, show the placeholder.
+        const shouldShowContent =
+            post.visibility === 'pay_per_view' ? isUnlocked :
+                post.visibility === 'subscribers_only' ? isSubscribed :
+                    true; // 'unlisted' or public
+
+        if (shouldShowContent) {
+            return {
+                ...post,
+                isUnlocked: true // Explicitly mark as unlocked for frontend
+            };
+        } else {
+            return {
+                ...post,
+                isUnlocked: false,
+                files: post.files.map((file: any) => ({
+                    ...file,
+                    url: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Locked',
+                }))
+            };
+        }
+    });
 };
 
 
@@ -454,7 +483,7 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
         }
     } else if (updates.visibility === 'subscribers_only') {
         // If switching back to subscribers_only, nullify the price
-        updates.price = undefined; 
+        updates.price = undefined;
     }
 
     // Determine the content's new status based on scheduling updates
@@ -479,7 +508,7 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     if (!updatedContent) {
         throw new AppError('Failed to update content.', 500);
     }
-    return {...updatedContent, _id: updatedContent.id.toString() };
+    return { ...updatedContent, _id: updatedContent.id.toString() };
 };
 
 
@@ -534,7 +563,7 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
  */
 export const getSecureUrlForThumbnail = async (contentId: string, userId: string) => {
     console.log(`[Service] getSecureUrlForThumbnail: Verifying access for userId="${userId}" to contentId="${contentId}"`);
-    
+
     const content = await ContentModel.findContentById(contentId);
     if (!content) {
         console.error(`[Service] Content not found in database for id="${contentId}"`);
@@ -582,11 +611,11 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         throw new AppError('Could not determine a valid file path.', 500);
     }
     console.log(`[Service] Using relative path for Supabase: ${relativePath}`);
-    
+
     const { data, error } = await supabase.storage
         .from(bucketName)
         .createSignedUrl(relativePath, 60);
-    
+
     if (error) {
         console.error(`[Service] Supabase storage error for path "${relativePath}":`, error.message);
         throw new AppError('Could not generate secure URL from storage.', 500);
@@ -642,7 +671,7 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
         throw new AppError('Could not generate secure URL for content.', 500);
     }
 
-    return { 
+    return {
         secureUrl: data.signedUrl,
         contentType: content.type // Return the content type ('photo' or 'video')
     };

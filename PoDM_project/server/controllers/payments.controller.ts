@@ -103,3 +103,22 @@ export const unlockPost = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 };
+
+/**
+ * @desc    Manually confirm a transaction after client-side payment confirmation.
+ * @route   POST /api/v1/payments/confirm-transaction
+ * @access  Private (Fans only)
+ */
+export const confirmTransaction = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { paymentIntentId } = req.body;
+        if (!paymentIntentId) {
+            throw new AppError('Payment Intent ID is required.', 400);
+        }
+
+        const result = await PaymentService.confirmTransaction(paymentIntentId);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -12,19 +12,129 @@ import supabase from '../config/supabaseClient';
 import * as ContentModel from '../models/content.model';
 
 /**
- * Handles the business logic for a fan sending a tip to a creator.
- * @param fanId - The ID of the fan sending the tip.
- * @param creatorId - The ID of the creator receiving the tip.
- * @param amountInCents - The tip amount in cents.
- * @returns The newly created transaction record.
+ * Helper to process a successful payment intent and create/update records.
  */
-export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number,  message: string | undefined, contentId: string, paymentMethodId?: string) => {
-    if (amountInCents < 100) { // Minimum $1 tip
+export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.PaymentIntent) => {
+    const transactionType = paymentIntent.metadata.transaction_type;
+    console.log(`[PaymentService] Processing successful payment intent: ${paymentIntent.id}, type: ${transactionType}`);
+
+    // 1. Check for duplicates
+    const existingTransaction = await TransactionModel.findTransactionByPaymentGatewayId(paymentIntent.id);
+    if (existingTransaction) {
+        console.log(`[PaymentService] Transaction ${paymentIntent.id} already exists. Skipping.`);
+        return existingTransaction;
+    }
+
+    // 2. Extract common data
+    const { fan_id, creator_id, content_id } = paymentIntent.metadata;
+    const amountInCents = paymentIntent.amount;
+    const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
+    const creatorPayout = amountInCents - platformFee;
+
+    let transaction: any = null;
+
+    try {
+        if (transactionType === 'tip') {
+            const { fan_message, related_content_id } = paymentIntent.metadata;
+            transaction = await TransactionModel.createTransaction({
+                fan_id,
+                creator_id,
+                type: 'Tip',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: related_content_id,
+                message: fan_message,
+            });
+
+            if (related_content_id) {
+                const { error: rpcError } = await supabase.rpc('increment_tip_count', { content_id_to_update: related_content_id, tip_amount: amountInCents });
+                if (rpcError) console.error('Error incrementing tip count:', rpcError);
+            }
+
+        } else if (transactionType === 'ppv_message') {
+            const { message_id } = paymentIntent.metadata;
+            transaction = await TransactionModel.createTransaction({
+                fan_id,
+                creator_id,
+                type: 'PPV Message',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: content_id,
+                message: message_id,
+            });
+
+            const updatedMessage = await MessageModel.unlockContentInMessage(message_id);
+            if (updatedMessage) {
+                const messageWithSignedUrl = await generateSignedUrlsForContent(updatedMessage);
+                const roomName = `conversation:${updatedMessage.conversation_id}`;
+                const messageForFrontend = {
+                    _id: messageWithSignedUrl.id.toString(),
+                    conversationId: updatedMessage.conversation_id,
+                    senderId: updatedMessage.sender_id,
+                    receiverId: updatedMessage.receiver_id,
+                    text: updatedMessage.text,
+                    content: updatedMessage.content,
+                    isRead: updatedMessage.is_read,
+                    createdAt: updatedMessage.created_at,
+                };
+                io.to(roomName).emit('message_updated', messageForFrontend);
+            }
+
+        } else if (transactionType === 'ppv_post') {
+            transaction = await TransactionModel.createTransaction({
+                fan_id,
+                creator_id,
+                type: 'PPV Post',
+                amount: amountInCents,
+                platform_fee: platformFee,
+                creator_payout: creatorPayout,
+                status: 'Cleared',
+                payment_gateway_id: paymentIntent.id,
+                related_content_id: content_id,
+            });
+        }
+
+        console.log(`[PaymentService] Transaction created for ${paymentIntent.id}`);
+        return transaction;
+
+    } catch (error: any) {
+        console.error(`[PaymentService] Error creating transaction for ${paymentIntent.id}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Manually confirms a transaction exists for a given PaymentIntent ID.
+ * Useful for frontend to ensure transaction is recorded after client-side confirmation.
+ */
+export const confirmTransaction = async (paymentIntentId: string) => {
+    console.log(`[PaymentService] Manual confirmation requested for ${paymentIntentId}`);
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status !== 'succeeded') {
+        console.warn(`[PaymentService] PaymentIntent ${paymentIntentId} is not succeeded (status: ${paymentIntent.status})`);
+        throw new AppError(`Payment is not successful (status: ${paymentIntent.status})`, 400);
+    }
+
+    return processSuccessfulPaymentIntent(paymentIntent);
+};
+
+/**
+ * Handles the business logic for a fan sending a tip to a creator.
+ */
+export const sendTipToCreator = async (fanId: string, creatorId: string, amountInCents: number, message: string | undefined, contentId: string, paymentMethodId?: string) => {
+    if (amountInCents < 100) {
         throw new AppError('Tip amount must be at least $1.00.', 400);
     }
 
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
-    
+
     const metadata = {
         transaction_type: 'tip',
         fan_id: fanId,
@@ -41,29 +151,47 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
             metadata: metadata,
         };
 
+        console.log('[TIP DEBUG] Creating PaymentIntent with config:', {
+            amount: amountInCents,
+            customer: fanStripeCustomerId,
+            hasPaymentMethod: !!paymentMethodId
+        });
+
+        // For tips, always let the frontend handle confirmation to support 3D Secure
         if (paymentMethodId) {
             paymentIntentConfig.payment_method = paymentMethodId;
-            paymentIntentConfig.confirm = true; // Confirm immediately if payment method is provided
-            paymentIntentConfig.off_session = true; // Mark as off-session if using saved card
+            console.log('[TIP DEBUG] Attaching payment method:', paymentMethodId);
+            // Don't set confirm:true - let the frontend always confirm via stripe.confirmCardPayment()
         }
 
         const paymentIntent = await stripe.paymentIntents.create(paymentIntentConfig);
 
+        console.log('[TIP DEBUG] PaymentIntent created:', {
+            id: paymentIntent.id,
+            status: paymentIntent.status,
+            client_secret: paymentIntent.client_secret ? 'present' : 'missing',
+            payment_method: paymentIntent.payment_method,
+            confirmation_method: paymentIntent.confirmation_method
+        });
+
+        // Don't attempt immediate processing for tips - let frontend confirm first
+        // Transactions will be created either:
+        // 1. Via frontend calling confirmTransaction after successful confirmation
+        // 2. Via webhook when payment_intent.succeeded fires
+
         return {
             clientSecret: paymentIntent.client_secret,
-            status: paymentIntent.status
+            status: paymentIntent.status,
+            paymentIntentId: paymentIntent.id
         };
     } catch (err: any) {
-        console.error("Stripe Payment Intent creation failed:", err.message);
+        console.error("[TIP DEBUG] Error creating PaymentIntent:", err);
         throw new AppError(`Failed to create payment intent: ${err.message}`, 500);
     }
 };
 
 /**
  * Creates a Stripe Payment Intent for unlocking paid content in a message.
- * @param fanId - The ID of the fan unlocking the content.
- * @param messageId - The ID of the message containing the locked content.
- * @returns An object containing the clientSecret for the Payment Intent.
  */
 export const createMessageUnlockIntent = async (fanId: string, messageId: string) => {
     const message = await MessageModel.findMessageById(messageId);
@@ -78,13 +206,13 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
     const customer = await stripe.customers.retrieve(fanStripeCustomerId, {
         expand: ['invoice_settings.default_payment_method'],
     }) as Stripe.Customer;
-    
+
     const defaultPaymentMethod = customer.invoice_settings?.default_payment_method;
 
     if (!defaultPaymentMethod) {
         throw new AppError('No default payment method found. Please add one in your settings.', 400);
     }
-    
+
     const metadataPayload = {
         transaction_type: 'ppv_message',
         fan_id: fanId,
@@ -100,20 +228,26 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
             currency: 'usd',
             customer: fanStripeCustomerId,
             payment_method: typeof defaultPaymentMethod === 'string' ? defaultPaymentMethod : defaultPaymentMethod.id,
-            off_session: true, 
-            confirm: true,     
+            off_session: true,
+            confirm: true,
             metadata: metadataPayload,
         });
 
-        return { 
+        if (paymentIntent.status === 'succeeded') {
+            await processSuccessfulPaymentIntent(paymentIntent);
+        }
+
+        return {
             clientSecret: paymentIntent.client_secret,
-            status: paymentIntent.status 
+            status: paymentIntent.status,
+            paymentIntentId: paymentIntent.id
         };
     } catch (err: any) {
         if (err.code === 'authentication_required') {
             return {
                 clientSecret: err.raw.payment_intent.client_secret,
-                status: 'requires_action'
+                status: 'requires_action',
+                paymentIntentId: err.raw.payment_intent.id
             };
         }
         console.error("Stripe Payment Intent creation/confirmation failed:", err.message);
@@ -123,9 +257,6 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
 
 /**
  * Creates a Stripe Payment Intent for unlocking a paid post.
- * @param fanId - The ID of the fan unlocking the content.
- * @param contentId - The ID of the content to unlock.
- * @returns An object containing the clientSecret for the Payment Intent.
  */
 export const createPostUnlockIntent = async (fanId: string, contentId: string) => {
     const content = await ContentModel.findContentById(contentId);
@@ -139,13 +270,13 @@ export const createPostUnlockIntent = async (fanId: string, contentId: string) =
     const customer = await stripe.customers.retrieve(fanStripeCustomerId, {
         expand: ['invoice_settings.default_payment_method'],
     }) as Stripe.Customer;
-    
+
     const defaultPaymentMethod = customer.invoice_settings?.default_payment_method;
 
     if (!defaultPaymentMethod) {
         throw new AppError('No default payment method found. Please add one in your settings.', 400);
     }
-    
+
     const metadataPayload = {
         transaction_type: 'ppv_post',
         fan_id: fanId,
@@ -159,20 +290,26 @@ export const createPostUnlockIntent = async (fanId: string, contentId: string) =
             currency: 'usd',
             customer: fanStripeCustomerId,
             payment_method: typeof defaultPaymentMethod === 'string' ? defaultPaymentMethod : defaultPaymentMethod.id,
-            off_session: true, 
-            confirm: true,     
+            off_session: true,
+            confirm: true,
             metadata: metadataPayload,
         });
 
-        return { 
+        if (paymentIntent.status === 'succeeded') {
+            await processSuccessfulPaymentIntent(paymentIntent);
+        }
+
+        return {
             clientSecret: paymentIntent.client_secret,
-            status: paymentIntent.status 
+            status: paymentIntent.status,
+            paymentIntentId: paymentIntent.id
         };
     } catch (err: any) {
         if (err.code === 'authentication_required') {
             return {
                 clientSecret: err.raw.payment_intent.client_secret,
-                status: 'requires_action'
+                status: 'requires_action',
+                paymentIntentId: err.raw.payment_intent.id
             };
         }
         console.error("Stripe Payment Intent creation/confirmation failed:", err.message);
@@ -181,129 +318,28 @@ export const createPostUnlockIntent = async (fanId: string, contentId: string) =
 };
 
 /**
- * Handles incoming webhook events from Stripe. This is the single source of truth for payment success.
- * @param event - The verified Stripe event object from the webhook middleware.
+ * Handles incoming webhook events from Stripe.
  */
 export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
     console.log(`[Webhook] Received event: ${event.type}`);
 
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const transactionType = paymentIntent.metadata.transaction_type;
-        console.log(`[Webhook] Handling payment_intent.succeeded for type: ${transactionType}`);
-
-        // Common transaction data
-        const { fan_id, creator_id, content_id } = paymentIntent.metadata;
-        const amountInCents = paymentIntent.amount;
-        const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
-        const creatorPayout = amountInCents - platformFee;
-
-        if (transactionType === 'tip') {
-            console.log('[Webhook] Successful tip PaymentIntent received:', paymentIntent.id);
-            const { fan_id, creator_id, fan_message, related_content_id } = paymentIntent.metadata;
-            const amountInCents = paymentIntent.amount;
-            const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
-            const creatorPayout = amountInCents - platformFee;
-
-            await TransactionModel.createTransaction({
-                fan_id: fan_id,
-                creator_id: creator_id,
-                type: 'Tip',
-                amount: amountInCents,
-                platform_fee: platformFee,
-                creator_payout: creatorPayout,
-                status: 'Cleared',
-                payment_gateway_id: paymentIntent.id,
-                related_content_id: related_content_id,
-                message: fan_message,
-            });
-
-            // Increment the tip count on the content table
-            if (related_content_id) {
-                const { error: rpcError } = await supabase.rpc('increment_tip_count', { content_id_to_update: related_content_id, tip_amount: amountInCents });
-                if (rpcError) {
-                    console.error('Error incrementing tip count:', rpcError);
-                    // Don't throw an error here, as the main action has been completed
-                }
-            }
-
-            console.log(`[Webhook] Tip transaction for ${amountInCents/100} USD saved to database.`);
-        } else if (transactionType === 'ppv_message') {
-            console.log('[Webhook] Successful PPV Message PaymentIntent received:', paymentIntent.id);
-            const { fan_id, creator_id, message_id, content_id } = paymentIntent.metadata;
-            const amountInCents = paymentIntent.amount;
-            const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
-            const creatorPayout = amountInCents - platformFee;
-
-            await TransactionModel.createTransaction({
-                fan_id,
-                creator_id,
-                type: 'PPV Message',
-                amount: amountInCents,
-                platform_fee: platformFee,
-                creator_payout: creatorPayout,
-                status: 'Cleared',
-                payment_gateway_id: paymentIntent.id,
-                related_content_id: content_id,
-                message: message_id,
-            });
-
-            const updatedMessage = await MessageModel.unlockContentInMessage(message_id);
-
-            if (updatedMessage) {
-                const messageWithSignedUrl = await generateSignedUrlsForContent(updatedMessage);
-                const roomName = `conversation:${updatedMessage.conversation_id}`;
-                const messageForFrontend = {
-                    _id: messageWithSignedUrl.id.toString(),
-                    conversationId: updatedMessage.conversation_id,
-                    senderId: updatedMessage.sender_id,
-                    receiverId: updatedMessage.receiver_id,
-                    text: updatedMessage.text,
-                    content: updatedMessage.content,
-                    isRead: updatedMessage.is_read,
-                    createdAt: updatedMessage.created_at,
-                };
-                io.to(roomName).emit('message_updated', messageForFrontend);
-                console.log(`[Webhook] Broadcasted message update to room: ${roomName}`);
-            }
-            console.log(`[Webhook] PPV Message transaction for ${amountInCents/100} USD saved and content unlocked.`);
-        }
-        else if (transactionType === 'ppv_post') {
-            console.log('[Webhook] Successful PPV Post PaymentIntent received:', paymentIntent.id);
-            
-            await TransactionModel.createTransaction({
-                fan_id,
-                creator_id,
-                type: 'PPV Post',
-                amount: amountInCents,
-                platform_fee: platformFee,
-                creator_payout: creatorPayout,
-                status: 'Cleared',
-                payment_gateway_id: paymentIntent.id,
-                related_content_id: content_id,
-            });
-
-            console.log(`[Webhook] PPV Post transaction for ${amountInCents/100} USD saved to database.`);
-        }
+        await processSuccessfulPaymentIntent(paymentIntent);
 
     } else if (event.type === 'invoice.payment_succeeded') {
         const invoice = event.data.object as Stripe.Invoice;
-        
+
         // Get subscription ID from invoice lines
         const subscriptionLineItem = invoice.lines.data.find(line => typeof line.subscription === 'string' && line?.subscription.length > 0);
         console.log('[Webhook] Handling invoice.payment_succeeded for invoice:', invoice.id);
-        console.log('[Webhook] Subscription line item:', subscriptionLineItem);
 
         if (!subscriptionLineItem || !subscriptionLineItem.subscription) {
             console.error('[Webhook] Invoice paid, but no subscription line item found. Skipping transaction creation.');
             return;
         }
-        
-        // Get the subscription ID (it's a string in the line item)
-        const stripeSubscriptionId =  subscriptionLineItem.subscription as string;
-            
-        console.log('[Webhook] Subscription ID from invoice:', stripeSubscriptionId);
-        // Retrieve the full subscription to get metadata
+
+        const stripeSubscriptionId = subscriptionLineItem.subscription as string;
         const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
         const { pod_fan_id, pod_creator_id } = stripeSubscription.metadata;
         const amountInCents = invoice.amount_paid;
@@ -312,11 +348,17 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
             console.error(`[Webhook] Subscription ${stripeSubscriptionId} invoice paid, but missing metadata. Cannot create transaction.`);
             return;
         }
-        
+
         const platformFee = Math.round(amountInCents * (DEFAULT_COMMISSION_RATE / 100));
         const creatorPayout = amountInCents - platformFee;
 
-       
+        // Check duplicate for invoice
+        const existingTransaction = await TransactionModel.findTransactionByPaymentGatewayId(invoice.id);
+        if (existingTransaction) {
+            console.log(`[Webhook] Invoice Transaction ${invoice.id} already exists. Skipping.`);
+            return { received: true };
+        }
+
         await TransactionModel.createTransaction({
             fan_id: pod_fan_id,
             creator_id: pod_creator_id,
@@ -328,9 +370,7 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
             payment_gateway_id: invoice.id,
         });
 
-        // Get current_period_end from the subscription line item
         const currentPeriodEnd = subscriptionLineItem.period?.end;
-        
         if (currentPeriodEnd) {
             const nextBillingDate = new Date(currentPeriodEnd * 1000);
             await supabase
@@ -338,9 +378,8 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
                 .update({ next_billing_date: nextBillingDate.toISOString(), status: 'active' })
                 .eq('stripe_subscription_id', stripeSubscriptionId);
         }
-        
-        console.log(`[Webhook] Subscription transaction for ${amountInCents/100} USD saved to database.`);
-        
+
+        console.log(`[Webhook] Subscription transaction for ${amountInCents / 100} USD saved to database.`);
     }
     return { received: true };
 };

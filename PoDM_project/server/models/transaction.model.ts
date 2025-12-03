@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient';
-import { Transaction } from '@common/types/Transaction';
+import { Transaction } from '../../common/types/Transaction';
 
 /**
  * Creates a new transaction record in the database.
@@ -81,6 +81,27 @@ export const updateTransactionStatus = async (paymentGatewayId: string, status: 
 };
 
 /**
+ * Finds a transaction by its payment gateway ID (e.g., Stripe PaymentIntent ID).
+ * @param paymentGatewayId - The ID from the payment processor.
+ * @returns The transaction object or null if not found.
+ */
+export const findTransactionByPaymentGatewayId = async (paymentGatewayId: string): Promise<Transaction | null> => {
+    const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('payment_gateway_id', paymentGatewayId)
+        .single();
+
+    if (error) {
+        if (error.code !== 'PGRST116') {
+            console.error('Error finding transaction by gateway ID:', error.message);
+        }
+        return null;
+    }
+    return data as Transaction;
+};
+
+/**
  * Calculates the sum of the platform fee over a given number of days.
  * @param days - The number of days to look back.
  * @returns The total platform fee in cents.
@@ -139,7 +160,7 @@ export const findSuccessfulTransactionByFanAndContent = async (fanId: string, co
         .from('transactions')
         .select('*')
         .eq('fan_id', fanId)
-        .eq('content_id', contentId)
+        .eq('related_content_id', contentId)
         .eq('status', 'Cleared')
         .single();
 

@@ -15,19 +15,23 @@ import { Message, MessageContent } from '@common/types/Message';
 
 // --- Types ---
 interface ConversationWithCreator {
-    _id: string | null; creator: { _id: string; profile: { name: string; avatar: string; }; }; lastMessage?: { text?: string; isRead: boolean; }; updatedAt: string;
+    _id: string | null;
+    creator: { _id: string; profile: { name: string; avatar: string; }; };
+    lastMessage?: { text?: string; isRead: boolean; };
+    updatedAt: string;
 }
 
 // --- Components ---
 const ConversationListItem = ({ conversation, isActive, onClick }: { conversation: ConversationWithCreator; isActive: boolean; onClick: () => void; }) => (
-    <div onClick={onClick} 
+    <div onClick={onClick}
         className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${isActive ? 'bg-purple-900/50' : 'hover:bg-gray-700/50'}`}>
-            <div className="relative mr-3">
-                <img className="w-12 h-12 rounded-full" src={conversation.creator.profile.avatar} alt={conversation.creator.profile.name} />
-                    {conversation.lastMessage && !conversation.lastMessage.isRead && 
-                    <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-pink-500 border-2 border-gray-800"></span>}
-            </div>
-            <div className="flex-1 min-w-0"><div className="flex justify-between items-center">
+        <div className="relative mr-3">
+            <img className="w-12 h-12 rounded-full" src={conversation.creator.profile.avatar} alt={conversation.creator.profile.name} />
+            {conversation.lastMessage && !conversation.lastMessage.isRead &&
+                <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-pink-500 border-2 border-gray-800"></span>}
+        </div>
+        <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-center">
                 <p className={`font-bold text-sm ${isActive ? 'text-purple-200' : 'text-gray-200'}`}>
                     {conversation.creator.profile.name}
                 </p>
@@ -38,7 +42,7 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
             <p className="text-sm text-gray-400 truncate">
                 {conversation.lastMessage?.text || 'Sent content'}
             </p>
-    </div>
+        </div>
     </div>
 );
 
@@ -95,11 +99,11 @@ const FanMessagesPage = () => {
         socket.connect();
         socket.on('connect', () => console.log('[Socket.IO] Connected to server!'));
         socket.on('connect_error', (err) => console.error('[Socket.IO] Connection Error:', err.message));
-        
+
         socket.on('new_message', (newMessage: Message) => {
             setMessages(prev => prev.some(msg => msg._id === newMessage._id) ? prev : [...prev, newMessage]);
         });
-        
+
         socket.on('message_updated', (updatedMessage: Message) => {
             setMessages(prev => prev.map(msg => msg._id === updatedMessage._id ? updatedMessage : msg));
         });
@@ -109,7 +113,7 @@ const FanMessagesPage = () => {
         });
 
         socket.on('conversation_read', ({ conversationId }: { conversationId: string }) => {
-            setConversations(prev => prev.map(c => 
+            setConversations(prev => prev.map(c =>
                 c._id === conversationId && c.lastMessage
                     ? { ...c, lastMessage: { ...c.lastMessage, isRead: true } }
                     : c
@@ -148,7 +152,7 @@ const FanMessagesPage = () => {
             if (conversationId) socket.emit('leave_conversation', conversationId);
         };
     }, [activeConversation]);
-    
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessageText.trim() || !activeConversation) return;
@@ -161,15 +165,16 @@ const FanMessagesPage = () => {
             setNewMessageText(textToSend);
         }
     };
-    
+
     const handleUnlockContent = async (message: Message) => {
         if (!stripe || !message.content) { return; }
-        
+
         try {
             const { data } = await apiClient.unlockMessageContent(message._id);
-            const { clientSecret, status } = data;
+            const { clientSecret, status, paymentIntentId } = data;
 
             let finalStatus = status;
+            let finalPaymentIntentId = paymentIntentId;
 
             if (status === 'requires_action') {
                 console.log("Stripe requires 3D Secure authentication. Opening modal...");
@@ -179,17 +184,22 @@ const FanMessagesPage = () => {
                     throw new Error(error.message);
                 }
                 finalStatus = paymentIntent?.status;
+                if (paymentIntent) finalPaymentIntentId = paymentIntent.id;
             }
 
             if (finalStatus === 'succeeded') {
-                setMessages(prev => prev.map(msg => 
-                    msg._id === message._id 
-                        ? { ...msg, content: { ...msg.content!, isUnlocked: true } } 
+                setMessages(prev => prev.map(msg =>
+                    msg._id === message._id
+                        ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
                         : msg
                 ));
-                
+
                 await apiClient.addContentToGallery(message.content.contentId);
-                
+
+                if (finalPaymentIntentId) {
+                    await apiClient.confirmTransaction(finalPaymentIntentId);
+                }
+
                 alert("Content unlocked and added to your gallery!");
             }
 
@@ -207,14 +217,14 @@ const FanMessagesPage = () => {
             alert("Could not delete the message. Please try again.");
         }
     };
-    
+
     const isNewDay = (date1: string, date2: string) => {
         if (!date1 || !date2) return false;
         const d1 = new Date(date1.replace(' ', 'T'));
         const d2 = new Date(date2.replace(' ', 'T'));
         return d1.getFullYear() !== d2.getFullYear() ||
-               d1.getMonth() !== d2.getMonth() ||
-               d1.getDate() !== d2.getDate();
+            d1.getMonth() !== d2.getMonth() ||
+            d1.getDate() !== d2.getDate();
     };
 
     return (
@@ -223,8 +233,8 @@ const FanMessagesPage = () => {
                 galleryItems={galleryItemsForModal}
                 currentIndex={viewingContent ? 0 : null}
                 onClose={handleCloseViewer}
-                onNext={() => {}} 
-                onPrevious={() => {}}
+                onNext={() => { }}
+                onPrevious={() => { }}
             />
             <div className="flex h-screen bg-gray-900 text-gray-200">
                 <div className={`w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
@@ -248,14 +258,14 @@ const FanMessagesPage = () => {
 
                                             return (
                                                 <React.Fragment key={msg._id}>
-                                                    <MessageBubble 
-                                                        message={msg} 
+                                                    <MessageBubble
+                                                        message={msg}
                                                         isMe={isMe}
                                                         senderRole={senderRole}
-                                                        canSaveToGallery={true} // <-- THIS IS THE FIX
-                                                        onUnlock={handleUnlockContent} 
-                                                        onContentClick={handleContentClick} 
-                                                        onSaveToGallery={(contentId) => apiClient.addContentToGallery(contentId)} 
+                                                        canSaveToGallery={true}
+                                                        onUnlock={handleUnlockContent}
+                                                        onContentClick={handleContentClick}
+                                                        onSaveToGallery={(contentId) => apiClient.addContentToGallery(contentId)}
                                                         onDelete={handleDeleteMessage}
                                                     />
                                                     {showDateSeparator && (

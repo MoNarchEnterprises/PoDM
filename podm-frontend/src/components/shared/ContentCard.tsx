@@ -25,6 +25,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 // Your API would be responsible for joining the creator's info with the content.
 export interface ContentWithCreator extends Content {
     creator: Creator;
+    isUnlocked?: boolean;
 }
 
 // --- Main Post Card Component ---
@@ -38,15 +39,16 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
-    
-    // A post is locked if forced, or if it's pay-per-view.
-    const isLocked = forceLocked || post.visibility === 'pay_per_view';
-    
+    const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
+
+    // A post is locked if forced, or if it's pay-per-view AND not unlocked.
+    const isLocked = forceLocked || (post.visibility === 'pay_per_view' && !localIsUnlocked);
+
     const handleSaveToGallery = async () => {
         setIsSaving(true);
         try {
             await apiClient.addContentToGallery(post._id);
-            setIsBookmarked(true); 
+            setIsBookmarked(true);
         } catch (error) {
             console.error("Failed to add to gallery:", error);
             alert("Could not save to gallery. Please try again.");
@@ -56,22 +58,33 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     };
 
     const handleTipSubmit = async (amount: number, message: string) => {
-        console.log('[PostCard] post_id:', post._id);
         return apiClient.sendTip(post.creatorId, amount, message, post._id);
     };
 
     const handleUnlock = async () => {
         try {
             const { data } = await apiClient.unlockPost(post._id);
+
+            let finalPaymentIntentId = data.paymentIntentId;
+
             if (data.status === 'requires_action') {
                 const stripe = await stripePromise;
                 if (stripe) {
-                    const { error } = await stripe.confirmCardPayment(data.clientSecret);
+                    const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret);
                     if (error) {
                         throw new Error(error.message);
                     }
+                    if (paymentIntent) {
+                        finalPaymentIntentId = paymentIntent.id;
+                    }
                 }
             }
+
+            if (finalPaymentIntentId) {
+                await apiClient.confirmTransaction(finalPaymentIntentId);
+            }
+
+            setLocalIsUnlocked(true);
             alert('Content unlocked!');
         } catch (error) {
             if (error instanceof AxiosError) {
@@ -94,27 +107,27 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                 onSubmit={handleTipSubmit}
             />
 
-        <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post._id}`)}>
-            <div className="relative">
-                <img 
-                    className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`} 
-                    src={post.files[0]?.thumbnailUrl} 
-                    alt={post.title} 
-                    onError={(e) => { e.currentTarget.src='https://placehold.co/600x400/1F2937/FFFFFF?text=Error'; }} 
-                />
-                {isLocked && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
-                        <Lock className="w-12 h-12 mb-4" />
-                        <h3 className="font-bold text-lg text-center">Content Locked</h3>
-                        <Button className="mt-4" onClick={handleUnlock}>
-                            {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
-                        </Button>
+            <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post._id}`)}>
+                <div className="relative">
+                    <img
+                        className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`}
+                        src={post.files[0]?.thumbnailUrl}
+                        alt={post.title}
+                        onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error'; }}
+                    />
+                    {isLocked && (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
+                            <Lock className="w-12 h-12 mb-4" />
+                            <h3 className="font-bold text-lg text-center">Content Locked</h3>
+                            <Button className="mt-4" onClick={(e) => { e.stopPropagation(); handleUnlock(); }}>
+                                {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
+                            </Button>
+                        </div>
+                    )}
+                    <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full capitalize">
+                        {post.type}
                     </div>
-                )}
-                 <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full capitalize">
-                    {post.type}
                 </div>
-            </div>
                 <div className="p-4">
                     <div className="flex items-center mb-3">
                         <img className="w-10 h-10 rounded-full mr-3" src={post.creator.profile.avatar} alt={post.creator.profile.name} />
@@ -130,20 +143,20 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         <Button variant="ghost" size="sm" leftIcon={DollarSign} onClick={openTipModal}>
                             Tip
                         </Button>
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={handleSaveToGallery}
-                        // Disable the button if it's already saved or currently saving
-                        disabled={isBookmarked || isSaving} 
-                        className={isBookmarked ? 'text-purple-500' : ''}
-                        leftIcon={Bookmark}
-                    >
-                        {isSaving ? 'Saving...' : (isBookmarked ? 'Saved' : 'Save')}
-                    </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSaveToGallery}
+                            // Disable the button if it's already saved or currently saving
+                            disabled={isBookmarked || isSaving}
+                            className={isBookmarked ? 'text-purple-500' : ''}
+                            leftIcon={Bookmark}
+                        >
+                            {isSaving ? 'Saving...' : (isBookmarked ? 'Saved' : 'Save')}
+                        </Button>
+                    </div>
                 </div>
             </div>
-        </div>
         </>
     );
 };

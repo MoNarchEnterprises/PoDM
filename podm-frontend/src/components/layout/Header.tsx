@@ -74,33 +74,37 @@ interface HeaderProps {
 const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
     const currentUser = impersonatedUser || user;
     return (
-        <header className="bg-gray-900/80 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700 dark:border-gray-700">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-48">
-                <a href="/" className="flex items-center -ml-40">
-                    <img src="/assets/PoDM-logo.png" alt="PoDM Logo" className="h-40 w-auto" />
+        <header className="bg-gray-900/80 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700 dark:border-gray-700 transition-all duration-300">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+                <a href="/" className="flex items-center gap-2 group">
+                    <img src="/assets/PoDM-logo.png" alt="PoDM Logo" className="h-12 w-auto transition-transform group-hover:scale-105" />
                 </a>
 
                 {currentUser ? (
                     // Logged-in state
-                    <div className="flex items-center space-x-2">
-                        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                        <button className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors">
+                            <MessageSquare className="w-5 h-5 text-gray-300" />
                         </button>
-                        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <button className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors">
+                            <Bell className="w-5 h-5 text-gray-300" />
                         </button>
                         <ProfileDropdown user={currentUser} />
                     </div>
                 ) : (
                     // Logged-out state
-                    <div className="flex items-center space-x-2">
-                        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <Search className="w-5 h-5 text-gray-500" />
+                    <div className="flex items-center space-x-3">
+                        <button className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors sm:hidden">
+                            <Search className="w-5 h-5 text-gray-400" />
                         </button>
-                        <button onClick={onLoginClick} className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-200 dark:text-gray-200 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700">
+                        <div className="hidden sm:flex relative">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input type="text" placeholder="Search..." className="bg-gray-800 border-none rounded-full py-1.5 pl-10 pr-4 text-sm text-gray-300 focus:ring-1 focus:ring-purple-500 w-48 lg:w-64 transition-all" />
+                        </div>
+                        <button onClick={onLoginClick} className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-200 hover:text-white transition-colors">
                             Log In
                         </button>
-                        <button onClick={onSignUpClick} className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+                        <button onClick={onSignUpClick} className="px-5 py-2 text-sm font-bold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40">
                             Sign Up
                         </button>
                     </div>

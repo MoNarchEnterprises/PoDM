@@ -9,22 +9,20 @@ import { Creator } from '@common/types/Creator';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { CARD_ELEMENT_OPTIONS } from '../../lib/constants';
+import * as apiClient from '../../lib/apiClient';
 
 interface TipModalProps {
     isOpen: boolean;
     onClose: () => void;
     creator: Creator;
-    onSubmit: (amount: number, message: string, paymentMethodId?: string) => Promise<{ clientSecret: string; status: string }>;
+    onSubmit: (amount: number, message: string, paymentMethodId?: string) => Promise<{ clientSecret: string; status: string; paymentIntentId?: string }>;
 }
 
 const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
     const stripe = useStripe();
     const elements = useElements();
-    
-    // --- THIS IS THE FIX ---
-    // We get `paymentMethod` as a separate object from the context, NOT from the user object.
+
     const { paymentMethod } = useAuth();
-    // --- END OF FIX ---
 
     const [amount, setAmount] = useState(10);
     const [customAmount, setCustomAmount] = useState('');
@@ -33,7 +31,6 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // The logic is now based on the existence of the separate `paymentMethod` object.
     const showCardForm = !paymentMethod;
 
     const handleSendTip = async () => {
@@ -48,32 +45,90 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
             return;
         }
 
+        console.log('[TIP MODAL DEBUG] Starting tip flow:', {
+            amount: finalAmount,
+            hasPaymentMethod: !!paymentMethod,
+            paymentMethodId: paymentMethod?.id,
+            showCardForm
+        });
+
         setIsLoading(true);
         setError(null);
 
         try {
-            let tipPaymentMethodId: string  | undefined = paymentMethod?.id || undefined;
+            let tipPaymentMethodId: string | undefined = paymentMethod?.id || undefined;
 
             if (showCardForm) {
-                // ON-SESSION FLOW (NEW CARD)
+                console.log('[TIP MODAL DEBUG] Creating new payment method from card element');
                 const cardElement = elements?.getElement(CardElement);
                 if (!cardElement) throw new Error("Card element not found.");
 
                 const { error: pmError, paymentMethod: newPaymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
                 if (pmError || !newPaymentMethod) throw new Error(pmError?.message || "Invalid card details.");
                 tipPaymentMethodId = newPaymentMethod.id;
+                console.log('[TIP MODAL DEBUG] New payment method created:', newPaymentMethod.id);
             }
 
-            const { clientSecret, status } = await onSubmit(finalAmount, message, tipPaymentMethodId);
+            console.log('[TIP MODAL DEBUG] Calling onSubmit with:', {
+                amount: finalAmount,
+                message,
+                paymentMethodId: tipPaymentMethodId
+            });
 
-            if (showCardForm && (status === 'requires_action' || status === 'requires_payment_method')) {
-                const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) throw new Error(confirmationError.message);
+            const { clientSecret, status, paymentIntentId } = await onSubmit(finalAmount, message, tipPaymentMethodId);
+
+            console.log('[TIP MODAL DEBUG] Backend response:', {
+                status,
+                paymentIntentId,
+                hasClientSecret: !!clientSecret
+            });
+
+            let finalPaymentIntentId = paymentIntentId;
+
+            // Handle confirmation based on status
+            if (status === 'requires_confirmation') {
+                console.log('[TIP MODAL DEBUG] Status is requires_confirmation - confirming payment');
+                const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
+                if (confirmationError) {
+                    console.error('[TIP MODAL DEBUG] Confirmation error:', confirmationError);
+                    throw new Error(confirmationError.message);
+                }
+                if (paymentIntent) {
+                    finalPaymentIntentId = paymentIntent.id;
+                    console.log('[TIP MODAL DEBUG] Payment confirmed:', {
+                        id: paymentIntent.id,
+                        status: paymentIntent.status
+                    });
+                }
+            } else if (status === 'requires_action' || status === 'requires_payment_method') {
+                console.log('[TIP MODAL DEBUG] Confirming card payment for status:', status);
+                const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
+                if (confirmationError) {
+                    console.error('[TIP MODAL DEBUG] Confirmation error:', confirmationError);
+                    throw new Error(confirmationError.message);
+                }
+                if (paymentIntent) {
+                    finalPaymentIntentId = paymentIntent.id;
+                    console.log('[TIP MODAL DEBUG] Payment confirmed:', {
+                        id: paymentIntent.id,
+                        status: paymentIntent.status
+                    });
+                }
+            } else {
+                console.log('[TIP MODAL DEBUG] No confirmation needed, status:', status);
             }
-            
-            setStep(2); // Move to success screen
+
+            // Manually confirm transaction to ensure DB record is created
+            if (finalPaymentIntentId) {
+                console.log('[TIP MODAL DEBUG] Calling confirmTransaction for:', finalPaymentIntentId);
+                await apiClient.confirmTransaction(finalPaymentIntentId);
+                console.log('[TIP MODAL DEBUG] Transaction confirmed successfully');
+            }
+
+            setStep(2);
 
         } catch (err: any) {
+            console.error('[TIP MODAL DEBUG] Error in handleSendTip:', err);
             setError(err.message || "An unexpected error occurred.");
         } finally {
             setIsLoading(false);
@@ -115,7 +170,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                             ))}
                         </div>
                         <input type="number" placeholder="Custom amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setAmount(0); }} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-pink-500" />
-                        
+
                         {showCardForm ? (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
                                 <CardElement options={CARD_ELEMENT_OPTIONS} />
@@ -125,7 +180,6 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                                 <p className="text-sm text-gray-400">Using your saved card:</p>
                                 <div className="flex items-center justify-center space-x-2 font-semibold text-white mt-1">
                                     <CreditCard className="w-5 h-5" />
-                                    {/* --- THIS IS THE FIX --- */}
                                     <span>{paymentMethod?.brand} **** {paymentMethod?.last4}</span>
                                 </div>
                             </div>
@@ -143,7 +197,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                 </>
             )}
             {step === 2 && (
-                 <div className="p-8 text-center">
+                <div className="p-8 text-center">
                     <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tip Sent!</h2>
                     <p className="text-gray-500 dark:text-gray-400 mt-2">

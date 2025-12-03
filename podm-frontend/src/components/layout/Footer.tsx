@@ -2,13 +2,18 @@ import React from 'react';
 
 const Footer = () => {
     return (
-        <footer className="bg-gray-900 text-gray-500">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm">
-                <div className="space-x-4">
-                    <span>&copy; {new Date().getFullYear()} PoDM. All rights reserved.</span>
-                    <a href="/terms" className="hover:text-gray-400">Terms of Service</a>
-                    <a href="/privacy" className="hover:text-gray-400">Privacy Policy</a>
-                    <a href="/admin" className="hover:text-gray-400">Admin</a>
+        <footer className="bg-gray-900 text-gray-400 border-t border-gray-800">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="text-sm">
+                        &copy; {new Date().getFullYear()} PoDM. All rights reserved.
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-6 text-sm font-medium">
+                        <a href="/terms" className="hover:text-white transition-colors">Terms</a>
+                        <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+                        <a href="/support" className="hover:text-white transition-colors">Support</a>
+                        <a href="/admin" className="hover:text-purple-400 transition-colors">Admin</a>
+                    </div>
                 </div>
             </div>
         </footer>

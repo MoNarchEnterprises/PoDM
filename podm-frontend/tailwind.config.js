@@ -4,27 +4,44 @@ import forms from '@tailwindcss/forms';
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}", // This line is the most important part
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        // This aligns with your globals.css and PoDM planning doc
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
-        // Add your brand colors from the planning doc for easy reference
         primary: {
-          DEFAULT: '#6B46C1', // Deep Purple
+          DEFAULT: '#6B46C1',
           dark: '#553C9A',
         },
         secondary: {
-          DEFAULT: '#EC4899', // Pink
+          DEFAULT: '#EC4899',
+        },
+      },
+      animation: {
+        blob: "blob 7s infinite",
+      },
+      keyframes: {
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
         },
       },
     },
   },
   plugins: [
-    forms, // A useful plugin for styling form elements
+    forms,
   ],
 }
