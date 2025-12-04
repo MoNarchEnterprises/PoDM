@@ -12,7 +12,7 @@ import * as PaymentService from '../services/payment.service';
 export const sendTip = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const fanId = req.user?._id;
-        const { creatorId, amount, message, contentId } = req.body; // amount should be in cents
+        const { creatorId, amount, message, contentId, paymentMethodId } = req.body; // amount should be in cents
         console.log('[payments.controller] Tip request:', req.body);
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
@@ -24,7 +24,7 @@ export const sendTip = async (req: Request, res: Response, next: NextFunction) =
             throw new AppError('Tip amount must be at least $1.00.', 400);
         }
 
-        const result = await PaymentService.sendTipToCreator(fanId, creatorId, amount, message, contentId);
+        const result = await PaymentService.sendTipToCreator(fanId, creatorId, amount, message, contentId, paymentMethodId);
 
         res.status(200).json({ success: true, data: result });
     } catch (error) {

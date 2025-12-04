@@ -12,15 +12,15 @@ export const reshapeUserForApp = (flatUser: any): User => {
     if (!flatUser) {
         return null as any;
     }
-    
+
     // Destructure all properties from the flat object
-    const { 
-        id, username, fullName, avatar_url, bio, email, created_at, role, status,
+    const {
+        id, username, fullName, full_name, avatar_url, bio, email, created_at, role, status,
         onboarding_complete, commission_rate, verification_data, stripe_customer_id,
-        creator_data = {} 
+        creator_data
     } = flatUser;
 
-     
+
     // --- ADD THIS LOGIC BLOCK ---
     // The baseUser object now ONLY contains fields common to ALL roles.
     const baseUser: User = {
@@ -32,7 +32,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
         status,
         updatedAt: flatUser.updated_at, // Assuming this field exists
         profile: {
-            name: fullName ||username || 'Unknown User',
+            name: fullName || full_name || username || 'Unknown User',
             avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
             bio: bio || '',
         },
@@ -45,6 +45,8 @@ export const reshapeUserForApp = (flatUser: any): User => {
         else if (status === 'pending verification' && verification_data) verificationStatus = 'pending';
 
         // CORRECT: Now destructure the nested properties from the creator_data object
+        // Handle null creator_data safely
+        const safeCreatorData = creator_data || {};
         const {
             subscriptionTiers = [],
             welcomeMessage = { isActive: false, message: '' },
@@ -52,9 +54,9 @@ export const reshapeUserForApp = (flatUser: any): User => {
             contentSettings = {},
             coverImageUrl,
             socialLinks,
-        } = creator_data;
+        } = safeCreatorData;
 
-        
+
         // Construct the Creator object
         const creatorUser: Creator = {
             ...baseUser,
@@ -63,12 +65,12 @@ export const reshapeUserForApp = (flatUser: any): User => {
             onboarding_complete: onboarding_complete || false,
             commission_rate: commission_rate,
             verification_data: verification_data,
-            
+
             // Re-assign the profile object to include creator-specific profile fields
             profile: {
                 ...baseUser.profile,
-                coverImageUrl, 
-                socialLinks,     
+                coverImageUrl,
+                socialLinks,
             },
 
             // The remaining data stays in the nested creatorData object

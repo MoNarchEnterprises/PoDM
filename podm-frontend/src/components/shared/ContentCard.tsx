@@ -57,8 +57,8 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
         }
     };
 
-    const handleTipSubmit = async (amount: number, message: string) => {
-        return apiClient.sendTip(post.creatorId, amount, message, post._id);
+    const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
+        return apiClient.sendTip(post.creatorId, amount, message, post._id, paymentMethodId);
     };
 
     const handleUnlock = async () => {

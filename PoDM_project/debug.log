@@ -1,0 +1,19 @@
+[AUTH_DEBUG] 2025-12-04T05:40:01.540Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2025-12-04T05:40:01.541Z - Token found in header.
+[AUTH_DEBUG] 2025-12-04T05:40:01.621Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2025-12-04T05:40:01.758Z - Full user profile found: fan
+[AUTH_DEBUG] 2025-12-04T05:40:01.759Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-04T05:40:01.894Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2025-12-04T05:40:01.895Z - Token found in header.
+[AUTH_DEBUG] 2025-12-04T05:40:01.972Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2025-12-04T05:40:02.039Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2025-12-04T05:40:02.040Z - Token found in header.
+[AUTH_DEBUG] 2025-12-04T05:40:02.098Z - Full user profile found: fan
+[AUTH_DEBUG] 2025-12-04T05:40:02.099Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-04T05:40:02.278Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2025-12-04T05:40:02.398Z - Full user profile found: fan
+[AUTH_DEBUG] 2025-12-04T05:40:02.399Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-04T05:40:02.541Z - --- New Request: POST /log ---
+[AUTH_DEBUG] 2025-12-04T05:40:02.541Z - No authorization header found.
+[AUTH_DEBUG] 2025-12-04T05:40:02.745Z - --- New Request: POST /log ---
+[AUTH_DEBUG] 2025-12-04T05:40:02.746Z - No authorization header found.

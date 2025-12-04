@@ -1,0 +1,85 @@
+
+Running 1 test using 1 worker
+
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Navigated to /creator/creator
+Checking for Jane Creator...
+BROWSER LOG: Failed to load resource: the server responded with a status of 401 (Unauthorized)
+BROWSER LOG: Unauthorized request. Redirecting to login.
+BROWSER LOG: Analytics event failed to log: AxiosError
+BROWSER LOG: Failed to load resource: the server responded with a status of 401 (Unauthorized)
+BROWSER LOG: Unauthorized request. Redirecting to login.
+BROWSER LOG: Analytics event failed to log: AxiosError
+BROWSER LOG: Failed to load resource: the server responded with a status of 401 (Unauthorized)
+BROWSER LOG: Failed to load resource: the server responded with a status of 401 (Unauthorized)
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Failed to find Jane Creator. Page content:
+Log In
+Sign Up
+Your Content. Your Rules.
+Your Community.
+
+The platform built for creators to connect with their fans on a deeper level, with better profit splits and powerful tools.
+
+Get Started
+Log In
+Why Choose PoDM?
+For the Fans
+
+Directly support your favorite creators and get exclusive content you can't find anywhere else.
+
+For the Creators
+
+Enjoy industry-leading profit splits, robust content protection, and powerful analytics to grow your business.
+
+Safe & Secure
+
+Our platform is built with privacy and security as a top priority for everyone.
+
+© 2025 PoDM. All rights reserved.
+Terms
+Privacy
+Support
+Admin
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (8.1s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Jane Creator')[22m
+
+
+      36 |     // Print body text if it fails
+      37 |     try {
+    > 38 |         await expect(page.getByText('Jane Creator')).toBeVisible({ timeout: 5000 });
+         |                                                      ^
+      39 |     } catch (e) {
+      40 |         console.log('Failed to find Jane Creator. Page content:');
+      41 |         console.log(await page.locator('body').innerText());
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:38:54
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

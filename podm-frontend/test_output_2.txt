@@ -1,0 +1,33 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (16.8s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('button:has-text("Tip")').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('button:has-text("Tip")').first()[22m
+
+
+      16 |     // The Tip button is inside the PostCard.
+      17 |     const tipButton = page.locator('button:has-text("Tip")').first();
+    > 18 |     await expect(tipButton).toBeVisible({ timeout: 10000 });
+         |                             ^
+      19 |     await tipButton.click();
+      20 |
+      21 |     // 3. Verify Tip Modal opens
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:18:29
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

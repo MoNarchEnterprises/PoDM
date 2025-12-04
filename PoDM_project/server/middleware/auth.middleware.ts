@@ -4,6 +4,8 @@ import { findUserById } from '../models/user.model';
 import { AppError } from './error.middleware';
 import { User } from '@common/types/User';
 import { reshapeUserForApp } from '../utils/user.utils';
+import fs from 'fs';
+import path from 'path';
 
 // Extend the Express Request type to include a 'user' property
 declare global {
@@ -13,6 +15,11 @@ declare global {
             originalUser?: User; // Add originalUser for impersonation
         }
     }
+}
+
+function logAuthDebug(message: string) {
+    const logPath = path.resolve(__dirname, '../debug.log');
+    fs.appendFileSync(logPath, `[AUTH_DEBUG] ${new Date().toISOString()} - ${message}\n`);
 }
 
 /**
@@ -36,35 +43,35 @@ export const optionalProtect = async (req: Request, res: Response, next: NextFun
  * full user profile to the request object.
  */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
-    console.log(`[Protect] --- New Request: ${req.method} ${req.path} ---`);
+    logAuthDebug(`--- New Request: ${req.method} ${req.path} ---`);
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            console.log('[Protect] Token found in header.');
+            logAuthDebug('Token found in header.');
 
             // Use the admin client to validate the user's token
             const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
 
             if (authError) {
-                console.error('[Protect] Supabase auth error:', authError.message);
+                logAuthDebug(`Supabase auth error: ${authError.message}`);
                 return next(new AppError(`Not authorized: ${authError.message}`, 401));
             }
             if (!authUser) {
-                console.error('[Protect] No auth user returned for token.');
+                logAuthDebug('No auth user returned for token.');
                 return next(new AppError('Not authorized, token is invalid or expired.', 401));
             }
-            console.log(`[Protect] Token validated for user ID: ${authUser.id}`);
+            logAuthDebug(`Token validated for user ID: ${authUser.id}`);
 
             // Fetch the user's full profile from our public profiles table
             const userProfile = await findUserById(authUser.id);
 
             if (!userProfile) {
-                console.error(`[Protect] Database profile not found for user ID: ${authUser.id}`);
+                logAuthDebug(`Database profile not found for user ID: ${authUser.id}`);
                 return next(new AppError('User profile not found for this token.', 404));
             }
-            console.log(`[Protect] Full user profile found: ${userProfile.username}`);
+            logAuthDebug(`Full user profile found: ${userProfile.username}`);
 
             // Attach the complete, reshaped user profile to the request object
             req.user = reshapeUserForApp(userProfile);
@@ -75,30 +82,30 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
                 try {
                     const targetUser = await findUserById(impersonatingUserId);
                     if (!targetUser) {
-                        console.warn(`[Protect] Impersonated user ID ${impersonatingUserId} not found.`);
+                        logAuthDebug(`Impersonated user ID ${impersonatingUserId} not found.`);
                         // Continue as admin if impersonated user not found
                     } else {
                         req.originalUser = req.user; // Store the original admin user
                         req.user = reshapeUserForApp(targetUser); // Set req.user to the impersonated user
-                        console.log(`[Protect] Admin '${req.originalUser.email}' is now impersonating '${req.user.email}'.`);
+                        logAuthDebug(`Admin '${req.originalUser.email}' is now impersonating '${req.user.email}'.`);
                     }
                 } catch (impersonationError) {
-                    console.error('[Protect] Error during impersonation attempt:', impersonationError);
+                    logAuthDebug(`Error during impersonation attempt: ${impersonationError}`);
                     // Continue as admin if impersonation fails
                 }
             }
             // --- End Impersonation Logic ---
 
-            console.log('[Protect] User attached to request. Proceeding...');
+            logAuthDebug('User attached to request. Proceeding...');
 
             next();
 
         } catch (error: any) {
-            console.error('[Protect] CATCH BLOCK ERROR:', error.message);
+            logAuthDebug(`CATCH BLOCK ERROR: ${error.message}`);
             return next(new AppError('Not authorized, token processing error', 401));
         }
     } else {
-        console.log('[Protect] No authorization header found.');
+        logAuthDebug('No authorization header found.');
         return next(new AppError('Not authorized, no token provided', 401));
     }
 };

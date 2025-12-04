@@ -31,7 +31,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const showCardForm = !paymentMethod;
+    const showCardForm = !paymentMethod || !paymentMethod.id;
 
     const handleSendTip = async () => {
         if (!stripe) {

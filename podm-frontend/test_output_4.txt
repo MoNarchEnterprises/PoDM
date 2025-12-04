@@ -1,0 +1,33 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (8.3s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Jane Creator')[22m
+
+
+      14 |     // Navigate to the creator's profile to ensure we see content
+      15 |     await page.goto('/creator/creator');
+    > 16 |     await expect(page.getByText('Jane Creator')).toBeVisible();
+         |                                                  ^
+      17 |
+      18 |     // 2. Find a post and click the Tip button
+      19 |     // We assume there is at least one post in the feed.
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:16:50
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

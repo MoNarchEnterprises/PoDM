@@ -1,0 +1,50 @@
+
+Running 1 test using 1 worker
+
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Navigated to /creator/creator
+Checking for Jane Creator...
+BROWSER LOG: [TIP MODAL DEBUG] Starting tip flow: {amount: 5, hasPaymentMethod: true, paymentMethodId: null, showCardForm: false}
+BROWSER LOG: [TIP MODAL DEBUG] Calling onSubmit with: {amount: 5, message: , paymentMethodId: undefined}
+BROWSER LOG: [apiClient] Sending tip of $5 to creator undefined for content 29
+BROWSER LOG: Failed to load resource: the server responded with a status of 400 (Bad Request)
+BROWSER LOG: [TIP MODAL DEBUG] Error in handleSendTip: AxiosError
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (19.2s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('dialog').getByText('Tip Sent!')
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByRole('dialog').getByText('Tip Sent!')[22m
+
+
+      76 |
+      77 |     // 6. Verify Success
+    > 78 |     await expect(modal.getByText('Tip Sent!')).toBeVisible({ timeout: 15000 });
+         |                                                ^
+      79 |     await expect(modal.getByText('You sent $5')).toBeVisible();
+      80 |
+      81 |     // 7. Close modal
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:78:48
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

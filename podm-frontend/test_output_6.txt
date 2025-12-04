@@ -1,0 +1,53 @@
+
+Running 1 test using 1 worker
+
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Navigated to /creator/creator
+Checking for Jane Creator...
+BROWSER LOG: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: AxiosError
+BROWSER LOG: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: AxiosError
+BROWSER LOG: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+Failed to find Jane Creator. Page content:
+Creator not found or there was an error loading their profile.
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (11.6s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Jane Creator')[22m
+
+
+      28 |     // Print body text if it fails
+      29 |     try {
+    > 30 |         await expect(page.getByText('Jane Creator')).toBeVisible({ timeout: 5000 });
+         |                                                      ^
+      31 |     } catch (e) {
+      32 |         console.log('Failed to find Jane Creator. Page content:');
+      33 |         console.log(await page.locator('body').innerText());
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:30:54
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

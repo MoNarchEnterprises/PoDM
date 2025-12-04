@@ -1,0 +1,210 @@
+
+Running 1 test using 1 worker
+
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Navigated to /creator/creator
+Checking for Jane Creator...
+Failed to find Jane Creator. Page content:
+creator
+
+@creator
+
+About
+
+Choose Your Subscription
+Bronze
+
+$500.00/month
+
+Access to feed
+Selected
+Subscribe for $500.00/month
+Content
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+Content Locked
+Unlock for $5.00
+video
+
+creator
+
+Invalid Date
+
+Exclusive Video
+
+Tip
+Save
+Content Locked
+Subscribe to view
+photo
+
+creator
+
+Invalid Date
+
+Welcome to my page!
+
+Tip
+Save
+© 2025 PoDM. All rights reserved.
+Terms
+Privacy
+Support
+Admin
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (7.2s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Jane Creator')[22m
+
+
+      36 |     // Print body text if it fails
+      37 |     try {
+    > 38 |         await expect(page.getByText('Jane Creator')).toBeVisible({ timeout: 5000 });
+         |                                                      ^
+      39 |     } catch (e) {
+      40 |         console.log('Failed to find Jane Creator. Page content:');
+      41 |         console.log(await page.locator('body').innerText());
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:38:54
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

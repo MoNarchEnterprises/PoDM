@@ -79,6 +79,18 @@ const seed = async () => {
                 status: 'active',
                 full_name: user.name,
                 onboarding_complete: user.role === 'creator' ? true : null, // Set onboarding complete for creators
+                creator_data: user.role === 'creator' ? {
+                    subscriptionTiers: [
+                        {
+                            id: 'tier-1',
+                            name: 'Bronze',
+                            price: 500,
+                            description: 'Basic access',
+                            features: ['Access to feed'],
+                            stripePriceId: 'price_fake_1'
+                        }
+                    ]
+                } : null,
             })
             .select()
             .single();

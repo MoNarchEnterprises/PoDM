@@ -1,0 +1,24 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (3.5s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5174/
+    Call log:
+    [2m  - navigating to "http://localhost:5174/", waiting until "load"[22m
+
+
+      3 | test('fan can send a tip to a creator', async ({ page }) => {
+      4 |     // 1. Login as a fan
+    > 5 |     await page.goto('/');
+        |                ^
+      6 |     await page.getByRole('button', { name: /log in/i }).first().click();
+      7 |     await page.getByLabel(/Email/i).fill('fan@example.com');
+      8 |     await page.getByLabel(/Password/i).fill('password123');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:5:16
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

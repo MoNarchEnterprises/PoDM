@@ -1,0 +1,37 @@
+
+Running 1 test using 1 worker
+
+Navigated to /creator/creator
+Checking for Jane Creator...
+Failed to find Jane Creator. Page content:
+Creator not found or there was an error loading their profile.
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (7.1s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Jane Creator')[22m
+
+
+      25 |     // Print body text if it fails
+      26 |     try {
+    > 27 |         await expect(page.getByText('Jane Creator')).toBeVisible({ timeout: 5000 });
+         |                                                      ^
+      28 |     } catch (e) {
+      29 |         console.log('Failed to find Jane Creator. Page content:');
+      30 |         console.log(await page.locator('body').innerText());
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:27:54
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

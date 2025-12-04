@@ -8,7 +8,7 @@ import * as api from '../lib/apiClient';
 
 // --- Local Types ---
 interface PaymentMethod {
-    id: string | null; // <-- FIX: Add the id property, make it nullable
+    id: string | null;
     brand: string;
     last4: string;
 }
@@ -35,13 +35,13 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     impersonatedUser: null,
     paymentMethod: null,
-    setUser: () => {},
+    setUser: () => { },
     isLoading: true,
     login: async () => Promise.reject(),
-    signup: async () => {},
-    logout: () => {},
-    startImpersonation: async () => {},
-    stopImpersonation: () => {},
+    signup: async () => { },
+    logout: () => { },
+    startImpersonation: async () => { },
+    stopImpersonation: () => { },
 });
 
 // --- This is the internal component that can safely use router hooks ---
@@ -65,22 +65,24 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initializeAuth = async () => {
             setIsLoading(true);
-            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-                if (session) {
-                    // --- THIS IS THE PRIMARY FIX ---
-                    // The API returns { success, data: { user } }. We need userProfile.data.user.
+
+            // 1. Check for an existing token in localStorage (Backend Auth Source of Truth)
+            const token = localStorage.getItem('authToken');
+
+            if (token) {
+                try {
+                    // Verify the token by fetching the user profile
                     const userProfile = await api.getMe();
                     const fetchedUser = userProfile.data.user;
                     setUser(fetchedUser);
-                    localStorage.setItem('authToken', session.access_token);
 
                     if (fetchedUser.role === 'fan') {
                         await fetchFanSettings();
                     } else {
                         setPaymentMethod(null);
                     }
-                    // --- END OF FIX ---
 
+                    // Restore impersonation if active
                     const impersonatingUserId = localStorage.getItem('impersonating_user_id');
                     if (impersonatingUserId && fetchedUser?.role === 'admin') {
                         try {
@@ -91,15 +93,31 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
                             localStorage.removeItem('impersonating_user_id');
                         }
                     }
-                } else {
+                } catch (error) {
+                    console.error("Failed to restore session from token:", error);
+                    // Token is invalid or expired
                     setUser(null);
                     setImpersonatedUser(null);
                     setPaymentMethod(null);
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('impersonating_user_id');
                 }
-                setIsLoading(false);
+            }
+
+            // 2. Listen to Supabase auth changes (Optional, for future OAuth)
+            // We do NOT clear the session here if it's null, because we might be using backend auth.
+            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+                if (session) {
+                    // If Supabase reports a session (e.g. after OAuth), sync it
+                    localStorage.setItem('authToken', session.access_token);
+                    const userProfile = await api.getMe();
+                    setUser(userProfile.data.user);
+                }
+                // We intentionally omit the 'else' block to prevent clearing the token
+                // when the frontend Supabase client initializes as signed out.
             });
+
+            setIsLoading(false);
 
             return () => {
                 subscription.unsubscribe();
@@ -114,8 +132,8 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
             // The API returns { success, data: { user, token } }
             const response = await api.login(email, password);
             localStorage.setItem('authToken', response.data.token);
-            setUser(response.data.user); // <-- CORRECTED
-            
+            setUser(response.data.user);
+
             if (response.data.user.role === 'fan') {
                 await fetchFanSettings();
             }
@@ -132,7 +150,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
             // The API returns { success, data: { user, token } }
             const response = await api.signup(username, email, password, userType);
             localStorage.setItem('authToken', response.data.token);
-            setUser(response.data.user); // <-- CORRECTED
+            setUser(response.data.user);
         } catch (error) {
             console.error("Signup failed:", error);
             throw error;
@@ -143,11 +161,12 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setPaymentMethod(null);
         localStorage.removeItem('authToken');
+        localStorage.removeItem('impersonating_user_id');
         // Add Supabase sign out for consistency
         supabase.auth.signOut();
         navigate('/');
     };
-    
+
     const startImpersonation = async (targetUser: User) => {
         if (!user || user.role !== 'admin') {
             throw new Error("Only admins can start an impersonation session.");

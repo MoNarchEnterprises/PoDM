@@ -1,0 +1,47 @@
+
+Running 1 test using 1 worker
+
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: [vite] connecting...
+BROWSER LOG: [vite] connected.
+BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+Navigated to /creator/creator
+Checking for Jane Creator...
+  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (3.2s)
+
+
+  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+
+    Error: locator.click: Error: strict mode violation: getByRole('button', { name: '$5' }) resolved to 8 elements:
+        1) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-6 py-3 text-base w-full md:w-auto md:px-12 bg-pink-500 hover:bg-pink-600">Subscribe for $500.00/month</button> aka getByRole('button', { name: 'Subscribe for $500.00/month' })
+        2) <button class="py-2 rounded-lg font-bold transition-colors bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">$5</button> aka getByRole('button', { name: '$5', exact: true })
+        3) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).first()
+        4) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).nth(1)
+        5) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).nth(2)
+        6) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).nth(3)
+        7) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).nth(4)
+        8) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4">Unlock for $5.00</button> aka getByRole('button', { name: 'Unlock for $' }).nth(5)
+
+    Call log:
+    [2m  - waiting for getByRole('button', { name: '$5' })[22m
+
+
+      55 |
+      56 |     // 4. Select an amount (default is $10, let's select $5)
+    > 57 |     await page.getByRole('button', { name: '$5' }).click();
+         |                                                    ^
+      58 |
+      59 |     // 5. Send the tip
+      60 |     // Note: If the user has no payment method, this might fail or require card entry.
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:57:52
+
+    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────

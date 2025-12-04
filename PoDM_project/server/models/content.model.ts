@@ -64,7 +64,7 @@ export const findContentById = async (id: string): Promise<Content | null> => {
         }
         return null;
     }
-    
+
     console.log(`[Model] Successfully found content for id=${contentId}.`);
     return data as Content;
 };
@@ -126,7 +126,7 @@ export const findContentByCreatorId = async (creatorId: string, limit?: number, 
 
     const { data, error } = await query;
 
-    
+
     if (error) {
         console.error('Error finding content by creator ID:', error.message);
         return null;
@@ -187,8 +187,12 @@ export const findRecentContentByCreator = async (creatorId: string, limit: numbe
         return null;
     }
     return data.map(item => {
-        const { id, ...rest } = item;
-        return { ...rest, _id: id.toString() } as Content;
+        const { id, creator_id, ...rest } = item;
+        return {
+            ...rest,
+            _id: id.toString(),
+            creatorId: creator_id
+        } as Content;
     });
 };
 
@@ -215,7 +219,11 @@ export const findPublicContentByCreator = async (creatorId: string, limit: numbe
         console.error(`Error finding public content for creator ${creatorId}:`, error.message);
         return null;
     }
-    return data.map(item => ({ ...item, _id: item.id.toString() } as Content));
+    return data.map(item => ({
+        ...item,
+        _id: item.id.toString(),
+        creatorId: item.creator_id
+    } as Content));
 };
 
 /**
