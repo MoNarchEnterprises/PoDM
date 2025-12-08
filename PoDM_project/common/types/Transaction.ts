@@ -23,6 +23,7 @@ export interface Transaction {
   creator_payout: number; // The portion of the amount paid out to the creator (in cents)
   status: TransactionStatus;
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
+  message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
   payment_gateway_id: string; // The ID from the payment processor (e.g., Stripe charge ID)
   created_at: string; // ISO 8601 date string
   updated_at?: string; // ISO 8601 date string

@@ -363,6 +363,10 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         const creatorPayout = amountInCents - platformFee;
 
         // Check duplicate for invoice
+        if (!invoice.id) {
+            console.error('[Webhook] Invoice ID missing. Skipping.');
+            return { received: true };
+        }
         const existingTransaction = await TransactionModel.findTransactionByPaymentGatewayId(invoice.id);
         if (existingTransaction) {
             console.log(`[Webhook] Invoice Transaction ${invoice.id} already exists. Skipping.`);
@@ -390,6 +394,42 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         }
 
         console.log(`[Webhook] Subscription transaction for ${amountInCents / 100} USD saved to database.`);
+    } else if (event.type === 'customer.subscription.updated') {
+        const stripeSubscription = event.data.object as any;
+        console.log(`[Webhook] Subscription updated: ${stripeSubscription.id}, status: ${stripeSubscription.status}`);
+
+        const updates: any = {
+            status: stripeSubscription.status,
+            next_billing_date: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+        };
+
+        // If canceled_at is set, it might be canceling at period end
+        if (stripeSubscription.cancel_at_period_end) {
+            // We can optionally store this flag if we had a column for it
+            console.log(`[Webhook] Subscription ${stripeSubscription.id} set to cancel at period end.`);
+        }
+
+        const { error } = await supabase
+            .from('subscriptions')
+            .update(updates)
+            .eq('stripe_subscription_id', stripeSubscription.id);
+
+        if (error) {
+            console.error(`[Webhook] Failed to update subscription ${stripeSubscription.id}:`, error.message);
+        }
+
+    } else if (event.type === 'customer.subscription.deleted') {
+        const stripeSubscription = event.data.object as any;
+        console.log(`[Webhook] Subscription deleted/canceled: ${stripeSubscription.id}`);
+
+        const { error } = await supabase
+            .from('subscriptions')
+            .update({ status: 'canceled' })
+            .eq('stripe_subscription_id', stripeSubscription.id);
+
+        if (error) {
+            console.error(`[Webhook] Failed to cancel subscription ${stripeSubscription.id}:`, error.message);
+        }
     }
     return { received: true };
 };
