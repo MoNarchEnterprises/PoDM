@@ -12,7 +12,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { reshapeUserForApp } from '../utils/user.utils';
-import { generateSignedUrlsForContent } from '../utils/content.utils';
+import { generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../utils/content.utils';
 
 
 // Define a type for the query parameters for clarity
@@ -387,6 +387,7 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
         const transactions = await TransactionModel.findTransactionsByUser(viewerId);
         if (transactions) {
             transactions.forEach(tx => {
+                console.log(tx);
                 if (tx.status === 'Cleared' && (tx.type === 'PPV Post' || tx.type === 'PPV Message') && tx.related_content_id) {
                     unlockedContentIds.add(tx.related_content_id);
                 }
@@ -396,15 +397,18 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
 
     return content.map(post => {
         // Determine if the post is unlocked for this viewer
-        const isUnlocked = isSubscribed || (viewerId ? unlockedContentIds.has(post.id.toString()) : false);
+        const isUnlocked = viewerId ? unlockedContentIds.has(post.id.toString()) : false;
 
+        console.log("[ContentService] isUnlocked: ", isUnlocked);
+        console.log("[ContentService] post.visibility: ", post.visibility);
+        console.log("[ContentService] isSubscribed: ", isSubscribed);
         // If it's PPV and unlocked, or Subscribers Only and subscribed, show the content.
         // Otherwise, show the placeholder.
         const shouldShowContent =
             post.visibility === 'pay_per_view' ? isUnlocked :
                 post.visibility === 'subscribers_only' ? isSubscribed :
                     true; // 'unlisted' or public
-
+        console.log("[ContentService] shouldShowContent: ", shouldShowContent);
         if (shouldShowContent) {
             return {
                 ...post,
@@ -440,11 +444,12 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
     if (content.creator_id === fanId) {
         return content;
     }
-
+    console.log("[ContentService] content.visibility: ", content.visibility);
     if (content.visibility === 'subscribers_only') {
         const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
         // FIX: Check against the snake_case property `creator_id`.
         const isSubscribed = subscriptions?.some(sub => sub.creator_id === content.creator_id);
+        console.log("[ContentService] isSubscribed: ", isSubscribed);
         if (!isSubscribed) {
             throw new AppError('You must be subscribed to view this content.', 403);
         }
@@ -452,6 +457,7 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
 
     if (content.visibility === 'pay_per_view') {
         const purchase = await TransactionModel.findSuccessfulTransactionByFanAndContent(fanId, contentId);
+        console.log("[ContentService] purchase: ", purchase);
         if (!purchase) {
             throw new AppError('You must purchase this content to view it.', 403);
         }
@@ -682,9 +688,10 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
 /**
  * Fetches all data needed for the content viewer page.
  * @param contentId The ID of the content being viewed.
+ * @param viewerId The ID of the user viewing the content.
  * @returns An object containing the content, its creator, and related content.
  */
-export const getViewData = async (contentId: string) => {
+export const getViewData = async (contentId: string, viewerId?: string) => {
     // 1. Fetch the main content
     const rawContent = await ContentModel.findContentById(contentId);
     if (!rawContent) {
@@ -703,22 +710,26 @@ export const getViewData = async (contentId: string) => {
         4, // Limit to 4 related items for a 2x2 grid
     );
 
-    // --- THIS IS THE FIX ---
     // 4. Process and reshape all data before returning it
+    // We first get signed URLs for everything
     const [
-        content,
-        relatedContent
+        contentWithUrls,
+        relatedContentWithUrls
     ] = await Promise.all([
         generateSignedUrlsForContent(rawContent),
         Promise.all((rawRelatedContent || []).filter(c => c.id.toString() !== contentId).map(c => generateSignedUrlsForContent(c)))
     ]);
 
+    // 5. Enrich with unlock status
+    // We treat the main content as a single-item list to reuse the helper
+    const [enrichedContent] = await enrichContentWithUnlockStatus([contentWithUrls], viewerId);
+    const enrichedRelatedContent = await enrichContentWithUnlockStatus(relatedContentWithUrls, viewerId);
+
     const creator = reshapeUserForApp(rawCreator);
-    // --- END OF FIX ---
 
     return {
-        content,
+        content: enrichedContent,
         creator,
-        relatedContent: relatedContent || [],
+        relatedContent: enrichedRelatedContent || [],
     };
 };

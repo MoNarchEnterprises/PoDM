@@ -12,7 +12,7 @@ import stripe from '../config/stripeClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import { getOrCreateStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
-import { reshapePostForFeed, generateSignedUrlsForContent } from '../../server/utils/content.utils';
+import { reshapePostForFeed, generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../../server/utils/content.utils';
 import Stripe from 'stripe';
 
 
@@ -74,11 +74,11 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
         // If only email was updated, we still need the profile to reshape it
         updatedDbProfile = await UserModel.findUserById(userId);
     }
-    
+
     if (!updatedDbProfile) {
         throw new AppError('Could not find user profile after update.', 404);
     }
- 
+
     // Step 4: Reshape the data into the consistent format the frontend expects
     return reshapeUserForApp(updatedDbProfile);
 };
@@ -92,7 +92,7 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
  */
 export const addToUserGallery = async (fanId: string, contentId: string) => {
     // In a real app, you'd first verify that the fan has access to this content.
-    
+
     const newItem: GalleryItem = {
         contentId,
         addedDate: new Date().toISOString(),
@@ -167,11 +167,11 @@ export const uploadUserAvatar = async (userId: string, file: Express.Multer.File
 
     // 4. Update the avatar_url in the user's profile
     await UserModel.updateProfile(userId, { avatar_url: publicUrl });
-    
+
     // 5. Fetch the complete, updated user data to return
     const updatedDbProfile = await UserModel.findUserById(userId);
 
-    
+
     // 6. Reshape and return the full user object
     return reshapeUserForApp(updatedDbProfile);
 };
@@ -196,11 +196,11 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
     const profileUpdates: Partial<UserProfile> = {
         bio: profile.bio,
     };
-    
+
     // Prepare the creator_data JSONB field update
     // Instead of saving the raw tiers, process them with our utility first.
     const syncedTiers = await syncTiersWithStripe(tiers);
-    
+
     const creatorDataUpdate = {
         ...existingProfile.creator_data,
         subscriptionTiers: syncedTiers, // Save the corrected, complete tier data
@@ -229,7 +229,7 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
  * @param signature The user's electronic signature.
  */
 export const submitVerificationDocs = async (
-    userId: string, 
+    userId: string,
     files: { [fieldname: string]: Express.Multer.File[] },
     signature: string
 ) => {
@@ -245,7 +245,7 @@ export const submitVerificationDocs = async (
         const { error } = await supabase.storage
             .from('verification-documents')
             .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
-        
+
         if (error) throw new AppError(`Failed to upload ${fileName}.`, 500);
         return filePath;
     };
@@ -304,13 +304,16 @@ export const getFullPublicProfile = async (username: string, viewerId?: string) 
     // 3. Fetch a preview of their content (e.g., the 12 most recent posts)
     const contentPreview = await ContentModel.findPublicContentByCreator(user.id, 12);
 
-    // 4. Reshape the user data for the frontend
+    // 4. Enrich content with unlock status
+    const enrichedContent = await enrichContentWithUnlockStatus(contentPreview || [], viewerId);
+
+    // 5. Reshape the user data for the frontend
     const creatorProfile = reshapeUserForApp(user);
 
     return {
         creator: creatorProfile,
-        content: contentPreview || [],
-        isSubscribed: isSubscribed, // --- 5. ADD isSubscribed to the return object ---
+        content: enrichedContent,
+        isSubscribed: isSubscribed,
     };
 };
 
@@ -345,9 +348,12 @@ export const generateFanFeed = async (fanId: string, page: number = 1) => {
     const reshapedFeed = await Promise.all(
         feedContent.map(post => reshapePostForFeed(post))
     );
+
+    // Enrich with unlock status
+    const enrichedFeed = await enrichContentWithUnlockStatus(reshapedFeed, fanId);
     // --- END OF REFACTOR ---
 
-    return reshapedFeed;
+    return enrichedFeed;
 };
 
 /**
@@ -372,7 +378,7 @@ export const getFanGallery = async (fanId: string) => {
     const allContentItems = await ContentModel.findContentByIds(allContentIds);
 
     if (!allContentItems) return [];
-    
+
     // Process all content items at once to get signed URLs
     const processedContentItems = await Promise.all(
         allContentItems.map(item => generateSignedUrlsForContent(item))
@@ -384,7 +390,7 @@ export const getFanGallery = async (fanId: string) => {
         }
         contentByCreator.get(item.creator_id)?.push(item);
     }
-    
+
     const galleryData = [];
     for (const [creatorId, contentItems] of contentByCreator.entries()) {
         const creator = await UserModel.findUserById(creatorId);
@@ -422,7 +428,7 @@ export const getFanSettings = async (fanId: string) => {
             const customer = await stripe.customers.retrieve(user.stripe_customer_id, {
                 expand: ['invoice_settings.default_payment_method'],
             }) as Stripe.Customer;
-            
+
             const defaultPaymentMethod = customer.invoice_settings?.default_payment_method as any;
             if (defaultPaymentMethod && defaultPaymentMethod.card) {
                 // --- THIS IS THE FIX ---

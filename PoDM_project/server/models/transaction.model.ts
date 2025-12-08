@@ -162,7 +162,8 @@ export const findSuccessfulTransactionByFanAndContent = async (fanId: string, co
         .eq('fan_id', fanId)
         .eq('related_content_id', contentId)
         .eq('status', 'Cleared')
-        .single();
+        .limit(1)
+        .maybeSingle();
 
     if (error) {
         console.error('Error finding successful transaction by fan and content:', error.message);

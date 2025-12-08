@@ -46,7 +46,7 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
         res.status(201).json({ success: true, data: newContent });
     } catch (error) {
         console.error('Error creating content:', error);
-       
+
         next(error);
     }
 };
@@ -65,7 +65,7 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
 
         // Pass the request query object directly to the service
         const content = await ContentService.getContentByCreatorId(creatorId, req.query);
-        
+
         res.status(200).json({ success: true, data: content });
     } catch (error) {
         next(error);
@@ -80,8 +80,9 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
 export const getContentByCreator = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username } = req.params;
-        
-        const content = await ContentService.getContentByCreatorName(username);
+        const viewerId = req.user?._id; // Extracted from optionalProtect middleware
+
+        const content = await ContentService.getContentForPublicProfile(username, viewerId);
         res.status(200).json({ success: true, data: content });
     } catch (error) {
         next(error);
@@ -146,11 +147,11 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
 
         const updatedContent = await ContentService.updateCreatorContent(contentId, creatorId, updates);
         res.status(200).json({ success: true, data: updatedContent });
-        } 
-        catch (error) {
-            console.error('Error updating content:', error);
-            next(error);
-        }
+    }
+    catch (error) {
+        console.error('Error updating content:', error);
+        next(error);
+    }
 };
 
 /**
@@ -194,7 +195,7 @@ export const getSecureContentUrl = async (req: Request, res: Response, next: Nex
         }
 
         const { secureUrl } = await ContentService.getSecureUrlForThumbnail(contentId, userId);
-        
+
         console.log(`[Controller] Successfully generated secure URL for contentId="${contentId}"`);
         res.status(200).json({ success: true, data: { secureUrl } });
 
@@ -261,10 +262,10 @@ export const getContentView = async (req: Request, res: Response, next: NextFunc
 export const getContentViewerData = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
-
+        const userId = req.user?._id;
         const { id: contentId } = req.params;
 
-        const data = await ContentService.getViewData(contentId);
+        const data = await ContentService.getViewData(contentId, userId);
 
         res.status(200).json({ success: true, data });
 

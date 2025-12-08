@@ -713,9 +713,10 @@ export const getContentViewerData = async (contentId: string) => {
 /**
  * Creates a Stripe Payment Intent for a fan to purchase a piece of content.
  * @param contentId The ID of the content to purchase.
+ * @param paymentMethodId Optional payment method ID if not using default.
  */
-export const unlockPost = async (contentId: string) => {
-    const response = await apiClient.post('/payments/unlock-post', { contentId });
+export const unlockPost = async (contentId: string, paymentMethodId?: string) => {
+    const response = await apiClient.post('/payments/unlock-post', { contentId, paymentMethodId });
     return response.data;
 };
 

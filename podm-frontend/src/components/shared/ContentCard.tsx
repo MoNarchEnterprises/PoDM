@@ -15,7 +15,8 @@ import { Creator } from '@common/types/Creator';
 import Button from '../ui/Button';
 import * as apiClient from '../../lib/apiClient';
 import { useModal } from '../../hooks/useModal';
-import TipModal from './TipModal'; // Import the TipModal
+import TipModal from './TipModal';
+import UnlockModal from './UnlockModal'; // Import the UnlockModal
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -37,6 +38,7 @@ interface PostCardProps {
 const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const navigate = useNavigate();
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
+    const { isOpen: isUnlockModalOpen, openModal: openUnlockModal, closeModal: closeUnlockModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
@@ -61,40 +63,9 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
         return apiClient.sendTip(post.creatorId, amount, message, post._id, paymentMethodId);
     };
 
-    const handleUnlock = async () => {
-        try {
-            const { data } = await apiClient.unlockPost(post._id);
-
-            let finalPaymentIntentId = data.paymentIntentId;
-
-            if (data.status === 'requires_action') {
-                const stripe = await stripePromise;
-                if (stripe) {
-                    const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret);
-                    if (error) {
-                        throw new Error(error.message);
-                    }
-                    if (paymentIntent) {
-                        finalPaymentIntentId = paymentIntent.id;
-                    }
-                }
-            }
-
-            if (finalPaymentIntentId) {
-                await apiClient.confirmTransaction(finalPaymentIntentId);
-            }
-
-            setLocalIsUnlocked(true);
-            alert('Content unlocked!');
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                console.error('Failed to unlock content:', error.response?.data.message);
-                alert(`Could not unlock content: ${error.response?.data.message}`);
-            } else {
-                console.error('Failed to unlock content:', error);
-                alert('Could not unlock content: An unexpected error occurred.');
-            }
-        }
+    const handleUnlockSuccess = () => {
+        setLocalIsUnlocked(true);
+        // alert('Content unlocked!'); // Modal handles success message
     };
 
     return (
@@ -105,6 +76,15 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                 onClose={closeTipModal}
                 creator={post.creator} // Pass the full creator object
                 onSubmit={handleTipSubmit}
+            />
+
+            <UnlockModal
+                isOpen={isUnlockModalOpen}
+                onClose={closeUnlockModal}
+                contentId={post._id}
+                title={post.title}
+                price={post.price || 0}
+                onUnlockSuccess={handleUnlockSuccess}
             />
 
             <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post._id}`)}>
@@ -119,9 +99,17 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
                             <Lock className="w-12 h-12 mb-4" />
                             <h3 className="font-bold text-lg text-center">Content Locked</h3>
-                            <Button className="mt-4" onClick={(e) => { e.stopPropagation(); handleUnlock(); }}>
-                                {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
-                            </Button>
+                            <div className="flex flex-col items-center space-y-2">
+                                {!post.isSubscribedToCreator ? (
+                                    <Button className="mt-4 bg-purple-600 hover:bg-purple-700" onClick={(e) => { e.stopPropagation(); alert('Please subscribe to this creator first!'); }}>
+                                        Subscribe to Unlock
+                                    </Button>
+                                ) : (
+                                    <Button className="mt-4" onClick={(e) => { e.stopPropagation(); openUnlockModal(); }}>
+                                        {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     )}
                     <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full capitalize">

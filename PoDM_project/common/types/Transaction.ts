@@ -14,16 +14,16 @@ export type TransactionStatus = 'Pending' | 'Cleared' | 'Failed' | 'Refunded';
  * The main Transaction interface, representing a single financial event.
  */
 export interface Transaction {
-  _id: string; // Unique identifier for the transaction
-  fanId: string; // The ID of the fan who made the payment
-  creatorId: string; // The ID of the creator who received the payment
+  id: string; // Unique identifier for the transaction
+  fan_id: string; // The ID of the fan who made the payment
+  creator_id: string; // The ID of the creator who received the payment
   type: TransactionType;
   amount: number; // The total amount paid by the fan (in cents)
-  platformFee: number; // The portion of the amount taken by the platform (in cents)
-  creatorPayout: number; // The portion of the amount paid out to the creator (in cents)
+  platform_fee: number; // The portion of the amount taken by the platform (in cents)
+  creator_payout: number; // The portion of the amount paid out to the creator (in cents)
   status: TransactionStatus;
-  relatedContentId?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
-  paymentGatewayId: string; // The ID from the payment processor (e.g., Stripe charge ID)
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
+  payment_gateway_id: string; // The ID from the payment processor (e.g., Stripe charge ID)
+  created_at: string; // ISO 8601 date string
+  updated_at?: string; // ISO 8601 date string
 }

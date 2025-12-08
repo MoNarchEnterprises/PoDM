@@ -264,6 +264,16 @@ export const createPostUnlockIntent = async (fanId: string, contentId: string) =
         throw new AppError('This content is not available for purchase.', 400);
     }
 
+    // Enforce subscription requirement
+    const activeSubs = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
+    console.log(`[PaymentService] Checking subscription for fan ${fanId} and creator ${content.creator_id}`);
+    console.log(`[PaymentService] Active subs:`, activeSubs?.length, activeSubs?.map(s => s.creator_id));
+
+    const isSubscribed = activeSubs?.some(sub => sub.creator_id === content.creator_id);
+    if (!isSubscribed) {
+        throw new AppError('You must be subscribed to this creator to unlock this content.', 403);
+    }
+
     const amountInCents = content.price;
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
 

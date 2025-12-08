@@ -3,6 +3,8 @@
 import supabase from '../config/supabaseClient';
 import { Content } from '@common/types/Content';
 import { reshapeUserForApp } from './user.utils';
+import * as SubscriptionModel from '../models/subscription.model';
+import * as TransactionModel from '../models/transaction.model';
 
 /**
  * A centralized utility to process a raw Content object from the database.
@@ -32,7 +34,7 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
                 if (!error && data) {
                     publicFullUrl = data.signedUrl;
                 } else {
-                     console.error(`Failed to sign full URL for path: ${file.url}`, error);
+                    console.error(`Failed to sign full URL for path: ${file.url}`, error);
                 }
             }
 
@@ -48,7 +50,7 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
                     console.error(`Failed to sign thumbnail URL for path: ${file.thumbnailUrl}`, error);
                 }
             }
-            
+
             // Return a new file object with the signed URLs
             return {
                 ...file,
@@ -75,12 +77,12 @@ export const reshapePostForFeed = async (post: any): Promise<any> => {
     const postWithSignedUrls = await generateSignedUrlsForContent(post);
 
     const creatorProfile = post.creator ? reshapeUserForApp(post.creator) : null;
-    
-    const { 
-        id, 
-        creator_id, 
-        created_at, 
-        updated_at, 
+
+    const {
+        id,
+        creator_id,
+        created_at,
+        updated_at,
         ...restOfPost // Use object destructuring to gather all other properties
     } = postWithSignedUrls;
 
@@ -92,4 +94,78 @@ export const reshapePostForFeed = async (post: any): Promise<any> => {
         updatedAt: updated_at,
         creator: creatorProfile, // Nested creator profile
     };
+};
+
+/**
+ * Enriches a list of content with unlock status for a specific viewer.
+ * It checks active subscriptions and PPV purchase history to determine if content is unlocked.
+ * @param contentList - The list of content to enrich.
+ * @param viewerId - The ID of the user viewing the content.
+ * @returns The enriched content list with `isUnlocked` property.
+ */
+export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId: string | undefined): Promise<any[]> => {
+    if (!contentList || contentList.length === 0) {
+        return [];
+    }
+
+    // 1. If no viewer, everything is locked unless it's public
+    if (!viewerId) {
+        return contentList.map(post => ({
+            ...post,
+            isUnlocked: false, // Default to locked for guests
+            isSubscribedToCreator: false,
+            // If it's public/unlisted, the frontend might still show it, but explicit 'isUnlocked' is false
+        }));
+    }
+
+    // 2. Fetch Viewer's Access Data
+    // We fetch this ONCE for the whole list to avoid N+1 queries
+    const [activeSubs, transactions] = await Promise.all([
+        SubscriptionModel.findActiveSubscriptionsByFan(viewerId),
+        TransactionModel.findTransactionsByUser(viewerId)
+    ]);
+    console.log("[ContentUtils] activeSubs: ", activeSubs);
+    // console.log("[ContentUtils] transactions: ", transactions);
+    const subscribedCreatorIds = new Set(activeSubs?.map(sub => sub.creator_id));
+
+    const unlockedContentIds = new Set<string>();
+    if (transactions) {
+        transactions.forEach(tx => {
+            if (tx.status === 'Cleared' &&
+                (tx.type === 'PPV Post' || tx.type === 'PPV Message') &&
+                tx.related_content_id) {
+                unlockedContentIds.add(String(tx.related_content_id));
+            }
+        });
+    }
+    // console.log("[ContentUtils] unlockedContentIds: ", unlockedContentIds);
+    // 3. Enrich each post
+    return contentList.map(post => {
+        // A. Creator always unlocks their own content
+        if (post.creator_id === viewerId || post.creatorId === viewerId) {
+            return { ...post, isUnlocked: true, isSubscribedToCreator: true };
+        }
+
+        // B. Check specific unlock conditions
+        let isUnlocked = false;
+        const isSubscribedToCreator = subscribedCreatorIds.has(post.creator_id || post.creatorId);
+
+        if (post.visibility === 'pay_per_view') {
+            // Unlocked if purchased
+            // We check both string and number ID formats to be safe
+            isUnlocked = unlockedContentIds.has(post._id?.toString());
+        } else if (post.visibility === 'subscribers_only') {
+            // Unlocked if subscribed to creator
+            isUnlocked = isSubscribedToCreator;
+        } else {
+            // Public or Unlisted content is always "unlocked" in terms of visibility
+            isUnlocked = true;
+        }
+
+        return {
+            ...post,
+            isUnlocked,
+            isSubscribedToCreator
+        };
+    });
 };

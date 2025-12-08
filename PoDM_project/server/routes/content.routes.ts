@@ -1,8 +1,8 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
 import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView, getContentViewerData } from '../controllers/content.controller';
-import { protect, creatorOnly } from '../middleware/auth.middleware';
-import { uploadContent } from '../middleware/upload.middleware'; 
+import { protect, creatorOnly, optionalProtect } from '../middleware/auth.middleware';
+import { uploadContent } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -37,7 +37,7 @@ router.get('/my-content', protect, creatorOnly, getMyContent);
  * @desc    Get all content for a specific creator (public view, may be blurred/locked)
  * @access  Public
  */
-router.get('/creator/:username', getContentByCreator);
+router.get('/creator/:username', optionalProtect, getContentByCreator);
 
 /**
  * @route   GET /api/v1/content/:id/view
