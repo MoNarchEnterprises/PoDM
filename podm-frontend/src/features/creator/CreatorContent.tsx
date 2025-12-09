@@ -36,6 +36,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
     const [price, setPrice] = useState('');
     const [isScheduled, setIsScheduled] = useState(false);
     const [publishDate, setPublishDate] = useState('');
+    const [minTierLevel, setMinTierLevel] = useState(1);
 
     // Modal control state
     const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +50,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
             setDescription('');
             // ... reset other fields ...
             setPublishDate('');
+            setMinTierLevel(1);
             return;
         }
         if (isEditMode && initialContent) {
@@ -57,6 +59,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
             setVisibility(initialContent.visibility);
             setPrice(initialContent.price ? (initialContent.price / 100).toString() : '');
             setIsScheduled(initialContent.schedule?.isScheduled || false);
+            setMinTierLevel(initialContent.minTierLevel || 1);
             // Format date for the datetime-local input
             if (initialContent.schedule?.isScheduled && initialContent.schedule.publishDate) {
                 try {
@@ -72,7 +75,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                     setPublishDate('');
                 }
             } else {
-                 setPublishDate('');
+                setPublishDate('');
             }
         }
         else {
@@ -96,7 +99,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
 
     const handleSubmit = async () => {
         setError(null); // Clear previous errors
-    
+
         // 1. Define the current file size limit in bytes (50MB).
         const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
@@ -154,11 +157,14 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
         if (visibility === 'pay_per_view') {
             formData.append('price', (parseFloat(price) * 100).toString());
         }
+        if (visibility === 'subscribers_only') {
+            formData.append('minTierLevel', minTierLevel.toString());
+        }
         formData.append('scheduleIsScheduled', String(isScheduled));
         if (isScheduled) {
             formData.append('schedulePublishDate', new Date(publishDate).toISOString());
         }
-        
+
         // Only append files if they are selected (for create mode)
         if (files) {
             for (let i = 0; i < files.length; i++) {
@@ -196,21 +202,35 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
                         <div className="space-y-2">
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
-                                <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio h-5 w-5 text-purple-600" />
                                 <div>
                                     <span className="font-semibold">Subscribers Only</span>
                                     <p className="text-xs text-purple-800">Visible on your profile feed for all subscribers.</p>
+                                    {visibility === 'subscribers_only' && (
+                                        <div className="mt-2">
+                                            <Input
+                                                id="minTierLevel"
+                                                label="Minimum Tier Level Required (1-10)"
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                value={minTierLevel}
+                                                onChange={(e) => setMinTierLevel(parseInt(e.target.value))}
+                                                containerClassName="w-full"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
-                                <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio h-5 w-5 text-purple-600" />
                                 <div>
                                     <span className="font-semibold">Pay Per View (PPV) on Profile</span>
                                     <p className="text-xs text-purple-800">Visible on your profile feed, non-subscribers must pay to unlock.</p>
                                 </div>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
-                                <input type="radio" name="visibility" value="unlisted" checked={visibility === 'unlisted'} onChange={() => setVisibility('unlisted')} className="form-radio h-5 w-5 text-purple-600"/>
+                                <input type="radio" name="visibility" value="unlisted" checked={visibility === 'unlisted'} onChange={() => setVisibility('unlisted')} className="form-radio h-5 w-5 text-purple-600" />
                                 <div>
                                     <span className="font-semibold">Unlisted (Creator's Vault)</span>
                                     <p className="text-xs text-purple-800">Not visible on your profile. Can only be sent in messages.</p>
@@ -221,7 +241,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                     {(visibility === 'pay_per_view' || visibility === 'unlisted') && (
                         <Input id="price" label="Price to Unlock" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="10.00" leftIcon={DollarSign} />
                     )}
-                    
+
                     {!isEditMode && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Media Files</label>
@@ -237,7 +257,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                     )}
 
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <label className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="form-checkbox text-purple-600 h-5 w-5 rounded"/><span className="font-medium">Schedule for later</span></label>
+                        <label className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="form-checkbox text-purple-600 h-5 w-5 rounded" /><span className="font-medium">Schedule for later</span></label>
                         {isScheduled && (
                             <Input id="publishDate" type="datetime-local" value={publishDate} onChange={(e) => setPublishDate(e.target.value)} containerClassName="mt-4" />
                         )}
@@ -299,7 +319,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }: { isOpen: boolean; on
         if (isScheduled) {
             formData.append('schedulePublishDate', new Date(publishDate).toISOString());
         }
-        
+
         for (let i = 0; i < files.length; i++) {
             formData.append('contentFiles', files[i]);
         }
@@ -345,11 +365,11 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }: { isOpen: boolean; on
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
                         <div className="flex space-x-4">
                             <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio text-purple-600"/>
+                                <input type="radio" name="visibility" value="subscribers_only" checked={visibility === 'subscribers_only'} onChange={() => setVisibility('subscribers_only')} className="form-radio text-purple-600" />
                                 <span className="text-sm">Subscribers Only</span>
                             </label>
                             <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio text-purple-600"/>
+                                <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio text-purple-600" />
                                 <span className="text-sm">Pay Per View (PPV)</span>
                             </label>
                         </div>
@@ -369,7 +389,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }: { isOpen: boolean; on
                     </div>
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                         <label className="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="form-checkbox text-purple-600 h-5 w-5 rounded"/>
+                            <input type="checkbox" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="form-checkbox text-purple-600 h-5 w-5 rounded" />
                             <span className="text-sm font-medium">Schedule for later</span>
                         </label>
                         {isScheduled && (
@@ -489,12 +509,12 @@ const CreatorContentPage = () => {
     const [content, setContent] = useState<Content[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // State for filtering and sorting
     const [filter, setFilter] = useState<'All' | ContentType>('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [sort, setSort] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'created_at', direction: 'desc' });
-    
+
     // State for the unified modal
     const { isOpen: isModalOpen, openModal, closeModal } = useModal();
     const [editingContent, setEditingContent] = useState<Content | null>(null);
@@ -513,7 +533,7 @@ const CreatorContentPage = () => {
                 if (sort.key === 'views') apiSortKey = 'stats->>views';
                 if (sort.key === 'galleryAdds') apiSortKey = 'stats->>galleryAdds';
                 if (sort.key === 'tips') apiSortKey = 'stats->>tips';
-                
+
                 const response = await apiClient.getMyCreatorContent({
                     type: filter,
                     searchTerm: searchTerm,
@@ -535,7 +555,7 @@ const CreatorContentPage = () => {
 
         return () => clearTimeout(debounceTimer);
     }, [filter, searchTerm, sort]);
-    
+
     // --- NEW: Reshape data for the viewer modal ---
     const galleryItemsForModal = useMemo(() => {
         return content.map(item => ({
@@ -567,40 +587,41 @@ const CreatorContentPage = () => {
 
     // Handler Functions
     const handleSaveContent = async (formData: FormData, contentId?: string) => {
-    try {
-        if (contentId) { // This is an EDIT operation
-            // --- NEW LOGIC FOR EDIT ---
-            const updates = {
-                title: formData.get('title') as string,
-                description: formData.get('description') as string,
-                visibility: formData.get('visibility') as 'subscribers_only' | 'pay_per_view',
-                price: formData.has('price') ? Number(formData.get('price')) : undefined,
-                scheduleIsScheduled: formData.get('scheduleIsScheduled') === 'true',
-                schedulePublishDate: formData.has('schedulePublishDate') ? formData.get('schedulePublishDate') as string : undefined,
-            };
-            const response = await apiClient.updateContent(contentId, updates);
+        try {
+            if (contentId) { // This is an EDIT operation
+                // --- NEW LOGIC FOR EDIT ---
+                const updates = {
+                    title: formData.get('title') as string,
+                    description: formData.get('description') as string,
+                    visibility: formData.get('visibility') as 'subscribers_only' | 'pay_per_view',
+                    price: formData.has('price') ? Number(formData.get('price')) : undefined,
+                    minTierLevel: formData.has('minTierLevel') ? Number(formData.get('minTierLevel')) : undefined,
+                    scheduleIsScheduled: formData.get('scheduleIsScheduled') === 'true',
+                    schedulePublishDate: formData.has('schedulePublishDate') ? formData.get('schedulePublishDate') as string : undefined,
+                };
+                const response = await apiClient.updateContent(contentId, updates);
 
-            // The API response.data *should* have `_id`, but we'll be extra safe.
-            const updatedItemFromApi = response.data;
-            // Ensure the item we put back into state has the `_id` property.
-            const reshapedItem = { ...updatedItemFromApi, _id: updatedItemFromApi._id || updatedItemFromApi.id.toString() };
+                // The API response.data *should* have `_id`, but we'll be extra safe.
+                const updatedItemFromApi = response.data;
+                // Ensure the item we put back into state has the `_id` property.
+                const reshapedItem = { ...updatedItemFromApi, _id: updatedItemFromApi._id || updatedItemFromApi.id.toString() };
 
-            setContent(prev => prev.map(item => item._id === contentId ? reshapedItem : item));
-            
+                setContent(prev => prev.map(item => item._id === contentId ? reshapedItem : item));
 
-        } else { // This is a CREATE operation (remains the same)
-            const response = await apiClient.createContent(formData);
-            const newItem = { ...response.data, _id: (response.data as any).id.toString() };
-            setContent(prev => [newItem, ...prev]);
+
+            } else { // This is a CREATE operation (remains the same)
+                const response = await apiClient.createContent(formData);
+                const newItem = { ...response.data, _id: (response.data as any).id.toString() };
+                setContent(prev => [newItem, ...prev]);
+            }
         }
-    } 
-    catch (error) {
-        console.error("Failed to save content:", error);
-        throw error;
-    }
-};
+        catch (error) {
+            console.error("Failed to save content:", error);
+            throw error;
+        }
+    };
 
-    
+
     const handleOpenEditModal = (contentItem: Content) => {
         setEditingContent(contentItem);
         openModal();
@@ -622,16 +643,16 @@ const CreatorContentPage = () => {
             }
         }
     };
-    
+
     return (
         <>
-            <ContentModal 
-                isOpen={isModalOpen} 
-                onClose={closeModal} 
+            <ContentModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
                 onSave={handleSaveContent}
                 initialContent={editingContent}
             />
-            
+
             <ContentViewerModal
                 galleryItems={galleryItemsForModal}
                 currentIndex={currentContentIndex}
@@ -639,7 +660,7 @@ const CreatorContentPage = () => {
                 onNext={handleNext}
                 onPrevious={handlePrevious}
             />
-            
+
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div>
@@ -681,24 +702,24 @@ const CreatorContentPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                   {content.length > 0 ? (
-                                       content.map((item, index) => (
-                                           <ContentRow 
-                                               key={item._id} 
-                                               item={item} 
-                                               onRowClick={() => handleThumbnailClick(index)}
-                                               onDelete={handleDeleteContent}
-                                               onEdit={handleOpenEditModal}
-                                           />
-                                       ))
-                                   ) : (
-                                       <tr>
-                                           <td colSpan={7} className="text-center py-12 text-gray-500">
-                                               <p className="font-semibold">No content found.</p>
-                                               <p className="text-sm">Try adjusting your filters or upload your first post!</p>
-                                           </td>
-                                       </tr>
-                                   )}
+                                    {content.length > 0 ? (
+                                        content.map((item, index) => (
+                                            <ContentRow
+                                                key={item._id}
+                                                item={item}
+                                                onRowClick={() => handleThumbnailClick(index)}
+                                                onDelete={handleDeleteContent}
+                                                onEdit={handleOpenEditModal}
+                                            />
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={7} className="text-center py-12 text-gray-500">
+                                                <p className="font-semibold">No content found.</p>
+                                                <p className="text-sm">Try adjusting your filters or upload your first post!</p>
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         )}

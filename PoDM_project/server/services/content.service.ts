@@ -277,6 +277,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             isScheduled: contentData.schedule?.isScheduled || false,
             publishDate: publishDate,
         },
+        min_tier_level: contentData.minTierLevel || 1,
     };
 
     try {
@@ -440,18 +441,33 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
         throw new AppError('Content not found.', 404);
     }
 
-    // FIX: Check against the snake_case property `creator_id` from the database.
-    if (content.creator_id === fanId) {
+    // Check against the camelCase property `creatorId` from the model.
+    if (content.creatorId === fanId) {
         return content;
     }
     console.log("[ContentService] content.visibility: ", content.visibility);
     if (content.visibility === 'subscribers_only') {
         const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
         // FIX: Check against the snake_case property `creator_id`.
-        const isSubscribed = subscriptions?.some(sub => sub.creator_id === content.creator_id);
+        const subscription = subscriptions?.find(sub => sub.creatorId === content.creatorId);
+        const isSubscribed = !!subscription;
+
         console.log("[ContentService] isSubscribed: ", isSubscribed);
         if (!isSubscribed) {
             throw new AppError('You must be subscribed to view this content.', 403);
+        }
+
+        // Tier Level Check
+        if (content.minTierLevel && content.minTierLevel > 1) {
+            const creator = await UserModel.findUserById(content.creatorId);
+            if (creator && creator.creatorData?.subscriptionTiers) {
+                const fanTier = creator.creatorData.subscriptionTiers.find((t: any) => t.id === subscription?.tierId);
+                const fanTierLevel = fanTier?.level || 1; // Default to 1 if not found (legacy)
+
+                if (fanTierLevel < content.minTierLevel) {
+                    throw new AppError(`This content requires a Tier ${content.minTierLevel} subscription (You are Tier ${fanTierLevel}).`, 403);
+                }
+            }
         }
     }
 
@@ -478,7 +494,7 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     if (!content) {
         throw new AppError('Content not found.', 404);
     }
-    if (content.creator_id !== creatorId) {
+    if (content.creatorId !== creatorId) {
         throw new AppError('You are not authorized to update this content.', 403);
     }
 
@@ -505,8 +521,15 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
         }
     }
 
+    // Handle tier level updates and map to DB column
+    if (updates.minTierLevel !== undefined) {
+        // @ts-ignore
+        updates.min_tier_level = updates.minTierLevel;
+        delete updates.minTierLevel;
+    }
+
     // 3. Prevent certain fields from being updated directly via this endpoint
-    delete updates.creator_id;
+    delete updates.creatorId;
     delete updates.files;
     delete updates.stats;
 
@@ -514,9 +537,8 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     if (!updatedContent) {
         throw new AppError('Failed to update content.', 500);
     }
-    return { ...updatedContent, _id: updatedContent.id.toString() };
+    return updatedContent;
 };
-
 
 /**
  * Deletes a piece of content, including its files from storage.
@@ -529,7 +551,7 @@ export const deleteCreatorContent = async (contentId: string, creatorId: string)
         throw new AppError('Content not found.', 404);
     }
 
-    if (content.creator_id !== creatorId) {
+    if (content.creatorId !== creatorId) {
         throw new AppError('You are not authorized to delete this content.', 403);
     }
 
@@ -575,10 +597,10 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         console.error(`[Service] Content not found in database for id="${contentId}"`);
         throw new AppError('Content not found.', 404);
     }
-    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creator_id})`);
+    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creatorId})`);
 
     // Owner check
-    if (content.creator_id !== userId) {
+    if (content.creatorId !== userId) {
         console.log('[Service] User is not owner, checking permissions...');
         await getContentForFan(contentId, userId); // This function contains the permission logic
         console.log('[Service] Permission check passed.');
@@ -636,17 +658,17 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
 };
 
 /**
-
+ 
  * Generates a secure, temporary URL for viewing a full-size content file.
-
+ 
  * It first verifies that the user has permission to access the content.
-
+ 
  * @param contentId The ID of the content.
-
+ 
  * @param userId The ID of the user requesting access.
-
+ 
  * @returns An object containing the secure URL and the content type.
-
+ 
  */
 
 export const getSecureUrlForViewing = async (contentId: string, userId: string) => {

@@ -452,6 +452,7 @@ interface UpdateContentPayload {
     description: string;
     visibility: 'subscribers_only' | 'pay_per_view';
     price?: number; // Price in cents
+    minTierLevel?: number; // Minimum tier level required (1-10)
     scheduleIsScheduled: boolean;
     schedulePublishDate?: string; // ISO String
 }

@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User as UserIcon, CheckCircle, AlertCircle, MessageCircle, CreditCard, 
-        HelpCircle, Save, Camera, Edit, Trash2, PlusCircle, Twitter, Instagram, 
-        Globe, Link,
-        X,
-        Send} from 'lucide-react';
+import {
+    User as UserIcon, CheckCircle, AlertCircle, MessageCircle, CreditCard,
+    HelpCircle, Save, Camera, Edit, Trash2, PlusCircle, Twitter, Instagram,
+    Globe, Link,
+    X,
+    Send
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 // --- Import Shared Types ---
-import { Creator, SubscriptionTier, SocialLinks,CreatorData } from '@common/types/Creator';
+import { Creator, SubscriptionTier, SocialLinks, CreatorData } from '@common/types/Creator';
 import { User, UserProfile, UserStatus } from '@common/types/User';
 import { TransactionType } from '@common/types/Transaction';
 import { Content } from '@common/types/Content';
@@ -25,7 +27,7 @@ import { formatDate } from '../../lib/formatters';
 import { useAdminData } from '../admin/AdminPanel';
 
 // --- Local Types ---
-interface AdminUser extends User {} 
+interface AdminUser extends User { }
 
 // --- Reusable Sub-Components ---
 const SettingsCard = ({ title, subtitle, children, footerContent }: { title: string; subtitle?: string; children: React.ReactNode; footerContent?: React.ReactNode; }) => (
@@ -80,17 +82,17 @@ const WelcomeContentModal = ({ isOpen, onClose, contentItems, onSelect }: { isOp
 
 // --- Settings Panels ---
 
-const AccountSettingsPanel = ({ 
-    profile, 
+const AccountSettingsPanel = ({
+    profile,
     bannerPreview,
-    onProfileChange, 
+    onProfileChange,
     onSocialsChange,
     onAvatarChange,
     onBannerChange,
-}: { 
-    profile: any; 
+}: {
+    profile: any;
     bannerPreview: string | null;
-    onProfileChange: (field: string, value: string) => void; 
+    onProfileChange: (field: string, value: string) => void;
     onSocialsChange: (platform: keyof SocialLinks, value: string) => void;
     onAvatarChange: (file: File) => void;
     onBannerChange: (file: File) => void;
@@ -107,7 +109,7 @@ const AccountSettingsPanel = ({
         <SettingsCard title="Profile Information" subtitle="Update your public profile details.">
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Banner Image</label>
-                <div 
+                <div
                     className="relative aspect-[16/5] bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden group flex items-center justify-center cursor-pointer"
                     onClick={() => bannerInputRef.current?.click()}
                 >
@@ -126,7 +128,7 @@ const AccountSettingsPanel = ({
                 className="hidden"
                 accept="image/png, image/jpeg, image/webp"
             />
-            
+
             <div className="flex items-center space-x-4 pt-4">
                 <div className="relative flex-shrink-0">
                     <img src={profile.avatar} alt="Avatar" className="w-20 h-16 rounded-full object-cover" />
@@ -147,7 +149,7 @@ const AccountSettingsPanel = ({
                 <label htmlFor="bio" className="block text-sm font-medium mb-1">Bio</label>
                 <textarea id="bio" rows={4} value={profile.bio || ''} onChange={(e) => onProfileChange('bio', e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
             </div>
-            
+
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <h4 className="text-md font-semibold mb-2">Social Links</h4>
                 <div className="space-y-4">
@@ -194,7 +196,7 @@ const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange, onSelectContentC
     </SettingsCard>
 );
 
-const PaymentsSettingsPanel = ({ 
+const PaymentsSettingsPanel = ({
     creator,
     tiers,
     onAddTier,
@@ -202,12 +204,12 @@ const PaymentsSettingsPanel = ({
     onDeleteTier,
     onAddTierFeature,
     onTierFeatureChange,
-    onDeleteTierFeature 
-}: { 
+    onDeleteTierFeature
+}: {
     creator: Creator;
     tiers: SubscriptionTier[];
     onAddTier: () => void;
-    onTierChange: (tierId: string, field: 'name' | 'price', value: string | number) => void;
+    onTierChange: (tierId: string, field: 'name' | 'price' | 'level', value: string | number) => void;
     onDeleteTier: (tierId: string) => void;
     onAddTierFeature: (tierId: string) => void;
     onTierFeatureChange: (tierId: string, featureIndex: number, value: string) => void;
@@ -228,24 +230,24 @@ const PaymentsSettingsPanel = ({
         }
     };
 
-    return(
-    <SettingsCard 
-            title="Subscription Tiers & Payouts" 
-            subtitle="Manage your subscription options and connect your Stripe account for payouts." 
+    return (
+        <SettingsCard
+            title="Subscription Tiers & Payouts"
+            subtitle="Manage your subscription options and connect your Stripe account for payouts."
         >
             {/* --- STRIPE CONNECTION STATUS --- */}
             <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg mb-6">
                 <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">Payout Settings</h4>
                 {creator.stripe_account_id ? (
-                     <div className="text-center py-4">
+                    <div className="text-center py-4">
                         <CheckCircle className="h-6 w-6 mx-auto text-green-500 mb-2" />
                         <p className="text-sm font-medium text-green-700 dark:text-green-300">Stripe Account Connected!</p>
-                     </div>
+                    </div>
                 ) : (
-                    <Button 
-                        onClick={handleConnectStripe} 
-                        isLoading={isConnecting} 
-                        leftIcon={Link} 
+                    <Button
+                        onClick={handleConnectStripe}
+                        isLoading={isConnecting}
+                        leftIcon={Link}
                         className="w-full"
                     >
                         Connect with Stripe
@@ -265,6 +267,16 @@ const PaymentsSettingsPanel = ({
                                     value={tier.name}
                                     onChange={(e) => onTierChange(tier.id, 'name', e.target.value)}
                                     containerClassName="md:col-span-2"
+                                />
+                                <Input
+                                    id={`tier-level-${tier.id}`}
+                                    label="Level (1-10)"
+                                    type="number"
+                                    min="1"
+                                    max="10"
+                                    value={tier.level || 1} // Handle legacy tiers without level
+                                    onChange={(e) => onTierChange(tier.id, 'level', parseInt(e.target.value))}
+                                    containerClassName="md:col-span-1"
                                 />
                                 <Input
                                     id={`tier-price-${tier.id}`}
@@ -349,7 +361,7 @@ interface CreatorSettingsPageProps {
 const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const { setUser } = useAuth();
 
-    
+
     const [activeTab, setActiveTab] = useState('Account');
     const [isSaving, setIsSaving] = useState(false);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -357,19 +369,19 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [bannerFile, setBannerFile] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(creator.profile.coverImageUrl || null);
-    
+
     // --- STATE FOR WELCOME MESSAGE CONTENT ---
     const [attachableContent, setAttachableContent] = useState<Content[]>([]);
     const [attachedContentDetails, setAttachedContentDetails] = useState<Content | null>(null);
     const { isOpen: isWelcomeModalOpen, openModal: openWelcomeModal, closeModal: closeWelcomeModal } = useModal();
-    
-    
+
+
     // Effect to keep local state in sync if the global user object changes
     useEffect(() => {
         setSettingsData(creator);
         setBannerPreview(creator.profile.coverImageUrl || null);
     }, [creator]);
-    
+
     // --- THIS IS THE FIX ---
     // This effect fetches content and processes it to include secure, viewable thumbnail URLs.
     useEffect(() => {
@@ -398,7 +410,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                         }
                     })
                 );
-                
+
                 // 3. Set the state with the fully processed, viewable content list
                 setAttachableContent(contentWithSignedUrls);
 
@@ -422,17 +434,18 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     }, [settingsData.creatorData?.welcomeMessage?.freeContentId, attachableContent]);
 
     const handleAddTier = () => {
-    // DEBUG: Confirm the function is called
+        // DEBUG: Confirm the function is called
         console.log("Adding a new tier...");
 
         const newTier: SubscriptionTier = {
             // Use a temporary, client-side ID. The backend can replace this if needed.
-            id: `new-${Date.now()}`, 
+            id: `new-${Date.now()}`,
             name: 'New Tier',
             price: 10, // Default price
             features: ['Full content access'],
             subscriberCount: 0,
             stripePriceId: undefined, // New tiers won't have a Stripe price ID yet
+            level: 1, // Default level
         };
 
         setSettingsData(prev => ({
@@ -441,16 +454,16 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 ...prev.creatorData,
                 // Add the new tier to the existing array
                 subscriptionTiers: [...(prev.creatorData.subscriptionTiers || []), newTier],
-        }
+            }
         }));
     };
 
-    const handleTierChange = (tierId: string, field: 'name' | 'price', value: string | number) => {
+    const handleTierChange = (tierId: string, field: 'name' | 'price' | 'level', value: string | number) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
                 ...prev.creatorData,
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier => 
+                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier =>
                     tier.id === tierId ? { ...tier, [field]: value } : tier
                 ),
             }
@@ -475,10 +488,10 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
             ...prev,
             creatorData: {
                 ...prev.creatorData,
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier => 
-                    tier.id === tierId 
+                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier =>
+                    tier.id === tierId
                         // Append a new, empty string to the features array for this tier
-                        ? { ...tier, features: [...tier.features, ''] } 
+                        ? { ...tier, features: [...tier.features, ''] }
                         : tier
                 ),
             }
@@ -494,7 +507,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier => {
                     if (tier.id === tierId) {
                         // Then, map over the features to update the specific one by its index
-                        const updatedFeatures = tier.features.map((feature, index) => 
+                        const updatedFeatures = tier.features.map((feature, index) =>
                             index === featureIndex ? value : feature
                         );
                         return { ...tier, features: updatedFeatures };
@@ -539,42 +552,42 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const handleSocialsChange = (platform: keyof SocialLinks, value: string) => {
         setSettingsData(prev => ({ ...prev, profile: { ...prev.profile, socialLinks: { ...(prev.profile.socialLinks || {}), [platform]: value } } }));
     };
-    
+
     const handleWelcomeMessageChange = (field: string, value: any) => {
         setSettingsData((prev: Creator) => ({
-                ...prev,
-                creatorData: {
-                    ...prev.creatorData,
-                    welcomeMessage: {
-                        ...prev.creatorData.welcomeMessage,
-                        [field]: value
-                    }
+            ...prev,
+            creatorData: {
+                ...prev.creatorData,
+                welcomeMessage: {
+                    ...prev.creatorData.welcomeMessage,
+                    [field]: value
                 }
+            }
         }));
     };
 
     const handleSaveChanges = async () => {
         setIsSaving(true);
         setFeedback(null);
-        
+
         try {
 
             const payload = {
-                profile: { 
-                    name: settingsData.profile.name, 
+                profile: {
+                    name: settingsData.profile.name,
                     bio: settingsData.profile.bio,
-                    socialLinks: settingsData.profile.socialLinks, 
+                    socialLinks: settingsData.profile.socialLinks,
                 },
-                creatorData: settingsData.creatorData || 
-                            { 
-                                subscriptionTiers: [], 
-                                welcomeMessage: {}, 
-                                payoutSettings: {}, 
-                                contentSettings: {} 
-                            } 
+                creatorData: settingsData.creatorData ||
+                {
+                    subscriptionTiers: [],
+                    welcomeMessage: {},
+                    payoutSettings: {},
+                    contentSettings: {}
+                }
             };
-            
-            
+
+
             const settingsResponse = await apiClient.updateCreatorSettings(payload, bannerFile);
             // Second, update the avatar if a new one was selected.
             if (avatarFile) {
@@ -609,8 +622,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'Account': 
-                return <AccountSettingsPanel 
+            case 'Account':
+                return <AccountSettingsPanel
                     profile={settingsData.profile}
                     bannerPreview={bannerPreview}
                     onProfileChange={handleProfileChange}
@@ -625,10 +638,10 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     onSelectContentClick={openWelcomeModal}
                     attachedContent={attachedContentDetails}
                 />;
-            case 'Payments': 
-                return <PaymentsSettingsPanel 
+            case 'Payments':
+                return <PaymentsSettingsPanel
                     creator={settingsData} // Pass the creator object
-                    tiers={settingsData.creatorData?.subscriptionTiers || []} 
+                    tiers={settingsData.creatorData?.subscriptionTiers || []}
                     onAddTier={handleAddTier}
                     onTierChange={handleTierChange}
                     onDeleteTier={handleDeleteTier}
@@ -636,9 +649,9 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     onTierFeatureChange={handleTierFeatureChange}
                     onDeleteTierFeature={handleDeleteTierFeature}
                 />;
-            case 'Help': 
+            case 'Help':
                 return <HelpPanel />;
-            default: 
+            default:
                 return <div className="text-center p-8 bg-white dark:bg-gray-800/50 rounded-xl">
                     <p>This section is under construction.</p>
                 </div>;
@@ -675,11 +688,11 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     <aside className="md:w-1/4 lg:w-1/5">
                         <nav className="space-y-1">
                             {menuItems.map(item => (
-                                <button 
-                                    key={item.key} 
-                                    onClick={() => setActiveTab(item.key)} 
-                                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === item.key 
-                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-200' 
+                                <button
+                                    key={item.key}
+                                    onClick={() => setActiveTab(item.key)}
+                                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === item.key
+                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-200'
                                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
                                     }
                                 >

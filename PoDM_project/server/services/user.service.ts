@@ -385,10 +385,10 @@ export const getFanGallery = async (fanId: string) => {
     );
 
     for (const item of processedContentItems) {
-        if (!contentByCreator.has(item.creator_id)) {
-            contentByCreator.set(item.creator_id, []);
+        if (!contentByCreator.has(item.creatorId)) {
+            contentByCreator.set(item.creatorId, []);
         }
-        contentByCreator.get(item.creator_id)?.push(item);
+        contentByCreator.get(item.creatorId)?.push(item);
     }
 
     const galleryData = [];
@@ -398,9 +398,9 @@ export const getFanGallery = async (fanId: string) => {
             galleryData.push({
                 creator: reshapeUserForApp(creator),
                 content: contentItems.map(item => ({
-                    contentId: item.id.toString(),
-                    addedDate: gallery.content.find((g: { contentId: any; }) => g.contentId === item.id.toString())?.addedDate,
-                    content: { ...item, _id: item.id.toString() }
+                    contentId: item._id,
+                    addedDate: gallery.content.find((g: { contentId: any; }) => g.contentId === item._id)?.addedDate,
+                    content: { ...item }
                 })),
                 activeSubscription: activeCreatorIds.has(creatorId)
             });

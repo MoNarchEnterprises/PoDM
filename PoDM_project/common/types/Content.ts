@@ -54,6 +54,7 @@ export interface Content {
   type: ContentType;
   files: MediaFile[];
   visibility: ContentVisibility;
+  minTierLevel?: number; // Optional, only if visibility is 'subscribers_only'
   price?: number; // Optional, only required if visibility is 'pay_per_view'
   tags: string[];
   stats: ContentStats;

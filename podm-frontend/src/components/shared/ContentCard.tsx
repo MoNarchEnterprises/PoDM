@@ -27,6 +27,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 export interface ContentWithCreator extends Content {
     creator: Creator;
     isUnlocked?: boolean;
+    isSubscribedToCreator?: boolean;
 }
 
 // --- Main Post Card Component ---
@@ -101,13 +102,19 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                             <h3 className="font-bold text-lg text-center">Content Locked</h3>
                             <div className="flex flex-col items-center space-y-2">
                                 {!post.isSubscribedToCreator ? (
-                                    <Button className="mt-4 bg-purple-600 hover:bg-purple-700" onClick={(e) => { e.stopPropagation(); alert('Please subscribe to this creator first!'); }}>
+                                    <Button className="mt-4 bg-purple-600 hover:bg-purple-700" onClick={(e) => { e.stopPropagation(); navigate(`/creator/${post.creator.username}`); }}>
                                         Subscribe to Unlock
                                     </Button>
                                 ) : (
-                                    <Button className="mt-4" onClick={(e) => { e.stopPropagation(); openUnlockModal(); }}>
-                                        {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
-                                    </Button>
+                                    post.minTierLevel && post.minTierLevel > 1 && !post.price ? (
+                                        <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={(e) => { e.stopPropagation(); navigate(`/creator/${post.creator.username}?tab=subscribe`); }}>
+                                            Upgrade to Tier {post.minTierLevel}
+                                        </Button>
+                                    ) : (
+                                        <Button className="mt-4" onClick={(e) => { e.stopPropagation(); openUnlockModal(); }}>
+                                            {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
+                                        </Button>
+                                    )
                                 )}
                             </div>
                         </div>

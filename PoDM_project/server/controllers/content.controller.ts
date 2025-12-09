@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as ContentService from '../services/content.service';
 import { AppError } from '../middleware/error.middleware';
-import { getSecureContentUrl as getSecureContentUrlController } from '../controllers/content.controller'; // Renaming for clarity
+
 
 /**
  * @desc    Create a new piece of content
@@ -39,7 +39,7 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
         const newContent = await ContentService.createNewContent(
             creatorId,
             // --- MODIFICATION: Pass the new fields to the service ---
-            { title, description, type, visibility, price, tags, schedule },
+            { title, description, type, visibility, price, tags, schedule, minTierLevel: req.body.minTierLevel ? Number(req.body.minTierLevel) : undefined },
             files
         );
 

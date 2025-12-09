@@ -17,7 +17,13 @@ export const createContent = async (contentData: Partial<Content>): Promise<Cont
         console.error('Error creating content:', error.message);
         return null;
     }
-    return data as Content;
+    const { id: contentId, creator_id, min_tier_level, ...rest } = data;
+    return {
+        ...rest,
+        _id: contentId.toString(),
+        creatorId: creator_id,
+        minTierLevel: min_tier_level
+    } as Content;
 };
 
 /**
@@ -66,7 +72,13 @@ export const findContentById = async (id: string): Promise<Content | null> => {
     }
 
     console.log(`[Model] Successfully found content for id=${contentId}.`);
-    return data as Content;
+    const { id: dbId, creator_id, min_tier_level, ...rest } = data;
+    return {
+        ...rest,
+        _id: dbId.toString(),
+        creatorId: creator_id,
+        minTierLevel: min_tier_level
+    } as Content;
 };
 
 /**
@@ -87,7 +99,15 @@ export const findContentByIds = async (ids: string[]): Promise<Content[] | null>
         console.error('Error finding content by IDs:', error.message);
         return null;
     }
-    return data as Content[];
+    return data.map(item => {
+        const { id, creator_id, min_tier_level, ...rest } = item;
+        return {
+            ...rest,
+            _id: id.toString(),
+            creatorId: creator_id,
+            minTierLevel: min_tier_level
+        } as Content;
+    });
 };
 
 /**
@@ -105,7 +125,15 @@ export const findContentByStatus = async (status: string): Promise<Content[] | n
         console.error('Error finding content by status:', error.message);
         return null;
     }
-    return data as Content[];
+    return data.map(item => {
+        const { id, creator_id, min_tier_level, ...rest } = item;
+        return {
+            ...rest,
+            _id: id.toString(),
+            creatorId: creator_id,
+            minTierLevel: min_tier_level
+        } as Content;
+    });
 };
 
 /**
@@ -131,7 +159,15 @@ export const findContentByCreatorId = async (creatorId: string, limit?: number, 
         console.error('Error finding content by creator ID:', error.message);
         return null;
     }
-    return data as Content[];
+    return data.map(item => {
+        const { id, creator_id, min_tier_level, ...rest } = item;
+        return {
+            ...rest,
+            _id: id.toString(),
+            creatorId: creator_id,
+            minTierLevel: min_tier_level
+        } as Content;
+    });
 };
 
 /**
@@ -164,7 +200,13 @@ export const findContentByCreatorIds = async (creatorIds: string[], options: { l
         console.error('Error finding content by creator IDs:', error.message);
         return null;
     }
-    return data;
+    return data.map(item => {
+        const { min_tier_level, ...rest } = item;
+        return {
+            ...rest,
+            minTierLevel: min_tier_level
+        };
+    });
 };
 
 /**
@@ -187,11 +229,12 @@ export const findRecentContentByCreator = async (creatorId: string, limit: numbe
         return null;
     }
     return data.map(item => {
-        const { id, creator_id, ...rest } = item;
+        const { id, creator_id, min_tier_level, ...rest } = item;
         return {
             ...rest,
             _id: id.toString(),
-            creatorId: creator_id
+            creatorId: creator_id,
+            minTierLevel: min_tier_level
         } as Content;
     });
 };
@@ -222,7 +265,8 @@ export const findPublicContentByCreator = async (creatorId: string, limit: numbe
     return data.map(item => ({
         ...item,
         _id: item.id.toString(),
-        creatorId: item.creator_id
+        creatorId: item.creator_id,
+        minTierLevel: item.min_tier_level
     } as Content));
 };
 
@@ -264,7 +308,13 @@ export const updateContent = async (id: string, updates: Partial<Content>): Prom
         console.error('Error updating content:', error.message);
         return null;
     }
-    return data as Content;
+    const { id: contentId, creator_id, min_tier_level, ...rest } = data;
+    return {
+        ...rest,
+        _id: contentId.toString(),
+        creatorId: creator_id,
+        minTierLevel: min_tier_level
+    } as Content;
 };
 
 /**
@@ -286,5 +336,11 @@ export const deleteContent = async (id: string): Promise<Content | null> => {
         console.error('Error deleting content:', error.message);
         return null;
     }
-    return data as Content;
+    const { id: contentId, creator_id, min_tier_level, ...rest } = data;
+    return {
+        ...rest,
+        _id: contentId.toString(),
+        creatorId: creator_id,
+        minTierLevel: min_tier_level
+    } as Content;
 };
