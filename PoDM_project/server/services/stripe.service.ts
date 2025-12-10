@@ -16,7 +16,7 @@ export const getOrCreateStripeConnectedAccount = async (creatorId: string): Prom
     }
     // 3. Immediately reshape it into the application-standard format.
     const user = reshapeUserForApp(flatUser);
-    
+
     if (user.role !== 'creator') {
         throw new AppError('User not found or is not a creator.', 404);
     }
@@ -27,23 +27,31 @@ export const getOrCreateStripeConnectedAccount = async (creatorId: string): Prom
     }
 
     // Create a new Stripe Express account for the creator.
-    const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'US', // Or dynamically set based on user's country
-        email: user.email,
-        capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
-        },
-        business_profile: {
-            name: user.profile.name || user.username,
-            product_description: 'Digital content and subscriptions on PoDM',
-        },
-    });
+    let account;
+    try {
+        account = await stripe.accounts.create({
+            type: 'express',
+            country: 'US', // Or dynamically set based on user's country
+            email: user.email,
+            capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+            },
+            business_profile: {
+                name: user.profile.name || user.username,
+                product_description: 'Digital content and subscriptions on PoDM',
+            },
+        });
+    } catch (error: any) {
+        if (error.type === 'StripeInvalidRequestError' && error.message.includes('Connect')) {
+            throw new AppError('Stripe Connect is not enabled on your platform account. Please go to your Stripe Dashboard -> Connect and complete the onboarding flow.', 400);
+        }
+        throw error;
+    }
 
     // Save the new Stripe account ID to our database.
     await UserModel.updateProfile(creatorId, { stripe_account_id: account.id });
-    
+
     return account.id;
 };
 

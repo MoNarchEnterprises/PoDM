@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../middleware/error.middleware';
 import * as StripeService from '../services/stripe.service';
+import stripe from '../config/stripeClient';
 import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-08-27.basil',
-});
 
 /**
  * @desc    Create a Stripe Connect onboarding link
