@@ -270,9 +270,33 @@ export const getContentViewerData = async (req: Request, res: Response, next: Ne
         res.status(200).json({ success: true, data });
 
     } catch (error) {
-
         next(error);
-
     }
+};
 
+/**
+ * @desc    Report a piece of content
+ * @route   POST /api/v1/content/:id/report
+ * @access  Private
+ */
+export const reportContent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id;
+        const { id: contentId } = req.params;
+        const { reason } = req.body;
+
+        if (!userId) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+
+        if (!reason) {
+            throw new AppError('Reason is required.', 400);
+        }
+
+        await ContentService.reportContent(userId, contentId, reason);
+
+        res.status(200).json({ success: true, message: 'Content reported successfully.' });
+    } catch (error) {
+        next(error);
+    }
 };

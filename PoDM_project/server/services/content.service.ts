@@ -1,5 +1,6 @@
 import supabase from '../config/supabaseClient';
 import * as ContentModel from '../models/content.model';
+import * as ReportModel from '../models/report.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
@@ -105,7 +106,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 /**
  * Generates a thumbnail from an image buffer.
  * @param buffer - The buffer of the original image file.
- * @returns A buffer of the resized thumbnail image in WebP format.
+ * @returns A buffer of the extracted thumbnail image in JPG format.
  */
 const generateThumbnail = async (buffer: Buffer): Promise<Buffer> => {
     return sharp(buffer)
@@ -342,6 +343,7 @@ export const getContentByCreatorId = async (creatorId: string, query: ContentQue
     return data.map(item => ({
         ...item,
         _id: item.id.toString(),
+        minTierLevel: item.min_tier_level
     }));
 };
 
@@ -658,19 +660,12 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
 };
 
 /**
- 
  * Generates a secure, temporary URL for viewing a full-size content file.
- 
  * It first verifies that the user has permission to access the content.
- 
  * @param contentId The ID of the content.
- 
  * @param userId The ID of the user requesting access.
- 
  * @returns An object containing the secure URL and the content type.
- 
  */
-
 export const getSecureUrlForViewing = async (contentId: string, userId: string) => {
     // 1. Verify the fan has access to this content. This will throw an error if they don't.
     const content = await getContentForFan(contentId, userId);
@@ -704,8 +699,6 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
         contentType: content.type // Return the content type ('photo' or 'video')
     };
 };
-
-
 
 /**
  * Fetches all data needed for the content viewer page.
@@ -754,4 +747,25 @@ export const getViewData = async (contentId: string, viewerId?: string) => {
         creator,
         relatedContent: enrichedRelatedContent || [],
     };
+};
+
+/**
+ * Reports a piece of content.
+ * Auto-flags the content if the report count exceeds a threshold.
+ */
+export const reportContent = async (userId: string, contentId: string, reason: string): Promise<boolean> => {
+    // 1. Create the report
+    const report = await ReportModel.createReport(userId, contentId, reason);
+    if (!report) {
+        throw new AppError('Failed to create report.', 500);
+    }
+
+    // 2. Check if content should be auto-flagged
+    const reports = await ReportModel.getReportsByContentId(contentId);
+    if (reports && reports.length >= 3) {
+        console.log(`[ContentService] Auto-flagging content ${contentId} due to ${reports.length} reports.`);
+        await ContentModel.updateContent(contentId, { status: 'flagged' });
+    }
+
+    return true;
 };

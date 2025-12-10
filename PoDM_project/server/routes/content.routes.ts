@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView, getContentViewerData } from '../controllers/content.controller';
+import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView, getContentViewerData, reportContent } from '../controllers/content.controller';
 import { protect, creatorOnly, optionalProtect } from '../middleware/auth.middleware';
 import { uploadContent } from '../middleware/upload.middleware';
 
@@ -52,6 +52,13 @@ router.get('/:id/view', protect, getContentView);
  * @access  Private (Fan must be subscribed or have purchased)
  */
 router.get('/:id', protect, getContentById);
+
+/**
+ * @route   POST /api/v1/content/:id/report
+ * @desc    Report a piece of content
+ * @access  Private
+ */
+router.post('/:id/report', protect, reportContent);
 
 /**
  * @route   PUT /api/v1/content/:id

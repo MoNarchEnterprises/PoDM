@@ -64,7 +64,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
             }
         }
     }, [creator?._id, content?._id, content?.type]);
-    
+
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const { isOpen: isReportModalOpen, openModal: openReportModal, closeModal: closeReportModal } = useModal();
@@ -76,9 +76,20 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
         return apiClient.sendTip(creator._id, amount, message, content._id, paymentMethodId);
     };
 
+    const handleReportSubmit = async (reason: string) => {
+        try {
+            await apiClient.reportContent(content._id, reason);
+            alert('Content reported successfully. Thank you for keeping the community safe.');
+            closeReportModal();
+        } catch (error) {
+            console.error('Failed to report content:', error);
+            alert('Failed to report content. Please try again.');
+        }
+    };
+
     return (
         <>
-            <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={() => {}} />
+            <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={handleReportSubmit} />
             <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} onSubmit={handleTipSubmit} />
             <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
                 <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 w-full">
@@ -109,8 +120,8 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                 <main className="flex-1 flex flex-col lg:flex-row container mx-auto p-4 sm:p-6 lg:p-8 gap-8">
                     <div className="flex-grow flex items-center justify-center bg-black rounded-xl">
                         {content.type === 'video' ? (
-                            isLoading ? <div>Loading...</div> : 
-                            <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                            isLoading ? <div>Loading...</div> :
+                                <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         ) : (
                             <img src={content.files[0]?.url} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         )}

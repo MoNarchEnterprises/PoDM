@@ -37,8 +37,8 @@ const ContentModerationPanel = () => {
         if (!confirm("Are you sure you want to approve this content and dismiss the reports?")) return;
 
         try {
-            // In a real app, you would call an endpoint to dismiss reports
-            // await apiClient.dismissReports(selectedContent._id);
+            // Dismiss reports by setting status to 'published'
+            await apiClient.updateContentStatus(selectedContent._id, 'published');
             alert("Reports dismissed. Content approved.");
 
             // Remove from local state
@@ -58,8 +58,8 @@ const ContentModerationPanel = () => {
         if (!confirm("Are you sure you want to DELETE this content? This cannot be undone.")) return;
 
         try {
-            await apiClient.deleteContent(selectedContent._id);
-            alert("Content deleted.");
+            await apiClient.updateContentStatus(selectedContent._id, 'removed');
+            alert("Content deleted (status set to removed).");
 
             // Remove from local state
             setData((prev: any) => ({

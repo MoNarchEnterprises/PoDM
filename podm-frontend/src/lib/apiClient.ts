@@ -722,4 +722,28 @@ export const unlockPost = async (contentId: string, paymentMethodId?: string) =>
 };
 
 
+
+/**
+ * Reports a piece of content.
+ * @param contentId The ID of the content to report.
+ * @param reason The reason for reporting.
+ */
+export const reportContent = async (contentId: string, reason: string) => {
+    const response = await apiClient.post(`/content/${contentId}/report`, { reason });
+    return response.data;
+};
+
+
+
+/**
+ * Updates the status of a piece of content (Admin only).
+ * @param contentId The ID of the content.
+ * @param status The new status ('published', 'flagged', 'removed').
+ */
+export const updateContentStatus = async (contentId: string, status: string) => {
+    const response = await apiClient.put(`/admin/content/${contentId}/status`, { status });
+    return response.data;
+};
+
+
 export default apiClient;
