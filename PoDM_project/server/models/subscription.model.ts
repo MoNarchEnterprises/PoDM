@@ -139,3 +139,22 @@ export const findSubscriptionsByFanId = async (fanId: string): Promise<Subscript
     }
     return data as Subscription[];
 };
+
+/**
+ * Counts all new subscribers across the platform within a given date range.
+ * @param startDate - The start of the date range.
+ * @returns The number of new subscribers.
+ */
+export const countAllNewSubscribersInPeriod = async (startDate: Date): Promise<number> => {
+    const { count, error } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .gte('created_at', startDate.toISOString());
+
+    if (error) {
+        console.error('Error counting all new subscribers:', error.message);
+        return 0;
+    }
+    return count || 0;
+};

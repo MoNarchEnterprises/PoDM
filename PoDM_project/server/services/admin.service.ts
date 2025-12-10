@@ -3,6 +3,7 @@ import { AppError } from '../middleware/error.middleware';
 import * as SettingsModel from '../models/settings.model';
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
+import * as SubscriptionModel from '../models/subscription.model';
 import * as SupportTicketModel from '../models/supportTicket.model';
 import * as ContentModel from '../models/content.model';
 import * as ReportModel from '../models/report.model';
@@ -131,7 +132,65 @@ export const getPlatformAnalytics = async () => {
  * Generates a custom report based on provided parameters.
  */
 export const generateReport = async (reportParams: any) => {
-    const report = { title: 'Custom Report', date: new Date(), data: [] };
+    const { name, metrics, filters, dateRange } = reportParams;
+    let data: any = {};
+
+    // Default date range if not provided (last 30 days)
+    const end = dateRange?.end ? new Date(dateRange.end) : new Date();
+    const start = dateRange?.start ? new Date(dateRange.start) : new Date(new Date().setDate(end.getDate() - 30));
+
+    console.log(`[AdminService] Generating report "${name}" for metrics: ${metrics} from ${start.toISOString()} to ${end.toISOString()}`);
+
+    if (metrics === 'Users') {
+        // Fetch user statistics
+        const query: any = {};
+        if (filters && filters !== 'No Filter') {
+            // Example: Filter by user role if "User Type" is selected
+            if (filters === 'User Type') {
+                // In a real scenario, you'd want to aggregate counts by type
+                data.userDistribution = {
+                    creators: await UserModel.countCreators(),
+                    fans: (await UserModel.countAllUsers()) - (await UserModel.countCreators())
+                };
+            }
+        } else {
+            data.totalUsers = await UserModel.countAllUsers();
+            data.activeCreators = await UserModel.countActiveCreators();
+        }
+    } else if (metrics === 'Revenue') {
+        // Fetch revenue statistics
+        // For simplicity, just get total platform fees for now, or filter by date
+        data.totalRevenue = await TransactionModel.sumPlatformFeeForPeriod(30); // Default to last 30 days
+    } else if (metrics === 'Engagement') {
+        // Engagement Metrics: Tips, Unlocks, New Subscriptons
+        // Corrected: Use capitalized types 'Tip', 'PPV Post', 'PPV Message' to match DB
+        const tipsCount = await TransactionModel.countTransactionsByTypeAndPeriod('Tip', start);
+        const postUnlocks = await TransactionModel.countTransactionsByTypeAndPeriod('PPV Post', start);
+        const messageUnlocks = await TransactionModel.countTransactionsByTypeAndPeriod('PPV Message', start);
+
+        const unlocksCount = postUnlocks + messageUnlocks;
+        const newSubsCount = await SubscriptionModel.countAllNewSubscribersInPeriod(start);
+
+        data.engagement = {
+            tips: tipsCount,
+            unlocks: unlocksCount,
+            newSubscriptions: newSubsCount,
+            totalInteractions: tipsCount + unlocksCount + newSubsCount
+        };
+    }
+
+    const report = {
+        name: name || 'Custom Report',
+        lastRun: new Date().toISOString(),
+        metrics,
+        filters,
+        dateRange: { start, end },
+        data
+    };
+
+    // Save report to database
+    await TransactionModel.saveReport(report);
+
     return report;
 };
 
@@ -278,5 +337,3 @@ export const getVerificationDocs = async (userId: string) => {
         selfieUrl: selfieData.signedUrl,
     };
 };
-
-

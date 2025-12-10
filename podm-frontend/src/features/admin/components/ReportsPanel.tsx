@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Download, Play } from 'lucide-react';
+import * as apiClient from '../../../lib/apiClient';
 
 // --- Import Custom Hooks ---
 import { useAdminData } from '../AdminPanel'; // Import the custom hook
@@ -16,13 +17,52 @@ interface Report {
 const ReportsPanel = () => {
     // Get the admin data directly from the parent context
     const { data } = useAdminData();
+    const [reportName, setReportName] = useState('');
+    const [metrics, setMetrics] = useState('Users');
+    const [filters, setFilters] = useState('No Filter');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [generatedData, setGeneratedData] = useState<any>(null);
 
     // Handle the case where data might not be loaded yet
     if (!data) {
         return <div className="p-8 text-center text-gray-500">Loading reports data...</div>;
     }
-    
+
     const reports = data.reports as Report[];
+
+    const handleGenerateReport = async () => {
+        try {
+            const reportParams = {
+                name: reportName,
+                metrics,
+                filters,
+                dateRange: { start: startDate, end: endDate }
+            };
+            const result = await apiClient.generateReport(reportParams);
+            setGeneratedData(result);
+            alert(`Report Generated Successfully!\n\n${JSON.stringify(result.data, null, 2)}`);
+            // Refresh logic would ideally go here by refetching useAdminData or invalidate query
+        } catch (error) {
+            console.error("Failed to generate report:", error);
+            alert("Failed to generate report.");
+        }
+    };
+
+    const handleExport = () => {
+        if (!generatedData) {
+            alert("No report generated to export.");
+            return;
+        }
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(generatedData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `report_${generatedData.name || 'custom'}_${new Date().toISOString()}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -39,44 +79,71 @@ const ReportsPanel = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Report Name</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="e.g., Monthly Creator Payouts" 
-                                    className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                                <input
+                                    type="text"
+                                    placeholder="e.g., Monthly Creator Payouts"
+                                    className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    value={reportName}
+                                    onChange={(e) => setReportName(e.target.value)}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Metrics</label>
-                                <select className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    <option>Users</option>
-                                    <option>Revenue</option>
-                                    <option>Engagement</option>
+                                <select
+                                    className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    value={metrics}
+                                    onChange={(e) => setMetrics(e.target.value)}
+                                >
+                                    <option value="Users">Users</option>
+                                    <option value="Revenue">Revenue</option>
+                                    <option value="Engagement">Engagement</option>
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Filters</label>
-                                <select className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    <option>No Filter</option>
-                                    <option>User Type</option>
-                                    <option>User Status</option>
+                                <select
+                                    className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    value={filters}
+                                    onChange={(e) => setFilters(e.target.value)}
+                                >
+                                    <option value="No Filter">No Filter</option>
+                                    <option value="User Type">User Type</option>
+                                    <option value="User Status">User Status</option>
                                 </select>
                             </div>
                         </div>
                         <div className="space-y-4">
-                             <div>
+                            <div>
                                 <label className="block text-sm font-medium mb-1">Date Range</label>
                                 <div className="flex items-center space-x-2">
-                                    <input type="date" className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                    <input
+                                        type="date"
+                                        className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                    />
                                     <span>to</span>
-                                    <input type="date" className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                    <input
+                                        type="date"
+                                        className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                    />
                                 </div>
                             </div>
                             <div className="pt-6 flex items-center space-x-3">
-                                <button className="w-full flex items-center justify-center space-x-2 py-2 px-3 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+                                <button
+                                    onClick={handleGenerateReport}
+                                    className="w-full flex items-center justify-center space-x-2 py-2 px-3 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700"
+                                >
                                     <Play className="w-4 h-4" />
                                     <span>Generate</span>
                                 </button>
-                                <button className="w-full flex items-center justify-center space-x-2 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">
+                                <button
+                                    onClick={handleExport}
+                                    disabled={!generatedData}
+                                    className={`w-full flex items-center justify-center space-x-2 py-2 px-3 text-sm font-medium rounded-lg ${!generatedData ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'}`}
+                                >
                                     <Download className="w-4 h-4" />
                                     <span>Export</span>
                                 </button>

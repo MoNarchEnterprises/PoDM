@@ -5163,3 +5163,294 @@
 [AUTH_DEBUG] 2025-12-10T05:24:05.684Z - User attached to request. Proceeding...
 [AUTH_DEBUG] 2025-12-10T05:24:05.761Z - Full user profile found: admin
 [AUTH_DEBUG] 2025-12-10T05:24:05.762Z - User attached to request. Proceeding...
+[2025-12-10T05:45:21.216Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2025-12-10T05:45:42.731Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2025-12-10T05:45:42.732Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:43.669Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.255Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.256Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.272Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.273Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.279Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.280Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.294Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.295Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.299Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.300Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.304Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.305Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.310Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.311Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.355Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.409Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.495Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.500Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.515Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.521Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.668Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.669Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.680Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.681Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.683Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.684Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.704Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.705Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.711Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.712Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.721Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.722Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.742Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.743Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.754Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:44.918Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:44.918Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:44.925Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.926Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:44.930Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T05:45:44.931Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.000Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T05:45:45.001Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.008Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.011Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.019Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T05:45:45.020Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.031Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T05:45:45.032Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.086Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.089Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.090Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.093Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.096Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T05:45:45.097Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.100Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.116Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T05:45:45.116Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T05:45:45.120Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.120Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.163Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.164Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.170Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.171Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.173Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.182Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.183Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.186Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T05:45:45.249Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.250Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T05:45:45.258Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T05:45:45.258Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:07:19.507Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:07:19.508Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:07:20.158Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:07:20.694Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:07:20.695Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:08:04.366Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:08:04.366Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:08:04.556Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:08:04.673Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:08:04.673Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:08:34.166Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:08:34.166Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:08:34.366Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:08:34.480Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:08:34.480Z - User attached to request. Proceeding...
+[2025-12-10T06:20:05.410Z] --- SERVER STARTING ---
+[2025-12-10T06:20:06.560Z] --- SERVER STARTING ---
+[2025-12-10T06:20:28.606Z] --- SERVER STARTING ---
+[2025-12-10T06:20:39.266Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2025-12-10T06:26:07.357Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:26:07.357Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:08.021Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2025-12-10T06:26:23.361Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.361Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.363Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.363Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.366Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.367Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.370Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.371Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.374Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.374Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.380Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.381Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.497Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.559Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.561Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.670Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.671Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.673Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.674Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.674Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.687Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.687Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.753Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.753Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.818Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.818Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.820Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.820Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.888Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.889Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.901Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.902Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.904Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:23.956Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.957Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.959Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:23.959Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:23.961Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T06:26:23.962Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:23.966Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.028Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.088Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.088Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.090Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.091Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.092Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T06:26:24.093Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:24.095Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T06:26:24.095Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:24.097Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T06:26:24.097Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:24.154Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.155Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.156Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.164Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.169Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.222Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.291Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.292Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.293Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.293Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.295Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.295Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.298Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.298Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:24.427Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T06:26:24.427Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:24.604Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:24.708Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:24.709Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:26:49.070Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:26:49.070Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:26:49.166Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:26:49.269Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:26:49.270Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:28:14.149Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:28:14.150Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:28:14.401Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:28:14.572Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:28:14.572Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:28:28.284Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:28:28.285Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:28:28.381Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:28:28.512Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:28:28.512Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:31:19.359Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:31:19.359Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:31:19.579Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:31:19.747Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:31:19.747Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:32:06.107Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:32:06.108Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:32:06.206Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:32:06.297Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:32:06.298Z - User attached to request. Proceeding...
+[2025-12-10T06:32:57.824Z] --- SERVER STARTING ---
+[2025-12-10T06:35:01.160Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2025-12-10T06:35:57.273Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:35:57.274Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:35:57.580Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:35:57.980Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:35:57.981Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:07.914Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2025-12-10T06:36:07.914Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.017Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.151Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.152Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.154Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.155Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.186Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.187Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.191Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.191Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.194Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.194Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.197Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.197Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.202Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.202Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.230Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.294Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.304Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.315Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.317Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.391Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.427Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.428Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.432Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.432Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.461Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.462Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.463Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.463Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.470Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.470Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.478Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.478Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.480Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.481Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.491Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.492Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.504Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.572Z - --- New Request: GET /analytics ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.573Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.575Z - --- New Request: GET /users ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.576Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.589Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.590Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.594Z - --- New Request: GET /content/flagged ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.595Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.643Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.650Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.666Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.671Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.673Z - --- New Request: GET /reports ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.674Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.676Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.677Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.720Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.720Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.722Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.722Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.740Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.741Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.742Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.743Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.743Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.745Z - --- New Request: GET /support-tickets ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.745Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.753Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.811Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.812Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.817Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:08.825Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.825Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.883Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:08.884Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:08.903Z - --- New Request: GET /settings/admins ---
+[AUTH_DEBUG] 2025-12-10T06:36:08.903Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:08.973Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:09.043Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:09.044Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2025-12-10T06:36:38.483Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:36:38.483Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:36:38.598Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:36:38.670Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:36:38.671Z - User attached to request. Proceeding...
+[2025-12-10T06:38:46.555Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2025-12-10T06:40:23.975Z - --- New Request: POST /reports ---
+[AUTH_DEBUG] 2025-12-10T06:40:23.976Z - Token found in header.
+[AUTH_DEBUG] 2025-12-10T06:40:24.290Z - Token validated for user ID: 84ebe92a-a167-4a7d-a9f0-752e24eb183d
+[AUTH_DEBUG] 2025-12-10T06:40:24.385Z - Full user profile found: admin
+[AUTH_DEBUG] 2025-12-10T06:40:24.385Z - User attached to request. Proceeding...

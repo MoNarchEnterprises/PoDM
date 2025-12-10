@@ -175,15 +175,63 @@ export const findSuccessfulTransactionByFanAndContent = async (fanId: string, co
 /**
  * Find all reports saved by the admin.
  */
-export const findAllReports = async (): Promise<Transaction[] | null> => {
+/**
+ * Find all saved analytics reports.
+ */
+export const findAllReports = async (): Promise<any[] | null> => {
     const { data, error } = await supabase
-        .from('reports')
+        .from('saved_reports')
         .select('*')
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error finding all reports:', error.message);
+        console.error('Error finding saved reports:', error.message);
         return null;
     }
-    return data as Transaction[];
+    return data;
 }
+
+/**
+ * Saves a generated report to the database.
+ */
+export const saveReport = async (report: any): Promise<any | null> => {
+    const { data, error } = await supabase
+        .from('saved_reports')
+        .insert([{
+            name: report.name,
+            metrics: report.metrics,
+            filters: report.filters,
+            date_range: report.dateRange ? report.dateRange : null,
+            data: report.data,
+            created_at: report.lastRun
+        }])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error saving report:', error.message);
+        return null;
+    }
+    return data;
+};
+
+/**
+ * Counts transactions by type (e.g., 'tip', 'unlock') within a given date range.
+ * @param type - The type of transaction.
+ * @param startDate - The start of the date range.
+ * @returns The count of transactions.
+ */
+export const countTransactionsByTypeAndPeriod = async (type: Transaction['type'], startDate: Date): Promise<number> => {
+    const { count, error } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', type)
+        .eq('status', 'Cleared')
+        .gte('created_at', startDate.toISOString());
+
+    if (error) {
+        console.error('Error counting transactions by type:', error.message);
+        return 0;
+    }
+    return count || 0;
+};

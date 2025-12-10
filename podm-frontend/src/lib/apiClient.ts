@@ -746,4 +746,14 @@ export const updateContentStatus = async (contentId: string, status: string) => 
 };
 
 
+export const generateReport = async (reportParams: any) => {
+    const response = await apiClient.post('/admin/reports', reportParams);
+    return response.data;
+};
+
+export const getSavedReports = async () => {
+    const response = await apiClient.get('/admin/reports');
+    return response.data;
+};
+
 export default apiClient;
