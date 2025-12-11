@@ -20,7 +20,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "types": ["vite/client"],
+    "types": [
+      "vite/client",
+      "node",
+      "jest"
+    ],
     "paths": {
       "@common/*": [
         "../PoDM_project/common/*"
@@ -28,6 +32,9 @@
     }
   },
   "include": [
-    "src","../PoDM_project/common", "vite.config.ts"
+    "src",
+    "../PoDM_project/common",
+    "vite.config.ts",
+    "tests"
   ]
 }

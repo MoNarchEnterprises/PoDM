@@ -1,33 +1,57 @@
 
-Running 1 test using 1 worker
+Running 3 tests using 3 workers
 
-  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (8.0s)
+[Test] Starting create p- ost test...
+[Test] Navigated to /hub/content
+[Test] Clicked Upload New Content
+[Test] Modal visible
+  ✓  3 [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings (2.8s)
+  ✘  2 [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post (17.9s)
+  ✘  1 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) (30.0s)
 
 
-  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+  1) [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel(/Description/i)[22m
+
+
+      40 |
+      41 |         await page.getByLabel(/Title/i).fill('Test Post Title');
+    > 42 |         await page.getByLabel(/Description/i).fill('Test Description');
+         |                                               ^
+      43 |
+      44 |         // Upload dummy file
+      45 |         // Ensure input is present
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:42:47
+
+  2) [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ────────────
 
     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
-    Locator: getByText('Jane Creator')
+    Locator: getByText('PPV Post')
     Expected: visible
-    Timeout: 5000ms
+    Timeout: 15000ms
     Error: element(s) not found
 
     Call log:
-    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
-    [2m  - waiting for getByText('Jane Creator')[22m
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByText('PPV Post')[22m
 
 
-      14 |     // Navigate to the creator's profile to ensure we see content
-      15 |     await page.goto('/creator/creator');
-    > 16 |     await expect(page.getByText('Jane Creator')).toBeVisible();
+      91 |
+      92 |         await expect(page.getByRole('heading', { name: 'Upload New Content' })).not.toBeVisible();
+    > 93 |         await expect(page.getByText('PPV Post')).toBeVisible({ timeout: 15000 });
          |                                                  ^
-      17 |
-      18 |     // 2. Find a post and click the Tip button
-      19 |     // We assume there is at least one post in the feed.
-        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:16:50
+      94 |     });
+      95 | });
+      96 |
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:93:50
 
-    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
-
-  1 failed
-    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────
+  2 failed
+    [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
+    [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ─────────────
+  1 passed (31.3s)

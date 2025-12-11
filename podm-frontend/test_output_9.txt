@@ -5,11 +5,11 @@ Running 3 tests using 3 workers
 [Test] Navigated to /hub/content
 [Test] Clicked Upload New Content
 [Test] Modal visible
+  ✓  2 [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings (6.7s)
 [Test] File uploaded
 [Test] Clicked Post Now
-  ✓  1 [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings (3.4s)
-  ✘  2 [chromium] › tests\creator.spec.ts:70:5 › Creator Workflow › can create a PPV post (18.5s)
-  ✘  3 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) (18.4s)
+  ✘  3 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) (22.3s)
+  ✘  1 [chromium] › tests\creator.spec.ts:70:5 › Creator Workflow › can create a PPV post (22.7s)
 
 
   1) [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
@@ -61,4 +61,4 @@ Running 3 tests using 3 workers
   2 failed
     [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
     [chromium] › tests\creator.spec.ts:70:5 › Creator Workflow › can create a PPV post ─────────────
-  1 passed (19.8s)
+  1 passed (23.9s)

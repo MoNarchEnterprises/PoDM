@@ -281,6 +281,9 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
         min_tier_level: contentData.minTierLevel || 1,
     };
 
+    // Fix: Remove camelCase property to avoid "column not found" error in Supabase
+    delete (newContentData as any).minTierLevel;
+
     try {
         const newContent = await ContentModel.createContent(newContentData);
         if (!newContent) {

@@ -1,24 +1,60 @@
 
-Running 1 test using 1 worker
+Running 3 tests using 3 workers
 
-  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (3.5s)
+  ✘  2 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) (3.5s)
+  ✘  3 [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post (3.6s)
+  ✘  1 [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings (3.6s)
 
 
-  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+  1) [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings 
 
-    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5174/
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
     Call log:
-    [2m  - navigating to "http://localhost:5174/", waiting until "load"[22m
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
 
 
-      3 | test('fan can send a tip to a creator', async ({ page }) => {
-      4 |     // 1. Login as a fan
-    > 5 |     await page.goto('/');
-        |                ^
-      6 |     await page.getByRole('button', { name: /log in/i }).first().click();
-      7 |     await page.getByLabel(/Email/i).fill('fan@example.com');
-      8 |     await page.getByLabel(/Password/i).fill('password123');
-        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:5:16
+      4 |     test.beforeEach(async ({ page }) => {
+      5 |         // Login as creator before each test
+    > 6 |         await page.goto('/');
+        |                    ^
+      7 |         await page.getByRole('button', { name: /log in/i }).first().click();
+      8 |         await page.getByLabel(/Email/i).fill('creator@example.com');
+      9 |         await page.getByLabel(/Password/i).fill('password123');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:6:20
 
-  1 failed
-    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────
+  2) [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+    Call log:
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
+
+
+      4 |     test.beforeEach(async ({ page }) => {
+      5 |         // Login as creator before each test
+    > 6 |         await page.goto('/');
+        |                    ^
+      7 |         await page.getByRole('button', { name: /log in/i }).first().click();
+      8 |         await page.getByLabel(/Email/i).fill('creator@example.com');
+      9 |         await page.getByLabel(/Password/i).fill('password123');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:6:20
+
+  3) [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+    Call log:
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
+
+
+      4 |     test.beforeEach(async ({ page }) => {
+      5 |         // Login as creator before each test
+    > 6 |         await page.goto('/');
+        |                    ^
+      7 |         await page.getByRole('button', { name: /log in/i }).first().click();
+      8 |         await page.getByLabel(/Email/i).fill('creator@example.com');
+      9 |         await page.getByLabel(/Password/i).fill('password123');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:6:20
+
+  3 failed
+    [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings 
+    [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
+    [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ─────────────

@@ -1,33 +1,67 @@
 
-Running 1 test using 1 worker
+Running 3 tests using 3 workers
 
-  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (16.8s)
+[Test] Starting create post test...
+[Test] Navigated to /hub/content
+[Test] Clicked Upload New Content
+  ✘  3 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) (8.9s)
+  ✘  2 [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post (9.0s)
+  ✓  1 [chromium] › tests\creator.spec.ts:16:5 › Creator Workflow › can access dashboard and see earnings (9.2s)
 
 
-  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+  1) [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
 
     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
-    Locator: locator('button:has-text("Tip")').first()
+    Locator: getByText('Upload New Content', { exact: true })
     Expected: visible
-    Timeout: 10000ms
-    Error: element(s) not found
+    Error: strict mode violation: getByText('Upload New Content', { exact: true }) resolved to 2 elements:
+        1) <h2 class="text-xl font-bold text-gray-900 dark:text-white">Upload New Content</h2> aka getByRole('heading', { name: 'Upload New Content' })
+        2) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4 sm:mt-0">…</button> aka getByRole('button', { name: 'Upload New Content' })
 
     Call log:
-    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
-    [2m  - waiting for locator('button:has-text("Tip")').first()[22m
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Upload New Content', { exact: true })[22m
 
 
-      16 |     // The Tip button is inside the PostCard.
-      17 |     const tipButton = page.locator('button:has-text("Tip")').first();
-    > 18 |     await expect(tipButton).toBeVisible({ timeout: 10000 });
-         |                             ^
-      19 |     await tipButton.click();
-      20 |
-      21 |     // 3. Verify Tip Modal opens
-        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:18:29
+      36 |
+      37 |         // Modal interaction
+    > 38 |         await expect(page.getByText('Upload New Content', { exact: true })).toBeVisible();
+         |                                                                             ^
+      39 |         console.log('[Test] Modal visible');
+      40 |
+      41 |         await page.getByLabel(/Title/i).fill('Test Post Title');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:38:77
 
-    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+    Error Context: test-results\creator-Creator-Workflow-c-edafe-st-as-photo-post-with-text--chromium\error-context.md
 
-  1 failed
-    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────
+  2) [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Upload New Content', { exact: true })
+    Expected: not visible
+    Error: strict mode violation: getByText('Upload New Content', { exact: true }) resolved to 2 elements:
+        1) <h2 class="text-xl font-bold text-gray-900 dark:text-white">Upload New Content</h2> aka getByRole('heading', { name: 'Upload New Content' })
+        2) <button class="inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 text-sm mt-4 sm:mt-0">…</button> aka getByRole('button', { name: 'Upload New Content' })
+
+    Call log:
+    [2m  - Expect "not toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Upload New Content', { exact: true })[22m
+
+
+      90 |         await page.getByRole('button', { name: /Post Now/i }).click();
+      91 |
+    > 92 |         await expect(page.getByText('Upload New Content', { exact: true })).not.toBeVisible();
+         |                                                                                 ^
+      93 |         await expect(page.getByText('PPV Post')).toBeVisible({ timeout: 15000 });
+      94 |     });
+      95 | });
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:92:81
+
+    Error Context: test-results\creator-Creator-Workflow-can-create-a-PPV-post-chromium\error-context.md
+
+  2 failed
+    [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can create a text post (as photo post with text) 
+    [chromium] › tests\creator.spec.ts:69:5 › Creator Workflow › can create a PPV post ─────────────
+  1 passed (10.3s)

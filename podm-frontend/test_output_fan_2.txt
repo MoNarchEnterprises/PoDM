@@ -1,0 +1,33 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › tests\fan.spec.ts:14:5 › Fan Workflow › can subscribe and then unlock PPV content (8.9s)
+
+
+  1) [chromium] › tests\fan.spec.ts:14:5 › Fan Workflow › can subscribe and then unlock PPV content 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('dialog').getByText('Subscribe to Jane Creator')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('dialog').getByText('Subscribe to Jane Creator')[22m
+
+
+      29 |             const subModal = page.getByRole('dialog');
+      30 |             await expect(subModal).toBeVisible();
+    > 31 |             await expect(subModal.getByText('Subscribe to Jane Creator')).toBeVisible();
+         |                                                                           ^
+      32 |
+      33 |             // Handle Payment
+      34 |             const cardFrame = page.frameLocator('iframe[title*="card payment input"]');
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\fan.spec.ts:31:75
+
+    Error Context: test-results\fan-Fan-Workflow-can-subscribe-and-then-unlock-PPV-content-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\fan.spec.ts:14:5 › Fan Workflow › can subscribe and then unlock PPV content ─

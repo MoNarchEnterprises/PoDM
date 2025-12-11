@@ -195,8 +195,8 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                 <main className="flex-1 overflow-y-auto p-6 space-y-6">
                     <Input id="title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                        <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea id="description" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
@@ -474,9 +474,9 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
             </td>
             <td className="px-4 py-3 text-center"><StatusBadge status={item.status} /></td>
             <td className="px-4 py-3 text-center text-xs font-semibold text-gray-400">{visibilityMap[item.visibility] || 'N/A'}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.views.toLocaleString()}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats.galleryAdds.toLocaleString()}</td>
-            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats.tips)}</td>
+            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats?.views?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats?.galleryAdds?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats?.tips || 0)}</td>
             <td className="px-4 py-3 text-center relative">
                 <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                     <MoreVertical className="w-5 h-5 text-gray-500" />
@@ -540,6 +540,9 @@ const CreatorContentPage = () => {
                     sortKey: apiSortKey,
                     sortDirection: sort.direction,
                 });
+                if (response.data && response.data.length > 0) {
+                    // console.log('[CreatorContent] First Item Full:', JSON.stringify(response.data[0], null, 2));
+                }
                 setContent(response.data || []);
             } catch (err) {
                 setError('Failed to load your content.');
@@ -611,7 +614,12 @@ const CreatorContentPage = () => {
 
             } else { // This is a CREATE operation (remains the same)
                 const response = await apiClient.createContent(formData);
-                const newItem = { ...response.data, _id: (response.data as any).id.toString() };
+                // content.controller returns { success: true, data: savedContent }
+                // apiClient returns response.data -> { success: true, data: ... }
+                // So here `response` is { success: true, data: Content }
+                // We want `response.data` which is the Content object.
+                const contentData = response.data;
+                const newItem = { ...contentData, _id: contentData._id || (contentData as any).id?.toString() || 'temp-id' };
                 setContent(prev => [newItem, ...prev]);
             }
         }
@@ -705,7 +713,7 @@ const CreatorContentPage = () => {
                                     {content.length > 0 ? (
                                         content.map((item, index) => (
                                             <ContentRow
-                                                key={item._id}
+                                                key={item._id || `fallback-${index}`}
                                                 item={item}
                                                 onRowClick={() => handleThumbnailClick(index)}
                                                 onDelete={handleDeleteContent}

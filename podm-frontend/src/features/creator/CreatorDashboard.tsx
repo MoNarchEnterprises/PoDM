@@ -52,7 +52,7 @@ const ActivityItem = ({ item }: { item: ActivityItemType }) => {
             <div className="flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-full p-2">{icon}</div>
             <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{description}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{timeAgo(item.createdAt)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{timeAgo((item as any).createdAt || (item as any).created_at)}</p>
             </div>
         </div>
     );
@@ -135,9 +135,9 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 <BarChart data={monthlyEarnings} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
                                     <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
-                                    <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
+                                    <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value / 1000}k`} />
                                     <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem', color: '#f9fafb' }} />
-                                    <Legend wrapperStyle={{fontSize: "14px"}}/>
+                                    <Legend wrapperStyle={{ fontSize: "14px" }} />
                                     <Bar dataKey="earnings" fill="#8B5CF6" name="Earnings" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -163,16 +163,16 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 <Button size="sm" onClick={handleCopy} className="p-2 h-auto">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
                             </div>
                             <div className="flex items-center justify-around mt-4 text-gray-500 dark:text-gray-400">
-                                 <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={() => setShowQrModal(true)}><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
-                                 <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={handleShare}><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={() => setShowQrModal(true)}><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={handleShare}><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
                             </div>
                         </Card>
 
                         <Card noPadding>
-                             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h3></div>
-                                <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700 h-96 overflow-y-auto">
-                                    {recentActivity.map((item) => <ActivityItem key={item._id} item={item} />)}
-                                </div>
+                            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h3></div>
+                            <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700 h-96 overflow-y-auto">
+                                {recentActivity.map((item, index) => <ActivityItem key={(item as any)._id || (item as any).id || `activity-${index}`} item={item} />)}
+                            </div>
                         </Card>
                     </div>
                 </div>

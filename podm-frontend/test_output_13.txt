@@ -1,210 +1,2438 @@
 
-Running 1 test using 1 worker
+Running 3 tests using 3 workers
 
-BROWSER LOG: [vite] connecting...
-BROWSER LOG: [vite] connected.
-BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
-BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
-BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
-BROWSER LOG: [vite] connecting...
-BROWSER LOG: [vite] connected.
-BROWSER LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
-BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
-BROWSER LOG: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
-Navigated to /creator/creator
-Checking for Jane Creator...
-Failed to find Jane Creator. Page content:
-creator
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Test] Starting create p- ost test...
+[Request Failed] http://localhost:5000/api/v1/creator/dashboard net::ERR_ABORTED
+[Request Failed] http://localhost:5000/api/v1/creator/dashboard net::ERR_ABORTED
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Test] Navigated to /hub/content
+[Request Failed] http://localhost:5000/api/v1/creator/dashboard net::ERR_ABORTED
+[Request Failed] http://localhost:5000/api/v1/creator/dashboard net::ERR_ABORTED
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Browser Console] [ContentModal] Create mode detected.
+[Test] Clicked Upload New Content
+[Test] Modal visible
+[Test] File uploaded
+[Test] Clicked Post Now
+[Browser Console] [ContentModal] Create mode detected.
+[Browser Console] [CreatorContent] Fetched 24 items
+[Browser Console] [CreatorContent] First Item Full: {
+  "id": 48,
+  "creator_id": "7253e7c3-2413-49bd-971d-aa687a593725",
+  "title": "Test Post Title",
+  "description": "Test Description",
+  "type": "photo",
+  "files": [
+    {
+      "id": "1765423277553-test.png",
+      "url": "7253e7c3-2413-49bd-971d-aa687a593725/1765423277553-test.png",
+      "size": 70,
+      "mimeType": "image/png",
+      "thumbnailUrl": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423277553-test.png.webp"
+    }
+  ],
+  "visibility": "subscribers_only",
+  "price": null,
+  "tags": null,
+  "stats": {
+    "tips": 0,
+    "views": 0,
+    "galleryAdds": 0
+  },
+  "schedule": {
+    "isScheduled": false
+  },
+  "status": "published",
+  "created_at": "2025-12-11T03:21:18.207565+00:00",
+  "updated_at": "2025-12-11T03:21:18.207565+00:00",
+  "min_tier_level": 1,
+  "_id": "48",
+  "minTierLevel": 1
+}
+[Browser Console] [CreatorContent] All IDs: ["48","47","46","45","44","43","42","41","40","39","31","30","29","28","27","26","24","23","22","21","20","19","18","17"]
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-@creator
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-About
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Choose Your Subscription
-Bronze
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-$500.00/month
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Access to feed
-Selected
-Subscribe for $500.00/month
-Content
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Request Failed] http://localhost:5000/api/v1/content net::ERR_ABORTED
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] [CreatorContent] Fetched 24 items
+[Browser Console] [CreatorContent] First Item Full: {
+  "id": 48,
+  "creator_id": "7253e7c3-2413-49bd-971d-aa687a593725",
+  "title": "Test Post Title",
+  "description": "Test Description",
+  "type": "photo",
+  "files": [
+    {
+      "id": "1765423277553-test.png",
+      "url": "7253e7c3-2413-49bd-971d-aa687a593725/1765423277553-test.png",
+      "size": 70,
+      "mimeType": "image/png",
+      "thumbnailUrl": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423277553-test.png.webp"
+    }
+  ],
+  "visibility": "subscribers_only",
+  "price": null,
+  "tags": null,
+  "stats": {
+    "tips": 0,
+    "views": 0,
+    "galleryAdds": 0
+  },
+  "schedule": {
+    "isScheduled": false
+  },
+  "status": "published",
+  "created_at": "2025-12-11T03:21:18.207565+00:00",
+  "updated_at": "2025-12-11T03:21:18.207565+00:00",
+  "min_tier_level": 1,
+  "_id": "48",
+  "minTierLevel": 1
+}
+[Browser Console] [CreatorContent] All IDs: ["48","47","46","45","44","43","42","41","40","39","31","30","29","28","27","26","24","23","22","21","20","19","18","17"]
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Unlock for $5.00
-video
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Exclusive Video
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-Content Locked
-Subscribe to view
-photo
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-creator
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Invalid Date
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
 
-Welcome to my page!
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
 
-Tip
-Save
-© 2025 PoDM. All rights reserved.
-Terms
-Privacy
-Support
-Admin
-  ✘  1 [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator (7.2s)
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Error] Cannot read properties of null (reading 'views')
+[Request Failed] http://localhost:5000/api/v1/content net::ERR_ABORTED
+[Browser Console] [vite] connecting...
+[Browser Console] [vite] connected.
+[Browser Console] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[Browser Console] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+[Browser Console] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s content-undefined 
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at div
+    at div
+    at CreatorDashboard (http://localhost:5173/src/features/creator/CreatorDashboard.tsx:83:29)
+    at CreatorDashboardLoader (http://localhost:5173/src/App.tsx?t=1765420865137:227:38)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+  ✓  2 [chromium] › tests\creator.spec.ts:21:5 › Creator Workflow › can access dashboard and see earnings (4.2s)
+[Browser Console] [CreatorContent] Fetched 26 items
+[Browser Console] [CreatorContent] First Item Full: {
+  "id": 50,
+  "creator_id": "7253e7c3-2413-49bd-971d-aa687a593725",
+  "title": "PPV Post",
+  "description": "",
+  "type": "photo",
+  "files": [
+    {
+      "id": "1765423445885-ppv.png",
+      "url": "7253e7c3-2413-49bd-971d-aa687a593725/1765423445885-ppv.png",
+      "size": 70,
+      "mimeType": "image/png",
+      "thumbnailUrl": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423445885-ppv.png.webp"
+    }
+  ],
+  "visibility": "pay_per_view",
+  "price": 500,
+  "tags": null,
+  "stats": {
+    "tips": 0,
+    "views": 0,
+    "galleryAdds": 0
+  },
+  "schedule": {
+    "isScheduled": false
+  },
+  "status": "published",
+  "created_at": "2025-12-11T03:24:06.405025+00:00",
+  "updated_at": "2025-12-11T03:24:06.405025+00:00",
+  "min_tier_level": 1,
+  "_id": "50",
+  "minTierLevel": 1
+}
+[Browser Console] [CreatorContent] All IDs: ["50","49","48","47","46","45","44","43","42","41","40","39","31","30","29","28","27","26","24","23","22","21","20","19","18","17"]
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] [CreatorContent] Fetched 26 items
+[Browser Console] [CreatorContent] First Item Full: {
+  "id": 50,
+  "creator_id": "7253e7c3-2413-49bd-971d-aa687a593725",
+  "title": "PPV Post",
+  "description": "",
+  "type": "photo",
+  "files": [
+    {
+      "id": "1765423445885-ppv.png",
+      "url": "7253e7c3-2413-49bd-971d-aa687a593725/1765423445885-ppv.png",
+      "size": 70,
+      "mimeType": "image/png",
+      "thumbnailUrl": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423445885-ppv.png.webp"
+    }
+  ],
+  "visibility": "pay_per_view",
+  "price": 500,
+  "tags": null,
+  "stats": {
+    "tips": 0,
+    "views": 0,
+    "galleryAdds": 0
+  },
+  "schedule": {
+    "isScheduled": false
+  },
+  "status": "published",
+  "created_at": "2025-12-11T03:24:06.405025+00:00",
+  "updated_at": "2025-12-11T03:24:06.405025+00:00",
+  "min_tier_level": 1,
+  "_id": "50",
+  "minTierLevel": 1
+}
+[Browser Console] [CreatorContent] All IDs: ["50","49","48","47","46","45","44","43","42","41","40","39","31","30","29","28","27","26","24","23","22","21","20","19","18","17"]
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Error] Cannot read properties of null (reading 'views')
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Console] The above error occurred in the <ContentRow> component:
+
+    at ContentRow (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:719:23)
+    at tbody
+    at table
+    at div
+    at div
+    at Card (http://localhost:5173/src/components/ui/Card.tsx:17:17)
+    at div
+    at CreatorContentPage (http://localhost:5173/src/features/creator/CreatorContent.tsx?t=1765420865137:880:33)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at Suspense
+    at main
+    at div
+    at div
+    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:127:23)
+    at CreatorLayout
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6270:26)
+    at CreatorRouteGuard (http://localhost:5173/src/components/auth/CreatorRouteGuard.tsx:22:49)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:5575:26)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6336:3)
+    at Suspense
+    at AuthProviderContent (http://localhost:5173/src/hooks/useAuth.tsx:39:32)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:175:32)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:6279:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=3bde16ee:9370:3)
+    at Elements2 (http://localhost:5173/node_modules/.vite/deps/@stripe_react-stripe-js.js?v=3bde16ee:1059:28)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+[Browser Error] Cannot read properties of null (reading 'views')
+[Test] Failed to find post. Dumping page content:
+
+  ✘  3 [chromium] › tests\creator.spec.ts:26:5 › Creator Workflow › can create a text post (as photo post with text) (18.6s)
+  ✘  1 [chromium] › tests\creator.spec.ts:82:5 › Creator Workflow › can create a PPV post (18.9s)
 
 
-  1) [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ──────────────────────────
+  1) [chromium] › tests\creator.spec.ts:26:5 › Creator Workflow › can create a text post (as photo post with text) 
 
     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
-    Locator: getByText('Jane Creator')
+    Locator: getByText('Test Post Title')
     Expected: visible
-    Timeout: 5000ms
+    Timeout: 15000ms
     Error: element(s) not found
 
     Call log:
-    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
-    [2m  - waiting for getByText('Jane Creator')[22m
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByText('Test Post Title')[22m
 
 
-      36 |     // Print body text if it fails
-      37 |     try {
-    > 38 |         await expect(page.getByText('Jane Creator')).toBeVisible({ timeout: 5000 });
-         |                                                      ^
-      39 |     } catch (e) {
-      40 |         console.log('Failed to find Jane Creator. Page content:');
-      41 |         console.log(await page.locator('body').innerText());
-        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\tip.spec.ts:38:54
+      70 |         await page.reload();
+      71 |         try {
+    > 72 |             await expect(page.getByText('Test Post Title')).toBeVisible({ timeout: 15000 });
+         |                                                             ^
+      73 |         } catch (e) {
+      74 |             console.log('[Test] Failed to find post. Dumping page content:');
+      75 |             // console.log(await page.content()); // Too verbose, maybe just body text
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:72:61
 
-    Error Context: test-results\tip-fan-can-send-a-tip-to-a-creator-chromium\error-context.md
+  2) [chromium] › tests\creator.spec.ts:82:5 › Creator Workflow › can create a PPV post ────────────
 
-  1 failed
-    [chromium] › tests\tip.spec.ts:3:1 › fan can send a tip to a creator ───────────────────────────
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('PPV Post')
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByText('PPV Post')[22m
+
+
+      105 |         await expect(page.getByRole('heading', { name: 'Upload New Content' })).not.toBeVisible();
+      106 |         await page.reload();
+    > 107 |         await expect(page.getByText('PPV Post')).toBeVisible({ timeout: 15000 });
+          |                                                  ^
+      108 |     });
+      109 | });
+      110 |
+        at C:\Users\leona\OneDrive\Documents\PoDM\PoDM\podm-frontend\tests\creator.spec.ts:107:50
+
+  2 failed
+    [chromium] › tests\creator.spec.ts:26:5 › Creator Workflow › can create a text post (as photo post with text) 
+    [chromium] › tests\creator.spec.ts:82:5 › Creator Workflow › can create a PPV post ─────────────
+  1 passed (20.9s)

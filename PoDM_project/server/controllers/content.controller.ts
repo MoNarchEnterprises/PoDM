@@ -64,7 +64,13 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
         }
 
         // Pass the request query object directly to the service
+        console.log(`[Controller] getMyContent: Fetching content for creatorId=${creatorId}`);
         const content = await ContentService.getContentByCreatorId(creatorId, req.query);
+        console.log(`[Controller] getMyContent: Found ${content?.length || 0} items`);
+        if (content && content.length > 0) {
+            console.log('[Controller] getMyContent: Titles:', content.map(c => c.title).join(', '));
+            console.log('[Controller] First Item Full:', JSON.stringify(content[0], null, 2));
+        }
 
         res.status(200).json({ success: true, data: content });
     } catch (error) {

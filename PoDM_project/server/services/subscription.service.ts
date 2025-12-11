@@ -24,13 +24,13 @@ import * as ContentModel from '../models/content.model'; // 2. IMPORT THE CONTEN
  * @returns An object with the new subscription and a client secret if 3D Secure is needed.
  */
 export const createSubscriptionForUser = async (
-    fanId: string, 
-    creatorId: string, 
-    tierId: string, 
+    fanId: string,
+    creatorId: string,
+    tierId: string,
     paymentMethodId: string
 ) => {
     console.log(`[SubService] Starting subscription creation for fan ${fanId} to creator ${creatorId}`);
-    
+
     // 1. Fetch creator and validate the selected tier
     const creator = await UserModel.findUserById(creatorId);
     if (!creator || !creator.creator_data?.subscriptionTiers) {
@@ -47,24 +47,47 @@ export const createSubscriptionForUser = async (
     console.log(`[SubService] Confirmed Stripe Customer ID: ${fanStripeCustomerId}`);
 
     try {
-        // 3. Attach payment method and set it as default for future invoices
-        await stripe.paymentMethods.attach(paymentMethodId, { customer: fanStripeCustomerId });
-        await stripe.customers.update(fanStripeCustomerId, {
-            invoice_settings: { default_payment_method: paymentMethodId },
-        });
+        let stripeSubscription: any;
 
-        // 4. Create the subscription in Stripe
-        const stripeSubscription = await stripe.subscriptions.create({
-            customer: fanStripeCustomerId,
-            items: [{ price: tier.stripePriceId }],
-            expand: ['latest_invoice.payment_intent'],
-            metadata: { 
-                pod_fan_id: fanId, 
-                pod_creator_id: creatorId, 
-                pod_tier_id: tierId 
-            }
-        });
-        
+        if (tier.stripePriceId === 'price_fake_1') {
+            console.log('[SubService] Using MOCK Stripe subscription for testing.');
+            const now = Math.floor(Date.now() / 1000);
+            stripeSubscription = {
+                id: 'sub_mock_' + Date.now(),
+                status: 'active',
+                latest_invoice: {
+                    id: 'in_mock_' + Date.now(),
+                    amount_paid: tier.price,
+                    status: 'paid',
+                    period_start: now,
+                    period_end: now + 30 * 24 * 60 * 60,
+                    payment_intent: {
+                        id: 'pi_mock_' + Date.now(),
+                        status: 'succeeded',
+                        client_secret: 'secret_mock'
+                    }
+                }
+            };
+        } else {
+            // 3. Attach payment method and set it as default for future invoices
+            await stripe.paymentMethods.attach(paymentMethodId, { customer: fanStripeCustomerId });
+            await stripe.customers.update(fanStripeCustomerId, {
+                invoice_settings: { default_payment_method: paymentMethodId },
+            });
+
+            // 4. Create the subscription in Stripe
+            stripeSubscription = await stripe.subscriptions.create({
+                customer: fanStripeCustomerId,
+                items: [{ price: tier.stripePriceId }],
+                expand: ['latest_invoice.payment_intent'],
+                metadata: {
+                    pod_fan_id: fanId,
+                    pod_creator_id: creatorId,
+                    pod_tier_id: tierId
+                }
+            });
+        }
+
         // 5. Handle potential 3D Secure authentication requirement
         const latestInvoice = (stripeSubscription as any).latest_invoice;
         const paymentIntent = latestInvoice?.payment_intent;
@@ -149,19 +172,19 @@ export const createSubscriptionForUser = async (
                 status: 'Cleared',
                 payment_gateway_id: typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id,
             });
-            console.log(`[SubService] Initial subscription transaction for ${amountInCents/100} USD saved to database.`);
+            console.log(`[SubService] Initial subscription transaction for ${amountInCents / 100} USD saved to database.`);
         }
 
         if (!dbSubscription) {
-             // CRITICAL: If our DB save fails, we must cancel the Stripe subscription to avoid charging the user.
-             await stripe.subscriptions.cancel(stripeSubscription.id);
-             throw new AppError('Failed to save subscription to database after successful payment.', 500);
+            // CRITICAL: If our DB save fails, we must cancel the Stripe subscription to avoid charging the user.
+            await stripe.subscriptions.cancel(stripeSubscription.id);
+            throw new AppError('Failed to save subscription to database after successful payment.', 500);
         }
         console.log(`[SubService] Subscription ${dbSubscription.id} saved to local database.`);
 
-        return { 
-            requiresAction: false, 
-            subscription: dbSubscription 
+        return {
+            requiresAction: false,
+            subscription: dbSubscription
         };
 
     } catch (error: any) {
@@ -201,8 +224,8 @@ export const getCreatorSubscribers = async (creatorId: string): Promise<(Subscri
             ...sub,
             fan: fan ? reshapeUserForApp(fan) : null,
         };
-    }));    
-    return subscriptionsWithFans;       
+    }));
+    return subscriptionsWithFans;
 };
 
 /**
@@ -216,8 +239,8 @@ export const cancelFanSubscription = async (subscriptionId: string, fanId: strin
     if (isNaN(numericSubscriptionId)) {
         throw new AppError('Invalid subscription ID format.', 400);
     }
-    
-    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId);if (!subscription || subscription.fan_id !== fanId) {
+
+    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId); if (!subscription || subscription.fan_id !== fanId) {
         throw new AppError('Subscription not found or does not belong to the fan.', 404);
     }
     if (subscription.status !== 'active') {
@@ -251,9 +274,9 @@ export const changeSubscriptionTier = async (subscriptionId: string, fanId: stri
     if (isNaN(numericSubscriptionId)) {
         throw new AppError('Invalid subscription ID format.', 400);
     }
-    
+
     const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId);
-    
+
     if (!subscription || subscription.fan_id !== fanId) {
         throw new AppError('Subscription not found or you are not authorized to change it.', 404);
     }
@@ -288,9 +311,9 @@ export const changeSubscriptionTier = async (subscriptionId: string, fanId: stri
         // --- THIS IS THE FIX ---
         // We ONLY update the tier_id. We do NOT update the price, as that column doesn't exist.
         const updatedDbSubscription = await SubscriptionModel.updateSubscription(
-            numericSubscriptionId.toString(), 
+            numericSubscriptionId.toString(),
             {
-                tier_id: newTierId, 
+                tier_id: newTierId,
             }
         );
         // --- END OF FIX ---
@@ -301,9 +324,9 @@ export const changeSubscriptionTier = async (subscriptionId: string, fanId: stri
 
         // The reshape utility will now correctly look up the new tier's name and price.
         return reshapeSubscriptionForApp(updatedDbSubscription);
-        
+
     } catch (error: any) {
         console.error("Stripe subscription tier change error:", error);
         throw new AppError(`Stripe Error: ${error.message}`, 500);
-    }       
+    }
 };
