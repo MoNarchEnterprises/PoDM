@@ -31,12 +31,12 @@ export const getOrCreateStripeCustomer = async (userId: string): Promise<string>
         name: (user as any).fullName || 'No Name', // Fallback if fullName is missing
         metadata: {
             // This links the Stripe customer back to our internal user ID
-            pod_user_id: user._id,
+            pod_user_id: user.id,
         },
     });
 
     // Save the new Stripe customer ID to our database for future use
     await UserModel.updateProfile(userId, { stripe_customer_id: customer.id });
-    
+
     return customer.id;
 };

@@ -13,11 +13,11 @@ export const createSupportTicket = async (userId: string, subject: string, descr
     const ticket = await createSupportTicketModel({
         user_id: userId,
         subject,
-        conversation: [{ 
-            senderId: userId, 
+        conversation: [{
+            senderId: userId,
             senderName: user.profile.name,
             text: description,
-            timestamp: new Date().toISOString() 
+            timestamp: new Date().toISOString()
         }],
         status: 'Open',
     });
@@ -40,7 +40,7 @@ export const addReplyToTicket = async (ticketId: string, adminUser: User, text: 
 
     // 2. Create the new message object for the conversation
     const newReply: TicketMessage = {
-        senderId: adminUser._id,
+        senderId: adminUser.id,
         senderName: adminUser.profile.name,
         text,
         timestamp: new Date().toISOString(),

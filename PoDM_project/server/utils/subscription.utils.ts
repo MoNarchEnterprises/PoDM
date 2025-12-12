@@ -18,7 +18,7 @@ export const reshapeSubscriptionForApp = async (sub: any) => {
 
     const reshapedCreator = reshapeUserForApp(creator);
 
-    const tier = reshapedCreator.creatorData?.subscriptionTiers.find(
+    const tier = reshapedCreator.creator_data?.subscriptionTiers.find(
         (t: SubscriptionTier) => t.id === sub.tier_id
     );
 
@@ -40,6 +40,6 @@ export const reshapeSubscriptionForApp = async (sub: any) => {
         createdAt: sub.created_at,
         updatedAt: sub.updated_at,
         creator: reshapedCreator,
-        availableTiers: reshapedCreator.creatorData?.subscriptionTiers || [],
+        availableTiers: reshapedCreator.creator_data?.subscriptionTiers || [],
     };
 };

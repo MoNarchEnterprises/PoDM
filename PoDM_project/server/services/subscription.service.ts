@@ -119,7 +119,7 @@ export const createSubscriptionForUser = async (
             tier_id: tier_id,
             status: 'active',
             start_date: new Date(periodStart * 1000).toISOString(),
-            end_date: null,
+            end_date: undefined,
             next_billing_date: new Date(periodEnd * 1000).toISOString(),
         });
 
@@ -251,7 +251,7 @@ export const cancelFanSubscription = async (subscriptionId: string, fan_id: stri
         const stripeSubscription = await (stripe.subscriptions as any).del(subscription.id);
         const updatedSubscription = await SubscriptionModel.updateSubscription(subscriptionId, {
             status: 'canceled',
-            current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+            end_date: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
         });
         if (!updatedSubscription) {
             throw new AppError('Failed to update subscription status in database after cancellation.', 500);

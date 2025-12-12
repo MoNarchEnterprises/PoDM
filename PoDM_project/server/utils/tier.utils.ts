@@ -10,14 +10,19 @@ import { SubscriptionTier } from '@common/types/Creator';
  * @param tiers - The array of tiers from the frontend, which may contain temporary IDs.
  * @returns A promise that resolves to a new array of tiers with permanent IDs and stripePriceIds.
  */
-export const syncTiersWithStripe = async (tiers: SubscriptionTier[]): Promise<SubscriptionTier[]> => {
+export const syncTiersWithStripe = async (tiers: Partial<SubscriptionTier>[]): Promise<SubscriptionTier[]> => {
     if (!tiers || tiers.length === 0) {
         return [];
     }
 
     const syncedTiers = await Promise.all(
         tiers.map(async (tier) => {
-            let permanentId = tier.id;
+            // Ensure required properties exist
+            if (!tier.name || tier.price === undefined) {
+                throw new Error('Tier must have at least a name and price');
+            }
+
+            let permanentId = tier.id || uuidv4();
             // If the tier has a temporary client-side ID, replace it with a permanent UUID.
             if (tier.id && tier.id.startsWith('new-')) {
                 permanentId = uuidv4();
@@ -25,7 +30,15 @@ export const syncTiersWithStripe = async (tiers: SubscriptionTier[]): Promise<Su
 
             // If the tier already has a Stripe Price ID, it's already synced. Just ensure its ID is permanent.
             if (tier.stripePriceId) {
-                return { ...tier, id: permanentId };
+                return {
+                    ...tier,
+                    id: permanentId,
+                    name: tier.name,
+                    price: tier.price,
+                    features: tier.features || [],
+                    subscriberCount: tier.subscriberCount || 0,
+                    level: tier.level || 1
+                } as SubscriptionTier;
             }
 
             // If it's a new tier, create a corresponding Price in Stripe.
@@ -37,14 +50,18 @@ export const syncTiersWithStripe = async (tiers: SubscriptionTier[]): Promise<Su
                 nickname: tier.name, // For reference in the Stripe dashboard
             });
 
-            const finalTierObject = {
-                ...tier,
+            const finalTierObject: SubscriptionTier = {
                 id: permanentId,
+                name: tier.name,
+                price: tier.price,
+                features: tier.features || [],
+                subscriberCount: tier.subscriberCount || 0,
+                level: tier.level || 1,
                 stripePriceId: stripePrice.id,
             };
             console.log(`[Tier Utility] Processed Tier "${tier.name}". Final Object:`, JSON.stringify(finalTierObject, null, 2));
             // --- END CRITICAL DEBUG LOG ---
-            
+
             return finalTierObject;
         })
     );

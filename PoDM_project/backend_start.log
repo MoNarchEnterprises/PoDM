@@ -4280,3 +4280,48 @@ server/controllers/analytics.controller.ts(7,1): error TS1128: Declaration or st
 [dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
 ✅ auth.routes.ts file has been loaded and is running.
 🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:07:28 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:20:59 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\support.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:23:04 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\tier.utils.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  suppress all logs with { quiet: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:23:10 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\tier.utils.ts has been modified
+Compilation error in C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\tier.utils.ts
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  enable debug logging with { debug: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+[ERROR] 23:23:11 ⨯ Unable to compile TypeScript:
+server/utils/tier.utils.ts(81,7): error TS1005: '}' expected.
+
+[INFO] 23:24:16 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\tier.utils.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  enable debug logging with { debug: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:25:04 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\stripe.utils.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 23:25:40 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\subscription.utils.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
