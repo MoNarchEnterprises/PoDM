@@ -36,7 +36,7 @@
     "socket.io": "^4.8.1",
     "stripe": "^18.4.0",
     "tailwind": "^2.3.1",
-    "uuid": "^13.0.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
