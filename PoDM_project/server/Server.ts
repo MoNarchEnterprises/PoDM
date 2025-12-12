@@ -46,7 +46,26 @@ const io = initSocketServer(httpServer); // 4. Initialize socket.io and attach i
 
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://podm.app',
+    process.env.CLIENT_URL
+].filter((origin): origin is string => !!origin);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 
 // Stripe webhook routes MUST come before app.use(express.json())
 // Custom middleware to capture raw body for Stripe webhooks
