@@ -84,15 +84,19 @@ const ContentViewerLoader = () => {
     if (error || !data) return <div>{error || "Content not found"}</div>;
 
     return <ContentViewerPage
-        content={{ ...data.content, _id: data.content.id.toString() }}
+        content={{ ...data.content, id: data.content.id.toString() }}
         creator={data.creator}
         relatedContent={data.relatedContent.map(item => ({ ...item, _id: item.id.toString() }))}
     />;
 };
 
 
+
+// --- Fan Loader Components ---
+
+import { CreatorWithContent } from './features/fan/FanGallery';
 const FanGalleryLoader = () => {
-    const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
+    const [galleryData, setGalleryData] = useState<CreatorWithContent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -124,9 +128,8 @@ const FanGalleryLoader = () => {
 };
 
 
-
-
-import { FanSettingsData, FanUser } from './features/fan/FanSettings';
+import { FanSettingsData } from './features/fan/FanSettings';
+import { User as FanUser } from '@common/types/User';
 
 const FanSettingsLoader = () => {
     const [settingsData, setSettingsData] = useState<{ fan: FanUser; settings: FanSettingsData } | null>(null);

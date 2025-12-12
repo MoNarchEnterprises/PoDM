@@ -15,13 +15,14 @@ import ContentViewerModal from './components/ContentViewerModal'; // <-- 1. IMPO
 
 
 // --- Local Types ---
-interface PopulatedGalleryItem {
+// --- Local Types ---
+export interface PopulatedGalleryItem {
     contentId: string;
     addedDate: string;
     content: Content;
 }
 
-interface CreatorWithContent {
+export interface CreatorWithContent {
     creator: Creator;
     content: PopulatedGalleryItem[];
     activeSubscription: boolean;
@@ -30,7 +31,7 @@ interface CreatorWithContent {
 // --- Reusable Sub-Components ---
 
 const ContentThumbnail = ({ item, isLocked, onClick }: { item: PopulatedGalleryItem; isLocked: boolean; onClick: () => void; }) => (
-    <div 
+    <div
         className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1 cursor-pointer"
         onClick={onClick}
     >
@@ -63,10 +64,10 @@ const CreatorContentGroup = ({ group, onThumbnailClick }: { group: CreatorWithCo
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {group.content.map(item => (
-                <ContentThumbnail 
-                    key={item.contentId} 
-                    item={item} 
-                    isLocked={!group.activeSubscription} 
+                <ContentThumbnail
+                    key={item.contentId}
+                    item={item}
+                    isLocked={!group.activeSubscription}
                     onClick={() => { if (!group.activeSubscription) return; onThumbnailClick(item); }}
                 />
             ))}
@@ -111,7 +112,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
                 }
             });
         });
-        
+
         if (sortBy === 'Creator') {
             data.sort((a, b) => a.creator.profile.name.localeCompare(b.creator.profile.name));
         }
@@ -121,7 +122,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
 
     // Create a single, "flattened" list of all visible content items for navigation
     const flattenedGalleryItems = useMemo(() => {
-        return filteredAndSortedData.flatMap(group => 
+        return filteredAndSortedData.flatMap(group =>
             group.activeSubscription ? group.content : [] // Only include content from active subscriptions
         );
     }, [filteredAndSortedData]);
@@ -133,7 +134,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
             setCurrentContentIndex(index);
         }
     };
-    
+
     const handleCloseModal = () => setCurrentContentIndex(null);
 
     const handleNext = () => {
@@ -150,7 +151,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
 
     return (
         <>
-            <ContentViewerModal 
+            <ContentViewerModal
                 galleryItems={flattenedGalleryItems}
                 currentIndex={currentContentIndex}
                 onClose={handleCloseModal}
@@ -166,7 +167,7 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
 
                 <Card className="mb-8 space-y-4">
                     <div className="flex flex-wrap items-center gap-4">
-                        <Input id="search-gallery" placeholder="Search in gallery..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} leftIcon={Search} containerClassName="flex-grow"/>
+                        <Input id="search-gallery" placeholder="Search in gallery..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} leftIcon={Search} containerClassName="flex-grow" />
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Sort by:</span>
                             <select onChange={(e) => setSortBy(e.target.value)} value={sortBy} className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-full py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
@@ -186,9 +187,9 @@ const FanGalleryPage = ({ galleryData }: FanGalleryPageProps) => {
                 <div>
                     {filteredAndSortedData.length > 0 ? (
                         filteredAndSortedData.map(group => (
-                            <CreatorContentGroup 
-                                key={group.creator._id} 
-                                group={group} 
+                            <CreatorContentGroup
+                                key={group.creator.id}
+                                group={group}
                                 onThumbnailClick={handleThumbnailClick}
                             />
                         ))
