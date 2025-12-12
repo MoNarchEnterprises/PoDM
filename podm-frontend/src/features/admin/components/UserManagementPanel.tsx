@@ -37,7 +37,7 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
     const handleSave = async () => {
         setIsLoading(true);
         const newRate = rate === '' ? null : parseFloat(rate);
-        await onSave(user._id, newRate);
+        await onSave(user.id, newRate);
         setIsLoading(false);
         onClose();
     };
@@ -94,7 +94,7 @@ const UserActionsMenu = ({ user, currentUser, onManageCommission, onViewVerifica
 
     const actions = [
         { label: 'View Verification', icon: Shield, show: user.status === 'pending verification', action: onViewVerification },
-        { label: 'Impersonate User', icon: Eye, show: user._id !== currentUser?._id, action: () => onImpersonate(user) },
+        { label: 'Impersonate User', icon: Eye, show: user.id !== currentUser?.id, action: () => onImpersonate(user) },
         { label: 'Manage Commission', icon: Percent, show: user.role === 'creator', action: onManageCommission },
         { label: 'Suspend User', icon: Ban, show: user.status === 'active', action: () => onUpdateStatus(user, 'suspended') },
         { label: 'Un-suspend User', icon: Undo, show: user.status === 'suspended', action: () => onUpdateStatus(user, 'active') },
@@ -143,12 +143,12 @@ const UserManagementPanel = () => {
         }
 
         try {
-            const updatedUser = await apiClient.updateUserStatus(user._id, status);
+            const updatedUser = await apiClient.updateUserStatus(user.id, status);
             // Update the user in the shared admin panel state
             setData(prevData => ({
                 ...prevData,
                 users: prevData.users.map(u =>
-                    u._id === updatedUser.data._id ? updatedUser.data : u
+                    u.id === updatedUser.data.id ? updatedUser.data : u
                 ),
             }));
             alert(`User has been ${status}.`);
@@ -176,7 +176,7 @@ const UserManagementPanel = () => {
 
             setData(prevData => ({
                 ...prevData,
-                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+                users: prevData.users.map(u => u.id === updatedUser.id ? updatedUser : u),
             }));
         } catch (error) {
             console.error("Failed to update commission:", error);
@@ -191,7 +191,7 @@ const UserManagementPanel = () => {
             // Update the state to reflect the change
             setData(prevData => ({
                 ...prevData,
-                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+                users: prevData.users.map(u => u.id === updatedUser.id ? updatedUser : u),
             }));
             // Close the verification panel
             setViewingVerificationId(null);
@@ -210,7 +210,7 @@ const UserManagementPanel = () => {
             // Update the state
             setData(prevData => ({
                 ...prevData,
-                users: prevData.users.map(u => u._id === updatedUser._id ? updatedUser : u),
+                users: prevData.users.map(u => u.id === updatedUser.id ? updatedUser : u),
             }));
             // Close the verification panel
             setViewingVerificationId(null);
@@ -254,7 +254,7 @@ const UserManagementPanel = () => {
         });
     }, [searchTerm, filters, users]);
 
-    const userToVerify = users.find(u => u._id === viewingVerificationId);
+    const userToVerify = users.find(u => u.id === viewingVerificationId);
 
     if (viewingVerificationId && userToVerify) {
         return (
@@ -309,16 +309,16 @@ const UserManagementPanel = () => {
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {filteredUsers.map(user => (
-                                    <tr key={user._id}>
+                                    <tr key={user.id}>
                                         <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><span className="font-medium">{user.profile.name}</span></div></td>
                                         <td className="px-4 py-3 text-center"><StatusBadge status={user.status} /></td>
-                                        <td className="px-4 py-3 text-center text-sm">{formatDate(user.createdAt)}</td>
+                                        <td className="px-4 py-3 text-center text-sm">{formatDate(user.created_at)}</td>
                                         <td className="px-4 py-3 text-center">
                                             <UserActionsMenu
                                                 user={user}
                                                 currentUser={currentUser}
                                                 onManageCommission={() => handleManageCommission(user)}
-                                                onViewVerification={() => setViewingVerificationId(user._id)}
+                                                onViewVerification={() => setViewingVerificationId(user.id)}
                                                 onUpdateStatus={handleUpdateStatus}
                                                 onImpersonate={handleImpersonate}
                                             />

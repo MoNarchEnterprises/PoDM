@@ -54,7 +54,7 @@ const ResubscribeModal = ({ isOpen, onClose, onConfirm, subscription }: { isOpen
 };
 
 const ChangeTierModal = ({ isOpen, onClose, onConfirm, subscription, isLoading }: { isOpen: boolean; onClose: () => void; onConfirm: (tierId: string) => void; subscription?: SubscriptionWithCreator; isLoading: boolean; }) => {
-    const [selectedTierId, setSelectedTierId] = useState(subscription?.tierId);
+    const [selectedTierId, setSelectedTierId] = useState(subscription?.tier_id);
     if (!isOpen || !subscription) return null;
 
     return (
@@ -73,7 +73,7 @@ const ChangeTierModal = ({ isOpen, onClose, onConfirm, subscription, isLoading }
             </main>
             <footer className="p-6 bg-gray-800 border-t border-gray-700 flex justify-end space-x-3">
                 <Button variant="secondary" onClick={onClose} disabled={isLoading}>Cancel</Button>
-                <Button onClick={() => onConfirm(selectedTierId || '')} isLoading={isLoading} disabled={selectedTierId === subscription.tierId}>Confirm Change</Button>
+                <Button onClick={() => onConfirm(selectedTierId || '')} isLoading={isLoading} disabled={selectedTierId === subscription.tier_id}>Confirm Change</Button>
             </footer>
         </Modal>
     );
@@ -111,13 +111,13 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
         if (!subscription) return;
         navigate('/fan/messages', {
             state: {
-                creatorId: subscription.creator._id,
+                creatorId: subscription.creator.id,
                 creatorName: subscription.creator.profile.name,
                 creatorAvatar: subscription.creator.profile.avatar
             }
         });
     };
-    
+
     if (!subscription) {
         return <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md h-full flex items-center justify-center text-gray-500 dark:text-gray-400"><p>Select a subscription to see details.</p></div>;
     }
@@ -137,7 +137,7 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
             <div className="p-6 space-y-4 flex-grow">
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Tier</span><span className="font-semibold text-gray-800 dark:text-gray-200">{subscription.tierName}</span></div>
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Price</span><span className="font-semibold text-gray-800 dark:text-gray-200">${(subscription.price || 0).toFixed(2)}</span></div>
-                {subscription.status === 'active' && subscription.nextBillingDate && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(subscription.nextBillingDate).toLocaleDateString()}</span></div>}
+                {subscription.status === 'active' && subscription.next_billing_date && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(subscription.next_billing_date).toLocaleDateString()}</span></div>}
                 <div className="pt-4">
                     {subscription.status === 'active' ? (
                         <div className="flex items-center justify-between">
@@ -149,7 +149,7 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
                     )}
                 </div>
             </div>
-             <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                 <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Payment Method</h4>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3"><CreditCard className="w-6 h-6 text-gray-500 dark:text-gray-400" /><p className="text-sm text-gray-600 dark:text-gray-300">Visa ending in 4242</p></div>
@@ -168,7 +168,7 @@ const FanSubscriptionsPage = () => {
     const [actionLoading, setActionLoading] = useState(false); // For modal actions
     const [error, setError] = useState<string | null>(null);
     const [selectedSub, setSelectedSub] = useState<SubscriptionWithCreator | undefined>();
-    
+
     const { isOpen: isCancelModalOpen, openModal: openCancelModal, closeModal: closeCancelModal } = useModal();
     const { isOpen: isResubscribeModalOpen, openModal: openResubscribeModal, closeModal: closeResubscribeModal } = useModal();
     const { isOpen: isChangeTierModalOpen, openModal: openChangeTierModal, closeModal: closeChangeTierModal } = useModal();
@@ -199,15 +199,15 @@ const FanSubscriptionsPage = () => {
         if (!selectedSub) return;
         setActionLoading(true);
         try {
-            const response = await apiClient.updateFanSubscription(selectedSub._id.toString(), newTierId);
+            const response = await apiClient.updateFanSubscription(selectedSub.id.toString(), newTierId);
             const updatedSub = response.data;
 
-            const newSubscriptions = subscriptions.map(sub => 
-                sub._id === updatedSub._id ? updatedSub : sub
+            const newSubscriptions = subscriptions.map(sub =>
+                sub.id === updatedSub._id ? updatedSub : sub
             );
             setSubscriptions(newSubscriptions);
             setSelectedSub(updatedSub);
-            
+
             closeChangeTierModal();
         } catch (err: any) {
             alert(`Error: ${err.response?.data?.message || 'Could not change tier.'}`);
@@ -215,7 +215,7 @@ const FanSubscriptionsPage = () => {
             setActionLoading(false);
         }
     };
-    
+
     const activeSubs = useMemo(() => subscriptions.filter(s => s.status === 'active'), [subscriptions]);
     const inactiveSubs = useMemo(() => subscriptions.filter(s => s.status !== 'active'), [subscriptions]);
 
@@ -226,14 +226,14 @@ const FanSubscriptionsPage = () => {
         <>
             <CancelModal isOpen={isCancelModalOpen} onClose={closeCancelModal} onConfirm={handleConfirmCancel} creatorName={selectedSub?.creator.profile.name} />
             <ResubscribeModal isOpen={isResubscribeModalOpen} onClose={closeResubscribeModal} onConfirm={handleConfirmResubscribe} subscription={selectedSub} />
-            <ChangeTierModal 
-                isOpen={isChangeTierModalOpen} 
-                onClose={closeChangeTierModal} 
-                onConfirm={handleConfirmChangeTier} 
-                subscription={selectedSub} 
+            <ChangeTierModal
+                isOpen={isChangeTierModalOpen}
+                onClose={closeChangeTierModal}
+                onConfirm={handleConfirmChangeTier}
+                subscription={selectedSub}
                 isLoading={actionLoading}
             />
-            
+
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold">My Subscriptions</h1>
@@ -241,32 +241,32 @@ const FanSubscriptionsPage = () => {
                 </header>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-6">
-                         {activeSubs.length > 0 && (
+                        {activeSubs.length > 0 && (
                             <div>
                                 <h2 className="text-lg font-semibold text-white mb-3">Active ({activeSubs.length})</h2>
                                 <div className="space-y-3">
-                                    {activeSubs.map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}
+                                    {activeSubs.map(sub => <SubscriptionCard key={sub.id} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
                                 </div>
                             </div>
                         )}
-                         {inactiveSubs.length > 0 && (
+                        {inactiveSubs.length > 0 && (
                             <div>
                                 <h2 className="text-lg font-semibold text-white mb-3">Inactive ({inactiveSubs.length})</h2>
                                 <div className="space-y-3">
-                                    {inactiveSubs.map(sub => <SubscriptionCard key={sub._id} subscription={sub} isSelected={selectedSub?._id === sub._id} onClick={() => setSelectedSub(sub)} />)}
+                                    {inactiveSubs.map(sub => <SubscriptionCard key={sub.id} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
                                 </div>
                             </div>
                         )}
-                         {subscriptions.length === 0 && (
-                             <div className="text-center py-16 text-gray-500">
-                                 <p className="font-semibold">No Subscriptions Found</p>
-                                 <p className="text-sm">Your subscriptions will appear here once you subscribe to a creator.</p>
-                             </div>
-                         )}
+                        {subscriptions.length === 0 && (
+                            <div className="text-center py-16 text-gray-500">
+                                <p className="font-semibold">No Subscriptions Found</p>
+                                <p className="text-sm">Your subscriptions will appear here once you subscribe to a creator.</p>
+                            </div>
+                        )}
                     </div>
                     <div className="lg:col-span-2">
-                        <SubscriptionDetails 
-                            subscription={selectedSub} 
+                        <SubscriptionDetails
+                            subscription={selectedSub}
                             onCancelClick={(sub) => handleModalOpen(openCancelModal, sub)}
                             onResubscribeClick={(sub) => handleModalOpen(openResubscribeModal, sub)}
                             onChangeTierClick={(sub) => handleModalOpen(openChangeTierModal, sub)}

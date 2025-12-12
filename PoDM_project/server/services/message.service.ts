@@ -178,6 +178,7 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
     // Check if this message should append to a detailed support ticket
     // Dynamic import to avoid circular dependency
     try {
+        // @ts-ignore - Dynamic import to avoid circular dependency, works at runtime
         const supportService = await import('./support.service');
         // We only append if the sender is NOT an admin (or we rely on the service to filter).
         // Actually supportService.appendUserMessageToActiveTicket checks if the USER has a ticket.

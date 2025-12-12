@@ -44,7 +44,7 @@ const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: Verifica
             if (!user) return;
             setIsLoading(true);
             try {
-                const response = await apiClient.getVerificationDocs(user._id);
+                const response = await apiClient.getVerificationDocs(user.id);
                 setDocUrls(response.data);
             } catch (error) {
                 console.error("Failed to fetch verification documents:", error);
@@ -68,7 +68,7 @@ const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: Verifica
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Verification for {user.profile.name}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">Review the submitted documents and approve or reject the creator's application.</p>
             </header>
-            
+
             <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md">
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* 5. Update the image display logic */}
@@ -88,7 +88,7 @@ const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: Verifica
                         <h4 className="font-semibold mb-2">Signed Affidavit</h4>
                         <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Signed as: 
+                                Signed as:
                                 <span className="font-mono bg-gray-100 dark:bg-gray-700 p-1 rounded">
                                     {user.verification_data?.signature || 'Not provided'}
                                 </span>                            </p>
@@ -96,15 +96,15 @@ const VerificationDetailPanel = ({ user, onBack, onApprove, onReject }: Verifica
                     </div>
                 </div>
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex justify-end space-x-3">
-                    <Button 
+                    <Button
                         variant="danger"
-                        onClick={() => onReject(user._id)}
+                        onClick={() => onReject(user.id)}
                     >
                         Reject
                     </Button>
-                    <Button 
+                    <Button
                         className="bg-green-600 hover:bg-green-700"
-                        onClick={() => onApprove(user._id)}
+                        onClick={() => onApprove(user.id)}
                     >
                         Approve
                     </Button>

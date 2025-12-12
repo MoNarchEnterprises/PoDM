@@ -69,14 +69,14 @@ const CreatorMessagesPage = () => {
                 const contentWithSignedUrls = await Promise.all(
                     validContent.map(async (contentItem: Content) => {
                         try {
-                            const urlResponse = await apiClient.getSecureContentUrl(contentItem._id);
+                            const urlResponse = await apiClient.getSecureContentUrl(contentItem.id);
                             const newItem = JSON.parse(JSON.stringify(contentItem));
                             if (newItem.files && newItem.files.length > 0) {
                                 newItem.files[0].thumbnailUrl = urlResponse.data.secureUrl;
                             }
                             return newItem;
                         } catch (urlError) {
-                            console.error(`Failed to get signed URL for content ${contentItem._id}`, urlError);
+                            console.error(`Failed to get signed URL for content ${contentItem.id}`, urlError);
                             return contentItem;
                         }
                     })
@@ -104,10 +104,10 @@ const CreatorMessagesPage = () => {
     useEffect(() => {
         socket.connect();
         socket.on('new_message', (newMessage: Message) => {
-            setMessages(prev => prev.some(msg => msg._id === newMessage._id) ? prev : [...prev, newMessage]);
+            setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
         });
         socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
-            setMessages(prev => prev.filter(msg => msg._id !== messageId));
+            setMessages(prev => prev.filter(msg => msg.id !== messageId));
         });
 
         // --- NEW SOCKET LISTENER ---
@@ -160,7 +160,7 @@ const CreatorMessagesPage = () => {
 
     const handleSendAttachment = async (content: Content, price: number, text: string) => {
         const contentPayload = {
-            contentId: content._id,
+            contentId: content.id,
             type: content.type,
             thumbnailUrl: content.files[0]?.thumbnailUrl,
             isPaid: true,
@@ -208,11 +208,11 @@ const CreatorMessagesPage = () => {
                             <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gray-800"><div className="flex items-center"><button onClick={() => setSelectedFanId(null)} className="md:hidden mr-2 p-2 rounded-full hover:bg-gray-700"><ArrowLeft className="w-5 h-5" /></button><img className="w-10 h-10 rounded-full mr-3" src={activeConversation.fan.profile.avatar} alt={activeConversation.fan.profile.name} /><div><p className="font-bold">{activeConversation.fan.profile.name}</p><p className="text-xs text-green-500 font-semibold flex items-center"><DollarSign className="w-3 h-3 mr-1" /> Total Spent: ${(activeConversation.fan.totalSpent || 0).toFixed(2)}</p></div></div></div>
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                                 {isLoadingMessages ? <p className="text-center">Loading messages...</p> : messages.map((msg) => {
-                                    const isMe = msg.senderId === currentCreator?._id;
+                                    const isMe = msg.sender_id === currentCreator?.id;
                                     const senderRole = isMe ? 'creator' : 'fan';
                                     return (
                                         <MessageBubble
-                                            key={msg._id}
+                                            key={msg.id}
                                             message={msg}
                                             isMe={isMe}
                                             senderRole={senderRole}

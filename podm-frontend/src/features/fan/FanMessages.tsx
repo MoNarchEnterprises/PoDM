@@ -101,15 +101,15 @@ const FanMessagesPage = () => {
         socket.on('connect_error', (err) => console.error('[Socket.IO] Connection Error:', err.message));
 
         socket.on('new_message', (newMessage: Message) => {
-            setMessages(prev => prev.some(msg => msg._id === newMessage._id) ? prev : [...prev, newMessage]);
+            setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
         });
 
         socket.on('message_updated', (updatedMessage: Message) => {
-            setMessages(prev => prev.map(msg => msg._id === updatedMessage._id ? updatedMessage : msg));
+            setMessages(prev => prev.map(msg => msg.id === updatedMessage.id ? updatedMessage : msg));
         });
 
         socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
-            setMessages(prev => prev.filter(msg => msg._id !== messageId));
+            setMessages(prev => prev.filter(msg => msg.id !== messageId));
         });
 
         socket.on('conversation_read', ({ conversationId }: { conversationId: string }) => {
@@ -170,7 +170,7 @@ const FanMessagesPage = () => {
         if (!stripe || !message.content) { return; }
 
         try {
-            const { data } = await apiClient.unlockMessageContent(message._id);
+            const { data } = await apiClient.unlockMessageContent(message.id);
             const { clientSecret, status, paymentIntentId } = data;
 
             let finalStatus = status;
@@ -189,7 +189,7 @@ const FanMessagesPage = () => {
 
             if (finalStatus === 'succeeded') {
                 setMessages(prev => prev.map(msg =>
-                    msg._id === message._id
+                    msg.id === message.id
                         ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
                         : msg
                 ));
@@ -252,12 +252,12 @@ const FanMessagesPage = () => {
                                     {isLoadingMessages ? <p className="text-center">Loading messages...</p> :
                                         [...messages].map((msg, index) => {
                                             const nextMsg = [...messages][index + 1];
-                                            const showDateSeparator = !nextMsg || isNewDay(msg.createdAt, nextMsg.createdAt);
-                                            const isMe = msg.senderId === currentFan?._id;
+                                            const showDateSeparator = !nextMsg || isNewDay(msg.created_at, nextMsg.created_at);
+                                            const isMe = msg.sender_id === currentFan?.id;
                                             const senderRole = isMe ? 'fan' : 'creator';
 
                                             return (
-                                                <React.Fragment key={msg._id}>
+                                                <React.Fragment key={msg.id}>
                                                     <MessageBubble
                                                         message={msg}
                                                         isMe={isMe}
@@ -270,7 +270,7 @@ const FanMessagesPage = () => {
                                                     />
                                                     {showDateSeparator && (
                                                         <div className="text-center text-xs text-gray-500 font-bold py-4">
-                                                            {formatDate(msg.createdAt)}
+                                                            {formatDate(msg.created_at)}
                                                         </div>
                                                     )}
                                                 </React.Fragment>

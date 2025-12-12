@@ -38,10 +38,10 @@ const CreatorRouteGuard = () => {
     if (!currentUser.onboarding_complete) {
         return <Navigate to="/onboarding" replace />;
     }
-    
+
     // 2. If verification is NOT submitted, send them to the verification page.
     if (currentUser.status !== 'active' && currentUser.status !== 'pending verification') {
-         return <Navigate to="/verification" replace />;
+        return <Navigate to="/verification" replace />;
     }
 
     // 3. If status is pending or active, they can access the creator routes.

@@ -54,4 +54,5 @@ export interface User {
   verification_data?: VerificationData;
   creator_data?: any; // JSONB column
   preferences?: any; // JSONB column
+  onboarding_complete?: boolean; // Whether the user has completed onboarding
 }

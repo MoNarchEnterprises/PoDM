@@ -37,9 +37,9 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!stripe || !elements) {
-        setError("Payment form is not ready. Please try again.");
-        return;
-    }
+            setError("Payment form is not ready. Please try again.");
+            return;
+        }
         setIsLoading(true);
         setError(null);
 
@@ -56,7 +56,7 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
             setIsLoading(false);
             return;
         }
-        
+
         try {
             if (mode === 'signup') {
                 // --- THIS IS THE FIX ---
@@ -64,7 +64,7 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
                     email,
                     password,
                     fullName,
-                    creatorId: creator._id,
+                    creatorId: creator.id,
                     tierId: selectedTier.id,
                     // The key must be `paymentMethodId` as the backend expects,
                     // and the value is `paymentMethod.id` from the Stripe call above.
@@ -74,11 +74,11 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
                 await login(email, password);
                 onClose();
                 navigate('/fan/feed');
-                
+
             } else { // Mode is 'login'
                 const loggedInUser = await login(email, password);
                 await apiClient.createSubscription(
-                    creator._id,
+                    creator.id,
                     selectedTier.id,
                     paymentMethod.id
                 );
@@ -103,13 +103,13 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
 
             {/* --- NEW: TABS TO SWITCH BETWEEN MODES --- */}
             <div className="grid grid-cols-2 text-center font-semibold border-b border-gray-700">
-                <button 
+                <button
                     onClick={() => setMode('signup')}
                     className={`py-3 ${mode === 'signup' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
                 >
                     New Fan
                 </button>
-                <button 
+                <button
                     onClick={() => setMode('login')}
                     className={`py-3 ${mode === 'login' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
                 >

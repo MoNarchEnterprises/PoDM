@@ -62,7 +62,7 @@ const WelcomeContentModal = ({ isOpen, onClose, contentItems, onSelect }: { isOp
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {contentItems.map(item => (
                             <div
-                                key={item._id}
+                                key={item.id}
                                 onClick={() => { onSelect(item); onClose(); }}
                                 className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
                             >
@@ -341,17 +341,63 @@ const PaymentsSettingsPanel = ({
     );
 };
 
-const HelpPanel = () => (
-    <SettingsCard title="Contact Support" subtitle="Have an issue or a question? Let us know." footerContent={
-        <Button leftIcon={Send}>Submit Ticket</Button>
-    }>
-        <Input id="subject" label="Subject" placeholder="e.g., Payout Issue" />
-        <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">How can we help?</label>
-            <textarea id="description" rows={6} placeholder="Please describe your issue in detail..." className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
-        </div>
-    </SettingsCard>
-);
+const HelpPanel = () => {
+    const [subject, setSubject] = useState('');
+    const [description, setDescription] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+    const handleSubmitTicket = async () => {
+        if (!subject || !description) {
+            setFeedback({ type: 'error', message: "Please fill out both fields." });
+            return;
+        }
+        setIsLoading(true);
+        setFeedback(null);
+        try {
+            await apiClient.submitSupportTicket(subject, description);
+            setFeedback({ type: 'success', message: "Support ticket submitted!" });
+            setSubject('');
+            setDescription('');
+        } catch (error: any) {
+            setFeedback({ type: 'error', message: error.response?.data?.message || "Failed to submit ticket." });
+        } finally {
+            setIsLoading(false);
+            // Automatically clear feedback after 5 seconds
+            setTimeout(() => setFeedback(null), 5000);
+        }
+    };
+
+    return (
+        <SettingsCard title="Contact Support" subtitle="Have an issue or a question? Let us know." footerContent={
+            <div className="flex items-center gap-4">
+                {feedback && <p className={`text-sm ${feedback.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>{feedback.message}</p>}
+                <Button leftIcon={Send} onClick={handleSubmitTicket} isLoading={isLoading}>
+                    Submit Ticket
+                </Button>
+            </div>
+        }>
+            <Input
+                id="subject"
+                label="Subject"
+                placeholder="e.g., Payout Issue"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+            />
+            <div>
+                <label htmlFor="description" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">How can we help?</label>
+                <textarea
+                    id="description"
+                    rows={6}
+                    placeholder="Please describe your issue in detail..."
+                    className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                ></textarea>
+            </div>
+        </SettingsCard>
+    );
+};
 
 // --- Main Settings Page Component ---
 interface CreatorSettingsPageProps {
@@ -394,8 +440,13 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 // 2. Process each item to get a signed URL for its thumbnail
                 const contentWithSignedUrls = await Promise.all(
                     validContent.map(async (contentItem: Content) => {
+                        // Skip items without a valid ID to prevent 404 errors
+                        if (!contentItem.id) {
+                            console.warn('Skipping content item without id:', contentItem);
+                            return contentItem;
+                        }
                         try {
-                            const urlResponse = await apiClient.getSecureContentUrl(contentItem._id);
+                            const urlResponse = await apiClient.getSecureContentUrl(contentItem.id);
                             // Create a deep copy to safely modify the nested files array
                             const newItem = JSON.parse(JSON.stringify(contentItem));
                             if (newItem.files && newItem.files.length > 0) {
@@ -404,7 +455,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                             }
                             return newItem;
                         } catch (urlError) {
-                            console.error(`Failed to get signed URL for content ${contentItem._id}`, urlError);
+                            console.error(`Failed to get signed URL for content ${contentItem.id}`, urlError);
                             // On failure, return the original item to prevent crashes
                             return contentItem;
                         }
@@ -424,14 +475,14 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
 
     // Effect to find and set the details of the currently attached content
     useEffect(() => {
-        const contentId = settingsData.creatorData?.welcomeMessage?.freeContentId;
+        const contentId = settingsData.creator_data?.welcomeMessage?.freeContentId;
         if (contentId) {
-            const details = attachableContent.find(c => c._id === contentId);
+            const details = attachableContent.find(c => c.id === contentId);
             setAttachedContentDetails(details || null);
         } else {
             setAttachedContentDetails(null);
         }
-    }, [settingsData.creatorData?.welcomeMessage?.freeContentId, attachableContent]);
+    }, [settingsData.creator_data?.welcomeMessage?.freeContentId, attachableContent]);
 
     const handleAddTier = () => {
         // DEBUG: Confirm the function is called
@@ -451,9 +502,9 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
+                ...prev.creator_data,
                 // Add the new tier to the existing array
-                subscriptionTiers: [...(prev.creatorData.subscriptionTiers || []), newTier],
+                subscriptionTiers: [...(prev.creator_data.subscriptionTiers || []), newTier],
             }
         }));
     };
@@ -462,8 +513,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier =>
+                ...prev.creator_data,
+                subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier =>
                     tier.id === tierId ? { ...tier, [field]: value } : tier
                 ),
             }
@@ -475,9 +526,9 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
             setSettingsData(prev => ({
                 ...prev,
                 creatorData: {
-                    ...prev.creatorData,
+                    ...prev.creator_data,
                     // Filter out the tier with the matching ID
-                    subscriptionTiers: (prev.creatorData.subscriptionTiers || []).filter(tier => tier.id !== tierId),
+                    subscriptionTiers: (prev.creator_data.subscriptionTiers || []).filter(tier => tier.id !== tierId),
                 }
             }));
         }
@@ -487,8 +538,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier =>
+                ...prev.creator_data,
+                subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier =>
                     tier.id === tierId
                         // Append a new, empty string to the features array for this tier
                         ? { ...tier, features: [...tier.features, ''] }
@@ -502,9 +553,9 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
+                ...prev.creator_data,
                 // First, map over the tiers to find the correct one
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier => {
+                subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier => {
                     if (tier.id === tierId) {
                         // Then, map over the features to update the specific one by its index
                         const updatedFeatures = tier.features.map((feature, index) =>
@@ -522,8 +573,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData(prev => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
-                subscriptionTiers: (prev.creatorData.subscriptionTiers || []).map(tier => {
+                ...prev.creator_data,
+                subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier => {
                     if (tier.id === tierId) {
                         // Filter the features array to remove the one at the specified index
                         const updatedFeatures = tier.features.filter((_, index) => index !== featureIndex);
@@ -557,9 +608,9 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setSettingsData((prev: Creator) => ({
             ...prev,
             creatorData: {
-                ...prev.creatorData,
+                ...prev.creator_data,
                 welcomeMessage: {
-                    ...prev.creatorData.welcomeMessage,
+                    ...prev.creator_data.welcomeMessage,
                     [field]: value
                 }
             }
@@ -578,7 +629,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     bio: settingsData.profile.bio,
                     socialLinks: settingsData.profile.socialLinks,
                 },
-                creatorData: settingsData.creatorData ||
+                creatorData: settingsData.creator_data ||
                 {
                     subscriptionTiers: [],
                     welcomeMessage: {},
@@ -633,7 +684,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 />;
             case 'Welcome Message':
                 return <WelcomeMessagePanel
-                    welcomeMessage={settingsData.creatorData?.welcomeMessage || {}}
+                    welcomeMessage={settingsData.creator_data?.welcomeMessage || {}}
                     onMessageChange={handleWelcomeMessageChange}
                     onSelectContentClick={openWelcomeModal}
                     attachedContent={attachedContentDetails}
@@ -641,7 +692,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
             case 'Payments':
                 return <PaymentsSettingsPanel
                     creator={settingsData} // Pass the creator object
-                    tiers={settingsData.creatorData?.subscriptionTiers || []}
+                    tiers={settingsData.creator_data?.subscriptionTiers || []}
                     onAddTier={handleAddTier}
                     onTierChange={handleTierChange}
                     onDeleteTier={handleDeleteTier}
@@ -664,7 +715,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 isOpen={isWelcomeModalOpen}
                 onClose={closeWelcomeModal}
                 contentItems={attachableContent}
-                onSelect={(content) => handleWelcomeMessageChange('freeContentId', content._id)}
+                onSelect={(content) => handleWelcomeMessageChange('freeContentId', content.id)}
             />
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">

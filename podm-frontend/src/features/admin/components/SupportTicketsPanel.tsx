@@ -13,6 +13,7 @@ const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
         Pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
         Closed: 'bg-gray-100 text-gray-800 dark:bg-gray-700/50 dark:text-gray-300',
         Escalated: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+        Resolved: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
     };
     return <span className={`px-2 py-1 text-xs font-medium rounded-full ${style[status]}`}>{status}</span>;
 };
@@ -27,8 +28,8 @@ const SupportTicketsPanel = () => {
     }
 
     const tickets = data.supportTickets;
-    const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?._id);
-    const selectedTicket = tickets.find(t => t._id === selectedTicketId);
+    const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?.id);
+    const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
     // --- STATE FOR REPLY FUNCTIONALITY ---
     const [replyText, setReplyText] = useState('');
@@ -40,14 +41,14 @@ const SupportTicketsPanel = () => {
         setIsReplying(true);
         try {
             // Call the new API client function
-            const response = await apiClient.replyToSupportTicket(selectedTicket._id, replyText);
+            const response = await apiClient.replyToSupportTicket(selectedTicket.id, replyText);
             const updatedTicket = response.data;
 
             // Update the global admin data state to reflect the change immediately
             setData(prevData => ({
                 ...prevData,
                 supportTickets: prevData.supportTickets.map(ticket =>
-                    ticket._id === updatedTicket._id ? updatedTicket : ticket
+                    ticket.id === updatedTicket.id ? updatedTicket : ticket
                 ),
             }));
 
@@ -75,17 +76,17 @@ const SupportTicketsPanel = () => {
                     </div>
                     <ul className="overflow-y-auto">
                         {tickets.map((ticket, index) => (
-                            <li 
-                                key={ticket._id || index} 
-                                onClick={() => setSelectedTicketId(ticket._id)} 
-                                className={`p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${selectedTicketId === ticket._id ? 'bg-purple-50 dark:bg-purple-900/50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                            <li
+                                key={ticket.id || index}
+                                onClick={() => setSelectedTicketId(ticket.id)}
+                                className={`p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${selectedTicketId === ticket.id ? 'bg-purple-50 dark:bg-purple-900/50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                             >
                                 <div className="flex justify-between items-start">
                                     <p className="text-sm font-medium">{ticket.subject}</p>
                                     <TicketStatusBadge status={ticket.status} />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    #{ticket._id} from user {ticket.userId}
+                                    #{ticket.id} from user {ticket.user_id}
                                 </p>
                             </li>
                         ))}
@@ -96,14 +97,14 @@ const SupportTicketsPanel = () => {
                     {selectedTicket ? (
                         <>
                             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                                <h3 className="font-semibold">Ticket #{selectedTicket._id} - {selectedTicket.subject}</h3>
+                                <h3 className="font-semibold">Ticket #{selectedTicket.id} - {selectedTicket.subject}</h3>
                             </div>
                             <div className="flex-grow p-4 overflow-y-auto space-y-4">
                                 {selectedTicket.conversation.map((msg, i) => {
-                                    const isAdminReply = msg.senderId !== selectedTicket.userId;
+                                    const isAdminReply = msg.senderId !== selectedTicket.user_id;
                                     return (
-                                        <div 
-                                            key={i} 
+                                        <div
+                                            key={i}
                                             className={`p-3 rounded-lg ${isAdminReply ? 'bg-purple-100 dark:bg-purple-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}
                                         >
                                             <p className="font-bold text-sm">{msg.senderName}</p>
@@ -113,8 +114,8 @@ const SupportTicketsPanel = () => {
                                 })}
                             </div>
                             <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                                <textarea 
-                                    rows={4} 
+                                <textarea
+                                    rows={4}
                                     placeholder="Type your response..."
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
@@ -129,7 +130,7 @@ const SupportTicketsPanel = () => {
                                             <option>Canned Responses</option>
                                         </select>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={handleSendReply}
                                         disabled={isReplying || !replyText.trim()}
                                         className="py-2 px-4 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"

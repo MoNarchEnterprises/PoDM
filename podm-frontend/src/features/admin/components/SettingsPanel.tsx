@@ -13,7 +13,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import * as apiClient from '../../../lib/apiClient'; // Import the api client
 
 // --- Local Types ---
-interface AdminUser extends User {}
+interface AdminUser extends User { }
 
 // --- Reusable Sub-Components ---
 
@@ -63,26 +63,26 @@ const AdminProfileSettings = () => {
         setSuccess(null);
 
         try {
-        // --- This part remains the same ---
-        const profileData = { name, email };
-        // We only update text fields if they have changed.
-        if (name !== user.profile.name || email !== user.email) {
-            await apiClient.updateMe(profileData);
-        }
+            // --- This part remains the same ---
+            const profileData = { name, email };
+            // We only update text fields if they have changed.
+            if (name !== user.profile.name || email !== user.email) {
+                await apiClient.updateMe(profileData);
+            }
 
-        // If a new password is entered, attempt to change it
-        if (newPassword && currentPassword) {
-            await apiClient.changePassword({ currentPassword, newPassword });
-            // Clear the password fields on success
-            setCurrentPassword('');
-            setNewPassword('');
-        }
-        // If an avatar file was selected, upload it.
-        if (avatarFile) {
-            console.log("Avatar upload requested. Sending file to backend...");
-            const updatedUserFromAvatar = await apiClient.uploadAvatar(avatarFile);
-            const freshUser = updatedUserFromAvatar.data;
-                
+            // If a new password is entered, attempt to change it
+            if (newPassword && currentPassword) {
+                await apiClient.changePassword({ currentPassword, newPassword });
+                // Clear the password fields on success
+                setCurrentPassword('');
+                setNewPassword('');
+            }
+            // If an avatar file was selected, upload it.
+            if (avatarFile) {
+                console.log("Avatar upload requested. Sending file to backend...");
+                const updatedUserFromAvatar = await apiClient.uploadAvatar(avatarFile);
+                const freshUser = updatedUserFromAvatar.data;
+
                 // This updates the local auth context (for the header, etc.)
                 setUser(freshUser);
 
@@ -90,22 +90,22 @@ const AdminProfileSettings = () => {
                 // This updates the shared AdminPanel state so User Management has the fresh data
                 setData(prevData => ({
                     ...prevData,
-                    users: prevData.users.map(u => 
-                        u._id === freshUser._id ? freshUser : u
+                    users: prevData.users.map(u =>
+                        u.id === freshUser._id ? freshUser : u
                     ),
                 }));
+            }
+
+            setSuccess("Profile updated successfully!");
+
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Failed to update profile.");
+        } finally {
+            setIsLoading(false);
+            // Clear success message and reset the avatar file state
+            setTimeout(() => setSuccess(null), 3000);
+            setAvatarFile(null);
         }
-
-        setSuccess("Profile updated successfully!");
-
-    } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to update profile.");
-    } finally {
-        setIsLoading(false);
-        // Clear success message and reset the avatar file state
-        setTimeout(() => setSuccess(null), 3000);
-        setAvatarFile(null);
-    }
     };
 
     if (!user) {
@@ -155,28 +155,28 @@ const AdminProfileSettings = () => {
                     leftIcon={Mail}
                 />
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                     <h4 className="text-md font-semibold mb-2">Change Password</h4>
-                     <div className="space-y-4">
-                        <Input 
-                            id="current-password" 
-                            type="password" 
-                            placeholder="Current Password" 
+                    <h4 className="text-md font-semibold mb-2">Change Password</h4>
+                    <div className="space-y-4">
+                        <Input
+                            id="current-password"
+                            type="password"
+                            placeholder="Current Password"
                             leftIcon={KeyRound}
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
                         />
-                        <Input 
-                            id="new-password" 
-                            type="password" 
-                            placeholder="New Password" 
+                        <Input
+                            id="new-password"
+                            type="password"
+                            placeholder="New Password"
                             leftIcon={KeyRound}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                         />
-                     </div>
+                    </div>
                 </div>
             </div>
-             <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center gap-4">
                 {success && <p className="text-sm text-green-600 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</p>}
                 {error && <p className="text-sm text-red-600 flex items-center gap-2"><AlertCircle className="w-4 h-4" />{error}</p>}
                 <Button leftIcon={Save} onClick={handleSaveProfile} isLoading={isLoading}>Save My Profile</Button>
@@ -208,7 +208,7 @@ const SettingsPanel = () => {
         };
         fetchSettings();
     }, []);
-    
+
     // 3. CREATE HANDLER FOR SAVING
     const handleSaveFinancialSettings = async () => {
         setIsLoading(true);
@@ -258,17 +258,17 @@ const SettingsPanel = () => {
                             onChange={(e) => setCommissionRate(e.target.value)}
                             containerClassName="md:w-1/3"
                         />
-                         <div className="flex justify-end items-center gap-4">
+                        <div className="flex justify-end items-center gap-4">
                             {success && <p className="text-sm text-green-600">{success}</p>}
                             {error && <p className="text-sm text-red-600">{error}</p>}
-                            <Button 
+                            <Button
                                 leftIcon={Save}
                                 onClick={handleSaveFinancialSettings}
                                 isLoading={isSaving}
                             >
                                 Save Financial Settings
                             </Button>
-                         </div>
+                        </div>
                     </div>
                 </Card>
                 <Card noPadding>
@@ -282,7 +282,7 @@ const SettingsPanel = () => {
                         {admins
                             .filter(admin => admin && admin.profile)
                             .map(admin => (
-                                <li key={admin._id} className="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <li key={admin.id} className="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800">
                                     <div>
                                         <p className="font-medium">{admin.profile.name} <span className="text-xs text-gray-500">({admin.email})</span></p>
                                         <p className="text-xs font-semibold text-purple-600 capitalize">{admin.role}</p>
@@ -291,7 +291,7 @@ const SettingsPanel = () => {
                                         Remove
                                     </Button>
                                 </li>
-                        ))}
+                            ))}
                     </ul>
                 </Card>
             </div>

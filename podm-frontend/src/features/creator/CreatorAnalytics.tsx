@@ -66,7 +66,7 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                             <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
                             <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} />
                             <Tooltip content={<CustomTooltip />} />
-                            <Legend wrapperStyle={{fontSize: "14px"}}/>
+                            <Legend wrapperStyle={{ fontSize: "14px" }} />
                             <Line type="monotone" dataKey="Subscribers" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                         </LineChart>
                     </ResponsiveContainer>
@@ -102,19 +102,19 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                           {topContent.map(item => (
-                               <tr key={item._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                   <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">{item.title}</td>
-                                   <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{item.stats.views.toLocaleString()}</td>
-                                   <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{item.stats.galleryAdds.toLocaleString()}</td>
-                                   <td className="px-4 py-3 text-center text-sm font-semibold text-green-600 dark:text-green-400">{formatCurrency(item.stats.tips)}</td>
-                                   <td className="px-4 py-3 text-center">
-                                       <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                                           <MoreVertical className="w-5 h-5 text-gray-500" />
-                                       </button>
-                                   </td>
-                               </tr>
-                           ))}
+                            {topContent.map(item => (
+                                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">{item.title}</td>
+                                    <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{item.stats.views.toLocaleString()}</td>
+                                    <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{item.stats.galleryAdds.toLocaleString()}</td>
+                                    <td className="px-4 py-3 text-center text-sm font-semibold text-green-600 dark:text-green-400">{formatCurrency(item.stats.tips)}</td>
+                                    <td className="px-4 py-3 text-center">
+                                        <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                                            <MoreVertical className="w-5 h-5 text-gray-500" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

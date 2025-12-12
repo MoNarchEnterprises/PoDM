@@ -8,7 +8,7 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'list',
     use: {
-        baseURL: 'http://localhost:5173', // Default to 5173
+        baseURL: 'https://podm.app',
         trace: 'on-first-retry',
     },
     projects: [

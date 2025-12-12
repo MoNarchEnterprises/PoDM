@@ -171,7 +171,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         if (!user || user.role !== 'admin') {
             throw new Error("Only admins can start an impersonation session.");
         }
-        localStorage.setItem('impersonating_user_id', targetUser._id);
+        localStorage.setItem('impersonating_user_id', targetUser.id);
         setImpersonatedUser(targetUser);
         if (targetUser.role === 'creator') {
             navigate('/hub/dashboard');

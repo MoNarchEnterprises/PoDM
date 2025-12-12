@@ -38,14 +38,14 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
     const { isOpen: isSubAuthModalOpen, openModal: openSubAuthModal, closeModal: closeSubAuthModal } = useModal();
 
     // State for UI selection and loading
-    const [selectedTierId, setSelectedTierId] = useState(creator.creatorData.subscriptionTiers[0]?.id || '');
+    const [selectedTierId, setSelectedTierId] = useState(creator.creator_data.subscriptionTiers[0]?.id || '');
     const [isPreparing, setIsPreparing] = useState(false);
-    
+
     // This state will hold the FRESH tier data right before opening a modal
     const [tierForModal, setTierForModal] = useState<SubscriptionTier | null>(null);
 
     // Derived state for UI display (this can be stale, which is fine for display purposes)
-    const selectedTierForDisplay = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
+    const selectedTierForDisplay = creator.creator_data.subscriptionTiers.find(t => t.id === selectedTierId);
     const isAlreadySubscribed = isSubscribed;
 
     /**
@@ -54,7 +54,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
      */
     const initiateSubscriptionForUser = async (tierId: string) => {
         if (!tierId) return;
-        
+
         setIsPreparing(true);
         try {
             const response = await apiClient.getPublicCreatorProfile(creator.username);
@@ -64,7 +64,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
             if (!freshTier || !freshTier.stripePriceId) {
                 throw new Error("This tier is not available. Please refresh the page and try again.");
             }
-            
+
             setTierForModal(freshTier);
             openSubModal(); // Open the simple payment modal
         } catch (error: any) {
@@ -90,7 +90,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
         } else {
             // If user is a guest, find the tier from the current (possibly stale) data
             // to pass to the auth modal. The auth modal will handle fetching fresh data if needed.
-            const tier = creator.creatorData.subscriptionTiers.find(t => t.id === selectedTierId);
+            const tier = creator.creator_data.subscriptionTiers.find(t => t.id === selectedTierId);
             if (tier) {
                 setTierForModal(tier);
                 openSubAuthModal();
@@ -106,7 +106,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
         closeSubAuthModal(); // Close the auth modal
         // Immediately start the subscription process for the now logged-in user,
         // using the tierId that was already selected in the UI.
-        initiateSubscriptionForUser(selectedTierId); 
+        initiateSubscriptionForUser(selectedTierId);
     };
 
     /**
@@ -114,7 +114,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
      */
     const handleSubscriptionConfirm = async ({ creatorId, tierId, paymentMethodId }: { creatorId: string, tierId: string, paymentMethodId: string }) => {
         if (!stripe) throw new Error("Stripe is not initialized.");
-        
+
         try {
             const result = await apiClient.createSubscription(creatorId, tierId, paymentMethodId);
             const { requiresAction, clientSecret } = result.data;
@@ -134,22 +134,22 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
     };
 
     const gridColsMap: { [key: number]: string } = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' };
-    const numTiers = creator.creatorData.subscriptionTiers.length || 1;
+    const numTiers = creator.creator_data.subscriptionTiers.length || 1;
     const gridColsClass = gridColsMap[numTiers] || 'md:grid-cols-3';
 
     return (
         <>
             {/* Modal for LOGGED-IN users, uses the simple payment flow */}
             {tierForModal && (
-                 <SubscriptionModal 
+                <SubscriptionModal
                     isOpen={isSubModalOpen}
                     onClose={closeSubModal}
                     creator={creator}
                     selectedTier={tierForModal}
                     onSubscriptionComplete={handleSubscriptionConfirm}
-                 />
+                />
             )}
-           
+
             {/* Modal for GUESTS, uses the combined signup/login/payment flow */}
             {tierForModal && (
                 <SubscriptionAuthModal
@@ -160,31 +160,31 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                     onLoginSuccess={handleLoginSuccess}
                 />
             )}
-           
+
             <div className="bg-gray-50 dark:bg-gray-900 font-sans">
                 {/* Header is kept simple, login/signup is handled by the subscribe button */}
-                <Header user={user} onLoginClick={() => {}} onSignUpClick={() => {}} />
+                <Header user={user} onLoginClick={() => { }} onSignUpClick={() => { }} />
 
                 <main className="py-8">
                     <Container>
                         <div className="relative bg-white dark:bg-gray-800/50 p-6 rounded-2xl shadow-md">
                             <div className="h-48 md:h-64 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
-                                <img 
-                                    src={creator.profile.coverImageUrl || 'https://placehold.co/1200x400/1F2937/FFFFFF?text=No+Banner'} 
+                                <img
+                                    src={creator.profile.coverImageUrl || 'https://placehold.co/1200x400/1F2937/FFFFFF?text=No+Banner'}
                                     alt={`${creator.profile.name}'s banner`}
-                                    className="w-full h-full object-cover" 
+                                    className="w-full h-full object-cover"
                                 />
                             </div>
                             <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 sm:-mt-12 px-4">
-                                <img 
-                                    src={creator.profile.avatar} 
-                                    alt={creator.profile.name} 
+                                <img
+                                    src={creator.profile.avatar}
+                                    alt={creator.profile.name}
                                     className="w-32 h-32 rounded-full border-4 border-gray-50 dark:border-gray-900 object-cover"
                                 />
                                 <div className="sm:ml-6 mt-4 sm:mt-0 text-center sm:text-left flex-grow">
                                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center justify-center sm:justify-start">
                                         {creator.profile.name}
-                                        {creator.verificationStatus === 'verified' && <CheckCircle className="w-6 h-6 ml-2 text-blue-500" />}
+                                        {creator.verification_status === 'verified' && <CheckCircle className="w-6 h-6 ml-2 text-blue-500" />}
                                     </h1>
                                     <p className="text-gray-500 dark:text-gray-400">@{creator.username}</p>
                                 </div>
@@ -200,20 +200,20 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                 {creator.profile.bio}
                             </p>
                         </div>
-                        
+
                         {!isAlreadySubscribed && (
                             <div className="mt-8">
                                 <h2 className="text-xl font-bold mb-4 text-center">Choose Your Subscription</h2>
                                 <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
-                                    {creator.creatorData.subscriptionTiers.map(tier => (
+                                    {creator.creator_data.subscriptionTiers.map(tier => (
                                         <TierCard key={tier.id} tier={tier} onSelect={setSelectedTierId} isSelected={selectedTierId === tier.id} />
                                     ))}
                                 </div>
                                 <div className="mt-6 text-center">
-                                    <Button 
-                                        size="lg" 
-                                        className="w-full md:w-auto md:px-12 bg-pink-500 hover:bg-pink-600" 
-                                        onClick={handleSubscribeClick} 
+                                    <Button
+                                        size="lg"
+                                        className="w-full md:w-auto md:px-12 bg-pink-500 hover:bg-pink-600"
+                                        onClick={handleSubscribeClick}
                                         isLoading={isPreparing}
                                         disabled={!selectedTierForDisplay || isPreparing}
                                     >
@@ -241,19 +241,19 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                     const postWithCreator = {
                                         ...post,
                                         creator: {
-                                            _id: creator._id,
+                                            _id: creator.id,
                                             username: creator.username,
-                                            verified: creator.verificationStatus === 'verified',
+                                            verified: creator.verification_status === 'verified',
                                             profile: {
                                                 name: creator.profile.name,
                                                 avatar: creator.profile.avatar,
-                                            },                       
+                                            },
                                         }
                                     };
                                     return (
-                                        <PostCard 
-                                            key={post._id} 
-                                            post={postWithCreator as any} 
+                                        <PostCard
+                                            key={post.id}
+                                            post={postWithCreator as any}
                                             isLocked={!isAlreadySubscribed}
                                         />
                                     );
@@ -262,7 +262,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                         </div>
                     </Container>
                 </main>
-                
+
                 <Footer />
             </div>
         </>

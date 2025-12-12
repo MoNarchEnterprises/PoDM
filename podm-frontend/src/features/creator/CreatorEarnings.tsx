@@ -31,7 +31,7 @@ const WithdrawModal = ({ isOpen, onClose, availableBalance, onPayoutSuccess }: {
     const [amount, setAmount] = useState('');
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false); // Add isLoading state
-    const [error, setError] = useState<string | null>(null); 
+    const [error, setError] = useState<string | null>(null);
 
     const processingFee = (parseFloat(amount) || 0) * 0.02;
     const totalPayout = (parseFloat(amount) || 0) - processingFee;
@@ -83,18 +83,18 @@ const WithdrawModal = ({ isOpen, onClose, availableBalance, onPayoutSuccess }: {
                             <h4 className="font-semibold text-sm">Payout Summary</h4>
                             <div className="flex justify-between text-sm"><span className="text-gray-500">Amount:</span><span>{formatCurrency((parseFloat(amount) || 0) * 100)}</span></div>
                             <div className="flex justify-between text-sm"><span className="text-gray-500">Processing Fee (2%):</span><span className="text-red-500">-{formatCurrency(processingFee * 100)}</span></div>
-                            <hr className="border-gray-200 dark:border-gray-600"/>
+                            <hr className="border-gray-200 dark:border-gray-600" />
                             <div className="flex justify-between font-bold"><span >You will receive:</span><span>{formatCurrency(totalPayout > 0 ? totalPayout * 100 : 0)}</span></div>
                         </div>
                     </main>
                     <footer className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                         <Button 
-                            onClick={handleRequestPayout} 
+                        <Button
+                            onClick={handleRequestPayout}
                             isLoading={isLoading} // Use isLoading state
-                            disabled={!amount || parseFloat(amount) <= 0 || (parseFloat(amount) * 100) > availableBalance || isLoading} 
-                            className="w-full" 
+                            disabled={!amount || parseFloat(amount) <= 0 || (parseFloat(amount) * 100) > availableBalance || isLoading}
+                            className="w-full"
                             size="lg"
-                         >
+                        >
                             Request Payout
                         </Button>
                     </footer>
@@ -132,10 +132,10 @@ const TransactionRow = ({ transaction }: { transaction: TransactionWithFan }) =>
     // This component would use the StatusBadge component
     return (
         <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{formatDate(transaction.createdAt)}</td>
+            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{formatDate(transaction.created_at)}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{transaction.type}</td>
-            <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{transaction.fanName || transaction.fanId}</td>
-            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-right">{formatCurrency(transaction.creatorPayout)}</td>
+            <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{transaction.fanName || transaction.fan_id}</td>
+            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-right">{formatCurrency(transaction.creator_payout)}</td>
             <td className="px-4 py-3 text-center text-xs font-medium capitalize">{transaction.status}</td>
         </tr>
     );
@@ -151,7 +151,7 @@ export interface CreatorEarningsPageProps {
 const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: CreatorEarningsPageProps) => {
     const [filter, setFilter] = useState('All');
     const { isOpen, openModal, closeModal } = useModal();
-    
+
     const handlePayoutSuccess = () => {
         // A simple way to refresh is to reload the page.
         // A more advanced way would be to re-trigger the loader's useEffect.
@@ -165,9 +165,9 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
 
     return (
         <>
-            <WithdrawModal 
-                isOpen={isOpen} 
-                onClose={closeModal} 
+            <WithdrawModal
+                isOpen={isOpen}
+                onClose={closeModal}
                 availableBalance={summary.availableForPayout}
                 onPayoutSuccess={handlePayoutSuccess} // Pass the success handler
             />
@@ -194,13 +194,13 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
                         <BarChart data={monthlyEarnings}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
                             <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
-                            <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
+                            <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value / 1000}k`} />
                             <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem' }} formatter={(value: number) => formatCurrency(value * 100)} />
                             <Bar dataKey="Earnings" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </Card>
-                
+
                 <Card noPadding>
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Transaction History</h3>
@@ -226,7 +226,7 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                               {filteredTransactions.map(item => <TransactionRow key={item._id} transaction={item} />)}
+                                {filteredTransactions.map(item => <TransactionRow key={item.id} transaction={item} />)}
                             </tbody>
                         </table>
                     </div>

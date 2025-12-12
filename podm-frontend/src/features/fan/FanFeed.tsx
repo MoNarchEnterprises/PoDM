@@ -64,7 +64,7 @@ const FanFeed = () => {
                 );
             }
             if (activeFilter === 'Trending') {
-                 return (
+                return (
                     <div className="text-center py-12 text-gray-500">
                         <h3 className="font-bold text-lg">Trending is Coming Soon!</h3>
                         <p>This section will help you discover new creators to follow.</p>
@@ -75,7 +75,7 @@ const FanFeed = () => {
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {posts.map(post => (
-                    <PostCard key={post._id} post={post} />
+                    <PostCard key={post.id} post={post} />
                 ))}
             </div>
         );

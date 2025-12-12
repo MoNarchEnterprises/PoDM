@@ -19,7 +19,7 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, onContentClick, onSaveToGallery, onDelete }: MessageBubbleProps) => {
     const justifyClass = isMe ? 'justify-end' : 'justify-start';
-    
+
     const bubbleClass = senderRole === 'creator'
         ? `bg-pink-700 text-white ${isMe ? 'rounded-br-none' : 'rounded-bl-none'}`
         : `bg-purple-600 text-gray-200 ${isMe ? 'rounded-br-none' : 'rounded-bl-none'}`;
@@ -39,13 +39,13 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
             setIsSaving(false);
         }
     };
-    
+
     return (
         <div className={`flex flex-col group ${isMe ? 'items-end' : 'items-start'}`}>
             <div className={`flex items-end gap-2`}>
                 {isMe && (
-                    <button 
-                        onClick={() => onDelete(message._id)} 
+                    <button
+                        onClick={() => onDelete(message.id)}
                         className="p-1 mb-1 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-700 hover:text-red-400"
                         title="Delete Message"
                     >
@@ -74,7 +74,7 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                     )}
                 </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1 px-2">{formatMessageTimestamp(message.createdAt)}</p>
+            <p className="text-xs text-gray-500 mt-1 px-2">{formatMessageTimestamp(message.created_at)}</p>
         </div>
     );
 };

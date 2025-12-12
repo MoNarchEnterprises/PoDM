@@ -26,7 +26,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        
+
         if (!stripe || !elements) {
             // Stripe.js has not yet loaded.
             setError("Stripe is not ready. Please wait a moment and try again.");
@@ -59,7 +59,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
         // This keeps the API logic in the main page component
         try {
             await onSubscriptionComplete({
-                creatorId: creator._id,
+                creatorId: creator.id,
                 tierId: selectedTier.id,
                 paymentMethodId: paymentMethod.id,
             });

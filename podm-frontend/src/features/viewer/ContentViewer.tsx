@@ -18,7 +18,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 // --- Reusable Sub-Components ---
 const RelatedContentCard = ({ item }: { item: Content }) => (
-    <Link to={`/content/${item._id}`} className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
+    <Link to={`/content/${item.id}`} className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
         <img src={item.files[0]?.thumbnailUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-2 text-white">
@@ -42,16 +42,16 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (content && content._id) {
+        if (content && content.id) {
             apiClient.logAnalyticsEvent({
                 eventType: 'post_view',
-                creatorId: creator._id,
-                contentId: content._id,
+                creatorId: creator.id,
+                contentId: content.id,
             });
 
             if (content.type === 'video') {
                 setIsLoading(true);
-                apiClient.getSecureContentViewUrl(content._id)
+                apiClient.getSecureContentViewUrl(content.id)
                     .then(response => {
                         setSecureUrl(response.data.secureUrl);
                     })
@@ -63,7 +63,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                     });
             }
         }
-    }, [creator?._id, content?._id, content?.type]);
+    }, [creator?.id, content?.id, content?.type]);
 
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
@@ -73,12 +73,12 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     useOnClickOutside(menuRef, closeMenu);
 
     const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
-        return apiClient.sendTip(creator._id, amount, message, content._id, paymentMethodId);
+        return apiClient.sendTip(creator.id, amount, message, content.id, paymentMethodId);
     };
 
     const handleReportSubmit = async (reason: string) => {
         try {
-            await apiClient.reportContent(content._id, reason);
+            await apiClient.reportContent(content.id, reason);
             alert('Content reported successfully. Thank you for keeping the community safe.');
             closeReportModal();
         } catch (error) {

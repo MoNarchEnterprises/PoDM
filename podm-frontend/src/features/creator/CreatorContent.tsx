@@ -59,7 +59,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
             setVisibility(initialContent.visibility);
             setPrice(initialContent.price ? (initialContent.price / 100).toString() : '');
             setIsScheduled(initialContent.schedule?.isScheduled || false);
-            setMinTierLevel(initialContent.minTierLevel || 1);
+            setMinTierLevel(initialContent.min_tier_level || 1);
             // Format date for the datetime-local input
             if (initialContent.schedule?.isScheduled && initialContent.schedule.publishDate) {
                 try {
@@ -174,7 +174,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
 
         try {
             // Call the universal onSave handler from the parent
-            await onSave(formData, initialContent?._id);
+            await onSave(formData, initialContent?.id);
             handleClose();
         } catch (err: any) {
             setError(err.response?.data?.message || 'An error occurred.');
@@ -445,7 +445,7 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
             const thumbnailPath = item.files?.[0]?.thumbnailUrl;
             if (thumbnailPath) {
                 try {
-                    const response = await apiClient.getSecureContentUrl(item._id);
+                    const response = await apiClient.getSecureContentUrl(item.id);
                     setImageUrl(response.data.secureUrl);
                 } catch (error) {
                     console.error("Failed to fetch secure thumbnail URL for", item.title, error);
@@ -456,7 +456,7 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
             }
         };
         fetchImageUrl();
-    }, [item._id, item.files]);
+    }, [item.id, item.files]);
 
     const visibilityMap = {
         'subscribers_only': 'Subscribers',
@@ -491,7 +491,7 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
                                 </button>
                             </li>
                             <li>
-                                <button onClick={() => { onDelete(item._id); setIsMenuOpen(false); }} className="flex items-center space-x-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <button onClick={() => { onDelete(item.id); setIsMenuOpen(false); }} className="flex items-center space-x-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <Trash2 className="w-4 h-4" />
                                     <span>Delete Content</span>
                                 </button>
@@ -562,7 +562,7 @@ const CreatorContentPage = () => {
     // --- NEW: Reshape data for the viewer modal ---
     const galleryItemsForModal = useMemo(() => {
         return content.map(item => ({
-            contentId: item._id,
+            contentId: item.id,
             content: item,
         }));
     }, [content]);
@@ -609,7 +609,7 @@ const CreatorContentPage = () => {
                 // Ensure the item we put back into state has the `_id` property.
                 const reshapedItem = { ...updatedItemFromApi, _id: updatedItemFromApi._id || updatedItemFromApi.id.toString() };
 
-                setContent(prev => prev.map(item => item._id === contentId ? reshapedItem : item));
+                setContent(prev => prev.map(item => item.id === contentId ? reshapedItem : item));
 
 
             } else { // This is a CREATE operation (remains the same)
@@ -644,7 +644,7 @@ const CreatorContentPage = () => {
         if (window.confirm('Are you sure you want to permanently delete this content? This action cannot be undone.')) {
             try {
                 await apiClient.deleteContent(contentId);
-                setContent(prev => prev.filter(item => item._id !== contentId));
+                setContent(prev => prev.filter(item => item.id !== contentId));
             } catch (error) {
                 console.error("Failed to delete content:", error);
                 alert('Failed to delete content. Please try again.');
@@ -713,7 +713,7 @@ const CreatorContentPage = () => {
                                     {content.length > 0 ? (
                                         content.map((item, index) => (
                                             <ContentRow
-                                                key={item._id || `fallback-${index}`}
+                                                key={item.id || `fallback-${index}`}
                                                 item={item}
                                                 onRowClick={() => handleThumbnailClick(index)}
                                                 onDelete={handleDeleteContent}

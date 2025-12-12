@@ -24,8 +24,8 @@ const ContentModerationPanel = () => {
     const { data, setData } = useAdminData();
     const flaggedContent = data.flaggedContent as FlaggedContent[];
 
-    const [selectedContentId, setSelectedContentId] = useState(flaggedContent[0]?._id);
-    const selectedContent = flaggedContent.find(c => c._id === selectedContentId);
+    const [selectedContentId, setSelectedContentId] = useState(flaggedContent[0]?.id);
+    const selectedContent = flaggedContent.find(c => c.id === selectedContentId);
 
     // Handle the case where the data might not be loaded yet
     if (!data) {
@@ -38,13 +38,13 @@ const ContentModerationPanel = () => {
 
         try {
             // Dismiss reports by setting status to 'published'
-            await apiClient.updateContentStatus(selectedContent._id, 'published');
+            await apiClient.updateContentStatus(selectedContent.id, 'published');
             alert("Reports dismissed. Content approved.");
 
             // Remove from local state
             setData((prev: any) => ({
                 ...prev,
-                flaggedContent: prev.flaggedContent.filter((c: any) => c._id !== selectedContent._id)
+                flaggedContent: prev.flaggedContent.filter((c: any) => c.id !== selectedContent.id)
             }));
             setSelectedContentId('');
         } catch (error) {
@@ -58,13 +58,13 @@ const ContentModerationPanel = () => {
         if (!confirm("Are you sure you want to DELETE this content? This cannot be undone.")) return;
 
         try {
-            await apiClient.updateContentStatus(selectedContent._id, 'removed');
+            await apiClient.updateContentStatus(selectedContent.id, 'removed');
             alert("Content deleted (status set to removed).");
 
             // Remove from local state
             setData((prev: any) => ({
                 ...prev,
-                flaggedContent: prev.flaggedContent.filter((c: any) => c._id !== selectedContent._id)
+                flaggedContent: prev.flaggedContent.filter((c: any) => c.id !== selectedContent.id)
             }));
             setSelectedContentId('');
         } catch (error) {
@@ -78,7 +78,7 @@ const ContentModerationPanel = () => {
         if (!confirm(`Are you sure you want to BAN the creator "${selectedContent.creator.profile.name}"?`)) return;
 
         try {
-            await apiClient.updateUserStatus(selectedContent.creator._id, 'banned');
+            await apiClient.updateUserStatus(selectedContent.creator.id, 'banned');
             alert(`Creator ${selectedContent.creator.profile.name} has been banned.`);
         } catch (error) {
             console.error("Failed to ban creator:", error);
@@ -105,9 +105,9 @@ const ContentModerationPanel = () => {
                     <ul className="overflow-y-auto">
                         {flaggedContent.map(item => (
                             <li
-                                key={item._id}
-                                onClick={() => setSelectedContentId(item._id)}
-                                className={`p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${selectedContentId === item._id ? 'bg-purple-50 dark:bg-purple-900/50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                key={item.id}
+                                onClick={() => setSelectedContentId(item.id)}
+                                className={`p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${selectedContentId === item.id ? 'bg-purple-50 dark:bg-purple-900/50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                             >
                                 <div className="flex items-center space-x-3">
                                     <img src={item.creator.profile.avatar} alt={item.creator.profile.name} className="w-8 h-8 rounded-full" />

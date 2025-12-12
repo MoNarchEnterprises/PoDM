@@ -61,7 +61,7 @@ export const addReplyToTicket = async (ticketId: string, adminUser: User, text: 
     }
 
     // 5. Send a direct message to the user so they see it in their messages
-    // We use a dynamic import to avoid circular dependency issues if message.service imports this file
+    // @ts-ignore - Dynamic import to avoid circular dependency, works at runtime
     const messageService = await import('./message.service');
     try {
         await messageService.sendDirectMessage(adminUser.id, ticket.user_id, {
