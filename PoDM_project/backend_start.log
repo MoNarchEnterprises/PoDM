@@ -4325,3 +4325,14 @@ server/utils/tier.utils.ts(81,7): error TS1005: '}' expected.
 [dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
 ✅ auth.routes.ts file has been loaded and is running.
 🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 01:36:55 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\server.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+Password reset request error: Error sending recovery email
+Password reset request error: Error sending recovery email
+Password reset request error: Error sending recovery email
+Password reset request error: Error sending recovery email
+^C^C

@@ -35,3 +35,33 @@ export const replyToTicket = async (req: Request, res: Response, next: NextFunct
         next(error);
     }
 };
+
+/**
+ * @desc    Get support ticket by ID (and mark as Pending if Open)
+ * @route   GET /api/v1/support/tickets/:id
+ * @access  Private (Admins only)
+ */
+export const getTicketById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: ticketId } = req.params;
+        const ticket = await supportService.getTicketDetails(ticketId);
+        res.status(200).json({ success: true, data: ticket });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Resolve a support ticket
+ * @route   PUT /api/v1/support/tickets/:id/resolve
+ * @access  Private (Admins only)
+ */
+export const resolveTicket = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: ticketId } = req.params;
+        const ticket = await supportService.resolveTicket(ticketId);
+        res.status(200).json({ success: true, data: ticket });
+    } catch (error) {
+        next(error);
+    }
+};

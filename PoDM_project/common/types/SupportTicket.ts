@@ -3,7 +3,7 @@
 /**
  * Defines the possible statuses for a support ticket.
  */
-export type TicketStatus = 'Open' | 'Pending' | 'Closed' | 'Escalated';
+export type TicketStatus = 'Open' | 'Pending' | 'Closed' | 'Escalated' | 'Resolved';
 
 /**
  * Defines the priority levels for a support ticket.

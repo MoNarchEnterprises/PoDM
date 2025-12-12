@@ -13,5 +13,9 @@ router.post('/tickets', protect, supportController.createSupportTicket);
  */
 router.put('/tickets/:id/reply', protect, adminOnly, supportController.replyToTicket);
 
+router.get('/tickets/:id', protect, adminOnly, supportController.getTicketById);
+
+router.put('/tickets/:id/resolve', protect, adminOnly, supportController.resolveTicket);
+
 
 export default router;

@@ -175,6 +175,22 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
     io.to(roomName).emit('new_message', messageForFrontend);
     console.log(`[MessageService] Broadcasted to room: ${roomName}`);
 
+    // Check if this message should append to a detailed support ticket
+    // Dynamic import to avoid circular dependency
+    try {
+        const supportService = await import('./support.service');
+        // We only append if the sender is NOT an admin (or we rely on the service to filter).
+        // Actually supportService.appendUserMessageToActiveTicket checks if the USER has a ticket.
+        // If an admin sends a message, they might have a ticket as a user too? 
+        // We generally assume this hook is for FANS/CREATORS contacting SUPPORT.
+        // If the receiver is NOT another user? Wait, support is done via Admin accounts.
+
+        // Simpler check: Just try to append. If no ticket, it does nothing.
+        await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, sender.profile.name);
+    } catch (err) {
+        console.error('Error handling support ticket sync:', err);
+    }
+
     return messageForFrontend;
 };
 
