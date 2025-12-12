@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server/server.js",
+    "start": "node dist/server/Server.js",
     "dev": "ts-node-dev --respawn --transpile-only server/server.ts",
+    "dev:server": "ts-node-dev --respawn --transpile-only server/Server.ts",
     "seed": "ts-node-dev --transpile-only server/scripts/seed.ts",
     "test": "jest"
   },
