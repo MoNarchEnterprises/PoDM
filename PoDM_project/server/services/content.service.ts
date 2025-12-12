@@ -603,6 +603,8 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         throw new AppError('Content not found.', 404);
     }
     console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creator_id})`);
+    console.log(`[Service] User ID: ${userId}`);
+    console.log(`[Service] Content creator ID: ${content.creator_id}`);
 
     // Owner check
     if (content.creator_id !== userId) {
