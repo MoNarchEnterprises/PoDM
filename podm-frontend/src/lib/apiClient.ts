@@ -14,7 +14,7 @@ interface GetContentParams {
  * In a real application, this would come from an environment variable.
  * e.g., process.env.REACT_APP_API_URL
  */
-const API_BASE_URL = 'http://localhost:5000/api/v1'; // Assuming your backend runs on port 5000
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 // --- Axios Instance Creation ---
 
