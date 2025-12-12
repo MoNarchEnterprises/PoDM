@@ -11,7 +11,7 @@ import Stripe from 'stripe';
  */
 export const createAccountLink = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) {
             throw new AppError('Authentication error, creator ID not found.', 401);
         }

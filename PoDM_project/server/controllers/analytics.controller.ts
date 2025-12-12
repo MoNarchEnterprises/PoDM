@@ -4,7 +4,7 @@ import { AppError } from '../middleware/error.middleware';
 
 export const logEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const viewerId = req.user?._id || null;
+        const viewerId = req.user?.id || null;
         const { eventType, creatorId, contentId } = req.body;
 
         if (!eventType || !creatorId) {

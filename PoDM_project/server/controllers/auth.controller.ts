@@ -11,7 +11,7 @@ import { UserRole } from '@common/types/User';
 export const signupAndSubscribe = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password, fullName, creatorId, tierId, paymentMethodId } = req.body;
-        
+
         const { user, token } = await AuthService.signupAndSubscribe(
             email, password, fullName, creatorId, tierId, paymentMethodId
         );
@@ -50,14 +50,14 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         // --- THIS IS THE CRITICAL ADDITION ---
         console.error('--- DETAILED SIGNUP ERROR ---');
         // Log the specific error message from the AppError
-        console.error('Message:', error.message); 
+        console.error('Message:', error.message);
         // If the error has more details (like from a Supabase client error), log them
         if (error.originalError) {
             console.error('Original Error:', error.originalError);
         }
         console.error('--- END DETAILED SIGNUP ERROR ---');
         // --- END OF ADDITION ---
-        
+
         next(error); // Pass the error to the global error handler
     }
 };
@@ -130,7 +130,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
  */
 export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { currentPassword, newPassword } = req.body;
 
         if (!userId) {

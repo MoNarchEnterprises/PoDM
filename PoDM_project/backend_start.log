@@ -4225,3 +4225,58 @@ server/services/subscription.service.ts(333,7): error TS1005: '}' expected.
 [dotenv@17.2.2] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
 ✅ auth.routes.ts file has been loaded and is running.
 🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:46:50 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\admin.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:47:42 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\analytics.controller.ts has been modified
+Compilation error in C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\analytics.controller.ts
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+[ERROR] 22:47:43 ⨯ Unable to compile TypeScript:
+server/controllers/analytics.controller.ts(2,9): error TS1109: Expression expected.
+server/controllers/analytics.controller.ts(2,10): error TS1128: Declaration or statement expected.
+server/controllers/analytics.controller.ts(4,5): error TS1128: Declaration or statement expected.
+server/controllers/analytics.controller.ts(4,7): error TS1005: 'try' expected.
+server/controllers/analytics.controller.ts(7,1): error TS1128: Declaration or statement expected.
+
+[INFO] 22:48:30 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\analytics.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:49:02 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\auth.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  override existing env vars with { override: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:50:21 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\payments.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:50:52 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\stripe.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:52:32 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\support.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:54:52 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\auth.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000

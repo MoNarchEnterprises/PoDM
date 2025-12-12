@@ -11,7 +11,7 @@ import * as PaymentService from '../services/payment.service';
  */
 export const sendTip = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { creatorId, amount, message, contentId, paymentMethodId } = req.body; // amount should be in cents
         console.log('[payments.controller] Tip request:', req.body);
         if (!fanId) {
@@ -39,7 +39,7 @@ export const sendTip = async (req: Request, res: Response, next: NextFunction) =
  */
 export const unlockMessageContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { messageId } = req.body;
 
         if (!fanId) {
@@ -86,7 +86,7 @@ export const handleStripeWebhook = async (req: Request, res: Response, next: Nex
  */
 export const unlockPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { contentId } = req.body;
 
         if (!fanId) {

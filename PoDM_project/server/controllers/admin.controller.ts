@@ -29,7 +29,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const users = await AdminService.getAllUsers(req.query);
+        const users = await AdminService.getAllUsers();
         res.status(200).json({ success: true, data: users });
     } catch (error) {
         next(error);

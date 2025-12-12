@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { createProfile,findUserById } from '../models/user.model';
+import { createProfile, findUserById } from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { User, UserRole } from '@common/types/User';
-import {reshapeUserForApp} from "../utils/user.utils";
+import { reshapeUserForApp } from "../utils/user.utils";
 import supabase from '../config/supabaseClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import * as SubscriptionService from './subscription.service';
@@ -21,15 +21,15 @@ const authSupabase = createClient(supabaseUrl, supabaseAnonKey);
 
 
 export const signupAndSubscribe = async (
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     fullName: string,
-    creatorId: string, 
-    tierId: string, 
+    creatorId: string,
+    tierId: string,
     paymentMethodId: string
 ) => {
     console.log(`[AuthService] Starting signupAndSubscribe for email: ${email}`);
-    
+
     // --- Step 1: Create the Supabase Auth user ---
     const { data: authData, error: authError } = await authSupabase.auth.signUp({ email, password });
     let existingUser: User | null = null;
@@ -41,7 +41,7 @@ export const signupAndSubscribe = async (
             if (existingUser) {
                 console.log(`[AuthService] Existing user found with ID: ${existingUser.id}`);
             }
-            else{
+            else {
                 // This will catch "User already registered" and other auth errors
                 console.error('[AuthService] Supabase signUp Error:', authError.message);
                 throw new AppError(authError.message, 400);
@@ -51,7 +51,7 @@ export const signupAndSubscribe = async (
     if (!existingUser && !authData.user) {
         throw new AppError('User could not be created in Auth system.', 500);
     }
-    
+
     const userId = authData.user?.id ? authData.user.id : existingUser!.id;
     console.log(`[AuthService] Auth user created successfully with ID: ${userId}`);
 
@@ -60,30 +60,30 @@ export const signupAndSubscribe = async (
         // --- Step 2: Create the user's profile in our public table ---
         if (existingUser) {
             console.log('[AuthService] Skipping profile creation, using existing user profile.');
-        } 
+        }
         else {
-            const username = `user_${Date.now()}`; 
-            const profileData = { 
-                id: userId, 
-                username, 
-                email, 
+            const username = `user_${Date.now()}`;
+            const profileData = {
+                id: userId,
+                username,
+                email,
                 full_name: fullName, // <-- Save it to the database
-                role: 'fan' as const, 
-                status: 'active' as const 
+                role: 'fan' as const,
+                status: 'active' as const
             };
-        const newProfile = await UserModel.createProfile(profileData);
-        if (!newProfile) {
-            // This is the critical failure point we need to catch
-            throw new AppError('Database error: Failed to create user profile.', 500);
+            const newProfile = await UserModel.createProfile(profileData);
+            if (!newProfile) {
+                // This is the critical failure point we need to catch
+                throw new AppError('Database error: Failed to create user profile.', 500);
+            }
+            console.log(`[AuthService] Public profile created for user: ${userId}`);
         }
-        console.log(`[AuthService] Public profile created for user: ${userId}`);
-        }
-        
+
         // --- Step 4: Create the Stripe Subscription ---
         await SubscriptionService.createSubscriptionForUser(
-            userId, 
-            creatorId, 
-            tierId, 
+            userId,
+            creatorId,
+            tierId,
             paymentMethodId
         );
         console.log('[AuthService] Subscription process completed.');
@@ -101,7 +101,7 @@ export const signupAndSubscribe = async (
         console.error(`[AuthService] ERROR during signupAndSubscribe for ${userId}. Initiating cleanup.`, error);
         await supabase.auth.admin.deleteUser(userId);
         console.log(`[AuthService] Cleanup complete. Deleted orphan auth user: ${userId}`);
-        
+
         // Re-throw the original error to be sent to the client
         throw error;
     }
@@ -132,15 +132,15 @@ export const signupUser = async (email: string, password: string, username: stri
         username,
         email,
         role,
-        status: role === 'creator' ? 'pending verification' : 'active'
+        status: (role === 'creator' ? 'pending verification' : 'active') as import('@common/types/User').UserStatus
     };
     const newProfile = await createProfile(profileData);
-    
-    if (!newProfile){
+
+    if (!newProfile) {
         // If profile creation fails, we must delete the auth user to prevent orphans
         await supabase.auth.admin.deleteUser(authData.user.id);
         throw new AppError('Database error creating profile.', 400);
-    } 
+    }
 
     // **FIX:** Use the session token directly from Supabase
     const token = authData.session?.access_token;
@@ -171,7 +171,7 @@ export const loginUser = async (email: string, password: string) => {
     // This now returns the complete, flat user object from our RPC
     const userProfile = await findUserById(data.user.id);
     if (!userProfile) throw new AppError('Could not find user profile.', 404);
-    
+
     const token = data.session.access_token;
 
     // Reshaping is still needed, but it's now a single, clean step
