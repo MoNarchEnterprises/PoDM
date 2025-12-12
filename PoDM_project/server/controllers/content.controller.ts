@@ -10,8 +10,8 @@ import { AppError } from '../middleware/error.middleware';
  */
 export const createContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id; // Changed from .id
-        if (!creatorId) {
+        const creator_id = req.user?.id; // Changed from .id
+        if (!creator_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
@@ -37,9 +37,9 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
         };
 
         const newContent = await ContentService.createNewContent(
-            creatorId,
+            creator_id,
             // --- MODIFICATION: Pass the new fields to the service ---
-            { title, description, type, visibility, price, tags, schedule, minTierLevel: req.body.minTierLevel ? Number(req.body.minTierLevel) : undefined },
+            { title, description, type, visibility, price, tags, schedule, min_tier_level: req.body.min_tier_level ? Number(req.body.min_tier_level) : undefined },
             files
         );
 
@@ -58,14 +58,14 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
  */
 export const getMyContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
-        if (!creatorId) {
+        const creator_id = req.user?.id;
+        if (!creator_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
         // Pass the request query object directly to the service
-        console.log(`[Controller] getMyContent: Fetching content for creatorId=${creatorId}`);
-        const content = await ContentService.getContentByCreatorId(creatorId, req.query);
+        console.log(`[Controller] getMyContent: Fetching content for creator_id=${creator_id}`);
+        const content = await ContentService.getContentByCreatorId(creator_id, req.query);
         console.log(`[Controller] getMyContent: Found ${content?.length || 0} items`);
         if (content && content.length > 0) {
             console.log('[Controller] getMyContent: Titles:', content.map(c => c.title).join(', '));
@@ -86,7 +86,7 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
 export const getContentByCreator = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username } = req.params;
-        const viewerId = req.user?._id; // Extracted from optionalProtect middleware
+        const viewerId = req.user?.id; // Extracted from optionalProtect middleware
 
         const content = await ContentService.getContentForPublicProfile(username, viewerId);
         res.status(200).json({ success: true, data: content });
@@ -102,7 +102,7 @@ export const getContentByCreator = async (req: Request, res: Response, next: Nex
  */
 export const getContentById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { id: contentId } = req.params;
 
         if (!fanId) {
@@ -123,11 +123,11 @@ export const getContentById = async (req: Request, res: Response, next: NextFunc
  */
 export const updateContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creator_id = req.user?.id;
         const { id: contentId } = req.params;
         const updates = req.body;
 
-        if (!creatorId) {
+        if (!creator_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
@@ -151,7 +151,7 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
         }
         // --- End additions for updateContent consistency ---
 
-        const updatedContent = await ContentService.updateCreatorContent(contentId, creatorId, updates);
+        const updatedContent = await ContentService.updateCreatorContent(contentId, creator_id, updates);
         res.status(200).json({ success: true, data: updatedContent });
     }
     catch (error) {
@@ -167,14 +167,14 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
  */
 export const deleteContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creator_id = req.user?.id;
         const { id: contentId } = req.params;
 
-        if (!creatorId) {
+        if (!creator_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const deletedContent = await ContentService.deleteCreatorContent(contentId, creatorId);
+        const deletedContent = await ContentService.deleteCreatorContent(contentId, creator_id);
         res.status(200).json({ success: true, data: deletedContent });
     } catch (error) {
         next(error);
@@ -188,7 +188,7 @@ export const deleteContent = async (req: Request, res: Response, next: NextFunct
  */
 export const getSecureContentUrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { id: contentId } = req.params;
 
         console.log(`[Controller] getSecureContentUrl: Request for contentId="${contentId}" by userId="${userId}"`);
@@ -225,7 +225,7 @@ export const getContentView = async (req: Request, res: Response, next: NextFunc
 
     try {
 
-        const userId = req.user?._id;
+        const userId = req.user?.id;
 
         const { id: contentId } = req.params;
 
@@ -268,7 +268,7 @@ export const getContentView = async (req: Request, res: Response, next: NextFunc
 export const getContentViewerData = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { id: contentId } = req.params;
 
         const data = await ContentService.getViewData(contentId, userId);
@@ -287,7 +287,7 @@ export const getContentViewerData = async (req: Request, res: Response, next: Ne
  */
 export const reportContent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { id: contentId } = req.params;
         const { reason } = req.body;
 

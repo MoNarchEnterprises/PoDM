@@ -11,11 +11,11 @@ import { AppError } from '../middleware/error.middleware';
  */
 export const getCreatorDashboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) {
             throw new AppError('Authentication error, creator ID not found.', 401);
         }
-        
+
         const dashboardData = await CreatorService.getDashboardData(creatorId);
         res.status(200).json({ success: true, data: dashboardData });
     } catch (error) {
@@ -30,7 +30,7 @@ export const getCreatorDashboard = async (req: Request, res: Response, next: Nex
  */
 export const getCreatorAnalytics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) {
             throw new AppError('Authentication error, creator ID not found.', 401);
         }
@@ -47,11 +47,11 @@ export const getCreatorAnalytics = async (req: Request, res: Response, next: Nex
  */
 export const getCreatorEarnings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) {
             throw new AppError('Authentication error, creator ID not found.', 401);
         }
-        
+
         const earningsData = await CreatorService.getEarningsData(creatorId);
         res.status(200).json({ success: true, data: earningsData });
     } catch (error) {
@@ -66,7 +66,7 @@ export const getCreatorEarnings = async (req: Request, res: Response, next: Next
  */
 export const requestPayout = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         // Log the incoming body to see exactly what the frontend is sending.
         console.log('[Payout Controller] Received payout request with body:', req.body);
 
@@ -98,18 +98,18 @@ export const requestPayout = async (req: Request, res: Response, next: NextFunct
  */
 export const updateCreatorSettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) throw new AppError('Authentication error.', 401);
 
         const bannerFile = req.file;
         // When using FormData, non-file fields are sent as strings.
         // We need to parse them back into objects.
         const profileData = req.body.profile ? JSON.parse(req.body.profile) : {};
-        const creatorData = req.body.creatorData ? JSON.parse(req.body.creatorData) : {};
-        
+        const creator_data = req.body.creator_data ? JSON.parse(req.body.creator_data) : {};
+
         const settingsData = {
             profile: profileData,
-            creatorData: creatorData
+            creator_data: creator_data
         };
 
         // The service now handles both the file and the text data
@@ -131,7 +131,7 @@ export const updateCreatorSettings = async (req: Request, res: Response, next: N
  */
 export const getCreatorActivity = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         if (!creatorId) {
             throw new AppError('Authentication error, creator ID not found.', 401);
         }

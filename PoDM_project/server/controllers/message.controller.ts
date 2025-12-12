@@ -9,7 +9,7 @@ import { AppError } from '../middleware/error.middleware';
  */
 export const getConversations = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -23,19 +23,19 @@ export const getConversations = async (req: Request, res: Response, next: NextFu
 
 /**
  * @desc    Get all messages for a specific conversation
- * @route   GET /api/v1/messages/:conversationId
+ * @route   GET /api/v1/messages/:conversation_id
  * @access  Private (User must be a participant)
  */
 export const getMessagesInConversation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
-        const { conversationId } = req.params;
+        const userId = req.user?.id;
+        const { conversation_id } = req.params;
 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const messages = await MessageService.getMessagesForConversation(conversationId, userId);
+        const messages = await MessageService.getMessagesForConversation(conversation_id, userId);
         res.status(200).json({ success: true, data: messages });
     } catch (error) {
         next(error);
@@ -49,17 +49,17 @@ export const getMessagesInConversation = async (req: Request, res: Response, nex
  */
 export const sendMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const senderId = req.user?._id;
-        const { receiverId, text, content } = req.body;
+        const sender_id = req.user?.id;
+        const { receiver_id, text, content } = req.body;
 
-        if (!senderId) {
+        if (!sender_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
-        if (!receiverId || (!text && !content)) {
+        if (!receiver_id || (!text && !content)) {
             throw new AppError('Receiver ID and message content are required.', 400);
         }
 
-        const newMessage = await MessageService.sendDirectMessage(senderId, receiverId, { text, content });
+        const newMessage = await MessageService.sendDirectMessage(sender_id, receiver_id, { text, content });
         res.status(201).json({ success: true, data: newMessage });
     } catch (error) {
         next(error);
@@ -73,14 +73,14 @@ export const sendMessage = async (req: Request, res: Response, next: NextFunctio
  */
 export const markConversationAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
-        const { conversationId } = req.params;
+        const userId = req.user?.id;
+        const { conversation_id } = req.params;
 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const result = await MessageService.markConversationAsRead(conversationId, userId);
+        const result = await MessageService.markConversationAsRead(conversation_id, userId);
         res.status(200).json(result);
     } catch (error) {
         next(error);
@@ -94,7 +94,7 @@ export const markConversationAsRead = async (req: Request, res: Response, next: 
  */
 export const deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { id: messageId } = req.params;
 
         if (!userId) {
@@ -115,7 +115,7 @@ export const deleteMessage = async (req: Request, res: Response, next: NextFunct
  */
 export const sendMassMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const creatorId = req.user?._id;
+        const creatorId = req.user?.id;
         const { text, content } = req.body;
 
         if (!creatorId) {

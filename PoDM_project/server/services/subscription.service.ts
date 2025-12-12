@@ -17,33 +17,33 @@ import * as ContentModel from '../models/content.model'; // 2. IMPORT THE CONTEN
 /**
  * Creates a new subscription for an authenticated fan. This is the primary service
  * for all subscription creations, used by both new signups and existing users.
- * @param fanId - The ID of the fan who is subscribing.
- * @param creatorId - The ID of the creator being subscribed to.
- * @param tierId - The internal ID of the subscription tier.
+ * @param fan_id - The ID of the fan who is subscribing.
+ * @param creator_id - The ID of the creator being subscribed to.
+ * @param tier_id - The internal ID of the subscription tier.
  * @param paymentMethodId - The Stripe Payment Method ID from the frontend.
  * @returns An object with the new subscription and a client secret if 3D Secure is needed.
  */
 export const createSubscriptionForUser = async (
-    fanId: string,
-    creatorId: string,
-    tierId: string,
+    fan_id: string,
+    creator_id: string,
+    tier_id: string,
     paymentMethodId: string
 ) => {
-    console.log(`[SubService] Starting subscription creation for fan ${fanId} to creator ${creatorId}`);
+    console.log(`[SubService] Starting subscription creation for fan ${fan_id} to creator ${creator_id}`);
 
     // 1. Fetch creator and validate the selected tier
-    const creator = await UserModel.findUserById(creatorId);
+    const creator = await UserModel.findUserById(creator_id);
     if (!creator || !creator.creator_data?.subscriptionTiers) {
         throw new AppError('Creator or their subscription tiers not found.', 404);
     }
 
-    const tier = creator.creator_data.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
+    const tier = creator.creator_data.subscriptionTiers.find((t: SubscriptionTier) => t.id === tier_id);
     if (!tier || !tier.stripePriceId) {
         throw new AppError('Selected subscription tier is invalid or missing a Stripe Price ID.', 400);
     }
 
     // 2. Get or create the Stripe Customer ID for the fan
-    const fanStripeCustomerId = await getOrCreateStripeCustomer(fanId);
+    const fanStripeCustomerId = await getOrCreateStripeCustomer(fan_id);
     console.log(`[SubService] Confirmed Stripe Customer ID: ${fanStripeCustomerId}`);
 
     try {
@@ -81,9 +81,9 @@ export const createSubscriptionForUser = async (
                 items: [{ price: tier.stripePriceId }],
                 expand: ['latest_invoice.payment_intent'],
                 metadata: {
-                    pod_fan_id: fanId,
-                    pod_creator_id: creatorId,
-                    pod_tier_id: tierId
+                    pod_fan_id: fan_id,
+                    pod_creator_id: creator_id,
+                    pod_tier_id: tier_id
                 }
             });
         }
@@ -114,9 +114,9 @@ export const createSubscriptionForUser = async (
         // 6. If payment is successful immediately, save the subscription to our database
         const dbSubscription = await SubscriptionModel.createSubscription({
             stripe_subscription_id: stripeSubscription.id,
-            fan_id: fanId,
-            creator_id: creatorId,
-            tier_id: tierId,
+            fan_id: fan_id,
+            creator_id: creator_id,
+            tier_id: tier_id,
             status: 'active',
             start_date: new Date(periodStart * 1000).toISOString(),
             end_date: null,
@@ -143,11 +143,11 @@ export const createSubscriptionForUser = async (
                     }
                 }
                 // Send the message from the creator to the new fan
-                await MessageService.sendDirectMessage(creatorId, fanId, {
+                await MessageService.sendDirectMessage(creator_id, fan_id, {
                     text: welcomeConfig.message,
                     content: contentPayload,
                 });
-                console.log(`[SubService] Successfully sent welcome message from ${creatorId} to ${fanId}.`);
+                console.log(`[SubService] Successfully sent welcome message from ${creator_id} to ${fan_id}.`);
             }
         } catch (welcomeError) {
             // IMPORTANT: Do not throw an error. A failed welcome message should not
@@ -163,8 +163,8 @@ export const createSubscriptionForUser = async (
             const creatorPayout = amountInCents - platformFee;
 
             await TransactionModel.createTransaction({
-                fan_id: fanId,
-                creator_id: creatorId,
+                fan_id: fan_id,
+                creator_id: creator_id,
                 type: 'Subscription',
                 amount: amountInCents,
                 platform_fee: platformFee,
@@ -195,11 +195,11 @@ export const createSubscriptionForUser = async (
 
 /**
  * Retrieves all subscriptions for a given fan and enriches them with creator data.
- * @param fanId - The UUID of the fan.
+ * @param fan_id - The UUID of the fan.
  * @returns An array of the fan's subscriptions, each including the creator's profile and available tiers.
  */
-export const getFanSubscriptions = async (fanId: string) => {
-    const subscriptions = await SubscriptionModel.findSubscriptionsByFanId(fanId);
+export const getFanSubscriptions = async (fan_id: string) => {
+    const subscriptions = await SubscriptionModel.findSubscriptionsByFanId(fan_id);
     if (!subscriptions) {
         return [];
     }
@@ -211,11 +211,11 @@ export const getFanSubscriptions = async (fanId: string) => {
 
 /**
  * Retrieves all active subscribers for a given creator.
- * @param creatorId - The UUID of the creator.
+ * @param creator_id - The UUID of the creator.
  * @returns An array of the creator's active subscriptions with fan details.
  */
-export const getCreatorSubscribers = async (creatorId: string): Promise<(Subscription & { fan: User | null })[]> => {
-    const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creatorId);
+export const getCreatorSubscribers = async (creator_id: string): Promise<(Subscription & { fan: User | null })[]> => {
+    const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creator_id);
     if (!subscriptions || subscriptions.length === 0) return [];
 
     const subscriptionsWithFans = await Promise.all(subscriptions.map(async (sub) => {
@@ -231,16 +231,16 @@ export const getCreatorSubscribers = async (creatorId: string): Promise<(Subscri
 /**
  * Cancels an active subscription for a fan.
  * @param subscriptionId - The internal ID of the subscription to cancel.
- * @param fanId - The ID of the fan requesting the cancellation.
+ * @param fan_id - The ID of the fan requesting the cancellation.
  * @returns The updated subscription object.
  */
-export const cancelFanSubscription = async (subscriptionId: string, fanId: string) => {
+export const cancelFanSubscription = async (subscriptionId: string, fan_id: string) => {
     const numericSubscriptionId = parseInt(subscriptionId, 10);
     if (isNaN(numericSubscriptionId)) {
         throw new AppError('Invalid subscription ID format.', 400);
     }
 
-    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId); if (!subscription || subscription.fan_id !== fanId) {
+    const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId); if (!subscription || subscription.fan_id !== fan_id) {
         throw new AppError('Subscription not found or does not belong to the fan.', 404);
     }
     if (subscription.status !== 'active') {
@@ -266,10 +266,10 @@ export const cancelFanSubscription = async (subscriptionId: string, fanId: strin
 /**
  * Changes the subscription tier for an active subscription.
  * @param subscriptionId - The internal ID of the subscription to update.   
- * @param fanId - The ID of the fan requesting the change.
+ * @param fan_id - The ID of the fan requesting the change.
  * @param newTierId - The internal ID of the new subscription tier.
  */
-export const changeSubscriptionTier = async (subscriptionId: string, fanId: string, newTierId: string) => {
+export const changeSubscriptionTier = async (subscriptionId: string, fan_id: string, newTierId: string) => {
     const numericSubscriptionId = parseInt(subscriptionId, 10);
     if (isNaN(numericSubscriptionId)) {
         throw new AppError('Invalid subscription ID format.', 400);
@@ -277,7 +277,7 @@ export const changeSubscriptionTier = async (subscriptionId: string, fanId: stri
 
     const subscription = await SubscriptionModel.findSubscriptionById(numericSubscriptionId);
 
-    if (!subscription || subscription.fan_id !== fanId) {
+    if (!subscription || subscription.fan_id !== fan_id) {
         throw new AppError('Subscription not found or you are not authorized to change it.', 404);
     }
     if (subscription.status !== 'active') {
@@ -291,6 +291,10 @@ export const changeSubscriptionTier = async (subscriptionId: string, fanId: stri
     const newTier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === newTierId);
     if (!newTier || !newTier.stripePriceId) {
         throw new AppError('The selected new tier is invalid.', 400);
+    }
+
+    if (!subscription.stripe_subscription_id) {
+        throw new AppError('Stripe subscription ID not found for this subscription.', 500);
     }
 
     try {

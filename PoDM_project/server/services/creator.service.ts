@@ -16,9 +16,9 @@ import { Content } from '@common/types/Content';
 
 /**
  * Gathers and computes all data needed for the creator dashboard.
- * @param creatorId - The ID of the creator.
+ * @param creator_id - The ID of the creator.
  */
-export const getDashboardData = async (creatorId: string) => {
+export const getDashboardData = async (creator_id: string) => {
     // --- 1. Fetch Key Metrics ---
     const today = new Date();
     const thirtyDaysAgo = new Date();
@@ -30,7 +30,7 @@ export const getDashboardData = async (creatorId: string) => {
     const { data: recentTransactionsData, error: recentTxError } = await supabase
         .from('transactions')
         .select('*, fan:fan_id(username)')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', creator_id)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -49,13 +49,13 @@ export const getDashboardData = async (creatorId: string) => {
         profileVisits,
         postViews
     ] = await Promise.all([
-        SubscriptionModel.findSubscriptionsByCreator(creatorId).then(subs => subs?.length || 0),
-        SubscriptionModel.countNewSubscribersInPeriod(creatorId, thirtyDaysAgo),
-        TransactionModel.sumCreatorEarningsForPeriod(creatorId, startOfThisMonth, today),
-        TransactionModel.sumCreatorEarningsForPeriod(creatorId, startOfLastMonth, startOfThisMonth),
-        ContentModel.findContentByCreatorId(creatorId).then(content => content?.slice(0, 5) || []),
-        AnalyticsService.countEventsForCreator(creatorId, 'profile_visit'),
-        AnalyticsService.countEventsForCreator(creatorId, 'post_view')
+        SubscriptionModel.findSubscriptionsByCreator(creator_id).then(subs => subs?.length || 0),
+        SubscriptionModel.countNewSubscribersInPeriod(creator_id, thirtyDaysAgo),
+        TransactionModel.sumCreatorEarningsForPeriod(creator_id, startOfThisMonth, today),
+        TransactionModel.sumCreatorEarningsForPeriod(creator_id, startOfLastMonth, startOfThisMonth),
+        ContentModel.findContentByCreatorId(creator_id).then(content => content?.slice(0, 5) || []),
+        AnalyticsService.countEventsForCreator(creator_id, 'profile_visit'),
+        AnalyticsService.countEventsForCreator(creator_id, 'post_view')
     ]);
 
     // --- 2. Fetch Recent Activity ---
@@ -71,7 +71,7 @@ export const getDashboardData = async (creatorId: string) => {
         // Check if it's a transaction by looking for a 'type' property that content doesn't have
         if ('type' in item && 'fan_id' in item) {
             return {
-                _id: `txn-${item.id}`,
+                id: `txn-${item.id}`,
                 fanName: (item as any).fan?.username || 'a fan', // Use the joined fan username
                 type: item.type,
                 amount: item.amount,
@@ -80,7 +80,7 @@ export const getDashboardData = async (creatorId: string) => {
         }
         // Otherwise, it's a content item
         return {
-            _id: `content-${item.id}`,
+            id: `content-${item.id}`,
             title: item.title,
             status: item.status,
             createdAt: item.created_at, // Map snake_case to camelCase
@@ -96,7 +96,7 @@ export const getDashboardData = async (creatorId: string) => {
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-        const earnings = await TransactionModel.sumCreatorEarningsForPeriod(creatorId, startOfMonth, endOfMonth);
+        const earnings = await TransactionModel.sumCreatorEarningsForPeriod(creator_id, startOfMonth, endOfMonth);
         monthlyEarnings.push({ name: monthName, earnings: earnings / 100 }); // convert to dollars
     }
 
@@ -118,9 +118,9 @@ export const getDashboardData = async (creatorId: string) => {
 
 /**
  * Gathers and computes all data needed for the creator analytics page.
- * @param creatorId - The ID of the creator.
+ * @param creator_id - The ID of the creator.
  */
-export const getAnalyticsData = async (creatorId: string) => {
+export const getAnalyticsData = async (creator_id: string) => {
     // --- 1. Fetch data for Key Metrics ---
     const today = new Date();
     const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
@@ -132,11 +132,11 @@ export const getAnalyticsData = async (creatorId: string) => {
         totalViews,
         { data: contentStats, error: contentStatsError },
     ] = await Promise.all([
-        SubscriptionModel.findSubscriptionsByCreator(creatorId).then(subs => subs?.length || 0),
-        SubscriptionModel.countNewSubscribersInPeriod(creatorId, thirtyDaysAgo),
-        TransactionModel.sumCreatorEarningsForPeriod(creatorId, thirtyDaysAgo, today),
-        AnalyticsService.countEventsForCreator(creatorId, 'post_view'),
-        supabase.from('content').select('stats').eq('creator_id', creatorId),
+        SubscriptionModel.findSubscriptionsByCreator(creator_id).then(subs => subs?.length || 0),
+        SubscriptionModel.countNewSubscribersInPeriod(creator_id, thirtyDaysAgo),
+        TransactionModel.sumCreatorEarningsForPeriod(creator_id, thirtyDaysAgo, today),
+        AnalyticsService.countEventsForCreator(creator_id, 'post_view'),
+        supabase.from('content').select('stats').eq('creator_id', creator_id),
     ]);
 
     if (contentStatsError) throw new AppError('Could not fetch content stats.', 500);
@@ -152,7 +152,7 @@ export const getAnalyticsData = async (creatorId: string) => {
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
 
         // For simplicity, we'll count new subs in that month. A more complex query could get the total count at that point in time.
-        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creatorId, startOfMonth);
+        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creator_id, startOfMonth);
         subscriberGrowth.push({ name: monthName, Subscribers: newSubs });
     }
 
@@ -160,7 +160,7 @@ export const getAnalyticsData = async (creatorId: string) => {
     const { data: revenueData, error: revenueError } = await supabase
         .from('transactions')
         .select('type, creator_payout')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', creator_id)
         .eq('status', 'Cleared');
 
     if (revenueError) {
@@ -179,7 +179,7 @@ export const getAnalyticsData = async (creatorId: string) => {
     const { data: topContentData, error: topContentError } = await supabase
         .from('content')
         .select('*')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', creator_id)
         .order('stats->>galleryAdds', { ascending: false, nullsFirst: false } as any) // Order by gallery adds in the JSONB field
         .limit(5);
 
@@ -195,21 +195,21 @@ export const getAnalyticsData = async (creatorId: string) => {
         },
         subscriberGrowth,
         revenueBreakdown: Object.entries(revenueBreakdown).map(([name, value]) => ({ name, value })),
-        topContent: topContentData.map(item => ({ ...item, _id: item.id.toString() })) as Content[],
+        topContent: topContentData.map(item => ({ ...item, id: item.id.toString() })) as Content[],
     };
 };
 
 /**
  * Updates the settings for a creator.
- * @param creatorId - The ID of the creator to update.
+ * @param creator_id - The ID of the creator to update.
  * @param settingsData - The new settings data from the frontend.
  * @returns The fully updated and reshaped creator object.
  */
-export const updateSettings = async (creatorId: string, settingsData: any, file?: Express.Multer.File) => {
-    const { profile, creatorData } = settingsData;
+export const updateSettings = async (creator_id: string, settingsData: any, file?: Express.Multer.File) => {
+    const { profile, creator_data } = settingsData;
 
     // 1. Fetch the user's existing profile to avoid overwriting data
-    const existingUser = await UserModel.findUserById(creatorId);
+    const existingUser = await UserModel.findUserById(creator_id);
     if (!existingUser) {
         throw new AppError('User profile not found.', 404);
     }
@@ -217,8 +217,8 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
     let newCoverImageUrl: string | undefined = existingUser.creator_data?.coverImageUrl;
 
     if (file) {
-        const fileName = `banner-${creatorId}-${Date.now()}`;
-        const filePath = `${creatorId}/${fileName}`;
+        const fileName = `banner-${creator_id}-${Date.now()}`;
+        const filePath = `${creator_id}/${fileName}`;
         const { error: uploadError } = await supabase.storage
             .from('banners')
             .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
@@ -237,10 +237,10 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
     if (profile?.name) profileUpdates.username = profile.name;
     if (profile?.bio) profileUpdates.bio = profile.bio;
 
-    const newCreatorData = { ...(existingUser.creatorData || {}) };
+    const newCreatorData = { ...(existingUser.creator_data || {}) };
 
-    if (creatorData?.welcomeMessage) {
-        newCreatorData.welcomeMessage = creatorData.welcomeMessage;
+    if (creator_data?.welcomeMessage) {
+        newCreatorData.welcomeMessage = creator_data.welcomeMessage;
     }
     if (profile?.socialLinks) {
         newCreatorData.socialLinks = profile.socialLinks;
@@ -249,10 +249,10 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
     newCreatorData.coverImageUrl = newCoverImageUrl; // Set the new or existing URL
 
     // In the future, you can merge other settings here too
-    // if (creatorData.payoutSettings) { ... }
+    // if (creator_data.payoutSettings) { ... }
     // --- STRIPE SYNC LOGIC ---
-    if (creatorData?.subscriptionTiers) {
-        newCreatorData.subscriptionTiers = await syncTiersWithStripe(creatorData.subscriptionTiers);
+    if (creator_data?.subscriptionTiers) {
+        newCreatorData.subscriptionTiers = await syncTiersWithStripe(creator_data.subscriptionTiers);
         console.log('[updateSettings] Synced tiers with Stripe:', newCreatorData.subscriptionTiers);
     }
     // --- END OF STRIPE SYNC LOGIC ---
@@ -263,12 +263,12 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
 
 
     // 4. Save the updates to the database
-    const updatedUser = await UserModel.updateProfile(creatorId, profileUpdates);
+    const updatedUser = await UserModel.updateProfile(creator_id, profileUpdates);
     if (!updatedUser) {
         throw new AppError('Failed to update creator settings.', 500);
     }
 
-    const reshapedData = await UserModel.findUserById(creatorId);
+    const reshapedData = await UserModel.findUserById(creator_id);
     if (!reshapedData) {
         throw new AppError('Could not retrieve updated user profile.', 500);
     }
@@ -279,14 +279,14 @@ export const updateSettings = async (creatorId: string, settingsData: any, file?
 
 /**
  * Gathers and computes all data needed for the creator earnings page.
- * @param creatorId - The ID of the creator.
+ * @param creator_id - The ID of the creator.
  */
-export const getEarningsData = async (creatorId: string) => {
+export const getEarningsData = async (creator_id: string) => {
     // 1. Fetch all "Cleared" and "Pending" transactions for the creator
     const { data: allTransactions, error: txError } = await supabase
         .from('transactions')
         .select('creator_payout, status')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', creator_id)
         .in('status', ['Cleared', 'Pending']);
 
     if (txError) throw new AppError('Could not fetch transaction data.', 500);
@@ -312,7 +312,7 @@ export const getEarningsData = async (creatorId: string) => {
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-        const earnings = await TransactionModel.sumCreatorEarningsForPeriod(creatorId, startOfMonth, endOfMonth);
+        const earnings = await TransactionModel.sumCreatorEarningsForPeriod(creator_id, startOfMonth, endOfMonth);
         monthlyEarnings.push({ name: monthName, Earnings: earnings / 100 });
     }
 
@@ -320,7 +320,7 @@ export const getEarningsData = async (creatorId: string) => {
     const { data: detailedTransactions, error: detailedTxError } = await supabase
         .from('transactions')
         .select('*, fan:fan_id(username)')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', creator_id)
         .order('created_at', { ascending: false })
         .limit(100);
 

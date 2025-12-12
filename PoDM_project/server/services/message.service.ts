@@ -31,9 +31,9 @@ export const getConversationsForUser = async (userId: string) => {
         }
         // Reshape the data to match the frontend's expected structure
         return data.map((convo: any) => ({
-            _id: convo.conversation_id,
+            id: convo.conversation_id,
             fan: {
-                _id: convo.fan_id,
+                id: convo.fan_id,
                 profile: {
                     name: convo.fan_username,
                     avatar: convo.fan_avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U'
@@ -41,9 +41,9 @@ export const getConversationsForUser = async (userId: string) => {
                 totalSpent: convo.total_spent,
                 isNewSubscriber: convo.is_new_subscriber,
             },
-            lastMessage: {
+            last_message: {
                 text: convo.last_message_text,
-                isRead: convo.is_read,
+                is_read: convo.is_read,
             },
             updatedAt: convo.last_message_at,
         }));
@@ -54,34 +54,34 @@ export const getConversationsForUser = async (userId: string) => {
 
         // 2. Iterate through each conversation to find the other participant and fetch their profile.
         return Promise.all(conversations.map(async (convo) => {
-             // Find the ID of the other user in the chat.
-             const otherParticipantId = convo.participants.find((p_id: String) => p_id !== userId);
-             // Fetch that user's profile.
-             const creator = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
-             
-             // 3. Assemble the final object that the frontend expects.
-             return {
-                 ...convo,
-                 _id: convo.id,
-                 creator: creator ? reshapeUserForApp(creator) : null,
-             };
+            // Find the ID of the other user in the chat.
+            const otherParticipantId = convo.participants.find((pid: String) => pid !== userId);
+            // Fetch that user's profile.
+            const creator = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
+
+            // 3. Assemble the final object that the frontend expects.
+            return {
+                ...convo,
+                id: convo.id,
+                creator: creator ? reshapeUserForApp(creator) : null,
+            };
         }));
     }
 };
 
 /**
  * Fetches all messages for a specific conversation, ensuring the user is a participant.
- * @param conversationId - The ID of the conversation.
+ * @param conversation_id - The ID of the conversation.
  * @param userId - The ID of the user requesting the messages.
  * @returns An array of message objects with signed URLs for content.
  */
-export const getMessagesForConversation = async (conversationId: string, userId: string) => {
-    const conversation = await ConversationModel.findConversationById(conversationId);
+export const getMessagesForConversation = async (conversation_id: string, userId: string) => {
+    const conversation = await ConversationModel.findConversationById(conversation_id);
     if (!conversation || !conversation.participants.includes(userId)) {
         throw new AppError('You are not authorized to view this conversation.', 403);
     }
-    
-    const messages = await MessageModel.findMessagesByConversationId(conversationId);
+
+    const messages = await MessageModel.findMessagesByConversationId(conversation_id);
     if (!messages) return [];
 
     return Promise.all(messages.map(async (message: any) => {
@@ -93,36 +93,36 @@ export const getMessagesForConversation = async (conversationId: string, userId:
         }
 
         return {
-            _id: message.id.toString(),
-            conversationId: message.conversation_id, // Map snake_case to camelCase
-            senderId: message.sender_id,             // Map snake_case to camelCase
-            receiverId: message.receiver_id,           // Map snake_case to camelCase
+            id: message.id.toString(),
+            conversation_id: message.conversation_id, // Map snake_case to camelCase
+            sender_id: message.sender_id,             // Map snake_case to camelCase
+            receiver_id: message.receiver_id,           // Map snake_case to camelCase
             text: message.text,
             content: processedContent,
-            isRead: message.is_read,
-            createdAt: message.created_at,
-            updatedAt: message.updated_at,
+            is_read: message.is_read,
+            created_at: message.created_at,
+            updated_at: message.updated_at,
         } as Message;
     }));
 };
 
 /**
  * Handles the business logic for sending a direct message.
- * @param senderId - The ID of the user sending the message.
- * @param receiverId - The ID of the user receiving the message.
+ * @param sender_id - The ID of the user sending the message.
+ * @param receiver_id - The ID of the user receiving the message.
  * @param messageData - The content of the message (text or paid content).
  * @returns The newly created message object.
  */
-export const sendDirectMessage = async (senderId: string, receiverId: string, messageData: Partial<Message>) => {
-    const sender = await UserModel.findUserById(senderId);
+export const sendDirectMessage = async (sender_id: string, receiver_id: string, messageData: Partial<Message>) => {
+    const sender = await UserModel.findUserById(sender_id);
     if (!sender) throw new AppError('Sender not found.', 404);
     if (sender.role === 'creator' && sender.status !== 'active') {
         throw new AppError('Your account must be verified to send messages.', 403);
     }
 
-    let conversation = await ConversationModel.findConversationByParticipants(senderId, receiverId);
+    let conversation = await ConversationModel.findConversationByParticipants(sender_id, receiver_id);
     if (!conversation) {
-        conversation = await ConversationModel.createConversation([senderId, receiverId]);
+        conversation = await ConversationModel.createConversation([sender_id, receiver_id]);
     }
     if (!conversation) {
         throw new AppError('Could not find or create a conversation.', 500);
@@ -138,12 +138,12 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
 
     const newMessageData = {
         ...messageData,
-        sender_id: senderId,
-        receiver_id: receiverId,
+        sender_id: sender_id,
+        receiver_id: receiver_id,
         conversation_id: conversation.id,
         is_read: false,
     };
-    
+
     const newMessage = await MessageModel.createMessage(newMessageData);
     if (!newMessage) throw new AppError('Failed to send message.', 500);
 
@@ -161,16 +161,17 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
 
     const roomName = `conversation:${conversation.id}`;
     const messageForFrontend = {
-        _id: newMessage.id.toString(),
-        conversationId: newMessage.conversation_id,
-        senderId: newMessage.sender_id,
-        receiverId: newMessage.receiver_id,
+        id: newMessage.id.toString(),
+        conversation_id: newMessage.conversation_id,
+        sender_id: newMessage.sender_id,
+        receiver_id: newMessage.receiver_id,
         text: newMessage.text,
         content: processedContent, // Use the processed content with the signed URL
-        isRead: newMessage.is_read,
-        createdAt: new Date(newMessage.created_at).toISOString(),
+        is_read: newMessage.is_read,
+        created_at: new Date(newMessage.created_at).toISOString(),
+        updated_at: new Date(newMessage.created_at).toISOString(),
     };
-    
+
     io.to(roomName).emit('new_message', messageForFrontend);
     console.log(`[MessageService] Broadcasted to room: ${roomName}`);
 
@@ -183,7 +184,7 @@ export const sendDirectMessage = async (senderId: string, receiverId: string, me
  * @param userId - The ID of the user requesting the deletion.
  */
 export const deleteMessage = async (messageId: string, userId: string) => {
-    // 1. Find the message to get its details (senderId, conversationId)
+    // 1. Find the message to get its details (sender_id, conversation_id)
     const message = await MessageModel.findMessageById(messageId);
     if (!message) {
         throw new AppError('Message not found.', 404);
@@ -210,11 +211,11 @@ export const deleteMessage = async (messageId: string, userId: string) => {
 
 /**
  * Marks messages in a conversation as read and notifies the client via socket.
- * @param conversationId - The ID of the conversation.
+ * @param conversation_id - The ID of the conversation.
  * @param userId - The ID of the user who is reading the messages.
  */
-export const markConversationAsRead = async (conversationId: string, userId: string) => {
-    const updatedMessages = await MessageModel.markMessagesAsRead(conversationId, userId);
+export const markConversationAsRead = async (conversation_id: string, userId: string) => {
+    const updatedMessages = await MessageModel.markMessagesAsRead(conversation_id, userId);
 
     if (updatedMessages && updatedMessages.length > 0) {
         // Find the user's socket to emit the event directly to them
@@ -223,8 +224,8 @@ export const markConversationAsRead = async (conversationId: string, userId: str
         const userSocket = sockets.find(s => (s as any).data.userId === userId);
 
         if (userSocket) {
-            userSocket.emit('conversation_read', { conversationId });
-            console.log(`[MessageService] Emitted conversation_read for convo ${conversationId} to user ${userId}`);
+            userSocket.emit('conversation_read', { conversation_id });
+            console.log(`[MessageService] Emitted conversation_read for convo ${conversation_id} to user ${userId}`);
         }
     }
 
@@ -249,13 +250,13 @@ export const sendMassMessageToSubscribers = async (creatorId: string, messageDat
         throw new AppError('You have no active subscribers to message.', 404);
     }
 
-    const fanIds = subscriptions.map(sub => sub.fanId);
-    
-    for (const fanId of fanIds) {
+    const fanIds = subscriptions.map(sub => sub.fan_id);
+
+    for (const fan_id of fanIds) {
         try {
-            await sendDirectMessage(creatorId, fanId, messageData);
+            await sendDirectMessage(creatorId, fan_id, messageData);
         } catch (error) {
-            console.error(`Failed to send mass message to fan ${fanId}:`, error);
+            console.error(`Failed to send mass message to fan ${fan_id}:`, error);
         }
     }
 

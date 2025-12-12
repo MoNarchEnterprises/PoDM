@@ -4038,3 +4038,190 @@ server/services/subscription.service.ts(333,7): error TS1005: '}' expected.
     }
   }
 ]
+[INFO] 20:32:02 Reinitializing TS compilation
+[INFO] 20:32:02 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\tsconfig.json has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:21:45 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\utils\user.utils.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:22:57 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\admin.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:32:13 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\admin.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:33:39 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\admin.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:07 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\user.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:09 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\content.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:12 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\subscription.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:14 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\creator.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  enable debug logging with { debug: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:16 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\controllers\message.controller.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:28 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\content.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:30 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:43 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:44 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:46 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:43:48 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:06 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\user.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  suppress all logs with { quiet: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:08 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\creator.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  override existing env vars with { override: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:10 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:12 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\content.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:25 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:27 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\content.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  enable debug logging with { debug: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:29 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\user.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:31 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\creator.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:33 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:44:46 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\subscription.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:45:19 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\creator.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 21:45:20 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  suppress all logs with { quiet: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:16:03 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:16:05 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: 📡 version env with Radar: https://dotenvx.com/radar
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000
+[INFO] 22:16:06 Restarting: C:\Users\leona\OneDrive\Documents\PoDM\PoDM\PoDM_project\server\services\message.service.ts has been modified
+[dotenv@17.2.2] injecting env (7) from server\.env -- tip: ⚙️  enable debug logging with { debug: true }
+--- SERVER STARTING ---
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ auth.routes.ts file has been loaded and is running.
+🚀 Server (with WebSockets) is running at http://localhost:5000

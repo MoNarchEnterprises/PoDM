@@ -39,7 +39,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
     }
 
     try {
-        console.log(`[Watermark] Starting process for content: ${content._id}`);
+        console.log(`[Watermark] Starting process for content: ${content.id}`);
         // 1. Download the original image from Supabase Storage into a buffer
         const { data: fileBlob, error: downloadError } = await supabase.storage
             .from('creator-content')
@@ -57,7 +57,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
-        const tempFileName = `wm-${fan._id}-${Date.now()}.webp`;
+        const tempFileName = `wm-${fan.id}-${Date.now()}.webp`;
         const tempFilePath = `temp/${tempFileName}`;
 
         // 3. Use Sharp to composite the watermark text onto the image
@@ -98,7 +98,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
         return tempFilePath;
 
     } catch (error) {
-        console.error(`[Watermark] Error creating watermarked image for content ${content._id}:`, error);
+        console.error(`[Watermark] Error creating watermarked image for content ${content.id}:`, error);
         return originalFilePath; // If anything fails, fall back to serving the original image
     }
 };
@@ -165,18 +165,18 @@ const generateVideoThumbnail = async (videoBuffer: Buffer): Promise<Buffer> => {
 
 /**
  * Handles the business logic for creating a new piece of content.
- * @param creatorId - The ID of the creator uploading the content.
+ * @param creator_id - The ID of the creator uploading the content.
  * @param contentData - The metadata for the content.
  * @param files - An array of files from Multer.
  * @returns The newly created content object.
  */
-export const createNewContent = async (creatorId: string, contentData: Partial<Content>, files: Express.Multer.File[]) => {
+export const createNewContent = async (creator_id: string, contentData: Partial<Content>, files: Express.Multer.File[]) => {
     const uploadedFiles: MediaFile[] = [];
     const filePaths: string[] = [];
 
     for (const file of files) {
         const originalFileName = `${Date.now()}-${file.originalname}`;
-        const filePath = `${creatorId}/${originalFileName}`;
+        const filePath = `${creator_id}/${originalFileName}`;
         filePaths.push(filePath);
 
         // Upload the original file to the private 'creator-content' bucket
@@ -200,7 +200,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
         if (file.mimetype.startsWith('image/')) {
             const thumbnailBuffer = await generateThumbnail(file.buffer);
             const thumbnailFileName = `thumb-${originalFileName}.webp`;
-            thumbnailPath = `${creatorId}/${thumbnailFileName}`;
+            thumbnailPath = `${creator_id}/${thumbnailFileName}`;
             thumbnailMimeType = 'image/webp';
             filePaths.push(thumbnailPath);
 
@@ -219,7 +219,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             try {
                 const thumbnailBuffer = await generateVideoThumbnail(file.buffer);
                 const thumbnailFileName = `thumb-${originalFileName}.jpg`;
-                thumbnailPath = `${creatorId}/${thumbnailFileName}`;
+                thumbnailPath = `${creator_id}/${thumbnailFileName}`;
                 thumbnailMimeType = 'image/jpeg';
                 filePaths.push(thumbnailPath);
 
@@ -270,7 +270,7 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
     // 3. Assemble the final data for the database
     const newContentData: Partial<Content> = {
         ...contentData,
-        creator_id: creatorId,
+        creator_id: creator_id,
         files: uploadedFiles,
         stats: { views: 0, galleryAdds: 0, tips: 0 },
         status: status,
@@ -278,11 +278,11 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
             isScheduled: contentData.schedule?.isScheduled || false,
             publishDate: publishDate,
         },
-        min_tier_level: contentData.minTierLevel || 1,
+        min_tier_level: contentData.min_tier_level || 1,
     };
 
     // Fix: Remove camelCase property to avoid "column not found" error in Supabase
-    delete (newContentData as any).minTierLevel;
+    delete (newContentData as any).min_tier_level;
 
     try {
         const newContent = await ContentModel.createContent(newContentData);
@@ -302,11 +302,11 @@ export const createNewContent = async (creatorId: string, contentData: Partial<C
 
 /**
  * Fetches all content for a specific creator with optional filtering and sorting.
- * @param creatorId - The ID of the creator.
+ * @param creator_id - The ID of the creator.
  * @param query - An object with filter and sort parameters.
  * @returns An array of content objects.
  */
-export const getContentByCreatorId = async (creatorId: string, query: ContentQuery = {}) => {
+export const getContentByCreatorId = async (creator_id: string, query: ContentQuery = {}) => {
     const {
         type,
         searchTerm,
@@ -318,7 +318,7 @@ export const getContentByCreatorId = async (creatorId: string, query: ContentQue
     let queryBuilder = supabase
         .from('content')
         .select('*')
-        .eq('creator_id', creatorId);
+        .eq('creator_id', creator_id);
 
     // Apply filter by content type if provided
     if (type && type !== 'All') {
@@ -342,18 +342,18 @@ export const getContentByCreatorId = async (creatorId: string, query: ContentQue
         return null;
     }
 
-    // Map the database 'id' to the frontend '_id'
+    // Map the database 'id' to the frontend 'id'
     return data.map(item => ({
         ...item,
-        _id: item.id.toString(),
-        minTierLevel: item.min_tier_level
+        id: item.id.toString(),
+        min_tier_level: item.min_tier_level
     }));
 };
 
 /**
  * Fetches all content for a specific creator and shapes it for the frontend.
  * @param creatorName - The username of the creator.
- * @returns An array of content objects with '_id' instead of 'id'.
+ * @returns An array of content objects with 'id' instead of 'id'.
  */
 export const getContentByCreatorName = async (creatorName: string) => {
     const creator = await UserModel.findUserByUsername(creatorName);
@@ -361,7 +361,7 @@ export const getContentByCreatorName = async (creatorName: string) => {
         throw new AppError('Creator not found.', 404);
     }
 
-    return getContentByCreatorId(creator._id);
+    return getContentByCreatorId(creator.id);
 };
 
 /**
@@ -379,10 +379,10 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
     let isSubscribed = false;
     if (viewerId) {
         const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(viewerId);
-        isSubscribed = subscriptions?.some(sub => sub.creatorId === creator._id) || false;
+        isSubscribed = subscriptions?.some(sub => sub.creator_id === creator.id) || false;
     }
 
-    const content = await ContentModel.findContentByCreatorId(creator._id);
+    const content = await ContentModel.findContentByCreatorId(creator.id);
     if (!content) {
         return [];
     }
@@ -446,15 +446,15 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
         throw new AppError('Content not found.', 404);
     }
 
-    // Check against the camelCase property `creatorId` from the model.
-    if (content.creatorId === fanId) {
+    // Check against the camelCase property `creator_id` from the model.
+    if (content.creator_id === fanId) {
         return content;
     }
     console.log("[ContentService] content.visibility: ", content.visibility);
     if (content.visibility === 'subscribers_only') {
         const subscriptions = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
         // FIX: Check against the snake_case property `creator_id`.
-        const subscription = subscriptions?.find(sub => sub.creatorId === content.creatorId);
+        const subscription = subscriptions?.find(sub => sub.creator_id === content.creator_id);
         const isSubscribed = !!subscription;
 
         console.log("[ContentService] isSubscribed: ", isSubscribed);
@@ -463,14 +463,14 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
         }
 
         // Tier Level Check
-        if (content.minTierLevel && content.minTierLevel > 1) {
-            const creator = await UserModel.findUserById(content.creatorId);
-            if (creator && creator.creatorData?.subscriptionTiers) {
-                const fanTier = creator.creatorData.subscriptionTiers.find((t: any) => t.id === subscription?.tierId);
+        if (content.min_tier_level && content.min_tier_level > 1) {
+            const creator = await UserModel.findUserById(content.creator_id);
+            if (creator && creator.creator_data?.subscriptionTiers) {
+                const fanTier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === subscription?.tier_id);
                 const fanTierLevel = fanTier?.level || 1; // Default to 1 if not found (legacy)
 
-                if (fanTierLevel < content.minTierLevel) {
-                    throw new AppError(`This content requires a Tier ${content.minTierLevel} subscription (You are Tier ${fanTierLevel}).`, 403);
+                if (fanTierLevel < content.min_tier_level) {
+                    throw new AppError(`This content requires a Tier ${content.min_tier_level} subscription (You are Tier ${fanTierLevel}).`, 403);
                 }
             }
         }
@@ -490,16 +490,16 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
 /**
  * Updates a creator's content.
  * @param contentId - The ID of the content to update.
- * @param creatorId - The ID of the creator making the request.
+ * @param creator_id - The ID of the creator making the request.
  * @param updates - The data to update.
  * @returns The updated content object.
  */
-export const updateCreatorContent = async (contentId: string, creatorId: string, updates: Partial<Content>) => {
+export const updateCreatorContent = async (contentId: string, creator_id: string, updates: Partial<Content>) => {
     const content = await ContentModel.findContentById(contentId);
     if (!content) {
         throw new AppError('Content not found.', 404);
     }
-    if (content.creatorId !== creatorId) {
+    if (content.creator_id !== creator_id) {
         throw new AppError('You are not authorized to update this content.', 403);
     }
 
@@ -527,14 +527,14 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
     }
 
     // Handle tier level updates and map to DB column
-    if (updates.minTierLevel !== undefined) {
+    if (updates.min_tier_level !== undefined) {
         // @ts-ignore
-        updates.min_tier_level = updates.minTierLevel;
-        delete updates.minTierLevel;
+        updates.min_tier_level = updates.min_tier_level;
+        delete updates.min_tier_level;
     }
 
     // 3. Prevent certain fields from being updated directly via this endpoint
-    delete updates.creatorId;
+    delete updates.creator_id;
     delete updates.files;
     delete updates.stats;
 
@@ -548,15 +548,15 @@ export const updateCreatorContent = async (contentId: string, creatorId: string,
 /**
  * Deletes a piece of content, including its files from storage.
  * @param contentId - The ID of the content to delete.
- * @param creatorId - The ID of the creator making the request.
+ * @param creator_id - The ID of the creator making the request.
  */
-export const deleteCreatorContent = async (contentId: string, creatorId: string) => {
+export const deleteCreatorContent = async (contentId: string, creator_id: string) => {
     const content = await ContentModel.findContentById(contentId);
     if (!content) {
         throw new AppError('Content not found.', 404);
     }
 
-    if (content.creatorId !== creatorId) {
+    if (content.creator_id !== creator_id) {
         throw new AppError('You are not authorized to delete this content.', 403);
     }
 
@@ -602,10 +602,10 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         console.error(`[Service] Content not found in database for id="${contentId}"`);
         throw new AppError('Content not found.', 404);
     }
-    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creatorId})`);
+    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creator_id})`);
 
     // Owner check
-    if (content.creatorId !== userId) {
+    if (content.creator_id !== userId) {
         console.log('[Service] User is not owner, checking permissions...');
         await getContentForFan(contentId, userId); // This function contains the permission logic
         console.log('[Service] Permission check passed.');

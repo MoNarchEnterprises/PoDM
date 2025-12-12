@@ -41,6 +41,7 @@ export interface Subscription {
   start_date: string; // ISO 8601 date string
   end_date?: string; // ISO 8601 date string, for canceled/expired subscriptions
   next_billing_date?: string; // ISO 8601 date string, for active subscriptions
+  stripe_subscription_id?: string; // Stripe Subscription ID
   payment_method: PaymentMethod;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string

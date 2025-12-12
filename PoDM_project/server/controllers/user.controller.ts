@@ -33,7 +33,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
  */
 export const updateMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const profileUpdates = req.body;
 
         if (!userId) {
@@ -54,7 +54,7 @@ export const updateMe = async (req: Request, res: Response, next: NextFunction) 
  */
 export const updateMyAvatar = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const file = req.file; // From the uploadAvatar middleware
 
         if (!userId) {
@@ -79,7 +79,7 @@ export const updateMyAvatar = async (req: Request, res: Response, next: NextFunc
  */
 export const addToGallery = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { contentId } = req.body;
 
         if (!fanId) {
@@ -103,7 +103,7 @@ export const addToGallery = async (req: Request, res: Response, next: NextFuncti
  */
 export const removeFromGallery = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         const { contentId } = req.params;
 
         if (!fanId) {
@@ -139,7 +139,7 @@ export const getPublicProfile = async (req: Request, res: Response, next: NextFu
  */
 export const completeOnboarding = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
@@ -160,7 +160,7 @@ export const completeOnboarding = async (req: Request, res: Response, next: Next
  */
 export const submitVerification = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         const { signature } = req.body;
 
@@ -183,7 +183,7 @@ export const submitVerification = async (req: Request, res: Response, next: Next
 export const getFullPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username } = req.params;
-        const viewerId = req.user?._id; 
+        const viewerId = req.user?.id;
         const profileData = await UserService.getFullPublicProfile(username, viewerId);
         res.status(200).json({ success: true, data: profileData });
     } catch (error) {
@@ -198,14 +198,14 @@ export const getFullPublicProfile = async (req: Request, res: Response, next: Ne
  */
 export const getMyFeed = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
         const page = parseInt(req.query.page as string) || 1;
         const feed = await UserService.generateFanFeed(fanId, page);
-        
+
         res.status(200).json({ success: true, data: feed });
     } catch (error) {
         next(error);
@@ -219,13 +219,13 @@ export const getMyFeed = async (req: Request, res: Response, next: NextFunction)
  */
 export const getMyGallery = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fanId = req.user?.id;
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
         const galleryData = await UserService.getFanGallery(fanId);
-        
+
         res.status(200).json({ success: true, data: galleryData });
     } catch (error) {
         next(error);
@@ -239,7 +239,7 @@ export const getMyGallery = async (req: Request, res: Response, next: NextFuncti
  */
 export const getMySettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -257,7 +257,7 @@ export const getMySettings = async (req: Request, res: Response, next: NextFunct
  */
 export const updateMySettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
@@ -275,7 +275,7 @@ export const updateMySettings = async (req: Request, res: Response, next: NextFu
  */
 export const updateMyPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         const { paymentMethodId } = req.body;
 
         if (!userId) {
@@ -299,7 +299,7 @@ export const updateMyPaymentMethod = async (req: Request, res: Response, next: N
  */
 export const createSetupIntent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user?.id;
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }

@@ -11,12 +11,12 @@ import * as SubscriptionService from '../services/subscription.service';
  */
 export const getMySubscriptions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
-        if (!fanId) {
+        const fan_id = req.user?.id;
+        if (!fan_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const subscriptions = await SubscriptionService.getFanSubscriptions(fanId);
+        const subscriptions = await SubscriptionService.getFanSubscriptions(fan_id);
         res.status(200).json({ success: true, data: subscriptions });
     } catch (error) {
         next(error);
@@ -30,17 +30,17 @@ export const getMySubscriptions = async (req: Request, res: Response, next: Next
  */
 export const createSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
-        const { creatorId, tierId, paymentMethodId } = req.body;
+        const fan_id = req.user?.id;
+        const { creator_id, tier_id, paymentMethodId } = req.body;
 
-        if (!fanId) {
+        if (!fan_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
-        if (!creatorId || !tierId || !paymentMethodId) {
+        if (!creator_id || !tier_id || !paymentMethodId) {
             throw new AppError('Creator ID, Tier ID, and Payment Method ID are required.', 400);
         }
 
-        const newSubscription = await SubscriptionService.createSubscriptionForUser(fanId, creatorId, tierId, paymentMethodId);
+        const newSubscription = await SubscriptionService.createSubscriptionForUser(fan_id, creator_id, tier_id, paymentMethodId);
         res.status(201).json({ success: true, data: newSubscription });
     } catch (error) {
         next(error);
@@ -54,18 +54,18 @@ export const createSubscription = async (req: Request, res: Response, next: Next
  */
 export const updateSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fan_id = req.user?.id;
         const { id: subscriptionId } = req.params;
         const { newTierId } = req.body;
 
-        if (!fanId) {
+        if (!fan_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
         if (!newTierId) {
             throw new AppError('New Tier ID is required.', 400);
         }
 
-        const updatedSubscription = await SubscriptionService.changeSubscriptionTier(subscriptionId, fanId, newTierId);
+        const updatedSubscription = await SubscriptionService.changeSubscriptionTier(subscriptionId, fan_id, newTierId);
         res.status(200).json({ success: true, data: updatedSubscription });
     } catch (error) {
         next(error);
@@ -79,14 +79,14 @@ export const updateSubscription = async (req: Request, res: Response, next: Next
  */
 export const cancelSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?._id;
+        const fan_id = req.user?.id;
         const { id: subscriptionId } = req.params;
 
-        if (!fanId) {
+        if (!fan_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const canceledSubscription = await SubscriptionService.cancelFanSubscription(subscriptionId, fanId);
+        const canceledSubscription = await SubscriptionService.cancelFanSubscription(subscriptionId, fan_id);
         res.status(200).json({ success: true, data: canceledSubscription });
     } catch (error) {
         next(error);
