@@ -103,7 +103,7 @@ export const getFlaggedContent = async () => {
  * If approved (status='published'), dismisses all pending reports.
  */
 export const updateContentStatus = async (contentId: string, status: string) => {
-    const updatedContent = await ContentModel.updateContent(contentId, { status });
+    const updatedContent = await ContentModel.updateContent(contentId, { status: status as import('@common/types/Content').ContentStatus });
     if (!updatedContent) {
         throw new AppError('Content not found or failed to update.', 404);
     }
@@ -149,8 +149,8 @@ export const generateReport = async (reportParams: any) => {
             if (filters === 'User Type') {
                 // In a real scenario, you'd want to aggregate counts by type
                 data.userDistribution = {
-                    creators: await UserModel.countCreators(),
-                    fans: (await UserModel.countAllUsers()) - (await UserModel.countCreators())
+                    creators: await UserModel.countActiveCreators(),
+                    fans: (await UserModel.countAllUsers()) - (await UserModel.countActiveCreators())
                 };
             }
         } else {
@@ -238,7 +238,7 @@ export const getAdminUsers = async () => {
         // 3. UPDATE to use reshapeUserForApp
         return authUser ? reshapeUserForApp(admin) : null;
     }));
-    return shapedAdmins.filter((admin: null) => admin !== null) as User[];
+    return shapedAdmins.filter((admin): admin is User => admin !== null);
 };
 
 /**
