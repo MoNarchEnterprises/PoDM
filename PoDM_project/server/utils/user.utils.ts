@@ -24,13 +24,13 @@ export const reshapeUserForApp = (flatUser: any): User => {
     // --- ADD THIS LOGIC BLOCK ---
     // The baseUser object now ONLY contains fields common to ALL roles.
     const baseUser: User = {
-        _id: id,
+        id: id,
         username: username || 'unknown_user',
         email: email || '',
-        createdAt: created_at,
+        created_at: created_at,
         role,
         status,
-        updatedAt: flatUser.updated_at, // Assuming this field exists
+        updated_at: flatUser.updated_at,
         profile: {
             name: fullName || full_name || username || 'Unknown User',
             avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
@@ -40,7 +40,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
 
     // If the user is a creator, we build the extended Creator object
     if (role === 'creator') {
-        let verificationStatus: Creator['verificationStatus'] = 'not_submitted';
+        let verificationStatus: Creator['verification_status'] = 'not_submitted';
         if (status === 'active') verificationStatus = 'verified';
         else if (status === 'pending verification' && verification_data) verificationStatus = 'pending';
 
@@ -61,7 +61,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
         const creatorUser: Creator = {
             ...baseUser,
             // Add creator-specific top-level fields
-            verificationStatus,
+            verification_status: verificationStatus,
             onboarding_complete: onboarding_complete || false,
             commission_rate: commission_rate,
             verification_data: verification_data,
@@ -74,7 +74,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
             },
 
             // The remaining data stays in the nested creatorData object
-            creatorData: {
+            creator_data: {
                 subscriptionTiers,
                 welcomeMessage,
                 payoutSettings,

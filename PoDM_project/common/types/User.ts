@@ -41,15 +41,17 @@ export interface VerificationData {
  * The base User interface, representing the core data for any user.
  */
 export interface User {
-  _id: string; // Unique identifier from the database
+  id: string; // Unique identifier from the database (Supabase uses 'id')
   username: string;
   email: string;
   profile: UserProfile;
   role: UserRole;
   status: UserStatus;
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  created_at: string; // ISO 8601 date string
+  updated_at: string; // ISO 8601 date string
   stripe_account_id?: string;  // For Creators (acct_...)
   stripe_customer_id?: string; // For Fans (cus_...)
+  verification_data?: VerificationData;
+  creator_data?: any; // JSONB column
+  preferences?: any; // JSONB column
 }
-

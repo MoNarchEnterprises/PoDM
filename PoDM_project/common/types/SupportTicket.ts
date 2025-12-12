@@ -24,13 +24,13 @@ export interface TicketMessage {
  * The main SupportTicket interface, representing a single support request from a user.
  */
 export interface SupportTicket {
-  _id: string; // Unique identifier for the ticket
-  userId: string; // The ID of the user who submitted the ticket
+  id: string; // Unique identifier for the ticket
+  user_id: string; // The ID of the user who submitted the ticket
   subject: string;
   status: TicketStatus;
   priority: TicketPriority;
-  assignedAdminId?: string; // The ID of the admin assigned to this ticket
+  assigned_admin_id?: string; // The ID of the admin assigned to this ticket
   conversation: TicketMessage[];
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  created_at: string; // ISO 8601 date string
+  updated_at: string; // ISO 8601 date string
 }

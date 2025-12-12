@@ -83,7 +83,7 @@ export const getFlaggedContent = async () => {
 
     // 2. For each item, fetch reports to get the count and reason
     const contentWithReports = await Promise.all(flaggedContent.map(async (content) => {
-        const reports = await ReportModel.getReportsByContentId(content._id);
+        const reports = await ReportModel.getReportsByContentId(content.id);
         const pendingReports = reports?.filter(r => r.status === 'pending') || [];
 
         return {
@@ -91,7 +91,7 @@ export const getFlaggedContent = async () => {
             reportCount: pendingReports.length,
             reason: pendingReports.length > 0 ? pendingReports[0].reason : 'Manually flagged by system',
             // We need to fetch the creator profile too, as the frontend expects 'creator' object
-            creator: await UserModel.findUserById(content.creatorId)
+            creator: await UserModel.findUserById(content.creator_id)
         };
     }));
 
@@ -210,20 +210,7 @@ export const getSupportTickets = async () => {
     if (!ticketsFromDb) {
         return [];
     }
-    // --- THIS IS THE FIX ---
-    // Reshape the data to match the frontend's expected format (_id, camelCase).
-    return ticketsFromDb.map(ticket => ({
-        _id: ticket.id.toString(),
-        userId: ticket.user_id,
-        subject: ticket.subject,
-        status: ticket.status,
-        priority: ticket.priority,
-        assignedAdminId: ticket.assigned_admin_id,
-        conversation: ticket.conversation || [],
-        createdAt: ticket.created_at,
-        updatedAt: ticket.updated_at,
-    }));
-    // --- END OF FIX ---
+    return ticketsFromDb;
 };
 
 /**

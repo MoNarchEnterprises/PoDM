@@ -13,9 +13,9 @@ export interface GalleryItem {
  * The main Gallery interface, representing a fan's collection of saved content.
  */
 export interface Gallery {
-  _id: string; // Unique identifier for the gallery itself
-  fanId: string; // The ID of the user who owns this gallery
+  id: string; // Unique identifier for the gallery itself
+  fan_id: string; // The ID of the user who owns this gallery
   content: GalleryItem[]; // An array of all content items saved by the fan
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  created_at: string; // ISO 8601 date string
+  updated_at: string; // ISO 8601 date string
 }

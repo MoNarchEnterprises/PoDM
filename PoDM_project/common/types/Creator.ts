@@ -102,9 +102,9 @@ export interface Creator extends User {
     coverImageUrl?: string;
     socialLinks?: SocialLinks;
   }
-  verificationStatus: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
+  verification_status: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
   verification_data?: VerificationData;
   onboarding_complete: boolean;
   commission_rate?: number;
-  creatorData: CreatorData;
+  creator_data: CreatorData;
 }

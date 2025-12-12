@@ -47,19 +47,19 @@ export interface Schedule {
  * The main Content interface, representing a single post made by a creator.
  */
 export interface Content {
-  _id: string; // Unique identifier from the database
-  creatorId: string; // The ID of the user who created this content
+  id: string; // Unique identifier from the database
+  creator_id: string; // The ID of the user who created this content
   title: string;
   description: string;
   type: ContentType;
   files: MediaFile[];
   visibility: ContentVisibility;
-  minTierLevel?: number; // Optional, only if visibility is 'subscribers_only'
+  min_tier_level?: number; // Optional, only if visibility is 'subscribers_only'
   price?: number; // Optional, only required if visibility is 'pay_per_view'
   tags: string[];
   stats: ContentStats;
   schedule: Schedule;
   status: ContentStatus;
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  created_at: string; // ISO 8601 date string
+  updated_at: string; // ISO 8601 date string
 }

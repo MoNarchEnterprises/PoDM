@@ -31,17 +31,17 @@ export interface PaymentMethod {
  * The main Subscription interface, representing a fan's subscription to a creator.
  */
 export interface Subscription {
-  _id: string; // Unique identifier for the subscription
-  fanId: string; // The ID of the fan (user)
-  creatorId: string; // The ID of the creator (user)
-  tierId: string; // The ID of the specific SubscriptionTier
+  id: number; // Unique identifier for the subscription
+  fan_id: string; // The ID of the fan (user)
+  creator_id: string; // The ID of the creator (user)
+  tier_id: string; // The ID of the specific SubscriptionTier
   price: number; // The price paid at the time of subscription (in cents)
-  billingCycle: BillingCycle;
+  billing_cycle: BillingCycle;
   status: SubscriptionStatus;
-  startDate: string; // ISO 8601 date string
-  endDate?: string; // ISO 8601 date string, for canceled/expired subscriptions
-  nextBillingDate?: string; // ISO 8601 date string, for active subscriptions
-  paymentMethod: PaymentMethod;
-  createdAt: string; // ISO 8601 date string
-  updatedAt: string; // ISO 8601 date string
+  start_date: string; // ISO 8601 date string
+  end_date?: string; // ISO 8601 date string, for canceled/expired subscriptions
+  next_billing_date?: string; // ISO 8601 date string, for active subscriptions
+  payment_method: PaymentMethod;
+  created_at: string; // ISO 8601 date string
+  updated_at: string; // ISO 8601 date string
 }
