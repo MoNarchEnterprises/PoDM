@@ -74,13 +74,13 @@ export const sendMessage = async (req: Request, res: Response, next: NextFunctio
 export const markConversationAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
-        const { conversation_id } = req.params;
+        const { conversationId } = req.params;  // Fix: Match route param name
 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const result = await MessageService.markConversationAsRead(conversation_id, userId);
+        const result = await MessageService.markConversationAsRead(conversationId, userId);
         res.status(200).json(result);
     } catch (error) {
         next(error);
