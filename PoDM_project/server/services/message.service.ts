@@ -42,7 +42,7 @@ export const getConversationsForUser = async (userId: string) => {
             const shapedUser = otherUser ? reshapeUserForApp(otherUser) : null;
 
             // Check if we have subscriber data for this conversation
-            const subData = subscriberConvoMap.get(convo.id);
+            const subData = subscriberConvoMap.get(convo.id) as any;
 
             return {
                 id: convo.id,
