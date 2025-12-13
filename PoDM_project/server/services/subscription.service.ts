@@ -29,7 +29,6 @@ export const createSubscriptionForUser = async (
     tier_id: string,
     paymentMethodId: string
 ) => {
-    console.log(`[SubService] Starting subscription creation for fan ${fan_id} to creator ${creator_id}`);
 
     // 1. Fetch creator and validate the selected tier
     const creator = await UserModel.findUserById(creator_id);
@@ -44,7 +43,6 @@ export const createSubscriptionForUser = async (
 
     // 2. Get or create the Stripe Customer ID for the fan
     const fanStripeCustomerId = await getOrCreateStripeCustomer(fan_id);
-    console.log(`[SubService] Confirmed Stripe Customer ID: ${fanStripeCustomerId}`);
 
     try {
         let stripeSubscription: any;
@@ -101,8 +99,6 @@ export const createSubscriptionForUser = async (
             };
         }
 
-        console.log('[SubService] Stripe subscription created.', JSON.stringify(stripeSubscription, null, 2));
-
         const periodStart = latestInvoice.period_start;
         const periodEnd = latestInvoice.period_end;
 
@@ -147,12 +143,11 @@ export const createSubscriptionForUser = async (
                     text: welcomeConfig.message,
                     content: contentPayload,
                 });
-                console.log(`[SubService] Successfully sent welcome message from ${creator_id} to ${fan_id}.`);
             }
         } catch (welcomeError) {
             // IMPORTANT: Do not throw an error. A failed welcome message should not
             // cause the entire subscription process to fail for the user. Just log it.
-            console.error(`[SubService] CRITICAL: Failed to send welcome message for new subscription ${dbSubscription?.id}. Error:`, welcomeError);
+            console.error(`[SubService] CRITICAL: Failed to send welcome message. Error:`, welcomeError);
         }
         // --- END OF WELCOME MESSAGE LOGIC ---
 
@@ -172,7 +167,6 @@ export const createSubscriptionForUser = async (
                 status: 'Cleared',
                 payment_gateway_id: typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id,
             });
-            console.log(`[SubService] Initial subscription transaction for ${amountInCents / 100} USD saved to database.`);
         }
 
         if (!dbSubscription) {
@@ -180,7 +174,6 @@ export const createSubscriptionForUser = async (
             await stripe.subscriptions.cancel(stripeSubscription.id);
             throw new AppError('Failed to save subscription to database after successful payment.', 500);
         }
-        console.log(`[SubService] Subscription ${dbSubscription.id} saved to local database.`);
 
         return {
             requiresAction: false,

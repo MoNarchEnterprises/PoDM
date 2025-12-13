@@ -595,24 +595,16 @@ export const deleteCreatorContent = async (contentId: string, creator_id: string
  * @param userId The ID of the user requesting access.
  */
 export const getSecureUrlForThumbnail = async (contentId: string, userId: string) => {
-    console.log(`[Service] getSecureUrlForThumbnail: Verifying access for userId="${userId}" to contentId="${contentId}"`);
 
     const content = await ContentModel.findContentById(contentId);
     if (!content) {
         console.error(`[Service] Content not found in database for id="${contentId}"`);
         throw new AppError('Content not found.', 404);
     }
-    console.log(`[Service] Found content: ${content.title} (Creator ID: ${content.creator_id})`);
-    console.log(`[Service] User ID: ${userId}`);
-    console.log(`[Service] Content creator ID: ${content.creator_id}`);
 
     // Owner check
     if (content.creator_id !== userId) {
-        console.log('[Service] User is not owner, checking permissions...');
         await getContentForFan(contentId, userId); // This function contains the permission logic
-        console.log('[Service] Permission check passed.');
-    } else {
-        console.log('[Service] User is the owner. Granting access.');
     }
 
     const fullThumbnailUrl = content.files?.[0]?.thumbnailUrl;
@@ -620,13 +612,11 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         console.error(`[Service] Content id="${contentId}" is missing a thumbnailUrl path in its files array.`);
         throw new AppError('Content has no thumbnail file path.', 404);
     }
-    console.log(`[Service] Full thumbnail URL from DB: ${fullThumbnailUrl}`);
 
     const storedThumbnailPath = content.files?.[0]?.thumbnailUrl;
     if (!storedThumbnailPath) {
         throw new AppError('Content has no thumbnail file path.', 404);
     }
-    console.log(`[Service] Path from DB: ${storedThumbnailPath}`);
 
     let relativePath: string;
     const bucketName = 'creator-content';
@@ -645,7 +635,6 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         console.error(`[Service] Could not determine a relative path from: ${storedThumbnailPath}`);
         throw new AppError('Could not determine a valid file path.', 500);
     }
-    console.log(`[Service] Using relative path for Supabase: ${relativePath}`);
 
     const { data, error } = await supabase.storage
         .from(bucketName)
@@ -660,7 +649,7 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         throw new AppError('Storage did not return a signed URL.', 500);
     }
 
-    console.log(`[Service] Generated signed URL successfully for path "${relativePath}"`);
+
     return { secureUrl: data.signedUrl };
 };
 

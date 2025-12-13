@@ -10,12 +10,15 @@ export const createSupportTicket = async (userId: string, subject: string, descr
         throw new AppError('User creating ticket not found.', 404);
     }
 
+    // Safely access user's name - check for nested profile structure or flat structure
+    const userName = user.profile?.name || (user as any).name || 'Unknown User';
+
     const ticket = await createSupportTicketModel({
         user_id: userId,
         subject,
         conversation: [{
             senderId: userId,
-            senderName: user.profile.name,
+            senderName: userName,
             text: description,
             timestamp: new Date().toISOString()
         }],

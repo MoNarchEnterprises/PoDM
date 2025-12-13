@@ -64,13 +64,7 @@ export const getMyContent = async (req: Request, res: Response, next: NextFuncti
         }
 
         // Pass the request query object directly to the service
-        console.log(`[Controller] getMyContent: Fetching content for creator_id=${creator_id}`);
         const content = await ContentService.getContentByCreatorId(creator_id, req.query);
-        console.log(`[Controller] getMyContent: Found ${content?.length || 0} items`);
-        if (content && content.length > 0) {
-            console.log('[Controller] getMyContent: Titles:', content.map(c => c.title).join(', '));
-            console.log('[Controller] First Item Full:', JSON.stringify(content[0], null, 2));
-        }
 
         res.status(200).json({ success: true, data: content });
     } catch (error) {
@@ -191,8 +185,6 @@ export const getSecureContentUrl = async (req: Request, res: Response, next: Nex
         const userId = req.user?.id;
         const { id: contentId } = req.params;
 
-        console.log(`[Controller] getSecureContentUrl: Request for contentId="${contentId}" by userId="${userId}"`);
-
         if (!userId) {
             return next(new AppError('Authentication error, user ID not found on request.', 401));
         }
@@ -202,11 +194,9 @@ export const getSecureContentUrl = async (req: Request, res: Response, next: Nex
 
         const { secureUrl } = await ContentService.getSecureUrlForThumbnail(contentId, userId);
 
-        console.log(`[Controller] Successfully generated secure URL for contentId="${contentId}"`);
         res.status(200).json({ success: true, data: { secureUrl } });
 
     } catch (error) {
-        console.error(`[Controller] ERROR in getSecureContentUrl for contentId="${req.params.id}":`, error);
         next(error);
     }
 };

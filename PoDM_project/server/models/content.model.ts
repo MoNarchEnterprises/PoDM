@@ -53,8 +53,6 @@ export const findContentById = async (id: string): Promise<Content | null> => {
         return null;
     }
 
-    console.log(`[Model] findContentById: Querying database for content with id=${contentId}`);
-
     const { data, error } = await supabase
         .from('content')
         .select('*')
@@ -66,12 +64,9 @@ export const findContentById = async (id: string): Promise<Content | null> => {
         if (error.code !== 'PGRST116') { // PGRST116 = "The result contains 0 rows"
             console.error(`[Model] Database error finding content by ID ${contentId}:`, error.message);
         } else {
-            console.log(`[Model] No content found for id=${contentId}.`);
         }
         return null;
     }
-
-    console.log(`[Model] Successfully found content for id=${contentId}.`);
     const { id: dbId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
