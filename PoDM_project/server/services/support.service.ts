@@ -41,10 +41,13 @@ export const addReplyToTicket = async (ticketId: string, adminUser: User, text: 
         throw new AppError('Support ticket not found.', 404);
     }
 
+    // Safely access admin's name
+    const adminName = adminUser.profile?.name || (adminUser as any).name || 'Support';
+
     // 2. Create the new message object for the conversation
     const newReply: TicketMessage = {
         senderId: adminUser.id,
-        senderName: adminUser.profile.name,
+        senderName: adminName,
         text,
         timestamp: new Date().toISOString(),
     };
