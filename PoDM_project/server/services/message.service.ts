@@ -209,13 +209,17 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
     console.log(`[MessageService] Broadcasted to room: ${roomName}`);
 
     // Check if this message should append to a detailed support ticket
+    // Only sync if the message is TO an admin (user replying to support)
     // Using require() to avoid module resolution issues in production build
     try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const supportService = require('./support.service');
-        // Simpler check: Just try to append. If no ticket, it does nothing.
-        const senderName = sender.profile?.name || (sender as any).name || 'User';
-        await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, senderName);
+        const receiver = await UserModel.findUserById(receiver_id);
+        if (receiver && receiver.role === 'admin') {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const supportService = require('./support.service');
+            const senderName = sender.profile?.name || (sender as any).name || 'User';
+            await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, senderName);
+            console.log('[MessageService] Synced message to support ticket');
+        }
     } catch (err) {
         console.error('Error handling support ticket sync:', err);
     }
