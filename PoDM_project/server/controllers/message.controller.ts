@@ -50,7 +50,9 @@ export const getMessagesInConversation = async (req: Request, res: Response, nex
 export const sendMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const sender_id = req.user?.id;
-        const { receiver_id, text, content } = req.body;
+        // Accept both camelCase (from frontend) and snake_case
+        const receiver_id = req.body.receiverId || req.body.receiver_id;
+        const { text, content } = req.body;
 
         if (!sender_id) {
             throw new AppError('Authentication error, user ID not found.', 401);
