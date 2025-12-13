@@ -20,9 +20,9 @@ export const createContent = async (contentData: Partial<Content>): Promise<Cont
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
-        _id: contentId.toString(),
-        creatorId: creator_id,
-        minTierLevel: min_tier_level
+        id: contentId.toString(),
+        creator_id: creator_id,
+        min_tier_level: min_tier_level
     } as Content;
 };
 
@@ -75,9 +75,9 @@ export const findContentById = async (id: string): Promise<Content | null> => {
     const { id: dbId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
-        _id: dbId.toString(),
-        creatorId: creator_id,
-        minTierLevel: min_tier_level
+        id: dbId.toString(),
+        creator_id: creator_id,
+        min_tier_level: min_tier_level
     } as Content;
 };
 
@@ -103,9 +103,9 @@ export const findContentByIds = async (ids: string[]): Promise<Content[] | null>
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
             ...rest,
-            _id: id.toString(),
-            creatorId: creator_id,
-            minTierLevel: min_tier_level
+            id: id.toString(),
+            creator_id: creator_id,
+            min_tier_level: min_tier_level
         } as Content;
     });
 };
@@ -129,9 +129,9 @@ export const findContentByStatus = async (status: string): Promise<Content[] | n
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
             ...rest,
-            _id: id.toString(),
-            creatorId: creator_id,
-            minTierLevel: min_tier_level
+            id: id.toString(),
+            creator_id: creator_id,
+            min_tier_level: min_tier_level
         } as Content;
     });
 };
@@ -163,9 +163,9 @@ export const findContentByCreatorId = async (creatorId: string, limit?: number, 
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
             ...rest,
-            _id: id.toString(),
-            creatorId: creator_id,
-            minTierLevel: min_tier_level
+            id: id.toString(),
+            creator_id: creator_id,
+            min_tier_level: min_tier_level
         } as Content;
     });
 };
@@ -232,9 +232,9 @@ export const findRecentContentByCreator = async (creatorId: string, limit: numbe
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
             ...rest,
-            _id: id.toString(),
-            creatorId: creator_id,
-            minTierLevel: min_tier_level
+            id: id.toString(),
+            creator_id: creator_id,
+            min_tier_level: min_tier_level
         } as Content;
     });
 };
@@ -264,9 +264,9 @@ export const findPublicContentByCreator = async (creatorId: string, limit: numbe
     }
     return data.map(item => ({
         ...item,
-        _id: item.id.toString(),
-        creatorId: item.creator_id,
-        minTierLevel: item.min_tier_level
+        id: item.id.toString(),
+        creator_id: item.creator_id,
+        min_tier_level: item.min_tier_level
     } as Content));
 };
 
@@ -311,9 +311,9 @@ export const updateContent = async (id: string, updates: Partial<Content>): Prom
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
-        _id: contentId.toString(),
-        creatorId: creator_id,
-        minTierLevel: min_tier_level
+        id: contentId.toString(),
+        creator_id: creator_id,
+        min_tier_level: min_tier_level
     } as Content;
 };
 
@@ -339,8 +339,8 @@ export const deleteContent = async (id: string): Promise<Content | null> => {
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
-        _id: contentId.toString(),
-        creatorId: creator_id,
-        minTierLevel: min_tier_level
+        id: contentId.toString(),
+        creator_id: creator_id,
+        min_tier_level: min_tier_level
     } as Content;
 };

@@ -88,10 +88,10 @@ export const reshapePostForFeed = async (post: any): Promise<any> => {
 
     return {
         ...restOfPost,
-        _id: post.id.toString(),       // Map id -> _id
-        creatorId: creator_id,    // Map creator_id -> creatorId
-        createdAt: created_at,    // Map created_at -> createdAt
-        updatedAt: updated_at,
+        id: post.id.toString(),       // Map id -> id (stringified)
+        creator_id: creator_id,    // Keep creator_id as-is
+        created_at: created_at,    // Keep created_at as-is
+        updated_at: updated_at,
         creator: creatorProfile, // Nested creator profile
     };
 };
@@ -142,18 +142,18 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     // 3. Enrich each post
     return contentList.map(post => {
         // A. Creator always unlocks their own content
-        if (post.creator_id === viewerId || post.creatorId === viewerId) {
+        if (post.creator_id === viewerId) {
             return { ...post, isUnlocked: true, isSubscribedToCreator: true };
         }
 
         // B. Check specific unlock conditions
         let isUnlocked = false;
-        const isSubscribedToCreator = subscribedCreatorIds.has(post.creator_id || post.creatorId);
+        const isSubscribedToCreator = subscribedCreatorIds.has(post.creator_id);
 
         if (post.visibility === 'pay_per_view') {
             // Unlocked if purchased
             // We check both string and number ID formats to be safe
-            isUnlocked = unlockedContentIds.has(post._id?.toString());
+            isUnlocked = unlockedContentIds.has(post.id?.toString());
         } else if (post.visibility === 'subscribers_only') {
             // Unlocked if subscribed to creator
             isUnlocked = isSubscribedToCreator;

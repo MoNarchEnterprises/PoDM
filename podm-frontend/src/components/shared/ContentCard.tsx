@@ -50,7 +50,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const handleSaveToGallery = async () => {
         setIsSaving(true);
         try {
-            await apiClient.addContentToGallery(post._id);
+            await apiClient.addContentToGallery(post.id);
             setIsBookmarked(true);
         } catch (error) {
             console.error("Failed to add to gallery:", error);
@@ -61,7 +61,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     };
 
     const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
-        return apiClient.sendTip(post.creatorId, amount, message, post._id, paymentMethodId);
+        return apiClient.sendTip(post.creator_id, amount, message, post.id, paymentMethodId);
     };
 
     const handleUnlockSuccess = () => {
@@ -82,13 +82,13 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
             <UnlockModal
                 isOpen={isUnlockModalOpen}
                 onClose={closeUnlockModal}
-                contentId={post._id}
+                contentId={post.id}
                 title={post.title}
                 price={post.price || 0}
                 onUnlockSuccess={handleUnlockSuccess}
             />
 
-            <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post._id}`)}>
+            <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md overflow-hidden group transition-all duration-300 ease-in-out transform hover:shadow-xl hover:-translate-y-1" onClick={() => !isLocked && navigate(`/content/${post.id}`)}>
                 <div className="relative">
                     <img
                         className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`}
@@ -106,9 +106,9 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                                         Subscribe to Unlock
                                     </Button>
                                 ) : (
-                                    post.minTierLevel && post.minTierLevel > 1 && !post.price ? (
+                                    post.min_tier_level && post.min_tier_level > 1 && !post.price ? (
                                         <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={(e) => { e.stopPropagation(); navigate(`/creator/${post.creator.username}?tab=subscribe`); }}>
-                                            Upgrade to Tier {post.minTierLevel}
+                                            Upgrade to Tier {post.min_tier_level}
                                         </Button>
                                     ) : (
                                         <Button className="mt-4" onClick={(e) => { e.stopPropagation(); openUnlockModal(); }}>
@@ -128,7 +128,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         <img className="w-10 h-10 rounded-full mr-3" src={post.creator.profile.avatar} alt={post.creator.profile.name} />
                         <div>
                             <p className="font-semibold ...">{post.creator.profile.name}</p>
-                            <p className="text-xs ...">{new Date(post.createdAt).toLocaleDateString()}</p>
+                            <p className="text-xs ...">{new Date(post.created_at).toLocaleDateString()}</p>
                         </div>
                     </div>
                     <p className="text-gray-700 ...">{post.title}</p>
