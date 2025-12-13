@@ -97,8 +97,11 @@ export const getConversationsForUser = async (userId: string) => {
  * @returns An array of message objects with signed URLs for content.
  */
 export const getMessagesForConversation = async (conversation_id: string, userId: string) => {
+    console.log(`[getMessagesForConversation] conversation_id: "${conversation_id}", userId: "${userId}"`);
     const conversation = await ConversationModel.findConversationById(conversation_id);
+    console.log(`[getMessagesForConversation] conversation:`, conversation ? JSON.stringify({ id: conversation.id, participants: conversation.participants }) : 'null');
     if (!conversation || !conversation.participants.includes(userId)) {
+        console.log(`[getMessagesForConversation] 403 - includes check:`, conversation?.participants?.includes(userId));
         throw new AppError('You are not authorized to view this conversation.', 403);
     }
 
