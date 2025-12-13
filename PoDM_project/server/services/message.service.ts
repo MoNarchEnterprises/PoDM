@@ -187,7 +187,8 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
         // If the receiver is NOT another user? Wait, support is done via Admin accounts.
 
         // Simpler check: Just try to append. If no ticket, it does nothing.
-        await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, sender.profile.name);
+        const senderName = sender.profile?.name || (sender as any).name || 'User';
+        await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, senderName);
     } catch (err) {
         console.error('Error handling support ticket sync:', err);
     }
