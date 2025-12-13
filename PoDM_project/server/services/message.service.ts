@@ -25,12 +25,17 @@ export const getConversationsForUser = async (userId: string) => {
     console.log(`[getConversationsForUser] user.role: "${user.role}"`);
 
     if (user.role === 'creator') {
-        // Also fetch ALL conversations for this user to include admin conversations
+        // Fetch ALL conversations for this user (including admin support conversations)
         const allConversations = await ConversationModel.findConversationsByUserId(userId);
         console.log(`[getConversationsForUser] allConversations count: ${allConversations?.length}, ids: ${allConversations?.map(c => c.id).join(',')}`);
 
+        // CRITICAL: Filter to only include conversations where the user is actually a participant
+        const userConversations = (allConversations || []).filter((convo: any) =>
+            convo.participants && convo.participants.includes(userId)
+        );
+        console.log(`[getConversationsForUser] userConversations (after filter) count: ${userConversations.length}, ids: ${userConversations.map(c => c.id).join(',')}`);
 
-        // Use the comprehensive SQL function for subscriber data
+        // Use the RPC for subscriber enrichment data
         const { data: subscriberData, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
         if (error) {
             console.error('Error fetching sorted creator conversations:', error);
@@ -39,8 +44,8 @@ export const getConversationsForUser = async (userId: string) => {
         // Create a map of subscriber conversation data (using string keys)
         const subscriberConvoMap = new Map((subscriberData || []).map((convo: any) => [String(convo.conversation_id), convo]));
 
-        // Process all conversations, enriching with subscriber data when available
-        const result = await Promise.all((allConversations || []).map(async (convo: any) => {
+        // Process ONLY the filtered conversations
+        const result = await Promise.all(userConversations.map(async (convo: any) => {
             const conversationId = String(convo.id);
             const otherParticipantId = convo.participants.find((pid: string) => pid !== userId);
             const otherUser = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
