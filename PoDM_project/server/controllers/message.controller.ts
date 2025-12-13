@@ -29,13 +29,13 @@ export const getConversations = async (req: Request, res: Response, next: NextFu
 export const getMessagesInConversation = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
-        const { conversation_id } = req.params;
+        const { conversationId } = req.params;  // Fix: Match route param name
 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
 
-        const messages = await MessageService.getMessagesForConversation(conversation_id, userId);
+        const messages = await MessageService.getMessagesForConversation(conversationId, userId);
         res.status(200).json({ success: true, data: messages });
     } catch (error) {
         next(error);
