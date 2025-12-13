@@ -32,21 +32,22 @@ export const getConversationsForUser = async (userId: string) => {
             console.error('Error fetching sorted creator conversations:', error);
         }
 
-        // Create a map of subscriber conversation data
-        const subscriberConvoMap = new Map((subscriberData || []).map((convo: any) => [convo.conversation_id, convo]));
+        // Create a map of subscriber conversation data (using string keys)
+        const subscriberConvoMap = new Map((subscriberData || []).map((convo: any) => [String(convo.conversation_id), convo]));
 
         // Process all conversations, enriching with subscriber data when available
         const result = await Promise.all((allConversations || []).map(async (convo: any) => {
+            const conversationId = String(convo.id);
             const otherParticipantId = convo.participants.find((pid: string) => pid !== userId);
             const otherUser = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
             const shapedUser = otherUser ? reshapeUserForApp(otherUser) : null;
 
             // Check if we have subscriber data for this conversation
-            const subData = subscriberConvoMap.get(convo.id) as any;
+            const subData = subscriberConvoMap.get(conversationId) as any;
 
             return {
-                id: convo.id,
-                _id: convo.id?.toString(),
+                id: conversationId,
+                _id: conversationId,
                 fan: {
                     _id: otherParticipantId,
                     id: otherParticipantId,
