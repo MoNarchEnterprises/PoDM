@@ -35,14 +35,18 @@ export const createSupportTicket = async (userId: string, subject: string, descr
  * @returns The updated support ticket object.
  */
 export const addReplyToTicket = async (ticketId: string, adminUser: User, text: string) => {
+    console.log('[SupportService] addReplyToTicket called with ticketId:', ticketId);
+    console.log('[SupportService] adminUser:', JSON.stringify(adminUser, null, 2));
+
     // 1. Find the existing ticket
     const ticket = await findSupportTicketById(ticketId);
     if (!ticket) {
         throw new AppError('Support ticket not found.', 404);
     }
+    console.log('[SupportService] Ticket found:', ticket.id);
 
     // Safely access admin's name
-    const adminName = adminUser.profile?.name || (adminUser as any).name || 'Support';
+    const adminName = adminUser?.profile?.name || (adminUser as any)?.name || 'Support';
 
     // 2. Create the new message object for the conversation
     const newReply: TicketMessage = {
