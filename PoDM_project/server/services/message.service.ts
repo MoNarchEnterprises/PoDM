@@ -19,21 +19,17 @@ import * as ContentModel from '../models/content.model';
  * @returns An array of conversation objects.
  */
 export const getConversationsForUser = async (userId: string) => {
-    console.log(`[getConversationsForUser] userId: "${userId}"`);
     const user = await UserModel.findUserById(userId);
     if (!user) throw new AppError('User not found.', 404);
-    console.log(`[getConversationsForUser] user.role: "${user.role}"`);
 
     if (user.role === 'creator') {
         // Fetch ALL conversations for this user (including admin support conversations)
         const allConversations = await ConversationModel.findConversationsByUserId(userId);
-        console.log(`[getConversationsForUser] allConversations count: ${allConversations?.length}, ids: ${allConversations?.map(c => c.id).join(',')}`);
 
         // CRITICAL: Filter to only include conversations where the user is actually a participant
         const userConversations = (allConversations || []).filter((convo: any) =>
             convo.participants && convo.participants.includes(userId)
         );
-        console.log(`[getConversationsForUser] userConversations (after filter) count: ${userConversations.length}, ids: ${userConversations.map(c => c.id).join(',')}`);
 
         // Use the RPC for subscriber enrichment data
         const { data: subscriberData, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
@@ -106,11 +102,8 @@ export const getConversationsForUser = async (userId: string) => {
  * @returns An array of message objects with signed URLs for content.
  */
 export const getMessagesForConversation = async (conversation_id: string, userId: string) => {
-    console.log(`[getMessagesForConversation] conversation_id: "${conversation_id}", userId: "${userId}"`);
     const conversation = await ConversationModel.findConversationById(conversation_id);
-    console.log(`[getMessagesForConversation] conversation:`, conversation ? JSON.stringify({ id: conversation.id, participants: conversation.participants }) : 'null');
     if (!conversation || !conversation.participants.includes(userId)) {
-        console.log(`[getMessagesForConversation] 403 - includes check:`, conversation?.participants?.includes(userId));
         throw new AppError('You are not authorized to view this conversation.', 403);
     }
 
