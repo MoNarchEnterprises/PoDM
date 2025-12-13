@@ -23,30 +23,50 @@ export const getConversationsForUser = async (userId: string) => {
     if (!user) throw new AppError('User not found.', 404);
 
     if (user.role === 'creator') {
-        // Use the new, more comprehensive SQL function for creators.
-        const { data, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
+        // Also fetch ALL conversations for this user to include admin conversations
+        const allConversations = await ConversationModel.findConversationsByUserId(userId);
+
+        // Use the comprehensive SQL function for subscriber data
+        const { data: subscriberData, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
         if (error) {
             console.error('Error fetching sorted creator conversations:', error);
-            throw new AppError('Could not retrieve creator conversations.', 500);
         }
-        // Reshape the data to match the frontend's expected structure
-        return data.map((convo: any) => ({
-            id: convo.conversation_id,
-            fan: {
-                id: convo.fan_id,
-                profile: {
-                    name: convo.fan_username,
-                    avatar: convo.fan_avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U'
+
+        // Create a map of subscriber conversation data
+        const subscriberConvoMap = new Map((subscriberData || []).map((convo: any) => [convo.conversation_id, convo]));
+
+        // Process all conversations, enriching with subscriber data when available
+        const result = await Promise.all((allConversations || []).map(async (convo: any) => {
+            const otherParticipantId = convo.participants.find((pid: string) => pid !== userId);
+            const otherUser = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
+            const shapedUser = otherUser ? reshapeUserForApp(otherUser) : null;
+
+            // Check if we have subscriber data for this conversation
+            const subData = subscriberConvoMap.get(convo.id);
+
+            return {
+                id: convo.id,
+                _id: convo.id?.toString(),
+                fan: {
+                    _id: otherParticipantId,
+                    id: otherParticipantId,
+                    profile: {
+                        name: subData?.fan_username || shapedUser?.profile?.name || 'Support',
+                        avatar: subData?.fan_avatar_url || shapedUser?.profile?.avatar || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=S'
+                    },
+                    totalSpent: subData?.total_spent || 0,
+                    isNewSubscriber: subData?.is_new_subscriber || false,
                 },
-                totalSpent: convo.total_spent,
-                isNewSubscriber: convo.is_new_subscriber,
-            },
-            last_message: {
-                text: convo.last_message_text,
-                is_read: convo.is_read,
-            },
-            updatedAt: convo.last_message_at,
+                lastMessage: {
+                    text: subData?.last_message_text || 'No messages yet',
+                    isRead: subData?.is_read ?? true,
+                },
+                updatedAt: convo.updated_at || new Date().toISOString(),
+            };
         }));
+
+        // Sort by most recent
+        return result.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     } else {
         // Standard logic for fans
         const conversations = await ConversationModel.findConversationsByUserId(userId);
