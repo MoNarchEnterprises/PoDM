@@ -35,15 +35,11 @@ export const createSupportTicket = async (userId: string, subject: string, descr
  * @returns The updated support ticket object.
  */
 export const addReplyToTicket = async (ticketId: string, adminUser: User, text: string) => {
-    console.log('[SupportService] addReplyToTicket called with ticketId:', ticketId);
-    console.log('[SupportService] adminUser:', JSON.stringify(adminUser, null, 2));
-
     // 1. Find the existing ticket
     const ticket = await findSupportTicketById(ticketId);
     if (!ticket) {
         throw new AppError('Support ticket not found.', 404);
     }
-    console.log('[SupportService] Ticket found:', ticket.id);
 
     // Safely access admin's name
     const adminName = adminUser?.profile?.name || (adminUser as any)?.name || 'Support';
@@ -71,9 +67,10 @@ export const addReplyToTicket = async (ticketId: string, adminUser: User, text: 
     }
 
     // 5. Send a direct message to the user so they see it in their messages
-    // @ts-ignore - Dynamic import to avoid circular dependency, works at runtime
-    const messageService = await import('./message.service');
+    // Using require() to avoid module resolution issues in production build
     try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const messageService = require('./message.service');
         await messageService.sendDirectMessage(adminUser.id, ticket.user_id, {
             text: text,
         });

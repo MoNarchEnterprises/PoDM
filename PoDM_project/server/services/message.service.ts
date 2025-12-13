@@ -176,16 +176,10 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
     console.log(`[MessageService] Broadcasted to room: ${roomName}`);
 
     // Check if this message should append to a detailed support ticket
-    // Dynamic import to avoid circular dependency
+    // Using require() to avoid module resolution issues in production build
     try {
-        // @ts-ignore - Dynamic import to avoid circular dependency, works at runtime
-        const supportService = await import('./support.service');
-        // We only append if the sender is NOT an admin (or we rely on the service to filter).
-        // Actually supportService.appendUserMessageToActiveTicket checks if the USER has a ticket.
-        // If an admin sends a message, they might have a ticket as a user too? 
-        // We generally assume this hook is for FANS/CREATORS contacting SUPPORT.
-        // If the receiver is NOT another user? Wait, support is done via Admin accounts.
-
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const supportService = require('./support.service');
         // Simpler check: Just try to append. If no ticket, it does nothing.
         const senderName = sender.profile?.name || (sender as any).name || 'User';
         await supportService.appendUserMessageToActiveTicket(sender_id, newMessage.text, senderName);
