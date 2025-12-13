@@ -19,12 +19,16 @@ import * as ContentModel from '../models/content.model';
  * @returns An array of conversation objects.
  */
 export const getConversationsForUser = async (userId: string) => {
+    console.log(`[getConversationsForUser] userId: "${userId}"`);
     const user = await UserModel.findUserById(userId);
     if (!user) throw new AppError('User not found.', 404);
+    console.log(`[getConversationsForUser] user.role: "${user.role}"`);
 
     if (user.role === 'creator') {
         // Also fetch ALL conversations for this user to include admin conversations
         const allConversations = await ConversationModel.findConversationsByUserId(userId);
+        console.log(`[getConversationsForUser] allConversations count: ${allConversations?.length}, ids: ${allConversations?.map(c => c.id).join(',')}`);
+
 
         // Use the comprehensive SQL function for subscriber data
         const { data: subscriberData, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
