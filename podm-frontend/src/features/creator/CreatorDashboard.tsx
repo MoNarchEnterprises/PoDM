@@ -73,7 +73,6 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
     const navigate = useNavigate();
 
     const baseUrl = import.meta.env.VITE_APP_BASE_URL;
-    console.log("[CreatorDashboard] baseUrl: ", baseUrl);
     const profileLink = `${baseUrl}/creator/${creator.username}`;
 
     const handleCopy = () => {

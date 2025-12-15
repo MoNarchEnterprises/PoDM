@@ -326,22 +326,12 @@ export const getEarningsData = async (creator_id: string) => {
 
     if (detailedTxError) throw new AppError('Could not fetch transaction list.', 500);
 
-    // Explicitly map all snake_case database columns to the camelCase properties
-    // that the frontend's TypeScript types are expecting.
+    // Return transactions with snake_case properties to match the shared Transaction type.
+    // Only add fanName as an additional field from the join.
     const transactions = detailedTransactions.map(tx => ({
-        _id: tx.id.toString(),
-        fanId: tx.fan_id,
-        creatorId: tx.creator_id,
-        type: tx.type,
-        amount: tx.amount,
-        platformFee: tx.platform_fee,
-        creatorPayout: tx.creator_payout, // Explicitly map snake_case to camelCase
-        status: tx.status,
-        relatedContentId: tx.related_content_id,
-        paymentGatewayId: tx.payment_gateway_id,
-        createdAt: tx.created_at,
-        updatedAt: tx.updated_at,
-        fanName: tx.fan?.username || 'Unknown Fan', // Add the fan name from the join
+        ...tx,
+        id: tx.id.toString(),
+        fanName: tx.fan?.username || 'Unknown Fan',
     }));
 
     return { summary, monthlyEarnings, transactions };
