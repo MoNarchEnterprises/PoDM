@@ -54,7 +54,7 @@ const ContentRow = ({ item, onViewPost, onEditPost }: {
             if (thumbnailPath) {
                 try {
                     const response = await apiClient.getSecureContentUrl(item.id);
-                    setImageUrl(response.data.url);
+                    setImageUrl(response.data.secureUrl);
                 } catch (error) {
                     console.error('Failed to load thumbnail:', error);
                 }
