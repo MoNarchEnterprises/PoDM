@@ -32,7 +32,8 @@ export interface MediaFile {
 export interface ContentStats {
   views: number;
   galleryAdds: number;
-  tips: number; // total amount
+  tips: number; // total amount in cents
+  ppvEarnings?: number; // PPV earnings in cents, calculated from transactions
 }
 
 /**
