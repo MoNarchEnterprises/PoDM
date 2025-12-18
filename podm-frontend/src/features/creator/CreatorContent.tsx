@@ -226,7 +226,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                                 <input type="radio" name="visibility" value="pay_per_view" checked={visibility === 'pay_per_view'} onChange={() => setVisibility('pay_per_view')} className="form-radio h-5 w-5 text-purple-600" />
                                 <div>
                                     <span className="font-semibold">Pay Per View (PPV) on Profile</span>
-                                    <p className="text-xs text-purple-800">Visible on your profile feed, non-subscribers must pay to unlock.</p>
+                                    <p className="text-xs text-purple-800">Visible and locked on your profile feed, subscribers must pay to unlock.</p>
                                 </div>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg bg-gray-800/50">
