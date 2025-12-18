@@ -11,6 +11,7 @@ import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import * as AnalyticsService from './analytics.service';
 import stripe from '../config/stripeClient';
 import { Content } from '@common/types/Content';
+import * as StorageService from './storage.service';
 
 
 
@@ -252,16 +253,17 @@ export const updateSettings = async (creator_id: string, settingsData: any, file
 
     if (file) {
         const fileName = `banner-${creator_id}-${Date.now()}`;
-        const filePath = `${creator_id}/${fileName}`;
-        const { error: uploadError } = await supabase.storage
-            .from('banners')
-            .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
+        const filePath = `banners/${creator_id}/${fileName}`;
+        const { publicUrl, error: uploadError } = await StorageService.uploadToPublic(
+            filePath,
+            file.buffer,
+            file.mimetype
+        );
 
         if (uploadError) {
-            console.error("Supabase banner upload error:", uploadError);
+            console.error("R2 banner upload error:", uploadError);
             throw new AppError('Failed to upload banner.', 500);
         }
-        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(filePath);
         newCoverImageUrl = publicUrl;
     }
 

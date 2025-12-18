@@ -11,6 +11,7 @@ import { User } from '@common/types/User';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import supabase from '../config/supabaseClient';
 import { reshapeUserForApp } from '../utils/user.utils';
+import * as StorageService from './storage.service';
 
 // --- Local Type Definitions ---
 type UserGrowthData = {
@@ -307,20 +308,15 @@ export const getVerificationDocs = async (userId: string) => {
 
     // Generate signed URLs that are valid for 60 seconds
     const expiresIn = 60;
-    const { data: idData, error: idError } = await supabase.storage
-        .from('verification-documents')
-        .createSignedUrl(idFilePath, expiresIn);
+    const { signedUrl: idUrl, error: idError } = await StorageService.getPrivateSignedUrl(idFilePath, expiresIn);
+    const { signedUrl: selfieUrl, error: selfieError } = await StorageService.getPrivateSignedUrl(selfieFilePath, expiresIn);
 
-    const { data: selfieData, error: selfieError } = await supabase.storage
-        .from('verification-documents')
-        .createSignedUrl(selfieFilePath, expiresIn);
-
-    if (idError || selfieError || !idData || !selfieData) {
+    if (idError || selfieError || !idUrl || !selfieUrl) {
         throw new AppError('Could not generate secure URLs for documents.', 500);
     }
 
     return {
-        idUrl: idData.signedUrl,
-        selfieUrl: selfieData.signedUrl,
+        idUrl,
+        selfieUrl,
     };
 };

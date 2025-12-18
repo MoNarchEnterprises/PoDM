@@ -14,6 +14,7 @@ import path from 'path';
 import os from 'os';
 import { reshapeUserForApp } from '../utils/user.utils';
 import { generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../utils/content.utils';
+import * as StorageService from './storage.service';
 
 
 // Define a type for the query parameters for clarity
@@ -40,20 +41,15 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 
     try {
         console.log(`[Watermark] Starting process for content: ${content.id}`);
-        // 1. Download the original image from Supabase Storage into a buffer
-        const { data: fileBlob, error: downloadError } = await supabase.storage
-            .from('creator-content')
-            .download(originalFilePath);
+        // 1. Download the original image from R2 Storage into a buffer
+        const { buffer: fileBuffer, error: downloadError } = await StorageService.downloadFromPrivate(originalFilePath);
 
-        if (downloadError || !fileBlob) {
+        if (downloadError || !fileBuffer) {
             throw new Error(`Failed to download original file: ${downloadError?.message}`);
         }
-        console.log(`[Watermark] Original file (as Blob) downloaded successfully.`);
+        console.log(`[Watermark] Original file downloaded successfully.`);
 
-        // --- THIS IS THE FIX ---
-        // 2. Convert the Blob to a Buffer that Sharp can understand
-        const fileArrayBuffer = await fileBlob.arrayBuffer();
-        const fileBuffer = Buffer.from(fileArrayBuffer);
+        // fileBuffer is already a Buffer from R2
 
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
@@ -80,15 +76,13 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 
         console.log(`[Watermark] Image buffer processed with Sharp.`);
 
-        // 4. Upload the watermarked buffer to a temporary folder in storage
-        const { error: uploadError } = await supabase.storage
-            .from('creator-content')
-            .upload(tempFilePath, watermarkedBuffer, {
-                contentType: 'image/webp',
-                upsert: true,
-                // Set cache control to delete the file after a short time (e.g., 5 minutes)
-                cacheControl: 'max-age=300'
-            });
+        // 4. Upload the watermarked buffer to a temporary folder in R2 storage
+        const { error: uploadError } = await StorageService.uploadToPrivate(
+            tempFilePath,
+            watermarkedBuffer,
+            'image/webp',
+            { cacheControl: 'max-age=300' }
+        );
 
         if (uploadError) {
             throw new Error(`Failed to upload watermarked file: ${uploadError.message}`);
@@ -179,15 +173,17 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
         const filePath = `${creator_id}/${originalFileName}`;
         filePaths.push(filePath);
 
-        // Upload the original file to the private 'creator-content' bucket
-        const { error: uploadError } = await supabase.storage
-            .from('creator-content')
-            .upload(filePath, file.buffer, { contentType: file.mimetype });
+        // Upload the original file to R2 private storage
+        const { error: uploadError } = await StorageService.uploadToPrivate(
+            filePath,
+            file.buffer,
+            file.mimetype
+        );
 
         if (uploadError) {
             // If upload fails, attempt to clean up any files that might have been uploaded
             if (filePaths.length > 0) {
-                await supabase.storage.from('creator-content').remove(filePaths);
+                await StorageService.deleteFromPrivate(filePaths);
             }
             throw new AppError(`Failed to upload file: ${file.originalname}`, 500);
         }
@@ -204,9 +200,11 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
             thumbnailMimeType = 'image/webp';
             filePaths.push(thumbnailPath);
 
-            const { error: thumbUploadError } = await supabase.storage
-                .from('creator-content')
-                .upload(thumbnailPath, thumbnailBuffer, { contentType: thumbnailMimeType });
+            const { error: thumbUploadError } = await StorageService.uploadToPrivate(
+                thumbnailPath,
+                thumbnailBuffer,
+                thumbnailMimeType
+            );
 
             if (thumbUploadError) {
                 console.error(`Failed to upload thumbnail for ${file.originalname}, will use original file as thumbnail.`);
@@ -223,9 +221,11 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
                 thumbnailMimeType = 'image/jpeg';
                 filePaths.push(thumbnailPath);
 
-                const { error: thumbUploadError } = await supabase.storage
-                    .from('creator-content')
-                    .upload(thumbnailPath, thumbnailBuffer, { contentType: thumbnailMimeType });
+                const { error: thumbUploadError } = await StorageService.uploadToPrivate(
+                    thumbnailPath,
+                    thumbnailBuffer,
+                    thumbnailMimeType
+                );
 
                 if (thumbUploadError) throw thumbUploadError;
 
@@ -294,7 +294,7 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
         console.error('Database insert failed. Cleaning up storage...', dbError);
         // If the database insert fails, we must remove the files we just uploaded
         if (filePaths.length > 0) {
-            await supabase.storage.from('creator-content').remove(filePaths);
+            await StorageService.deleteFromPrivate(filePaths);
         }
         throw new AppError('Failed to save content to database after upload.', 500);
     }
@@ -571,7 +571,7 @@ export const deleteCreatorContent = async (contentId: string, creator_id: string
     }
 
     if (filePaths.length > 0) {
-        const { error: storageError } = await supabase.storage.from('creator-content').remove(filePaths);
+        const { error: storageError } = await StorageService.deleteFromPrivate(filePaths);
         if (storageError) {
             // Log the error but proceed to delete the DB record.
             // In a production system, you might add this to a retry queue.
@@ -636,21 +636,20 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
         throw new AppError('Could not determine a valid file path.', 500);
     }
 
-    const { data, error } = await supabase.storage
-        .from(bucketName)
-        .createSignedUrl(relativePath, 60);
+    // Generate signed URL from R2
+    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(relativePath, 60);
 
     if (error) {
-        console.error(`[Service] Supabase storage error for path "${relativePath}":`, error.message);
+        console.error(`[Service] R2 storage error for path "${relativePath}":`, error.message);
         throw new AppError('Could not generate secure URL from storage.', 500);
     }
-    if (!data?.signedUrl) {
-        console.error(`[Service] Supabase returned no data for signed URL for path "${relativePath}"`);
+    if (!signedUrl) {
+        console.error(`[Service] R2 returned no signed URL for path "${relativePath}"`);
         throw new AppError('Storage did not return a signed URL.', 500);
     }
 
 
-    return { secureUrl: data.signedUrl };
+    return { secureUrl: signedUrl };
 };
 
 /**
@@ -680,16 +679,14 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
     }
 
     // 3. Generate a short-lived (60 seconds) signed URL for the file (original or watermarked).
-    const { data, error } = await supabase.storage
-        .from('creator-content')
-        .createSignedUrl(filePath, 60);
+    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(filePath, 60);
 
-    if (error || !data) {
+    if (error || !signedUrl) {
         throw new AppError('Could not generate secure URL for content.', 500);
     }
 
     return {
-        secureUrl: data.signedUrl,
+        secureUrl: signedUrl,
         contentType: content.type // Return the content type ('photo' or 'video')
     };
 };

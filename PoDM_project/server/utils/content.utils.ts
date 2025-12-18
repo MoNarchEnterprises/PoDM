@@ -1,10 +1,10 @@
 // server/utils/content.utils.ts
 
-import supabase from '../config/supabaseClient';
 import { Content } from '@common/types/Content';
 import { reshapeUserForApp } from './user.utils';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
+import * as StorageService from '../services/storage.service';
 
 /**
  * A centralized utility to process a raw Content object from the database.
@@ -27,12 +27,10 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
 
             // Generate signed URL for the main content file
             if (file.url) {
-                const { data, error } = await supabase.storage
-                    .from('creator-content')
-                    .createSignedUrl(file.url, 60); // 60-second validity
+                const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.url, 60);
 
-                if (!error && data) {
-                    publicFullUrl = data.signedUrl;
+                if (!error && signedUrl) {
+                    publicFullUrl = signedUrl;
                 } else {
                     console.error(`Failed to sign full URL for path: ${file.url}`, error);
                 }
@@ -40,12 +38,10 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
 
             // Generate signed URL for the thumbnail
             if (file.thumbnailUrl) {
-                const { data, error } = await supabase.storage
-                    .from('creator-content')
-                    .createSignedUrl(file.thumbnailUrl, 60);
+                const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.thumbnailUrl, 60);
 
-                if (!error && data) {
-                    publicThumbnailUrl = data.signedUrl;
+                if (!error && signedUrl) {
+                    publicThumbnailUrl = signedUrl;
                 } else {
                     console.error(`Failed to sign thumbnail URL for path: ${file.thumbnailUrl}`, error);
                 }

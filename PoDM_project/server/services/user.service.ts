@@ -14,6 +14,7 @@ import { getOrCreateStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../../server/utils/content.utils';
 import Stripe from 'stripe';
+import * as StorageService from './storage.service';
 
 
 /**
@@ -142,24 +143,20 @@ export const uploadUserAvatar = async (userId: string, file: Express.Multer.File
         throw new AppError('No avatar file provided.', 400);
     }
 
-    // 1. Define the file path in Supabase Storage
+    // 1. Define the file path in R2 Storage
     const fileName = `avatar-${userId}-${Date.now()}`;
     const filePath = `avatars/${fileName}`;
 
-    // 2. Upload the new avatar to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-        .from('avatars') // Assuming you have a bucket named 'avatars'
-        .upload(filePath, file.buffer, {
-            contentType: file.mimetype,
-            upsert: true, // This will overwrite any existing file, which is good for avatars
-        });
+    // 2. Upload the new avatar to R2 public storage
+    const { publicUrl, error: uploadError } = await StorageService.uploadToPublic(
+        filePath,
+        file.buffer,
+        file.mimetype
+    );
 
     if (uploadError) {
         throw new AppError('Failed to upload avatar to storage.', 500);
     }
-
-    // 3. Get the public URL of the uploaded file
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
     if (!publicUrl) {
         throw new AppError('Could not get public URL for the uploaded avatar.', 500);
@@ -242,9 +239,11 @@ export const submitVerificationDocs = async (
 
     const uploadFile = async (file: Express.Multer.File, fileName: string) => {
         const filePath = `${userId}/${fileName}`;
-        const { error } = await supabase.storage
-            .from('verification-documents')
-            .upload(filePath, file.buffer, { contentType: file.mimetype, upsert: true });
+        const { error } = await StorageService.uploadToPrivate(
+            filePath,
+            file.buffer,
+            file.mimetype
+        );
 
         if (error) throw new AppError(`Failed to upload ${fileName}.`, 500);
         return filePath;

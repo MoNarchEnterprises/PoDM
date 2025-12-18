@@ -21,7 +21,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
     const [error, setError] = useState<string | null>(null);
 
     const selectedContent = useMemo(
-        () => contentItems.find(c => c._id === selectedContentId),
+        () => contentItems.find(c => c.id === selectedContentId),
         [selectedContentId, contentItems]
     );
 
@@ -36,7 +36,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
             setError('Please enter a valid price greater than $0.00.');
             return;
         }
-        
+
         onSend(selectedContent, priceInCents, messageText);
         handleClose(); // Reset and close the modal on success
     };
@@ -63,9 +63,9 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                         <div className="grid grid-cols-3 sm:grid-cols-1 gap-2 max-h-96 overflow-y-auto pr-2 rounded-lg bg-gray-900/50 p-2">
                             {contentItems.length > 0 ? contentItems.map(item => (
                                 <div
-                                    key={item._id}
-                                    onClick={() => setSelectedContentId(item._id)}
-                                    className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedContentId === item._id ? 'border-pink-500 scale-105' : 'border-transparent hover:border-gray-600'}`}
+                                    key={item.id}
+                                    onClick={() => setSelectedContentId(item.id)}
+                                    className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedContentId === item.id ? 'border-pink-500 scale-105' : 'border-transparent hover:border-gray-600'}`}
                                 >
                                     <img src={item.files[0]?.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-black/30"></div>
@@ -83,20 +83,20 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                             <>
                                 <div>
                                     <h3 className="font-semibold text-gray-400">Set Price</h3>
-                                    <Input 
-                                        id="ppv-price" 
-                                        type="number" 
-                                        placeholder="10.00" 
-                                        leftIcon={DollarSign} 
+                                    <Input
+                                        id="ppv-price"
+                                        type="number"
+                                        placeholder="10.00"
+                                        leftIcon={DollarSign}
                                         value={price}
                                         onChange={(e) => setPrice(e.target.value)}
                                     />
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-gray-400">Add Optional Message</h3>
-                                    <textarea 
-                                        rows={4} 
-                                        placeholder="e.g., Here's that special video you asked for!" 
+                                    <textarea
+                                        rows={4}
+                                        placeholder="e.g., Here's that special video you asked for!"
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
                                         className="w-full bg-gray-200 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -112,7 +112,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                     </div>
                 </main>
                 <footer className="p-6 border-t border-gray-700 bg-gray-800 flex justify-end">
-                    <Button 
+                    <Button
                         onClick={handleSend}
                         disabled={!selectedContent}
                         leftIcon={Send}
