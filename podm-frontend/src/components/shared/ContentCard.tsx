@@ -44,8 +44,8 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
 
-    // A post is locked if forced, or if it's pay-per-view AND not unlocked.
-    const isLocked = forceLocked || (post.visibility === 'pay_per_view' && !localIsUnlocked);
+    // A post is locked if forced, or if it's (PPV or Sub-Only) AND not unlocked.
+    const isLocked = forceLocked || ((post.visibility === 'pay_per_view' || post.visibility === 'subscribers_only') && !localIsUnlocked);
 
     const handleSaveToGallery = async () => {
         setIsSaving(true);
