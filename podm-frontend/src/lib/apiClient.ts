@@ -96,6 +96,12 @@ apiClient.interceptors.response.use(
             errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
 
             if (error.response?.status === 401) {
+                // Check if the request explicitly asked to skip auth redirect
+                // We cast config to any because 'skipAuthRedirect' is a custom property
+                if ((error.config as any)?.skipAuthRedirect) {
+                    return Promise.reject(error);
+                }
+
                 // Handle unauthorized errors, e.g., redirect to login
                 console.error("Unauthorized request. Redirecting to login.");
                 localStorage.removeItem('authToken');
@@ -404,7 +410,7 @@ export const logAnalyticsEvent = async (data: {
     // We use a try/catch here because we don't want analytics
     // failures to block the user experience.
     try {
-        await apiClient.post('/analytics/log', data);
+        await apiClient.post('/analytics/log', data, { skipAuthRedirect: true } as any);
     } catch (error) {
         console.warn('Analytics event failed to log:', error);
     }
