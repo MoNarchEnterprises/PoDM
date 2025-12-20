@@ -156,8 +156,12 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
             // Unlocked if subscribed to creator
             isUnlocked = isSubscribedToCreator;
         } else {
-            // Public or Unlisted content is always "unlocked" in terms of visibility
-            isUnlocked = true;
+            // Public or Unlisted content is usually unlocked, UNLESS it has a price (Hidden PPV)
+            if (post.visibility === 'unlisted' && post.price && post.price > 0) {
+                isUnlocked = unlockedContentIds.has(post.id?.toString());
+            } else {
+                isUnlocked = true;
+            }
         }
 
         return {

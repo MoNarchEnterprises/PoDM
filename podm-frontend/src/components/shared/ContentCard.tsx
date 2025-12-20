@@ -44,8 +44,9 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
 
-    // A post is locked if forced, or if it's (PPV or Sub-Only) AND not unlocked.
-    const isLocked = forceLocked || ((post.visibility === 'pay_per_view' || post.visibility === 'subscribers_only') && !localIsUnlocked);
+    // A post is locked if forced, or if the backend says it's not unlocked.
+    // This allows supporting "Paid Unlisted" content (Message PPV) which is unlisted but locked.
+    const isLocked = forceLocked || !localIsUnlocked;
 
     const handleSaveToGallery = async () => {
         setIsSaving(true);
