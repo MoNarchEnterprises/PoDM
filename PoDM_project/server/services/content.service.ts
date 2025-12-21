@@ -282,7 +282,8 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
     };
 
     // Fix: Remove camelCase property to avoid "column not found" error in Supabase
-    delete (newContentData as any).min_tier_level;
+    // Using explicit snake_case above, so no need to delete min_tier_level.
+    // delete (newContentData as any).min_tier_level;
 
     try {
         const newContent = await ContentModel.createContent(newContentData);
@@ -510,7 +511,8 @@ export const updateCreatorContent = async (contentId: string, creator_id: string
         }
     } else if (updates.visibility === 'subscribers_only') {
         // If switching back to subscribers_only, nullify the price
-        updates.price = undefined;
+        // If switching back to subscribers_only, nullify the price
+        updates.price = null as any;
     }
 
     // Determine the content's new status based on scheduling updates
@@ -527,10 +529,10 @@ export const updateCreatorContent = async (contentId: string, creator_id: string
     }
 
     // Handle tier level updates and map to DB column
+    // Fix: Do NOT delete min_tier_level, as it is a valid column.
     if (updates.min_tier_level !== undefined) {
-        // @ts-ignore
-        updates.min_tier_level = updates.min_tier_level;
-        delete updates.min_tier_level;
+        // Ensure it's treated as a number
+        updates.min_tier_level = Number(updates.min_tier_level);
     }
 
     // 3. Prevent certain fields from being updated directly via this endpoint

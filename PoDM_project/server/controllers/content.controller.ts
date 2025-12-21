@@ -136,12 +136,17 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
             delete updates.schedulePublishDate;
         }
 
-        // --- Added for updateContent consistency ---
         if (updates.type === undefined || updates.type === null || updates.type === '') {
             updates.type = 'photo'; // Default to photo if type is missing or empty
         }
         if (updates.visibility === undefined || updates.visibility === null || updates.visibility === '') {
             updates.visibility = 'subscribers_only'; // Default visibility
+        }
+
+        // --- Fix: Map minTierLevel to min_tier_level ---
+        if (updates.minTierLevel !== undefined) {
+            updates.min_tier_level = updates.minTierLevel;
+            delete updates.minTierLevel;
         }
         // --- End additions for updateContent consistency ---
 
