@@ -541,6 +541,7 @@ export const getMyConversations = async () => {
  */
 export const getMessagesInConversation = async (conversationId: string) => {
     const response = await apiClient.get(`/messages/conversations/${conversationId}`);
+    console.log('[apiClient] getMessagesInConversation response:', response.data);
     return response.data;
 };
 

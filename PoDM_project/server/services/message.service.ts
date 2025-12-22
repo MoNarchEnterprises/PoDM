@@ -108,6 +108,7 @@ export const getMessagesForConversation = async (conversation_id: string, userId
     }
 
     const messages = await MessageModel.findMessagesByConversationId(conversation_id);
+    console.log('[MessageService] Found messages:', messages);
     if (!messages) return [];
 
     return Promise.all(messages.map(async (message: any) => {

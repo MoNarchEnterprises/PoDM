@@ -139,6 +139,7 @@ const FanMessagesPage = () => {
         }
         if (conversationId) {
             setIsLoadingMessages(true);
+            console.log('[FanMessages] Fetching messages for conversation:', conversationId);
             apiClient.getMessagesInConversation(conversationId).then(response => setMessages(response.data))
                 .catch(err => console.error("Failed to fetch messages", err)).finally(() => setIsLoadingMessages(false));
             socket.emit('join_conversation', conversationId);

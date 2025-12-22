@@ -1,3 +1,8 @@
 node_modules
 .env
 PoDM_project/server/.env
+dist/
+build/
+coverage/
+*.log
+.DS_Store
