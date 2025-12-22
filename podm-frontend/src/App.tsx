@@ -84,9 +84,9 @@ const ContentViewerLoader = () => {
     if (error || !data) return <div>{error || "Content not found"}</div>;
 
     return <ContentViewerPage
-        content={{ ...data.content, id: data.content.id.toString() }}
+        content={data.content}
         creator={data.creator}
-        relatedContent={data.relatedContent.map(item => ({ ...item, _id: item.id.toString() }))}
+        relatedContent={data.relatedContent}
     />;
 };
 
