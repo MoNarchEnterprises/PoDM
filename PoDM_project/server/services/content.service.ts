@@ -730,6 +730,7 @@ export const getViewData = async (contentId: string, viewerId?: string) => {
 
     // 5. Enrich with unlock status
     // We treat the main content as a single-item list to reuse the helper
+    console.log('[ContentService] BEFORE enriching main content - exists:', !!contentWithUrls);
     const [enrichedContent] = await enrichContentWithUnlockStatus([contentWithUrls], viewerId);
     const enrichedRelatedContent = await enrichContentWithUnlockStatus(relatedContentWithUrls, viewerId);
     console.log('[ContentService] After enrichment - enrichedContent.isUnlocked:', enrichedContent?.isUnlocked, 'enrichedContent.isSubscribedToCreator:', enrichedContent?.isSubscribedToCreator);
