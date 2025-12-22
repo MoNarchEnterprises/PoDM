@@ -79,7 +79,7 @@ router.delete('/:id', protect, creatorOnly, deleteContent);
  * @desc    Get all data for the content viewer page
  * @access  Public
  */
-router.get('/:id/viewer-data', getContentViewerData);
+router.get('/:id/viewer-data', protect, getContentViewerData);
 
 
 export default router;
