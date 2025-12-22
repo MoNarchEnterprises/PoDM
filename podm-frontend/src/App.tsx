@@ -83,6 +83,7 @@ const ContentViewerLoader = () => {
     if (isLoading) return <div>Loading Content...</div>;
     if (error || !data) return <div>{error || "Content not found"}</div>;
 
+    console.log('[ContentViewerLoader] data: ', data);
     return <ContentViewerPage
         content={data.content}
         creator={data.creator}
