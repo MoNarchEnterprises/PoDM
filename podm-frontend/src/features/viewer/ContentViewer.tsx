@@ -123,7 +123,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                             isLoading ? <div>Loading...</div> :
                                 <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         ) : (
-                            <img src={content.files[0]?.url} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                            <img src={content.files[0]?.thumbnailUrl} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         )}
                     </div>
 
