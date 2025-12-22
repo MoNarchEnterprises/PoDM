@@ -146,7 +146,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
         // B. Check specific unlock conditions
         let isUnlocked = false;
         const isSubscribedToCreator = subscribedCreatorIds.has(String(post.creator_id));
-        console.log(`[ContentUtils] Checking post ${post.id} (creator: ${post.creator_id}), isSubscribed: ${isSubscribedToCreator}`);
+        console.log(`[ContentUtils] Checking post ${post.id} (creator: ${post.creator_id}, type: ${typeof post.creator_id}), isSubscribed: ${isSubscribedToCreator}, subscribedSet has: [${Array.from(subscribedCreatorIds)}]`);
 
         if (post.visibility === 'pay_per_view') {
             // Unlocked if purchased
