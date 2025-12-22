@@ -732,6 +732,7 @@ export const getViewData = async (contentId: string, viewerId?: string) => {
     // We treat the main content as a single-item list to reuse the helper
     const [enrichedContent] = await enrichContentWithUnlockStatus([contentWithUrls], viewerId);
     const enrichedRelatedContent = await enrichContentWithUnlockStatus(relatedContentWithUrls, viewerId);
+    console.log('[ContentService] After enrichment - enrichedContent.isUnlocked:', enrichedContent?.isUnlocked, 'enrichedContent.isSubscribedToCreator:', enrichedContent?.isSubscribedToCreator);
 
     const creator = reshapeUserForApp(rawCreator);
 
