@@ -82,7 +82,9 @@ const FanMessagesPage = () => {
     };
 
     useEffect(() => {
+        console.log('[FanMessages] Fetching conversations...');
         apiClient.getMyConversations().then(response => {
+            console.log('[FanMessages] Conversations loaded:', response.data);
             let convos = response.data;
             if (initialState?.creatorId) {
                 const existing = convos.find((c: any) => c.creator._id === initialState.creatorId);
