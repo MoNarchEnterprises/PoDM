@@ -16,7 +16,7 @@ import { Message, MessageContent } from '@common/types/Message';
 // --- Types ---
 interface ConversationWithCreator {
     _id: string | null;
-    creator: { _id: string; profile: { name: string; avatar: string; }; };
+    creator: { _id: string; id: string; profile: { name: string; avatar: string; }; };
     lastMessage?: { text?: string; isRead: boolean; };
     updatedAt: string;
 }
@@ -162,7 +162,7 @@ const FanMessagesPage = () => {
         const textToSend = newMessageText;
         setNewMessageText('');
         try {
-            await apiClient.sendMessage(activeConversation.creator._id, textToSend);
+            await apiClient.sendMessage(activeConversation.creator.id, textToSend);
         } catch (error) {
             console.error("Failed to send message", error);
             setNewMessageText(textToSend);
