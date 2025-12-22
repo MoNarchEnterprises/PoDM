@@ -267,7 +267,7 @@ export const getContentViewerData = async (req: Request, res: Response, next: Ne
         const { id: contentId } = req.params;
 
         const data = await ContentService.getViewData(contentId, userId);
-
+        console.log('[ContentController] contentId: ' + contentId + ' getContentViewerData content.isUnlocked:', data.content.isUnlocked, 'content.isSubscribedToCreator:', data.content.isSubscribedToCreator);
         res.status(200).json({ success: true, data });
 
     } catch (error) {
