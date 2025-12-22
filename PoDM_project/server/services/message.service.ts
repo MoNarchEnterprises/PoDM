@@ -89,6 +89,7 @@ export const getConversationsForUser = async (userId: string) => {
             return {
                 ...convo,
                 id: convo.id,
+                _id: convo.id.toString(), // FIX: Add _id for frontend compatibility
                 creator: creator ? reshapeUserForApp(creator) : null,
             };
         }));
