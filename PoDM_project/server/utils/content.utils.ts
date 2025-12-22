@@ -100,6 +100,7 @@ export const reshapePostForFeed = async (post: any): Promise<any> => {
  * @returns The enriched content list with `isUnlocked` property.
  */
 export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId: string | undefined): Promise<any[]> => {
+    console.log(`[ContentUtils] enrichContentWithUnlockStatus called - contentList length: ${contentList?.length}, viewerId: ${viewerId}`);
     if (!contentList || contentList.length === 0) {
         return [];
     }
