@@ -163,7 +163,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
                 isUnlocked = true;
             }
         }
-
+        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}`);
         return {
             ...post,
             isUnlocked,
