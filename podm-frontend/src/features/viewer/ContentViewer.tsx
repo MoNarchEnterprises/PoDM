@@ -97,6 +97,30 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
         }
     };
 
+    const handleBookmarkToggle = async () => {
+        if (!user) {
+            alert('Please log in to save content to your gallery.');
+            return;
+        }
+
+        try {
+            if (!isBookmarked) {
+                // Add to gallery
+                await apiClient.addContentToGallery(content.id);
+                setIsBookmarked(true);
+                console.log('Content added to gallery successfully');
+            } else {
+                // Remove from gallery
+                await apiClient.removeContentFromGallery(content.id);
+                setIsBookmarked(false);
+                console.log('Content removed from gallery successfully');
+            }
+        } catch (error) {
+            console.error('Failed to update gallery:', error);
+            alert('Failed to update gallery. Please try again.');
+        }
+    };
+
     return (
         <>
             <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={handleReportSubmit} />
@@ -153,7 +177,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
 
                     <div className="lg:w-96 flex-shrink-0 space-y-6">
                         <div className="bg-gray-800/50 rounded-xl p-4 flex justify-around">
-                            <Button variant="ghost" onClick={() => setIsBookmarked(!isBookmarked)} className={`flex-col h-auto space-y-1 w-24 ${isBookmarked ? 'text-purple-400' : 'text-gray-300'}`} leftIcon={Bookmark}>
+                            <Button variant="ghost" onClick={handleBookmarkToggle} className={`flex-col h-auto space-y-1 w-24 ${isBookmarked ? 'text-purple-400' : 'text-gray-300'}`} leftIcon={Bookmark}>
                                 {isBookmarked ? 'Saved' : 'Save'}
                             </Button>
                             <Button variant="ghost" onClick={openTipModal} className="flex-col h-auto space-y-1 text-gray-300 hover:text-pink-400 w-24" leftIcon={DollarSign}>

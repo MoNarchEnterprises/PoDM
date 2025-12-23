@@ -615,6 +615,16 @@ export const addContentToGallery = async (contentId: string) => {
 };
 
 /**
+ * Removes a piece of content from the currently logged-in fan's gallery.
+ * @param contentId The ID of the content to remove.
+ */
+export const removeContentFromGallery = async (contentId: string) => {
+    // The server route is DELETE /api/v1/users/me/gallery/:contentId
+    const response = await apiClient.delete(`/users/me/gallery/${contentId}`);
+    return response.data;
+};
+
+/**
  * Fetches the personalized gallery for the logged-in fan.
  */
 export const getFanGallery = async () => {
