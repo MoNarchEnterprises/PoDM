@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DollarSign, Bookmark } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
@@ -45,6 +45,20 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
+    const [secureThumbnailUrl, setSecureThumbnailUrl] = useState<string | null>(null);
+
+    // Fetch secure thumbnail URL on mount
+    useEffect(() => {
+        const fetchSecureUrl = async () => {
+            try {
+                const response = await apiClient.getSecureContentUrl(post.id);
+                setSecureThumbnailUrl(response.data.secureUrl);
+            } catch (error) {
+                console.error('Failed to fetch secure thumbnail URL:', error);
+            }
+        };
+        fetchSecureUrl();
+    }, [post.id]);
 
     // A post is locked if forced, or if the backend says it's not unlocked.
     // This allows supporting "Paid Unlisted" content (Message PPV) which is unlisted but locked.
@@ -95,7 +109,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                 <div className="relative">
                     <img
                         className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`}
-                        src={post.files[0]?.thumbnailUrl}
+                        src={secureThumbnailUrl || post.files[0]?.thumbnailUrl}
                         alt={post.title}
                         onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error'; }}
                     />
