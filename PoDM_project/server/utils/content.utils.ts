@@ -4,6 +4,7 @@ import { Content } from '@common/types/Content';
 import { reshapeUserForApp } from './user.utils';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
+import * as UserModel from '../models/user.model';
 import * as StorageService from '../services/storage.service';
 
 /**
@@ -134,9 +135,8 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
         const creatorIds = [...new Set(activeSubs.map(sub => String(sub.creator_id)))];
 
         // Fetch creator data for all subscribed creators
-        const { findUserById } = await import('../models/user.model');
         const creators = await Promise.all(
-            creatorIds.map(creatorId => findUserById(creatorId))
+            creatorIds.map(creatorId => UserModel.findUserById(creatorId))
         );
 
         // For each subscription, find the tier level
