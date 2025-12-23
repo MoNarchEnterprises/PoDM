@@ -136,9 +136,8 @@ export const updateContent = async (req: Request, res: Response, next: NextFunct
             delete updates.schedulePublishDate;
         }
 
-        if (updates.type === undefined || updates.type === null || updates.type === '') {
-            updates.type = 'photo'; // Default to photo if type is missing or empty
-        }
+        // Don't set default type - it should be preserved from original content
+        // The type is determined at creation time based on the uploaded file
         if (updates.visibility === undefined || updates.visibility === null || updates.visibility === '') {
             updates.visibility = 'subscribers_only'; // Default visibility
         }
