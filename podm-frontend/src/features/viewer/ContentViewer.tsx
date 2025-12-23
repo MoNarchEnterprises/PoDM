@@ -59,14 +59,15 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                 contentId: content.id,
             });
 
-            if (content.type === 'video') {
+            // Fetch secure URL for both videos and photos
+            if (content.type === 'video' || content.type === 'photo') {
                 setIsLoading(true);
                 apiClient.getSecureContentViewUrl(content.id)
                     .then(response => {
                         setSecureUrl(response.data.secureUrl);
                     })
                     .catch(error => {
-                        console.error("Error fetching secure video URL:", error);
+                        console.error("Error fetching secure content URL:", error);
                     })
                     .finally(() => {
                         setIsLoading(false);
@@ -171,7 +172,8 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                             isLoading ? <div>Loading...</div> :
                                 <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         ) : (
-                            <img src={content.files[0]?.thumbnailUrl} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                            isLoading ? <div>Loading...</div> :
+                                <img src={secureUrl || content.files[0]?.thumbnailUrl} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
                         )}
                     </div>
 
