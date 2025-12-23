@@ -63,4 +63,6 @@ export interface Content {
   status: ContentStatus;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string
+  isUnlocked?: boolean; // Frontend-only: Whether the current user can view this content
+  isSubscribedToCreator?: boolean; // Frontend-only: Whether the current user is subscribed to the creator
 }

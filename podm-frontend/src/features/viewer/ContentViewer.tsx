@@ -19,8 +19,18 @@ import { Link, useNavigate } from 'react-router-dom';
 // --- Reusable Sub-Components ---
 const RelatedContentCard = ({ item }: { item: Content }) => (
     <Link to={`/content/${item.id}`} className="relative group overflow-hidden rounded-xl aspect-w-1 aspect-h-1">
-        <img src={item.files[0]?.thumbnailUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+        <img src={item.files[0]?.thumbnailUrl} alt={item.title} className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${!item.isUnlocked ? 'blur-md' : ''}`} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        {!item.isUnlocked && (
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-white text-center">
+                    <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    {item.price && item.price > 0 ? `$${(item.price / 100).toFixed(2)}` : 'Locked'}
+                </div>
+            </div>
+        )}
         <div className="absolute bottom-0 left-0 p-2 text-white">
             <h4 className="font-bold text-xs truncate">{item.title}</h4>
         </div>
