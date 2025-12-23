@@ -13,6 +13,7 @@ import ReportModal from '../../components/shared/ReportModal';
 import TipModal from '../../components/shared/TipModal';
 import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
+import ContentLockOverlay from '../../components/shared/ContentLockOverlay';
 
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -154,20 +155,15 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
 
                 <main className="flex-1 flex flex-col lg:flex-row container mx-auto p-4 sm:p-6 lg:p-8 gap-8">
                     <div className="flex-grow flex items-center justify-center bg-black rounded-xl relative">
-                        {!content.isUnlocked && (
-                            <div className="absolute inset-0 backdrop-blur-md z-10 flex items-center justify-center">
-                                {!content.isLockedByTier && (
-                                    <div className="text-white text-center">
-                                        <svg className="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                        </svg>
-                                        {content.price && content.price > 0 && (
-                                            <p className="text-xl font-bold">${(content.price / 100).toFixed(2)}</p>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        <ContentLockOverlay
+                            isUnlocked={content.isUnlocked ?? true}
+                            isLockedByTier={content.isLockedByTier}
+                            price={content.price}
+                            minTierLevel={content.min_tier_level}
+                            isSubscribedToCreator={content.isSubscribedToCreator}
+                            creatorUsername={creator.username}
+                            variant="viewer"
+                        />
                         {content.type === 'video' ? (
                             isLoading ? <div>Loading...</div> :
                                 <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />

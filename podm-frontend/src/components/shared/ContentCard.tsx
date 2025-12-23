@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, DollarSign, Bookmark } from 'lucide-react';
+import { DollarSign, Bookmark } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import { Creator } from '@common/types/Creator';
 
 // --- Import Reusable UI Components ---
 import Button from '../ui/Button';
+import ContentLockOverlay from './ContentLockOverlay';
 import * as apiClient from '../../lib/apiClient';
 import { useModal } from '../../hooks/useModal';
 import TipModal from './TipModal';
@@ -28,6 +29,7 @@ export interface ContentWithCreator extends Content {
     creator: Creator;
     isUnlocked?: boolean;
     isSubscribedToCreator?: boolean;
+    isLockedByTier?: boolean; // NEW: Added for tier-based locking
 }
 
 // --- Main Post Card Component ---
@@ -97,29 +99,16 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         alt={post.title}
                         onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error'; }}
                     />
-                    {isLocked && (
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
-                            <Lock className="w-12 h-12 mb-4" />
-                            <h3 className="font-bold text-lg text-center">Content Locked</h3>
-                            <div className="flex flex-col items-center space-y-2">
-                                {!post.isSubscribedToCreator ? (
-                                    <Button className="mt-4 bg-purple-600 hover:bg-purple-700" onClick={(e) => { e.stopPropagation(); navigate(`/creator/${post.creator.username}`); }}>
-                                        Subscribe to Unlock
-                                    </Button>
-                                ) : (
-                                    post.min_tier_level && post.min_tier_level > 1 && !post.price ? (
-                                        <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={(e) => { e.stopPropagation(); navigate(`/creator/${post.creator.username}?tab=subscribe`); }}>
-                                            Upgrade to Tier {post.min_tier_level}
-                                        </Button>
-                                    ) : (
-                                        <Button className="mt-4" onClick={(e) => { e.stopPropagation(); openUnlockModal(); }}>
-                                            {post.price ? `Unlock for $${(post.price / 100).toFixed(2)}` : 'Subscribe to view'}
-                                        </Button>
-                                    )
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    <ContentLockOverlay
+                        isUnlocked={localIsUnlocked}
+                        isLockedByTier={post.isLockedByTier}
+                        price={post.price}
+                        minTierLevel={post.min_tier_level}
+                        isSubscribedToCreator={post.isSubscribedToCreator}
+                        creatorUsername={post.creator.username}
+                        onUnlock={openUnlockModal}
+                        variant="card"
+                    />
                     <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full capitalize">
                         {post.type}
                     </div>
