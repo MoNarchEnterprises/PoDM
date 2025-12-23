@@ -126,6 +126,31 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     const subscribedCreatorIds = new Set(activeSubs?.map(sub => String(sub.creator_id)));
     console.log("[ContentUtils] subscribedCreatorIds: ", Array.from(subscribedCreatorIds));
 
+    // 2b. Build a map of creator IDs to the fan's tier level for that creator
+    // We'll need to fetch creator data to get their subscription tiers
+    const subscribedCreatorTierLevels = new Map<string, number>();
+    if (activeSubs && activeSubs.length > 0) {
+        // Get all unique creator IDs from subscriptions
+        const creatorIds = [...new Set(activeSubs.map(sub => String(sub.creator_id)))];
+
+        // Fetch creator data for all subscribed creators
+        const { findUserById } = await import('../models/user.model');
+        const creators = await Promise.all(
+            creatorIds.map(creatorId => findUserById(creatorId))
+        );
+
+        // For each subscription, find the tier level
+        activeSubs.forEach(sub => {
+            const creator = creators.find(c => c?.id === sub.creator_id);
+            if (creator?.creator_data?.subscriptionTiers) {
+                const tier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === sub.tier_id);
+                const tierLevel = tier?.level || 1; // Default to level 1 if not found
+                subscribedCreatorTierLevels.set(String(sub.creator_id), tierLevel);
+            }
+        });
+    }
+    console.log("[ContentUtils] subscribedCreatorTierLevels: ", Array.from(subscribedCreatorTierLevels.entries()));
+
     const unlockedContentIds = new Set<string>();
     if (transactions) {
         transactions.forEach(tx => {
@@ -146,6 +171,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
         // B. Check specific unlock conditions
         let isUnlocked = false;
+        let isLockedByTier = false; // New property to track tier-based locking
         const isSubscribedToCreator = subscribedCreatorIds.has(String(post.creator_id));
         console.log(`[ContentUtils] Checking post ${post.id} (creator: ${post.creator_id}, type: ${typeof post.creator_id}), isSubscribed: ${isSubscribedToCreator}, subscribedSet has: [${Array.from(subscribedCreatorIds)}]`);
 
@@ -154,8 +180,29 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
             // We check both string and number ID formats to be safe
             isUnlocked = unlockedContentIds.has(post.id?.toString());
         } else if (post.visibility === 'subscribers_only') {
-            // Unlocked if subscribed to creator
-            isUnlocked = isSubscribedToCreator;
+            // Check if subscribed AND tier level is sufficient
+            if (isSubscribedToCreator) {
+                // Check tier level requirement
+                if (post.min_tier_level && post.min_tier_level > 1) {
+                    const fanTierLevel = subscribedCreatorTierLevels.get(String(post.creator_id)) || 1;
+                    console.log(`[ContentUtils] Post ${post.id} requires tier ${post.min_tier_level}, fan has tier ${fanTierLevel}`);
+
+                    if (fanTierLevel >= post.min_tier_level) {
+                        // Fan's tier is sufficient
+                        isUnlocked = true;
+                    } else {
+                        // Fan is subscribed but tier is insufficient
+                        isUnlocked = false;
+                        isLockedByTier = true;
+                    }
+                } else {
+                    // No tier requirement or tier level 1, just needs subscription
+                    isUnlocked = true;
+                }
+            } else {
+                // Not subscribed at all
+                isUnlocked = false;
+            }
         } else {
             // Public or Unlisted content is usually unlocked, UNLESS it has a price (Hidden PPV)
             if (post.visibility === 'unlisted' && post.price && post.price > 0) {
@@ -164,11 +211,12 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
                 isUnlocked = true;
             }
         }
-        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}`);
+        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}`);
         return {
             ...post,
             isUnlocked,
-            isSubscribedToCreator
+            isSubscribedToCreator,
+            isLockedByTier
         };
     });
 };

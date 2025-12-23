@@ -65,4 +65,5 @@ export interface Content {
   updated_at: string; // ISO 8601 date string
   isUnlocked?: boolean; // Frontend-only: Whether the current user can view this content
   isSubscribedToCreator?: boolean; // Frontend-only: Whether the current user is subscribed to the creator
+  isLockedByTier?: boolean; // Frontend-only: Whether content is locked due to insufficient tier level (subscribed but lower tier)
 }
