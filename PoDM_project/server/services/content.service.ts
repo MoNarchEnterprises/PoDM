@@ -343,12 +343,17 @@ export const getContentByCreatorId = async (creator_id: string, query: ContentQu
         return null;
     }
 
-    // Map the database 'id' to the frontend 'id'
-    return data.map(item => ({
-        ...item,
-        id: item.id.toString(),
-        min_tier_level: item.min_tier_level
+    // Map the database 'id' to the frontend 'id' and generate signed URLs
+    const contentWithUrls = await Promise.all(data.map(async (item) => {
+        const signedItem = await generateSignedUrlsForContent(item);
+        return {
+            ...signedItem,
+            id: signedItem.id.toString(),
+            min_tier_level: signedItem.min_tier_level
+        };
     }));
+
+    return contentWithUrls;
 };
 
 /**
@@ -394,7 +399,6 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
         const transactions = await TransactionModel.findTransactionsByUser(viewerId);
         if (transactions) {
             transactions.forEach(tx => {
-                console.log(tx);
                 if (tx.status === 'Cleared' && (tx.type === 'PPV Post' || tx.type === 'PPV Message') && tx.related_content_id) {
                     unlockedContentIds.add(tx.related_content_id);
                 }
@@ -402,23 +406,23 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
         }
     }
 
-    return content.map(post => {
+    // Process content: Determine lock status first, then sign URLs if unlocked
+    const processedContent = await Promise.all(content.map(async (post) => {
         // Determine if the post is unlocked for this viewer
         const isUnlocked = viewerId ? unlockedContentIds.has(post.id.toString()) : false;
 
-        console.log("[ContentService] isUnlocked: ", isUnlocked);
-        console.log("[ContentService] post.visibility: ", post.visibility);
-        console.log("[ContentService] isSubscribed: ", isSubscribed);
         // If it's PPV and unlocked, or Subscribers Only and subscribed, show the content.
         // Otherwise, show the placeholder.
         const shouldShowContent =
             post.visibility === 'pay_per_view' ? isUnlocked :
                 post.visibility === 'subscribers_only' ? isSubscribed :
                     true; // 'unlisted' or public
-        console.log("[ContentService] shouldShowContent: ", shouldShowContent);
+
         if (shouldShowContent) {
+            // Generate signed URLs only if we are going to show the content
+            const signedPost = await generateSignedUrlsForContent(post);
             return {
-                ...post,
+                ...signedPost,
                 isUnlocked: true // Explicitly mark as unlocked for frontend
             };
         } else {
@@ -428,10 +432,13 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
                 files: post.files.map((file: any) => ({
                     ...file,
                     url: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Locked',
+                    // Keep original extension hint if needed, or just partial data
                 }))
             };
         }
-    });
+    }));
+
+    return processedContent;
 };
 
 

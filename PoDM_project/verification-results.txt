@@ -1,0 +1,251 @@
+﻿[dotenv@17.2.2] injecting env (10) from .env -- tip: ΓÜÖ∩╕Å  write to custom object with { processEnv: myObject }
+≡ƒöì Starting Storage Verification
+
+================================================================================
+≡ƒôè Fetching all content from database...
+
+≡ƒôª Found 38 content items
+
+================================================================================
+
+[1/38] Content: CS Intro (ID: 13)
+   File: 1761200881264-CS_intro.mp4
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[2/38] Content: at the gym (ID: 25)
+   File: 1764656911938-ashleigh-upscaled2.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[3/38] Content: Welcome to my page! (ID: 30)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[4/38] Content: Welcome to my page! (ID: 26)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[5/38] Content: warm up (ID: 16)
+   File: 1761947672103-gg warmup.mp4
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[6/38] Content: Exclusive Video (ID: 27)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[7/38] Content: Exclusive Video (ID: 31)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[8/38] Content: Welcome to my page! (ID: 28)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[9/38] Content: Welcome to my page! (ID: 17)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[10/38] Content: Exclusive Video (ID: 18)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[11/38] Content: Welcome to my page! (ID: 19)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[12/38] Content: Exclusive Video (ID: 20)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[13/38] Content: Welcome to my page! (ID: 21)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[14/38] Content: Exclusive Video (ID: 22)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[15/38] Content: Welcome to my page! (ID: 23)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[16/38] Content: Exclusive Video (ID: 24)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[17/38] Content: Exclusive Video (ID: 29)
+   File: undefined
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[18/38] Content: Test Post Title (ID: 39)
+   File: 1765419179772-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[19/38] Content: SFW (ID: 15)
+   File: 1761927125560-MVI_7909.MP4
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[20/38] Content: PPV Post (ID: 40)
+   File: 1765419179870-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[21/38] Content: PPV Post (ID: 41)
+   File: 1765419296412-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[22/38] Content: Test Post Title (ID: 42)
+   File: 1765419296397-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[23/38] Content: PPV Post (ID: 43)
+   File: 1765420154367-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[24/38] Content: Test Post Title (ID: 44)
+   File: 1765420154355-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[25/38] Content: Test Post Title (ID: 45)
+   File: 1765420292423-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[26/38] Content: PPV Post (ID: 46)
+   File: 1765420292932-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[27/38] Content: Test Post Title (ID: 47)
+   File: 1765420800481-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[28/38] Content: Test Post Title (ID: 48)
+   File: 1765423277553-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[29/38] Content: Test Post Title (ID: 49)
+   File: 1765423445603-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[30/38] Content: PPV Post (ID: 50)
+   File: 1765423445885-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[31/38] Content: Test Post Title (ID: 51)
+   File: 1765423609765-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[32/38] Content: PPV Post (ID: 52)
+   File: 1765423609788-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[33/38] Content: Test Post Title (ID: 53)
+   File: 1765423732159-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[34/38] Content: PPV Post (ID: 54)
+   File: 1765423732172-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[35/38] Content: Test Post Title (ID: 55)
+   File: 1765423919624-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[36/38] Content: PPV Post (ID: 56)
+   File: 1765423921826-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[37/38] Content: Test Post Title (ID: 57)
+   File: 1765572270758-test.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+[38/38] Content: PPV Post (ID: 58)
+   File: 1765572271350-ppv.png
+   Status: Γ¥î R2 | Γ¥î Thumb | Γ¥î Supabase
+   ≡ƒÜ¿ MISSING from both storages!
+
+================================================================================
+≡ƒôè VERIFICATION SUMMARY
+================================================================================
+Total files in database:        38
+Γ£à Complete in R2:              0 (0.0%)
+≡ƒôª Still in Supabase:           0 (0.0%)
+≡ƒÜ¿ Missing from both:           38 (100.0%)
+≡ƒôï Need migration:              0
+================================================================================
+
+≡ƒÜ¿ FILES MISSING FROM BOTH STORAGES:
+1. Content 13 - e0cf39d6-9116-4090-904e-275988ce4825/1761200881264-CS_intro.mp4
+2. Content 25 - e0cf39d6-9116-4090-904e-275988ce4825/1764656911938-ashleigh-upscaled2.png
+3. Content 30 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+4. Content 26 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+5. Content 16 - e0cf39d6-9116-4090-904e-275988ce4825/1761947672103-gg warmup.mp4
+6. Content 27 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+7. Content 31 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+8. Content 28 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+9. Content 17 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+10. Content 18 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+11. Content 19 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+12. Content 20 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+13. Content 21 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+14. Content 22 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+15. Content 23 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+16. Content 24 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+17. Content 29 - 7253e7c3-2413-49bd-971d-aa687a593725/undefined
+18. Content 39 - 7253e7c3-2413-49bd-971d-aa687a593725/1765419179772-test.png
+19. Content 15 - e0cf39d6-9116-4090-904e-275988ce4825/1761927125560-MVI_7909.MP4
+20. Content 40 - 7253e7c3-2413-49bd-971d-aa687a593725/1765419179870-ppv.png
+21. Content 41 - 7253e7c3-2413-49bd-971d-aa687a593725/1765419296412-ppv.png
+22. Content 42 - 7253e7c3-2413-49bd-971d-aa687a593725/1765419296397-test.png
+23. Content 43 - 7253e7c3-2413-49bd-971d-aa687a593725/1765420154367-ppv.png
+24. Content 44 - 7253e7c3-2413-49bd-971d-aa687a593725/1765420154355-test.png
+25. Content 45 - 7253e7c3-2413-49bd-971d-aa687a593725/1765420292423-test.png
+26. Content 46 - 7253e7c3-2413-49bd-971d-aa687a593725/1765420292932-ppv.png
+27. Content 47 - 7253e7c3-2413-49bd-971d-aa687a593725/1765420800481-test.png
+28. Content 48 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423277553-test.png
+29. Content 49 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423445603-test.png
+30. Content 50 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423445885-ppv.png
+31. Content 51 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423609765-test.png
+32. Content 52 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423609788-ppv.png
+33. Content 53 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423732159-test.png
+34. Content 54 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423732172-ppv.png
+35. Content 55 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423919624-test.png
+36. Content 56 - 7253e7c3-2413-49bd-971d-aa687a593725/1765423921826-ppv.png
+37. Content 57 - 7253e7c3-2413-49bd-971d-aa687a593725/1765572270758-test.png
+38. Content 58 - 7253e7c3-2413-49bd-971d-aa687a593725/1765572271350-ppv.png
+
+Γ£à Verification complete

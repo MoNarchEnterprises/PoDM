@@ -1,0 +1,720 @@
+{
+  "summary": {
+    "totalContent": 38,
+    "totalFiles": 38,
+    "completeInR2": 21,
+    "needsMigration": 0,
+    "missingFromBoth": 14,
+    "partiallyMissing": 3
+  },
+  "files": [
+    {
+      "contentId": 58,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765572271350-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765572271350-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765572271350-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 57,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765572270758-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765572270758-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765572270758-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 56,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423921826-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423921826-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423921826-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 55,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423919624-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423919624-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423919624-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 54,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423732172-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423732172-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423732172-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 53,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423732159-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423732159-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423732159-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 52,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423609788-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423609788-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423609788-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 51,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423609765-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423609765-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423609765-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 50,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423445885-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423445885-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423445885-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 49,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423445603-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423445603-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423445603-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 48,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765423277553-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765423277553-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765423277553-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 47,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765420800481-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765420800481-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765420800481-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 46,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765420292932-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765420292932-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765420292932-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 45,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765420292423-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765420292423-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765420292423-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 44,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765420154355-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765420154355-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765420154355-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 43,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765420154367-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765420154367-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765420154367-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 42,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765419296397-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765419296397-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765419296397-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 41,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765419296412-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765419296412-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765419296412-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 40,
+      "title": "PPV Post",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765419179870-ppv.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765419179870-ppv.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765419179870-ppv.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 39,
+      "title": "Test Post Title",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "fileId": "1765419179772-test.png",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/1765419179772-test.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-1765419179772-test.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 31,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 30,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 29,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 28,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 27,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 26,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 25,
+      "title": "at the gym",
+      "creatorId": "e0cf39d6-9116-4090-904e-275988ce4825",
+      "type": "photo",
+      "fileId": "1764656911938-ashleigh-upscaled2.png",
+      "mainFile": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/1764656911938-ashleigh-upscaled2.png",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/thumb-1764656911938-ashleigh-upscaled2.png.webp",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      }
+    },
+    {
+      "contentId": 24,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 23,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 22,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 21,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 20,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 19,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 18,
+      "title": "Exclusive Video",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "video",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 17,
+      "title": "Welcome to my page!",
+      "creatorId": "7253e7c3-2413-49bd-971d-aa687a593725",
+      "type": "photo",
+      "mainFile": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/undefined",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      },
+      "thumbnail": {
+        "path": "7253e7c3-2413-49bd-971d-aa687a593725/thumb-undefined.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 16,
+      "title": "warm up",
+      "creatorId": "e0cf39d6-9116-4090-904e-275988ce4825",
+      "type": "video",
+      "fileId": "1761947672103-gg warmup.mp4",
+      "mainFile": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/1761947672103-gg warmup.mp4",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/thumb-1761947672103-gg warmup.mp4.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 15,
+      "title": "SFW",
+      "creatorId": "e0cf39d6-9116-4090-904e-275988ce4825",
+      "type": "video",
+      "fileId": "1761927125560-MVI_7909.MP4",
+      "mainFile": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/1761927125560-MVI_7909.MP4",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/thumb-1761927125560-MVI_7909.MP4.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    },
+    {
+      "contentId": 13,
+      "title": "CS Intro",
+      "creatorId": "e0cf39d6-9116-4090-904e-275988ce4825",
+      "type": "video",
+      "fileId": "1761200881264-CS_intro.mp4",
+      "mainFile": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/1761200881264-CS_intro.mp4",
+        "inR2": true,
+        "inSupabase": true,
+        "status": "complete"
+      },
+      "thumbnail": {
+        "path": "e0cf39d6-9116-4090-904e-275988ce4825/thumb-1761200881264-CS_intro.mp4.webp",
+        "inR2": false,
+        "inSupabase": false,
+        "status": "missing"
+      }
+    }
+  ]
+}
