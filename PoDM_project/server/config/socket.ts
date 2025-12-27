@@ -13,8 +13,30 @@ interface SocketWithAuth extends Socket {
 export const initSocketServer = (httpServer: any) => {
     io = new Server(httpServer, {
         cors: {
-            origin: process.env.CLIENT_URL || "http://localhost:5173",
-            methods: ["GET", "POST"]
+            origin: (origin, callback) => {
+                // Allow requests with no origin (like mobile apps)
+                if (!origin) return callback(null, true);
+
+                // Allow all Cloudflare Pages preview deployments
+                if (origin.endsWith('.pages.dev')) {
+                    return callback(null, true);
+                }
+
+                // Allow configured origins
+                const allowedOrigins = [
+                    'http://localhost:5173',
+                    'https://podm.app',
+                    process.env.CLIENT_URL
+                ].filter(Boolean);
+
+                if (allowedOrigins.includes(origin)) {
+                    return callback(null, true);
+                }
+
+                callback(new Error('Not allowed by CORS'));
+            },
+            methods: ["GET", "POST"],
+            credentials: true
         }
     });
 
