@@ -18,6 +18,7 @@ import * as apiClient from '../../lib/apiClient';
 import { useModal } from '../../hooks/useModal';
 import TipModal from './TipModal';
 import UnlockModal from './UnlockModal'; // Import the UnlockModal
+import { ContentLockState } from './ContentLockManager';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -36,6 +37,7 @@ export interface ContentWithCreator extends Content {
 interface PostCardProps {
     post: ContentWithCreator;
     isLocked?: boolean; // Optional prop to force a locked state, useful for public profiles
+    lockState?: ContentLockState; // NEW: Centralized lock state from ContentLockManager
 }
 
 const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {

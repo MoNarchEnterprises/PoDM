@@ -21,6 +21,7 @@ import { useModal } from '../../hooks/useModal';
 // Import BOTH subscription modals
 import SubscriptionModal from './SubscriptionModal';
 import SubscriptionAuthModal from './SubscriptionAuthModal';
+import { getContentLockState } from '../../components/shared/ContentLockManager';
 
 // --- Main Profile Page Component (Not exported directly) ---
 interface CreatorProfilePageProps {
@@ -238,6 +239,11 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                             <h2 className="text-2xl font-bold mb-6">Content</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {content.map(post => {
+                                    const lockState = getContentLockState(
+                                        post,
+                                        creator,
+                                        { isSubscribed: isAlreadySubscribed, tierLevel: undefined }
+                                    );
                                     const postWithCreator = {
                                         ...post,
                                         creator: {
@@ -254,7 +260,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                         <PostCard
                                             key={post.id}
                                             post={postWithCreator as any}
-                                            isLocked={!isAlreadySubscribed}
+                                            lockState={lockState}
                                         />
                                     );
                                 })}

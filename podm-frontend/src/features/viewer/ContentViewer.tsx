@@ -14,6 +14,7 @@ import TipModal from '../../components/shared/TipModal';
 import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import ContentLockOverlay from '../../components/shared/ContentLockOverlay';
+import { useContentLock } from '../../components/shared/ContentLockManager';
 
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -51,6 +52,9 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     const navigate = useNavigate();
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Use centralized lock management
+    const { lockState, markAsUnlocked } = useContentLock(content, creator);
 
     useEffect(() => {
         if (content && content.id) {

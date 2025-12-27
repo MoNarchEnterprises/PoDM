@@ -10,6 +10,7 @@ import { ContentWithCreator } from '../../components/shared/ContentCard';
 // --- Import Reusable Components ---
 import PostCard from '../../components/shared/ContentCard';
 import Button from '../../components/ui/Button';
+import { getContentLockState } from '../../components/shared/ContentLockManager';
 
 // --- Main Fan Feed Component ---
 const FanFeed = () => {
@@ -74,9 +75,10 @@ const FanFeed = () => {
         }
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {posts.map(post => (
-                    <PostCard key={post.id} post={post} />
-                ))}
+                {posts.map(post => {
+                    const lockState = getContentLockState(post, post.creator);
+                    return <PostCard key={post.id} post={post} lockState={lockState} />;
+                })}
             </div>
         );
     };
