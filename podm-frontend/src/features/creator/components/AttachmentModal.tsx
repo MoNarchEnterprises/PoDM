@@ -25,6 +25,21 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
         [selectedContentId, contentItems]
     );
 
+    // Helper to get thumbnail URL - handles both signed URLs and relative paths
+    const getThumbnailUrl = (item: Content): string => {
+        const thumbnailUrl = item.files[0]?.thumbnailUrl;
+        if (!thumbnailUrl) return '';
+
+        // If it's already a full URL (starts with http), use it as-is
+        if (thumbnailUrl.startsWith('http')) {
+            return thumbnailUrl;
+        }
+
+        // Otherwise, it might be a relative path - return empty for now
+        // The backend should be providing signed URLs for thumbnails
+        return thumbnailUrl;
+    };
+
     const handleSend = () => {
         setError(null); // Clear previous errors
         if (!selectedContent) {
@@ -67,7 +82,15 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                                     onClick={() => setSelectedContentId(item.id)}
                                     className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedContentId === item.id ? 'border-pink-500 scale-105' : 'border-transparent hover:border-gray-600'}`}
                                 >
-                                    <img src={item.files[0]?.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                                    <img
+                                        src={getThumbnailUrl(item)}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to a placeholder if image fails to load
+                                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23374151" width="100" height="100"/%3E%3Ctext fill="%239CA3AF" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                        }}
+                                    />
                                     <div className="absolute inset-0 bg-black/30"></div>
                                 </div>
                             )) : (
