@@ -78,8 +78,27 @@ export const uploadVerificationDocs = createUploadMiddleware(multerInstance.fiel
  */
 export const uploadBanner = createUploadMiddleware(multerInstance.single('banner'));
 
+// --- Voice Message Multer Configuration ---
+// Separate instance for voice messages that accepts audio files
+const voiceMessageFileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+    const allowedMimeTypes = ['audio/webm', 'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/ogg'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new AppError('Invalid file type. Only audio files are allowed for voice messages.', 400));
+    }
+};
+
+const voiceMessageMulterInstance = multer({
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10 MB limit for voice messages
+    },
+    fileFilter: voiceMessageFileFilter,
+});
+
 /**
  * Middleware for handling a single voice message file upload.
  * Processes one audio file from a field named 'voiceMessage'.
  */
-export const uploadVoiceMessage = createUploadMiddleware(multerInstance.single('voiceMessage'));
+export const uploadVoiceMessage = createUploadMiddleware(voiceMessageMulterInstance.single('voiceMessage'));
