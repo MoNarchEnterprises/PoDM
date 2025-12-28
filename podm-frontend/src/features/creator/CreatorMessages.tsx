@@ -1,7 +1,7 @@
 // src/features/creator/CreatorMessages.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Paperclip, Lock, ArrowLeft, DollarSign } from 'lucide-react';
+import { Send, Paperclip, Lock, ArrowLeft, DollarSign, Mic, X } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
@@ -9,6 +9,7 @@ import { socket } from '../../lib/socket';
 import { Content } from '@common/types/Content';
 import AttachmentModal from './components/AttachmentModal';
 import { useModal } from '../../hooks/useModal';
+import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import MessageBubble from '../messages/components/MessageBubble';
 import { Message, MessageContent } from '@common/types/Message';
 
@@ -59,6 +60,9 @@ const CreatorMessagesPage = () => {
     const [isLoadingConvos, setIsLoadingConvos] = useState(true);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const previousConversationId = useRef<string | null>(null);
+
+    // Voice recording state
+    const { isRecording, recordingTime, audioBlob, startRecording, stopRecording, cancelRecording, error: recordingError } = useVoiceRecorder();
 
     useEffect(() => {
         const fetchAndProcessContent = async () => {
@@ -186,6 +190,25 @@ const CreatorMessagesPage = () => {
         }
     };
 
+    const handleSendVoiceMessage = async () => {
+        if (!audioBlob || !activeConversation) return;
+
+        try {
+            // Create FormData to upload voice message
+            const formData = new FormData();
+            formData.append('voiceMessage', audioBlob, 'voice-message.webm');
+            formData.append('receiverId', activeConversation.fan._id);
+
+            await apiClient.sendVoiceMessage(formData);
+
+            // Reset voice recording state
+            cancelRecording();
+        } catch (error) {
+            console.error("Failed to send voice message:", error);
+            alert('Failed to send voice message.');
+        }
+    };
+
     return (
         <>
             <AttachmentModal
@@ -226,13 +249,91 @@ const CreatorMessagesPage = () => {
                                 })}
                             </div>
                             <form onSubmit={handleSendTextMessage} className="p-4 bg-gray-800 border-t border-gray-700">
-                                <div className="flex items-center bg-gray-700 rounded-full p-1">
-                                    <Button type="button" variant="ghost" size="sm" className="p-2 h-auto" onClick={openAttachmentModal}>
-                                        <Lock className="w-6 h-6" />
-                                    </Button>
-                                    <input type="text" value={newMessageText} onChange={e => setNewMessageText(e.target.value)} placeholder="Type a message..." className="flex-1 bg-transparent px-3 outline-none" />
-                                    <Button type="submit" size="sm" className="p-2 h-auto rounded-full ml-2"><Send className="w-5 h-5" /></Button>
-                                </div>
+                                {isRecording ? (
+                                    // Recording UI
+                                    <div className="flex items-center bg-gray-700 rounded-full p-3">
+                                        <div className="flex-1 flex items-center space-x-3">
+                                            <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
+                                            <span className="text-white font-mono">
+                                                {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                                            </span>
+                                            <span className="text-gray-400 text-sm">Recording...</span>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="p-2 h-auto hover:bg-gray-600"
+                                            onClick={cancelRecording}
+                                        >
+                                            <X className="w-5 h-5 text-red-400" />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            className="p-2 h-auto rounded-full ml-2 bg-pink-500 hover:bg-pink-600"
+                                            onClick={stopRecording}
+                                        >
+                                            <Send className="w-5 h-5" />
+                                        </Button>
+                                    </div>
+                                ) : audioBlob ? (
+                                    // Preview UI after recording
+                                    <div className="flex items-center bg-gray-700 rounded-full p-3">
+                                        <audio
+                                            src={URL.createObjectURL(audioBlob)}
+                                            controls
+                                            className="flex-1"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="p-2 h-auto hover:bg-gray-600 ml-2"
+                                            onClick={cancelRecording}
+                                        >
+                                            <X className="w-5 h-5 text-red-400" />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            className="p-2 h-auto rounded-full ml-2 bg-pink-500 hover:bg-pink-600"
+                                            onClick={handleSendVoiceMessage}
+                                        >
+                                            <Send className="w-5 h-5" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    // Normal text input UI
+                                    <div className="flex items-center bg-gray-700 rounded-full p-1">
+                                        <Button type="button" variant="ghost" size="sm" className="p-2 h-auto" onClick={openAttachmentModal}>
+                                            <Lock className="w-6 h-6" />
+                                        </Button>
+                                        <input
+                                            type="text"
+                                            value={newMessageText}
+                                            onChange={e => setNewMessageText(e.target.value)}
+                                            placeholder="Type a message..."
+                                            className="flex-1 bg-transparent px-3 outline-none"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="p-2 h-auto hover:text-pink-500 transition-colors"
+                                            onClick={startRecording}
+                                            title="Record voice message"
+                                        >
+                                            <Mic className="w-6 h-6" />
+                                        </Button>
+                                        <Button type="submit" size="sm" className="p-2 h-auto rounded-full ml-2">
+                                            <Send className="w-5 h-5" />
+                                        </Button>
+                                    </div>
+                                )}
+                                {recordingError && (
+                                    <p className="text-red-400 text-sm mt-2">{recordingError}</p>
+                                )}
                             </form>
                         </>
                     ) : (

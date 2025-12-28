@@ -25,6 +25,7 @@ export interface Message {
   receiver_id: string; // The ID of the user who received the message
   text?: string; // The text content of the message (optional)
   content?: MessageContent; // Attached paid content (optional)
+  voiceMessageUrl?: string; // URL to voice message audio file (optional, creator-only)
   is_read: boolean;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string

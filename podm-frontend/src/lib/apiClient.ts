@@ -587,6 +587,15 @@ export const deleteMessage = async (messageId: string) => {
 };
 
 /**
+ * Sends a voice message to a fan.
+ * @param formData - FormData containing the voice message audio file and receiverId.
+ */
+export const sendVoiceMessage = async (formData: FormData) => {
+    const response = await apiClient.post('/messages/voice', formData);
+    return response.data;
+};
+
+/**
  * Fetches the personalized content feed for the logged-in fan.
  * @param page The page number to fetch for infinite scrolling.
  */

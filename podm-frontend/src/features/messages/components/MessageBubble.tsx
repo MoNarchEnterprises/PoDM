@@ -54,6 +54,16 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                 )}
                 <div className={`max-w-xs lg:max-w-md p-1 rounded-2xl ${bubbleClass}`}>
                     {message.text && <p className="px-3 py-2">{message.text}</p>}
+                    {message.voiceMessageUrl && (
+                        <div className="px-3 py-2">
+                            <audio
+                                src={message.voiceMessageUrl}
+                                controls
+                                className="w-full"
+                                style={{ maxWidth: '300px' }}
+                            />
+                        </div>
+                    )}
                     {message.content && (
                         <div className="space-y-2 bg-black/20 rounded-xl p-2">
                             <div className="relative cursor-pointer" onClick={() => (message.content?.isUnlocked || isMe) && onContentClick(message.content as MessageContent)}>
