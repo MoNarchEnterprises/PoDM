@@ -127,6 +127,7 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             receiver_id: message.receiver_id,           // Map snake_case to camelCase
             text: message.text,
             content: processedContent,
+            voiceMessageUrl: message.voice_message_url, // Map snake_case to camelCase
             is_read: message.is_read,
             created_at: message.created_at,
             updated_at: message.updated_at,
