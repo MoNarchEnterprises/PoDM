@@ -359,7 +359,7 @@ export const sendVoiceMessage = async (sender_id: string, receiver_id: string, v
         sender_id: sender_id,
         receiver_id: receiver_id,
         conversation_id: conversation.id,
-        voiceMessageUrl: signedUrl,
+        voice_message_url: signedUrl,
         is_read: false,
     };
 
