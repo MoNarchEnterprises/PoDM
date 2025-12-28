@@ -71,17 +71,20 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
     }, [isRecording]);
 
     const cancelRecording = useCallback(() => {
+        // Stop recording if currently recording
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
-            setAudioBlob(null);
-            setRecordingTime(0);
 
             if (timerRef.current) {
                 clearInterval(timerRef.current);
                 timerRef.current = null;
             }
         }
+
+        // Always clear the audio blob and reset time (works in both recording and preview states)
+        setAudioBlob(null);
+        setRecordingTime(0);
     }, [isRecording]);
 
     return {
