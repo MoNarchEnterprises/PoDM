@@ -1,7 +1,8 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead } from '../controllers/message.controller';
+import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead, sendVoiceMessage } from '../controllers/message.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
+import { uploadVoiceMessage } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -40,6 +41,13 @@ router.put('/conversations/:conversationId/read', protect, markConversationAsRea
  * @access  Private (Owner only)
  */
 router.delete('/:id', protect, deleteMessage);
+
+/**
+ * @route   POST /api/v1/messages/voice
+ * @desc    Send a voice message
+ * @access  Private (Creators only)
+ */
+router.post('/voice', protect, creatorOnly, uploadVoiceMessage, sendVoiceMessage);
 
 /**
  * @route   POST /api/v1/messages/mass-message

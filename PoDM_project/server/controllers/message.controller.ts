@@ -133,3 +133,31 @@ export const sendMassMessage = async (req: Request, res: Response, next: NextFun
         next(error);
     }
 };
+
+/**
+ * @desc    Send a voice message
+ * @route   POST /api/v1/messages/voice
+ * @access  Private (Creators only)
+ */
+export const sendVoiceMessage = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const sender_id = req.user?.id;
+        const receiver_id = req.body.receiverId || req.body.receiver_id;
+        const voiceFile = req.file;
+
+        if (!sender_id) {
+            throw new AppError('Authentication error, user ID not found.', 401);
+        }
+        if (!receiver_id) {
+            throw new AppError('Receiver ID is required.', 400);
+        }
+        if (!voiceFile) {
+            throw new AppError('Voice message file is required.', 400);
+        }
+
+        const newMessage = await MessageService.sendVoiceMessage(sender_id, receiver_id, voiceFile);
+        res.status(201).json({ success: true, data: newMessage });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -306,3 +306,81 @@ export const sendMassMessageToSubscribers = async (creatorId: string, messageDat
 
     return { success: true, message: `Mass message sent to ${fanIds.length} subscribers.` };
 };
+
+/**
+ * Handles the business logic for sending a voice message.
+ * @param sender_id - The ID of the user sending the voice message.
+ * @param receiver_id - The ID of the user receiving the voice message.
+ * @param voiceFile - The uploaded voice message file.
+ * @returns The newly created message object with voice message URL.
+ */
+export const sendVoiceMessage = async (sender_id: string, receiver_id: string, voiceFile: Express.Multer.File) => {
+    const sender = await UserModel.findUserById(sender_id);
+    if (!sender) throw new AppError('Sender not found.', 404);
+    if (sender.role === 'creator' && sender.status !== 'active') {
+        throw new AppError('Your account must be verified to send messages.', 403);
+    }
+
+    // Find or create conversation
+    let conversation = await ConversationModel.findConversationByParticipants(sender_id, receiver_id);
+    if (!conversation) {
+        conversation = await ConversationModel.createConversation([sender_id, receiver_id]);
+    }
+    if (!conversation) {
+        throw new AppError('Could not find or create a conversation.', 500);
+    }
+
+    // Upload voice message to R2 private storage
+    const timestamp = Date.now();
+    const fileName = `voice-${timestamp}.webm`;
+    const filePath = `voice-messages/${sender_id}/${fileName}`;
+
+    // Import storage service
+    const storageService = require('./storage.service');
+    const { path: uploadedPath, error: uploadError } = await storageService.uploadToPrivate(
+        filePath,
+        voiceFile.buffer,
+        voiceFile.mimetype || 'audio/webm'
+    );
+
+    if (uploadError || !uploadedPath) {
+        throw new AppError('Failed to upload voice message.', 500);
+    }
+
+    // Generate signed URL for the voice message (valid for 7 days)
+    const { signedUrl, error: signError } = await storageService.getPrivateSignedUrl(uploadedPath, 60 * 60 * 24 * 7);
+
+    if (signError || !signedUrl) {
+        throw new AppError('Failed to generate voice message URL.', 500);
+    }
+
+    // Create message with voice message URL
+    const newMessageData = {
+        sender_id: sender_id,
+        receiver_id: receiver_id,
+        conversation_id: conversation.id,
+        voiceMessageUrl: signedUrl,
+        is_read: false,
+    };
+
+    const newMessage = await MessageModel.createMessage(newMessageData);
+    if (!newMessage) throw new AppError('Failed to send voice message.', 500);
+
+    // Broadcast to Socket.IO room
+    const roomName = `conversation:${conversation.id}`;
+    const messageForFrontend = {
+        id: newMessage.id.toString(),
+        conversation_id: newMessage.conversation_id,
+        sender_id: newMessage.sender_id,
+        receiver_id: newMessage.receiver_id,
+        voiceMessageUrl: signedUrl,
+        is_read: newMessage.is_read,
+        created_at: new Date(newMessage.created_at).toISOString(),
+        updated_at: new Date(newMessage.created_at).toISOString(),
+    };
+
+    io.to(roomName).emit('new_message', messageForFrontend);
+    console.log(`[MessageService] Broadcasted voice message to room: ${roomName}`);
+
+    return messageForFrontend;
+};

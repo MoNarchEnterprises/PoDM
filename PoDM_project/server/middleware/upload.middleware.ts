@@ -77,3 +77,9 @@ export const uploadVerificationDocs = createUploadMiddleware(multerInstance.fiel
  * Processes one file from a field named 'banner'.
  */
 export const uploadBanner = createUploadMiddleware(multerInstance.single('banner'));
+
+/**
+ * Middleware for handling a single voice message file upload.
+ * Processes one audio file from a field named 'voiceMessage'.
+ */
+export const uploadVoiceMessage = createUploadMiddleware(multerInstance.single('voiceMessage'));
