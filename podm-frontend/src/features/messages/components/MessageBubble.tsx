@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Message, MessageContent } from '@common/types/Message';
 import Button from '../../../components/ui/Button';
+import AudioPlayer from '../../../components/ui/AudioPlayer';
 import { Lock, Bookmark, Trash2 } from 'lucide-react';
 import { formatMessageTimestamp } from '../../../lib/formatters';
 
@@ -56,19 +57,7 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                     {message.text && <p className="px-3 py-2">{message.text}</p>}
                     {message.voiceMessageUrl && (
                         <div className="px-3 py-2">
-                            <audio
-                                src={message.voiceMessageUrl}
-                                controls
-                                preload="metadata"
-                                controlsList="nodownload"
-                                style={{
-                                    width: '100%',
-                                    maxWidth: '300px',
-                                    minHeight: '40px',
-                                    display: 'block',
-                                    outline: 'none'
-                                }}
-                            />
+                            <AudioPlayer src={message.voiceMessageUrl} />
                         </div>
                     )}
                     {message.content && (
