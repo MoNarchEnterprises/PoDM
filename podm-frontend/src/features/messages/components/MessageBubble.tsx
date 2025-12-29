@@ -62,9 +62,22 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                     )}
                     {message.content && (
                         <div className="space-y-2 bg-black/20 rounded-xl p-2">
-                            <div className="relative cursor-pointer" onClick={() => (message.content?.isUnlocked || isMe) && onContentClick(message.content as MessageContent)}>
-                                <img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && !isMe && 'blur-md'}`} />
-                            </div>
+                            {/* Show AudioPlayer for audio content, thumbnail for others */}
+                            {message.content.type === 'audio' ? (
+                                <div className="py-2">
+                                    {(message.content.isUnlocked || isMe) ? (
+                                        <AudioPlayer src={message.content.thumbnailUrl} />
+                                    ) : (
+                                        <div className="text-center text-white/70 py-4">
+                                            🎵 Audio Content (Locked)
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="relative cursor-pointer" onClick={() => (message.content?.isUnlocked || isMe) && onContentClick(message.content as MessageContent)}>
+                                    <img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && !isMe && 'blur-md'}`} />
+                                </div>
+                            )}
                             {/* --- THIS IS THE FIX --- */}
                             {!message.content.isUnlocked && message.content.isPaid && !isMe ? (
                                 <Button onClick={() => onUnlock(message)} className="w-full bg-pink-500 hover:bg-pink-600" size="sm" leftIcon={Lock}>
