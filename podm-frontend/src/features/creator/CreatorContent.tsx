@@ -134,15 +134,19 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
         setIsLoading(true);
         setError(null);
 
+
         // --- THIS IS THE FIX ---
         // Determine the content type based on the selected files.
-        // Default to 'photo', but switch to 'video' if any video file is found.
+        // Default to 'photo', but switch to 'video' or 'audio' based on file type.
         let contentType: ContentType = 'photo';
         if (files && files.length > 0) {
             for (let i = 0; i < files.length; i++) {
                 if (files[i].type.startsWith('video/')) {
                     contentType = 'video';
                     break; // A single video file makes the whole post a 'video' type
+                } else if (files[i].type.startsWith('audio/')) {
+                    contentType = 'audio';
+                    break; // A single audio file makes the whole post an 'audio' type
                 }
             }
         }
