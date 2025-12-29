@@ -6,11 +6,22 @@ import { AppError } from './error.middleware';
 const storage = multer.memoryStorage();
 
 const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'];
+    const allowedMimeTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'video/mp4',
+        'video/quicktime',
+        'audio/mpeg',  // MP3
+        'audio/mp4',   // M4A
+        'audio/wav',
+        'audio/webm',
+        'audio/ogg'
+    ];
     if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new AppError('Invalid file type. Only images and videos are allowed.', 400));
+        cb(new AppError('Invalid file type. Only images, videos, and audio files are allowed.', 400));
     }
 };
 
