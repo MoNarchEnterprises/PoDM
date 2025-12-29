@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Loader, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
+import AudioPlayer from '../../../components/ui/AudioPlayer';
 import * as apiClient from '../../../lib/apiClient';
 
 interface ContentViewerModalProps {
@@ -15,15 +16,15 @@ interface ContentViewerModalProps {
 const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPrevious }: ContentViewerModalProps) => {
     // State for fetching media
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
-    const [contentType, setContentType] = useState<'photo' | 'video' | null>(null);
+    const [contentType, setContentType] = useState<'photo' | 'video' | 'audio' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // State for Zoom and Pan
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
-    
+
     // Refs for DOM elements
     const imageRef = useRef<HTMLImageElement | HTMLVideoElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
@@ -126,13 +127,22 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                     />
                 );
             }
+            if (contentType === 'audio') {
+                return (
+                    <div className="flex items-center justify-center h-full p-8">
+                        <div className="max-w-md w-full">
+                            <AudioPlayer src={secureUrl} />
+                        </div>
+                    </div>
+                );
+            }
             return (
                 <img
                     ref={imageRef as React.RefObject<HTMLImageElement>}
                     src={secureUrl}
                     alt={contentItem?.content?.title || 'Gallery Content'}
                     className="max-w-full max-h-full object-contain transition-transform duration-100"
-                    style={{ 
+                    style={{
                         transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                         cursor: isPanning ? 'grabbing' : 'grab'
                     }}
@@ -153,10 +163,10 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                 <header className="flex items-center justify-between p-2 text-white z-20">
                     <h3 className="font-bold text-lg">{contentItem?.content?.title}</h3>
                 </header>
-                
+
                 {/* --- THIS IS THE FIX (Part 3) --- */}
                 {/* The `onWheel` prop is now removed, preventing the type error. */}
-                <main 
+                <main
                     ref={viewportRef}
                     className="relative flex-1 flex items-center justify-center overflow-hidden"
                 >

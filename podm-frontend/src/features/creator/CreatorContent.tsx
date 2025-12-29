@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, MoreVertical, ChevronDown, ChevronUp, Eye, Bookmark, DollarSign, UploadCloud, PlusCircle, Trash2, Edit } from 'lucide-react';
+import { Search, MoreVertical, ChevronDown, ChevronUp, Eye, Bookmark, DollarSign, UploadCloud, PlusCircle, Trash2, Edit, Music } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { Content, ContentStatus, ContentType } from '@common/types/Content';
@@ -468,7 +468,13 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
         <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
             <td className="px-4 py-3 cursor-pointer" onClick={onRowClick}>
                 <div className="flex items-center">
-                    <img src={imageUrl || 'https://placehold.co/100x100/1F2937/FFFFFF?text=...'} alt={item.title} className="w-10 h-10 rounded-md object-cover mr-4" />
+                    {item.type === 'audio' ? (
+                        <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center mr-4">
+                            <Music className="w-6 h-6 text-white" />
+                        </div>
+                    ) : (
+                        <img src={imageUrl || 'https://placehold.co/100x100/1F2937/FFFFFF?text=...'} alt={item.title} className="w-10 h-10 rounded-md object-cover mr-4" />
+                    )}
                     <span className="font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
                 </div>
             </td>
