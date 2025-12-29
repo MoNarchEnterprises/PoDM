@@ -60,7 +60,8 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                                 src={message.voiceMessageUrl}
                                 controls
                                 className="w-full"
-                                style={{ maxWidth: '300px' }}
+                                style={{ maxWidth: '300px', height: '40px' }}
+                                preload="metadata"
                             />
                         </div>
                     )}
