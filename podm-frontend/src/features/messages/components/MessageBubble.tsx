@@ -59,9 +59,8 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                             <audio
                                 src={message.voiceMessageUrl}
                                 controls
-                                className="w-full"
-                                style={{ maxWidth: '300px', height: '40px' }}
                                 preload="metadata"
+                                style={{ width: '100%', maxWidth: '300px', height: '40px' }}
                             />
                         </div>
                     )}
