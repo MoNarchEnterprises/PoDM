@@ -70,17 +70,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
     };
 
     return (
-        <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2" style={{ minWidth: '250px' }}>
+        <div className="flex items-center gap-3 bg-gray-800/90 rounded-lg p-3" style={{ minWidth: '280px' }}>
             <audio ref={audioRef} src={src} preload="metadata" />
 
             <button
                 onClick={togglePlay}
-                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-pink-500 hover:bg-pink-600 transition-colors shadow-lg"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
             >
                 {isPlaying ? (
-                    <Pause className="w-4 h-4 text-white" />
+                    <Pause className="w-5 h-5 text-white" />
                 ) : (
-                    <Play className="w-4 h-4 text-white ml-0.5" />
+                    <Play className="w-5 h-5 text-white ml-0.5" />
                 )}
             </button>
 
@@ -91,12 +92,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
                     max={duration || 0}
                     value={currentTime}
                     onChange={handleSeek}
-                    className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                     style={{
-                        background: `linear-gradient(to right, #ec4899 0%, #ec4899 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.2) ${(currentTime / duration) * 100}%, rgba(255,255,255,0.2) 100%)`
+                        background: `linear-gradient(to right, #ec4899 0%, #ec4899 ${(currentTime / duration) * 100}%, #374151 ${(currentTime / duration) * 100}%, #374151 100%)`
                     }}
                 />
-                <div className="flex justify-between text-xs text-white/70">
+                <div className="flex justify-between text-xs text-gray-300">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                 </div>
