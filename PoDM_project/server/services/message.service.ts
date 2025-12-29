@@ -374,7 +374,7 @@ export const sendVoiceMessage = async (sender_id: string, receiver_id: string, v
         conversation_id: newMessage.conversation_id,
         sender_id: newMessage.sender_id,
         receiver_id: newMessage.receiver_id,
-        voiceMessageUrl: signedUrl,
+        voiceMessageUrl: (newMessage as any).voice_message_url, // Map from database snake_case to frontend camelCase
         is_read: newMessage.is_read,
         created_at: new Date(newMessage.created_at).toISOString(),
         updated_at: new Date(newMessage.created_at).toISOString(),
