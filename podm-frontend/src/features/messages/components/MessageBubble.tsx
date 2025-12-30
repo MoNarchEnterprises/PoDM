@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Message, MessageContent } from '@common/types/Message';
 import Button from '../../../components/ui/Button';
 import AudioPlayer from '../../../components/ui/AudioPlayer';
-import { Lock, Bookmark, Trash2 } from 'lucide-react';
+import { Lock, Bookmark, BookmarkCheck, Trash2 } from 'lucide-react';
 import { formatMessageTimestamp } from '../../../lib/formatters';
 
 interface MessageBubbleProps {
@@ -84,8 +84,15 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                                     Unlock for ${(message.content.price / 100).toFixed(2)}
                                 </Button>
                             ) : (canSaveToGallery && message.content.isUnlocked && !isMe) && ( // Show only if fan has unlocked
-                                <Button onClick={handleSave} disabled={isSaving || isSaved} variant="secondary" size="sm" leftIcon={Bookmark} className="w-full">
-                                    {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save to Gallery'}
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={isSaving || isSaved || message.content.inGallery}
+                                    variant="secondary"
+                                    size="sm"
+                                    leftIcon={message.content.inGallery || isSaved ? BookmarkCheck : Bookmark}
+                                    className="w-full"
+                                >
+                                    {isSaving ? 'Saving...' : (message.content.inGallery || isSaved) ? 'Saved' : 'Save to Gallery'}
                                 </Button>
                             )}
                             {/* --- END OF FIX --- */}

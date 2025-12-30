@@ -118,6 +118,18 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             const tempContent = { files: [{ thumbnailUrl: message.content.thumbnailUrl }] };
             const signedContent = await generateSignedUrlsForContent(tempContent);
             processedContent = { ...message.content, thumbnailUrl: signedContent.files[0].thumbnailUrl };
+
+            // Check if content is in user's gallery (for fans only)
+            if (message.content.contentId && userId === message.receiver_id) {
+                const { data: galleryItems } = await supabase
+                    .from('fan_gallery')
+                    .select('content_id')
+                    .eq('fan_id', userId)
+                    .eq('content_id', message.content.contentId)
+                    .single();
+
+                processedContent.inGallery = !!galleryItems;
+            }
         }
 
         return {

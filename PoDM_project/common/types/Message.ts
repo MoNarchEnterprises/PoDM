@@ -13,6 +13,7 @@ export interface MessageContent {
   price: number; // Price to unlock the content
   isUnlocked: boolean;
   unlockDate?: string; // ISO 8601 date string, set when the content is unlocked
+  inGallery?: boolean; // Whether the content is saved in the fan's gallery
 }
 
 /**
