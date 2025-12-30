@@ -47,8 +47,8 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
             return;
         }
         const priceInCents = Math.round(parseFloat(price) * 100);
-        if (isNaN(priceInCents) || priceInCents <= 0) {
-            setError('Please enter a valid price greater than $0.00.');
+        if (isNaN(priceInCents) || priceInCents < 0) {
+            setError('Price must be a non-negative number.');
             return;
         }
 
@@ -68,7 +68,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
     return (
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-3xl">
             <div className="flex flex-col max-h-[90vh]">
-                <header className="p-6 border-b border-gray-700">
+                <header className="p-6 border-b border-gray-700 bg-pink-700">
                     <h2 className="text-xl font-bold text-white">Attach PPV Content</h2>
                 </header>
                 <main className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,6 +110,9 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                     <div className="space-y-6">
                         {selectedContent ? (
                             <>
+                                <div>
+                                    <h3 className="font-semibold text-pink-700 mb-2">{selectedContent.title}</h3>
+                                </div>
                                 <div>
                                     <h3 className="font-semibold text-gray-400">Set Price</h3>
                                     <Input
