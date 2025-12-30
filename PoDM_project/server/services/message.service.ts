@@ -136,20 +136,35 @@ export const getMessagesForConversation = async (conversation_id: string, userId
 
                 console.log('[MessageService] ALL gallery items for fan:', allGalleryItems);
 
-                const { data: galleryItems, error } = await supabase
+
+                // Fetch the fan's gallery (content is a JSON array)
+                const { data: galleryData, error } = await supabase
                     .from('galleries')
                     .select('content')
                     .eq('fan_id', userId)
-                    .eq('content', message.content.contentId);
+                    .single();
 
-                console.log('[MessageService] Gallery query result:', {
+                console.log('[MessageService] Gallery data:', {
                     error,
-                    galleryItems,
-                    itemsLength: galleryItems?.length,
-                    inGallery: !error && galleryItems && galleryItems.length > 0
+                    galleryData,
+                    contentArray: galleryData?.content
                 });
 
-                processedContent.inGallery = !error && galleryItems && galleryItems.length > 0;
+                // Check if the contentId exists in the content array
+                let isInGallery = false;
+                if (!error && galleryData?.content && Array.isArray(galleryData.content)) {
+                    isInGallery = galleryData.content.some((item: any) =>
+                        item.contentId === message.content.contentId ||
+                        item.contentId === parseInt(message.content.contentId)
+                    );
+                }
+
+                console.log('[MessageService] Gallery check result:', {
+                    contentId: message.content.contentId,
+                    isInGallery
+                });
+
+                processedContent.inGallery = isInGallery;
             }
         }
 
