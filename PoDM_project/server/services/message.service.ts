@@ -123,9 +123,18 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             if (message.content.contentId && userId === message.receiver_id) {
                 console.log('[MessageService] Checking gallery for:', {
                     contentId: message.content.contentId,
+                    contentIdType: typeof message.content.contentId,
                     fanId: userId,
                     receiverId: message.receiver_id
                 });
+
+                // First, let's see ALL gallery items for this fan
+                const { data: allGalleryItems } = await supabase
+                    .from('galleries')
+                    .select('*')
+                    .eq('fan_id', userId);
+
+                console.log('[MessageService] ALL gallery items for fan:', allGalleryItems);
 
                 const { data: galleryItems, error } = await supabase
                     .from('galleries')
