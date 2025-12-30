@@ -129,9 +129,9 @@ export const getMessagesForConversation = async (conversation_id: string, userId
 
                 const { data: galleryItems, error } = await supabase
                     .from('galleries')
-                    .select('content_id')
+                    .select('content')
                     .eq('fan_id', userId)
-                    .eq('content_id', message.content.contentId);
+                    .eq('content', message.content.contentId);
 
                 console.log('[MessageService] Gallery query result:', {
                     error,
