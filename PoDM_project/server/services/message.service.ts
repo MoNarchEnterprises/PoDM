@@ -121,17 +121,30 @@ export const getMessagesForConversation = async (conversation_id: string, userId
 
             // Check if content is in user's gallery (for fans only)
             if (message.content.contentId && userId === message.receiver_id) {
+                console.log('[MessageService] Checking gallery for:', {
+                    contentId: message.content.contentId,
+                    fanId: userId,
+                    receiverId: message.receiver_id
+                });
+
                 const { data: galleryItems, error } = await supabase
                     .from('fan_gallery')
                     .select('content_id')
                     .eq('fan_id', userId)
                     .eq('content_id', message.content.contentId);
 
+                console.log('[MessageService] Gallery query result:', {
+                    error,
+                    galleryItems,
+                    itemsLength: galleryItems?.length,
+                    inGallery: !error && galleryItems && galleryItems.length > 0
+                });
+
                 processedContent.inGallery = !error && galleryItems && galleryItems.length > 0;
             }
         }
 
-        return {
+        const finalMessage = {
             id: message.id.toString(),
             conversation_id: message.conversation_id, // Map snake_case to camelCase
             sender_id: message.sender_id,             // Map snake_case to camelCase
@@ -143,6 +156,16 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             created_at: message.created_at,
             updated_at: message.updated_at,
         } as Message;
+
+        if (processedContent) {
+            console.log('[MessageService] Final message content:', {
+                messageId: finalMessage.id,
+                contentId: processedContent.contentId,
+                inGallery: processedContent.inGallery
+            });
+        }
+
+        return finalMessage;
     }));
 };
 
