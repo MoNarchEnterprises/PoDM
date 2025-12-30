@@ -128,13 +128,24 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                     <div className="flex items-center justify-between ...">
                         {/* --- THIS IS THE KEY CHANGE --- */}
                         {/* The onClick handler now opens the tip modal */}
-                        <Button variant="ghost" size="sm" leftIcon={DollarSign} onClick={openTipModal}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            leftIcon={DollarSign}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openTipModal();
+                            }}
+                        >
                             Tip
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleSaveToGallery}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleSaveToGallery();
+                            }}
                             // Disable the button if it's already saved or currently saving
                             disabled={isBookmarked || isSaving}
                             className={isBookmarked ? 'text-purple-500' : ''}
