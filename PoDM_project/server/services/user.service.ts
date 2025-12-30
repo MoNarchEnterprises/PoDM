@@ -107,7 +107,7 @@ export const addToUserGallery = async (fan_id: string, contentId: string) => {
     }
 
     // Increment the gallery add count on the content table
-    const { error: rpcError } = await supabase.rpc('increment_gallery_add_count', { contentid_to_update: contentId });
+    const { error: rpcError } = await supabase.rpc('increment_gallery_add_count', { content_id_to_update: contentId });
     if (rpcError) {
         console.error('Error incrementing gallery add count:', rpcError);
         // Don't throw an error here, as the main action has been completed
