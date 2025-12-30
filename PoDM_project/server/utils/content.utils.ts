@@ -6,6 +6,7 @@ import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as UserModel from '../models/user.model';
 import * as StorageService from '../services/storage.service';
+import supabase from '../config/supabaseClient';
 
 /**
  * A centralized utility to process a raw Content object from the database.
@@ -163,7 +164,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     }
     // console.log("[ContentUtils] unlockedContentIds: ", unlockedContentIds);
     // 3. Enrich each post
-    return contentList.map(post => {
+    return Promise.all(contentList.map(async post => {
         // A. Creator always unlocks their own content
         if (post.creator_id === viewerId) {
             return { ...post, isUnlocked: true, isSubscribedToCreator: true };
@@ -211,12 +212,36 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
                 isUnlocked = true;
             }
         }
-        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}`);
+
+        // C. Check if content is in the viewer's gallery
+        let inGallery = false;
+        if (viewerId && post.id) {
+            try {
+                const { data: galleryData } = await supabase
+                    .from('galleries')
+                    .select('content')
+                    .eq('fan_id', viewerId)
+                    .single();
+
+                if (galleryData?.content && Array.isArray(galleryData.content)) {
+                    inGallery = galleryData.content.some((item: any) =>
+                        item.contentId === post.id?.toString() ||
+                        item.contentId === parseInt(post.id)
+                    );
+                }
+            } catch (error) {
+                // Gallery doesn't exist yet or other error - that's okay
+                inGallery = false;
+            }
+        }
+
+        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}, inGallery=${inGallery}`);
         return {
             ...post,
             isUnlocked,
             isSubscribedToCreator,
-            isLockedByTier
+            isLockedByTier,
+            inGallery
         };
-    });
+    }));
 };

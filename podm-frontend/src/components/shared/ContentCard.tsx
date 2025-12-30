@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, Bookmark } from 'lucide-react';
+import { DollarSign, Bookmark, BookmarkCheck } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -31,6 +31,7 @@ export interface ContentWithCreator extends Content {
     isUnlocked?: boolean;
     isSubscribedToCreator?: boolean;
     isLockedByTier?: boolean; // NEW: Added for tier-based locking
+    inGallery?: boolean; // NEW: Added for gallery status
 }
 
 // --- Main Post Card Component ---
@@ -45,7 +46,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const { isOpen: isUnlockModalOpen, openModal: openUnlockModal, closeModal: closeUnlockModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
-    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(post.inGallery || false);
     const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
 
     // A post is locked if forced, or if the backend says it's not unlocked.
@@ -137,7 +138,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                             // Disable the button if it's already saved or currently saving
                             disabled={isBookmarked || isSaving}
                             className={isBookmarked ? 'text-purple-500' : ''}
-                            leftIcon={Bookmark}
+                            leftIcon={isBookmarked ? BookmarkCheck : Bookmark}
                         >
                             {isSaving ? 'Saving...' : (isBookmarked ? 'Saved' : 'Save')}
                         </Button>
