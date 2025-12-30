@@ -65,7 +65,7 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                             {/* Show AudioPlayer for audio content, thumbnail for others */}
                             {message.content.type === 'audio' ? (
                                 <div className="py-2">
-                                    {(message.content.isUnlocked || isMe) ? (
+                                    {(message.content.isUnlocked || message.content.price === 0 || isMe) ? (
                                         <AudioPlayer src={message.content.thumbnailUrl} />
                                     ) : (
                                         <div className="text-center text-white/70 py-4">
@@ -74,12 +74,12 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
                                     )}
                                 </div>
                             ) : (
-                                <div className="relative cursor-pointer" onClick={() => (message.content?.isUnlocked || isMe) && onContentClick(message.content as MessageContent)}>
-                                    <img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && !isMe && 'blur-md'}`} />
+                                <div className="relative cursor-pointer" onClick={() => (message.content?.isUnlocked || message.content?.price === 0 || isMe) && onContentClick(message.content as MessageContent)}>
+                                    <img src={message.content.thumbnailUrl} alt="Content thumbnail" className={`rounded-lg ${!message.content.isUnlocked && message.content.isPaid && message.content.price > 0 && !isMe && 'blur-md'}`} />
                                 </div>
                             )}
                             {/* --- THIS IS THE FIX --- */}
-                            {!message.content.isUnlocked && message.content.isPaid && !isMe ? (
+                            {!message.content.isUnlocked && message.content.isPaid && message.content.price > 0 && !isMe ? (
                                 <Button onClick={() => onUnlock(message)} className="w-full bg-pink-500 hover:bg-pink-600" size="sm" leftIcon={Lock}>
                                     Unlock for ${(message.content.price / 100).toFixed(2)}
                                 </Button>
