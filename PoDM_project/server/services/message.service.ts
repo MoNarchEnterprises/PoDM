@@ -121,34 +121,12 @@ export const getMessagesForConversation = async (conversation_id: string, userId
 
             // Check if content is in user's gallery (for fans only)
             if (message.content.contentId && userId === message.receiver_id) {
-                console.log('[MessageService] Checking gallery for:', {
-                    contentId: message.content.contentId,
-                    contentIdType: typeof message.content.contentId,
-                    fanId: userId,
-                    receiverId: message.receiver_id
-                });
-
-                // First, let's see ALL gallery items for this fan
-                const { data: allGalleryItems } = await supabase
-                    .from('galleries')
-                    .select('*')
-                    .eq('fan_id', userId);
-
-                console.log('[MessageService] ALL gallery items for fan:', allGalleryItems);
-
-
                 // Fetch the fan's gallery (content is a JSON array)
                 const { data: galleryData, error } = await supabase
                     .from('galleries')
                     .select('content')
                     .eq('fan_id', userId)
                     .single();
-
-                console.log('[MessageService] Gallery data:', {
-                    error,
-                    galleryData,
-                    contentArray: galleryData?.content
-                });
 
                 // Check if the contentId exists in the content array
                 let isInGallery = false;
@@ -158,11 +136,6 @@ export const getMessagesForConversation = async (conversation_id: string, userId
                         item.contentId === parseInt(message.content.contentId)
                     );
                 }
-
-                console.log('[MessageService] Gallery check result:', {
-                    contentId: message.content.contentId,
-                    isInGallery
-                });
 
                 processedContent.inGallery = isInGallery;
             }
@@ -180,14 +153,6 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             created_at: message.created_at,
             updated_at: message.updated_at,
         } as Message;
-
-        if (processedContent) {
-            console.log('[MessageService] Final message content:', {
-                messageId: finalMessage.id,
-                contentId: processedContent.contentId,
-                inGallery: processedContent.inGallery
-            });
-        }
 
         return finalMessage;
     }));
