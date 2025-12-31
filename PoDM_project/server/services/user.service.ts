@@ -415,8 +415,15 @@ export const getFanGallery = async (fan_id: string) => {
  * @param fan_id - The UUID of the fan.
  */
 export const getFanSettings = async (fan_id: string) => {
-    const user = await UserModel.findUserById(fan_id);
-    if (!user) {
+    // Query the profiles table directly to ensure we get the preferences column
+    // The findUserById RPC may not return all columns including preferences
+    const { data: user, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', fan_id)
+        .single();
+
+    if (error || !user) {
         throw new AppError('User not found.', 404);
     }
 
