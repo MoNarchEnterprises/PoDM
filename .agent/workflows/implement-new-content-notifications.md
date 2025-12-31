@@ -7,17 +7,20 @@ description: Implementation plan for New Content notifications system
 ## Overview
 Implement a notification system that alerts fans when creators they're subscribed to post new content. This includes database schema, backend API, frontend UI, and real-time updates.
 
+**Status**: Phase 1 ✅ COMPLETE | Phase 2 ✅ COMPLETE | Phase 3 🔄 IN PROGRESS
+
 ---
 
-## Phase 1: Database Schema
+## Phase 1: Database Schema ✅ COMPLETE
 
-### 1.1 Create Notifications Table
-**File**: Create migration or update Supabase schema
+### 1.1 Create Notifications Table ✅ COMPLETE
+**File**: Supabase schema (completed by user)
 
+**Actual Schema** (uses `profiles` instead of `users`):
 ```sql
 CREATE TABLE notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL, -- 'new_content', 'new_message', etc.
     title VARCHAR(255) NOT NULL,
     message TEXT,
@@ -47,9 +50,24 @@ ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS new_content_notifications BOO
 
 ---
 
-## Phase 2: Backend Implementation
+## Phase 2: Backend Implementation ✅ COMPLETE
 
-### 2.1 Create Notification Type
+**Completed Files:**
+- ✅ `common/types/Notification.ts` - Type definitions
+- ✅ `server/models/notification.model.ts` - Database operations
+- ✅ `server/services/notification.service.ts` - Business logic
+- ✅ `server/controllers/notification.controller.ts` - API handlers
+- ✅ `server/routes/notification.routes.ts` - Express routes
+- ✅ `server/Server.ts` - Routes registered
+
+**API Endpoints Available:**
+- `GET /api/v1/notifications` - Get user's notifications
+- `GET /api/v1/notifications/unread-count` - Get unread count
+- `PUT /api/v1/notifications/:id/read` - Mark notification as read
+- `PUT /api/v1/notifications/read-all` - Mark all as read
+- `DELETE /api/v1/notifications/:id` - Delete notification
+
+### 2.1 Create Notification Type ✅ COMPLETE
 **File**: `common/types/Notification.ts`
 
 ```typescript
