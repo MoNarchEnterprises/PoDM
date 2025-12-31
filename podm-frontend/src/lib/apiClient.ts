@@ -782,4 +782,31 @@ export const getSavedReports = async () => {
     return response.data;
 };
 
+// --- Notification Endpoints ---
+
+export const getNotifications = async (limit?: number) => {
+    const response = await apiClient.get(`/notifications${limit ? `?limit=${limit}` : ''}`);
+    return response.data;
+};
+
+export const getUnreadNotificationCount = async () => {
+    const response = await apiClient.get('/notifications/unread-count');
+    return response.data;
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+    const response = await apiClient.put(`/notifications/${notificationId}/read`);
+    return response.data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+    const response = await apiClient.put('/notifications/read-all');
+    return response.data;
+};
+
+export const deleteNotification = async (notificationId: string) => {
+    const response = await apiClient.delete(`/notifications/${notificationId}`);
+    return response.data;
+};
+
 export default apiClient;
