@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { User as UserIcon, Bell, EyeOff, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
+import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User as FanUser } from '@common/types/User';
@@ -43,7 +43,7 @@ const ToggleSwitch = ({ label, description, enabled, setEnabled }: { label: stri
 const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean; onClose: () => void; onUpdateSuccess: () => void; }) => {
     const stripe = useStripe();
     const elements = useElements();
-    
+
     // State for the server-side interaction
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -63,9 +63,9 @@ const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: bool
                 });
         }
     }, [isOpen]);
-    
+
     const CARD_ELEMENT_OPTIONS = { style: { base: { color: '#CBD5E1', fontFamily: 'sans-serif', fontSmoothing: 'antialiased', fontSize: '16px', '::placeholder': { color: '#64748B' } }, invalid: { color: '#EF4444', iconColor: '#EF4444' } } };
-    
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -79,7 +79,7 @@ const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: bool
             setError("Payment form not found. Please refresh.");
             return;
         }
-        
+
         setIsLoading(true);
         setError(null);
 
@@ -89,7 +89,7 @@ const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: bool
                 card: cardElement,
             },
         });
-        
+
         if (setupError) {
             setError(setupError.message || "An unexpected error occurred.");
             setIsLoading(false);
@@ -137,10 +137,10 @@ const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: bool
 
 // --- Settings Panels (Now with full implementations) ---
 
-const AccountSettingsPanel = ({ profile, onProfileChange }: { profile: any; onProfileChange: (field: string, value: string) => void; }) => ( <SettingsCard title="Profile Information" subtitle="Update your account details."><div className="flex items-center space-x-4"><div className="relative"><img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" /><Button variant="primary" size="sm" className="absolute bottom-0 right-0 p-1.5 h-auto rounded-full"><Camera className="w-4 h-4" /></Button></div><Input id="name" label="Display Name" value={profile.name || ''} onChange={(e) => onProfileChange('name', e.target.value)} containerClassName="flex-grow" /></div><Input id="username" label="Username" value={profile.username || ''} readOnly disabled /><Input id="email" label="Email Address" type="email" value={profile.email || ''} readOnly disabled /></SettingsCard> );
-const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['notifications']; onSettingsChange: (category: 'notifications', key: string, value: boolean) => void; }) => ( <SettingsCard title="Notifications" subtitle="Choose how you want to be notified."><ToggleSwitch label="New Content" description="Get notified when a creator you follow posts." enabled={!!settings.newContent} setEnabled={(val) => onSettingsChange('notifications', 'newContent', val)} /><ToggleSwitch label="Creator Goes Live" description="Get an alert when a creator starts a live stream." enabled={!!settings.creatorLive} setEnabled={(val) => onSettingsChange('notifications', 'creatorLive', val)} /><hr className="border-gray-200 dark:border-gray-600"/><ToggleSwitch label="Promotional Emails" description="Receive emails about new creators and updates." enabled={!!settings.emailPromotions} setEnabled={(val) => onSettingsChange('notifications', 'emailPromotions', val)} /></SettingsCard> );
-const PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => ( <SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard> );
-const PaymentsSettingsPanel = ({ paymentMethod, onUpdateClick }: { paymentMethod: FanSettingsData['paymentMethod'], onUpdateClick: () => void }) => ( <SettingsCard title="Payment Methods" subtitle="Manage your saved payment information."><div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><div className="flex items-center space-x-4"><CreditCard className="w-8 h-8 text-blue-500" /><div><p className="font-semibold">{paymentMethod.brand} ending in {paymentMethod.last4}</p><p className="text-sm text-gray-500 dark:text-gray-400">Your default payment method</p></div></div><Button variant="ghost" onClick={onUpdateClick}>Update</Button></div></SettingsCard> );
+const AccountSettingsPanel = ({ profile, onProfileChange }: { profile: any; onProfileChange: (field: string, value: string) => void; }) => (<SettingsCard title="Profile Information" subtitle="Update your account details."><div className="flex items-center space-x-4"><div className="relative"><img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" /><Button variant="primary" size="sm" className="absolute bottom-0 right-0 p-1.5 h-auto rounded-full"><Camera className="w-4 h-4" /></Button></div><Input id="name" label="Display Name" value={profile.name || ''} onChange={(e) => onProfileChange('name', e.target.value)} containerClassName="flex-grow" /></div><Input id="username" label="Username" value={profile.username || ''} readOnly disabled /><Input id="email" label="Email Address" type="email" value={profile.email || ''} readOnly disabled /></SettingsCard>);
+const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['notifications']; onSettingsChange: (category: 'notifications', key: string, value: boolean) => void; }) => (<SettingsCard title="Notifications" subtitle="Choose how you want to be notified."><ToggleSwitch label="New Content" description="Get notified when a creator you follow posts." enabled={!!settings.newContent} setEnabled={(val) => onSettingsChange('notifications', 'newContent', val)} /><ToggleSwitch label="Creator Goes Live" description="Get an alert when a creator starts a live stream." enabled={!!settings.creatorLive} setEnabled={(val) => onSettingsChange('notifications', 'creatorLive', val)} /><hr className="border-gray-200 dark:border-gray-600" /><ToggleSwitch label="Promotional Emails" description="Receive emails about new creators and updates." enabled={!!settings.emailPromotions} setEnabled={(val) => onSettingsChange('notifications', 'emailPromotions', val)} /></SettingsCard>);
+const PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => (<SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard>);
+const PaymentsSettingsPanel = ({ paymentMethod, onUpdateClick }: { paymentMethod: FanSettingsData['paymentMethod'], onUpdateClick: () => void }) => (<SettingsCard title="Payment Methods" subtitle="Manage your saved payment information."><div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><div className="flex items-center space-x-4"><CreditCard className="w-8 h-8 text-blue-500" /><div><p className="font-semibold">{paymentMethod.brand} ending in {paymentMethod.last4}</p><p className="text-sm text-gray-500 dark:text-gray-400">Your default payment method</p></div></div><Button variant="ghost" onClick={onUpdateClick}>Update</Button></div></SettingsCard>);
 
 // --- FULL SECURITY PANEL IMPLEMENTATION ---
 const SecuritySettingsPanel = () => {
@@ -214,7 +214,7 @@ const HelpPanel = () => {
             setSubject('');
             setDescription('');
         } catch (error: any) {
-             setFeedback({ type: 'error', message: error.response?.data?.message || "Failed to submit ticket." });
+            setFeedback({ type: 'error', message: error.response?.data?.message || "Failed to submit ticket." });
         } finally {
             setIsLoading(false);
         }
@@ -279,7 +279,6 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
     const menuItems = [
         { key: 'Account', label: 'Account', icon: UserIcon },
         { key: 'Notifications', label: 'Notifications', icon: Bell },
-        { key: 'Privacy', label: 'Privacy', icon: EyeOff },
         { key: 'Payments', label: 'Payments', icon: CreditCard },
         { key: 'Security', label: 'Security', icon: Shield },
         { key: 'Help', label: 'Help', icon: HelpCircle },
@@ -289,7 +288,6 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
         switch (activeTab) {
             case 'Account': return <AccountSettingsPanel profile={profile} onProfileChange={handleProfileChange} />;
             case 'Notifications': return <NotificationSettingsPanel settings={preferences.notifications} onSettingsChange={handleSettingsChange} />;
-            case 'Privacy': return <PrivacySettingsPanel settings={preferences.privacy} onSettingsChange={handleSettingsChange} />;
             case 'Payments': return <PaymentsSettingsPanel paymentMethod={paymentMethod} onUpdateClick={openPaymentModal} />;
             case 'Security': return <SecuritySettingsPanel />;
             case 'Help': return <HelpPanel />;
