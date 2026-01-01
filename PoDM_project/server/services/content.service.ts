@@ -15,6 +15,7 @@ import os from 'os';
 import { reshapeUserForApp } from '../utils/user.utils';
 import { generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../utils/content.utils';
 import * as StorageService from './storage.service';
+import * as NotificationService from './notification.service';
 
 
 // Define a type for the query parameters for clarity
@@ -290,6 +291,14 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
         if (!newContent) {
             throw new Error('Database insert returned null.');
         }
+
+        // Trigger notifications for subscribers (async, don't wait)
+        // Only notify if content is published immediately (not scheduled)
+        if (newContent.status === 'published') {
+            NotificationService.notifySubscribersOfNewContent(creator_id, Number(newContent.id))
+                .catch(err => console.error('[ContentService] Failed to send notifications:', err));
+        }
+
         return newContent;
     } catch (dbError) {
         console.error('Database insert failed. Cleaning up storage...', dbError);

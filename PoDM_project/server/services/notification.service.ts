@@ -4,6 +4,7 @@ import * as UserModel from '../models/user.model';
 import * as ContentModel from '../models/content.model';
 import { NotificationWithCreator } from '@common/types/Notification';
 import { generateSignedUrlsForContent } from '../utils/content.utils';
+import supabase from '../config/supabaseClient';
 
 /**
  * Create notifications for all subscribers when a creator posts new content
@@ -32,24 +33,36 @@ export const notifySubscribersOfNewContent = async (creatorId: string, contentId
     if (!content) return;
 
     // Create notification for each subscriber (only if they have notifications enabled)
-    const notifications = activeSubscriptions
-        .filter((sub: any) => {
-            // Check if fan has new content notifications enabled
-            // Assuming notification_settings is stored in user profile
-            return true; // For now, notify all subscribers
-        })
-        .map((sub: any) => ({
-            user_id: sub.fan_id,
-            type: 'new_content' as const,
-            title: `${creator.profile.name} posted new content`,
-            message: content.title,
-            related_content_id: contentId,
-            related_user_id: creatorId,
-            is_read: false
-        }));
+    const notificationPromises = [];
+
+    for (const sub of activeSubscriptions) {
+        // Fetch fan's preferences to check if they have notifications enabled
+        const { data: fanProfile } = await supabase
+            .from('profiles')
+            .select('preferences')
+            .eq('id', sub.fan_id)
+            .single();
+
+        // Check if fan has new content notifications enabled (default to true if not set)
+        const hasNotificationsEnabled = fanProfile?.preferences?.notifications?.newContent !== false;
+
+        if (hasNotificationsEnabled) {
+            notificationPromises.push(
+                NotificationModel.createNotification({
+                    user_id: sub.fan_id,
+                    type: 'new_content' as const,
+                    title: `${creator.username} posted new content`,
+                    message: content.title,
+                    related_content_id: contentId,
+                    related_user_id: creatorId,
+                    is_read: false
+                })
+            );
+        }
+    }
 
     // Batch create notifications
-    await Promise.all(notifications.map((notif: any) => NotificationModel.createNotification(notif)));
+    await Promise.all(notificationPromises);
 };
 
 /**
