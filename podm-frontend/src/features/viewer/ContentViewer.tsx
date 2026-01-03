@@ -170,10 +170,24 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
                         />
                         {content.type === 'video' ? (
                             isLoading ? <div>Loading...</div> :
-                                <video src={secureUrl || ''} controls autoPlay className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                                <video
+                                    src={secureUrl || ''}
+                                    controls
+                                    autoPlay
+                                    controlsList="nodownload"
+                                    className="max-w-full max-h-[80vh] object-contain rounded-lg select-none"
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                />
                         ) : (
                             isLoading ? <div>Loading...</div> :
-                                <img src={secureUrl || content.files[0]?.thumbnailUrl} alt={content.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                                <img
+                                    src={secureUrl || content.files[0]?.thumbnailUrl}
+                                    alt={content.title}
+                                    className="max-w-full max-h-[80vh] object-contain rounded-lg select-none"
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                />
                         )}
                     </div>
 

@@ -41,16 +41,16 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
     }
 
     try {
-        console.log(`[Watermark] Starting process for content: ${content.id}`);
+        console.log(`[Watermark] Starting process for content: ${content.id}, fan: ${fan.username}`);
+        console.log(`[Watermark] Original file path: ${originalFilePath}`);
+
         // 1. Download the original image from R2 Storage into a buffer
         const { buffer: fileBuffer, error: downloadError } = await StorageService.downloadFromPrivate(originalFilePath);
 
         if (downloadError || !fileBuffer) {
             throw new Error(`Failed to download original file: ${downloadError?.message}`);
         }
-        console.log(`[Watermark] Original file downloaded successfully.`);
-
-        // fileBuffer is already a Buffer from R2
+        console.log(`[Watermark] Original file downloaded successfully. Size: ${fileBuffer.length} bytes`);
 
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
@@ -58,12 +58,13 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
         const tempFilePath = `temp/${tempFileName}`;
 
         // 3. Use Sharp to composite the watermark text onto the image
+        // Increased font size and opacity for better visibility
         const watermarkedBuffer = await sharp(fileBuffer)
             .composite([{
                 input: Buffer.from(
-                    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100">
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="120">
                         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
-                              font-size="20" fill="rgba(255, 255, 255, 0.4)" 
+                              font-size="32" fill="rgba(255, 255, 255, 0.5)" 
                               font-family="sans-serif" font-weight="bold">
                             ${watermarkText}
                         </text>
@@ -75,7 +76,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
             .webp({ quality: 90 }) // Convert to WebP for efficient delivery
             .toBuffer();
 
-        console.log(`[Watermark] Image buffer processed with Sharp.`);
+        console.log(`[Watermark] Image processed with Sharp. Output size: ${watermarkedBuffer.length} bytes`);
 
         // 4. Upload the watermarked buffer to a temporary folder in R2 storage
         const { error: uploadError } = await StorageService.uploadToPrivate(
@@ -88,12 +89,12 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
         if (uploadError) {
             throw new Error(`Failed to upload watermarked file: ${uploadError.message}`);
         }
-        console.log(`[Watermark] Temporary watermarked file uploaded to: ${tempFilePath}`);
+        console.log(`[Watermark] SUCCESS - Temporary watermarked file uploaded to: ${tempFilePath}`);
 
         return tempFilePath;
 
     } catch (error) {
-        console.error(`[Watermark] Error creating watermarked image for content ${content.id}:`, error);
+        console.error(`[Watermark] ERROR creating watermarked image for content ${content.id}:`, error);
         return originalFilePath; // If anything fails, fall back to serving the original image
     }
 };

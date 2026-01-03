@@ -123,7 +123,10 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                         src={secureUrl}
                         controls
                         autoPlay
-                        className="max-w-full max-h-full object-contain cursor-default"
+                        controlsList="nodownload"
+                        className="max-w-full max-h-full object-contain cursor-default select-none"
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
                     />
                 );
             }
@@ -141,7 +144,7 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                     ref={imageRef as React.RefObject<HTMLImageElement>}
                     src={secureUrl}
                     alt={contentItem?.content?.title || 'Gallery Content'}
-                    className="max-w-full max-h-full object-contain transition-transform duration-100"
+                    className="max-w-full max-h-full object-contain transition-transform duration-100 select-none"
                     style={{
                         transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                         cursor: isPanning ? 'grabbing' : 'grab'
@@ -151,6 +154,8 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                     onMouseUp={handleMouseUpOrLeave}
                     onMouseLeave={handleMouseUpOrLeave}
                     onDoubleClick={resetTransform}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
                 />
             );
         }
