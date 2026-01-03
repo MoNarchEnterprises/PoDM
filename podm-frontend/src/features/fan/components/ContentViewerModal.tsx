@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Loader, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
+import { X, Loader, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
 import AudioPlayer from '../../../components/ui/AudioPlayer';
@@ -25,6 +25,10 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
 
+    // State for fullscreen image view
+    const [isFullSize, setIsFullSize] = useState(false);
+    const [isImageLargerThanViewport, setIsImageLargerThanViewport] = useState(false);
+
     // Refs for DOM elements
     const imageRef = useRef<HTMLImageElement | HTMLVideoElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
@@ -35,6 +39,7 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
     const resetTransform = useCallback(() => {
         setScale(1);
         setPosition({ x: 0, y: 0 });
+        setIsFullSize(false);
     }, []);
 
     // Effect to fetch the secure URL when the item changes
@@ -44,6 +49,7 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
         setContentType(null);
         setIsLoading(true);
         setError(null);
+        setIsImageLargerThanViewport(false);
 
         if (contentItem) {
             const fetchUrl = async () => {
@@ -60,6 +66,16 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
             fetchUrl();
         }
     }, [contentItem, resetTransform]);
+
+    // Check if image is larger than viewport when it loads
+    const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+        const img = e.currentTarget;
+        const viewport = viewportRef.current;
+        if (viewport) {
+            const isLarger = img.naturalWidth > viewport.clientWidth || img.naturalHeight > viewport.clientHeight;
+            setIsImageLargerThanViewport(isLarger);
+        }
+    }, []);
 
     // --- EVENT HANDLERS ---
 
@@ -149,6 +165,7 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                         transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                         cursor: isPanning ? 'grabbing' : 'grab'
                     }}
+                    onLoad={handleImageLoad}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUpOrLeave}
@@ -208,9 +225,46 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                         <Button variant="ghost" className="p-2 h-auto" onClick={() => setScale(s => Math.min(5, s + 0.2))}>
                             <ZoomIn className="w-5 h-5" />
                         </Button>
+                        {isImageLargerThanViewport && (
+                            <Button
+                                variant="ghost"
+                                className="p-2 h-auto"
+                                onClick={() => setIsFullSize(true)}
+                                title="View full size"
+                            >
+                                <Maximize2 className="w-5 h-5" />
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
+
+            {/* Fullscreen overlay for viewing image at native size */}
+            {isFullSize && secureUrl && contentType === 'photo' && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/95 overflow-auto"
+                    onClick={() => setIsFullSize(false)}
+                >
+                    <div className="min-w-full min-h-full flex items-center justify-center p-4">
+                        <img
+                            src={secureUrl}
+                            alt={contentItem?.content?.title || 'Full Size Image'}
+                            className="max-w-none select-none"
+                            onClick={(e) => e.stopPropagation()}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
+                        />
+                    </div>
+                    <Button
+                        variant="ghost"
+                        className="fixed top-4 right-4 bg-black/50 hover:bg-black/70 p-2 h-auto rounded-full"
+                        onClick={() => setIsFullSize(false)}
+                        title="Exit full size"
+                    >
+                        <Minimize2 className="w-6 h-6" />
+                    </Button>
+                </div>
+            )}
         </Modal>
     );
 };
