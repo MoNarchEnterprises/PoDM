@@ -179,20 +179,34 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
         return null;
     };
 
+    // Compute modal classes based on full-size mode
+    const modalClassName = isFullSize
+        ? "w-[95vw] h-[95vh] max-w-none bg-black/95 backdrop-blur-lg border border-gray-700 transition-all duration-300"
+        : "max-w-6xl w-full h-5/6 bg-black/80 backdrop-blur-lg border border-gray-700 transition-all duration-300";
+
     return (
-        <Modal isOpen={currentIndex !== null} onClose={onClose} className="max-w-6xl w-full h-5/6 bg-black/80 backdrop-blur-lg border border-gray-700">
+        <Modal isOpen={currentIndex !== null} onClose={onClose} className={modalClassName}>
             <div className="relative flex flex-col h-full">
                 <header className="flex items-center justify-between p-2 text-white z-20">
                     <h3 className="font-bold text-lg">{contentItem?.content?.title}</h3>
                 </header>
 
-                {/* --- THIS IS THE FIX (Part 3) --- */}
-                {/* The `onWheel` prop is now removed, preventing the type error. */}
+                {/* Main content area - scrollable when in full-size mode */}
                 <main
                     ref={viewportRef}
-                    className="relative flex-1 flex items-center justify-center overflow-hidden"
+                    className={`relative flex-1 flex items-center justify-center ${isFullSize ? 'overflow-auto' : 'overflow-hidden'}`}
                 >
-                    {renderMedia()}
+                    {isFullSize && secureUrl && contentType === 'photo' ? (
+                        <img
+                            src={secureUrl}
+                            alt={contentItem?.content?.title || 'Full Size Image'}
+                            className="max-w-none select-none"
+                            onContextMenu={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
+                        />
+                    ) : (
+                        renderMedia()
+                    )}
                 </main>
 
                 <div className="absolute inset-0 flex items-center justify-between p-2 pointer-events-none z-10">
@@ -216,55 +230,32 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
 
                 {contentType === 'photo' && (
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/40 p-1 rounded-full z-20">
-                        <Button variant="ghost" className="p-2 h-auto" onClick={() => setScale(s => Math.max(0.5, s - 0.2))}>
-                            <ZoomOut className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" className="p-2 h-auto" onClick={resetTransform}>
-                            <RefreshCw className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" className="p-2 h-auto" onClick={() => setScale(s => Math.min(5, s + 0.2))}>
-                            <ZoomIn className="w-5 h-5" />
-                        </Button>
+                        {!isFullSize && (
+                            <>
+                                <Button variant="ghost" className="p-2 h-auto" onClick={() => setScale(s => Math.max(0.5, s - 0.2))}>
+                                    <ZoomOut className="w-5 h-5" />
+                                </Button>
+                                <Button variant="ghost" className="p-2 h-auto" onClick={resetTransform}>
+                                    <RefreshCw className="w-5 h-5" />
+                                </Button>
+                                <Button variant="ghost" className="p-2 h-auto" onClick={() => setScale(s => Math.min(5, s + 0.2))}>
+                                    <ZoomIn className="w-5 h-5" />
+                                </Button>
+                            </>
+                        )}
                         {isImageLargerThanViewport && (
                             <Button
                                 variant="ghost"
                                 className="p-2 h-auto"
-                                onClick={() => setIsFullSize(true)}
-                                title="View full size"
+                                onClick={() => setIsFullSize(!isFullSize)}
+                                title={isFullSize ? "Exit full size" : "View full size"}
                             >
-                                <Maximize2 className="w-5 h-5" />
+                                {isFullSize ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                             </Button>
                         )}
                     </div>
                 )}
             </div>
-
-            {/* Fullscreen overlay for viewing image at native size */}
-            {isFullSize && secureUrl && contentType === 'photo' && (
-                <div
-                    className="fixed inset-0 z-50 bg-black/95 overflow-auto"
-                    onClick={() => setIsFullSize(false)}
-                >
-                    <div className="min-w-full min-h-full flex items-center justify-center p-4">
-                        <img
-                            src={secureUrl}
-                            alt={contentItem?.content?.title || 'Full Size Image'}
-                            className="max-w-none select-none"
-                            onClick={(e) => e.stopPropagation()}
-                            onContextMenu={(e) => e.preventDefault()}
-                            onDragStart={(e) => e.preventDefault()}
-                        />
-                    </div>
-                    <Button
-                        variant="ghost"
-                        className="fixed top-4 right-4 bg-black/50 hover:bg-black/70 p-2 h-auto rounded-full"
-                        onClick={() => setIsFullSize(false)}
-                        title="Exit full size"
-                    >
-                        <Minimize2 className="w-6 h-6" />
-                    </Button>
-                </div>
-            )}
         </Modal>
     );
 };
