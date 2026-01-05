@@ -25,20 +25,23 @@ type UserGrowthData = {
 /**
  * Fetches and aggregates key metrics for the main admin dashboard.
  */
+/**
+ * Fetches and aggregates key metrics for the main admin dashboard.
+ */
 export const getDashboardStats = async () => {
     const [
         totalUsers,
         activeCreators,
         monthlyRevenue,
-        openTickets
+        openTickets,
+        userGrowth
     ] = await Promise.all([
         UserModel.countAllUsers(),
         UserModel.countActiveCreators(),
         TransactionModel.sumPlatformFeeForPeriod(30),
-        SupportTicketModel.countOpenTickets()
+        SupportTicketModel.countOpenTickets(),
+        UserModel.getNewUsersOverTime(6) // Fetch last 6 months of user growth
     ]);
-
-    const userGrowth: UserGrowthData[] = [];
 
     return {
         keyMetrics: {
@@ -121,12 +124,19 @@ export const updateContentStatus = async (contentId: string, status: string) => 
  * Fetches platform-wide analytics data.
  */
 export const getPlatformAnalytics = async () => {
-    const analyticsData = {
-        revenueGrowth: [],
-        engagement: [],
-        topCreators: [],
+    const [
+        monthlyStats,
+        topCreators
+    ] = await Promise.all([
+        TransactionModel.getMonthlyTransactionStats(6), // Last 6 months
+        TransactionModel.getTopCreatorsByRevenue(5)     // Top 5 creators this month
+    ]);
+
+    return {
+        revenueGrowth: monthlyStats.revenueGrowth,
+        engagement: monthlyStats.engagement,
+        topCreators: topCreators
     };
-    return analyticsData;
 };
 
 /**

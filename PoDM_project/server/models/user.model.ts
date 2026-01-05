@@ -95,7 +95,7 @@ export const updateProfile = async (id: string, updates: Record<string, any>): P
         return null;
     }
 
-    
+
     return data as User;
 };
 
@@ -180,4 +180,75 @@ export const findAdmins = async (): Promise<User[] | null> => {
         return null;
     }
     return data as User[];
+};
+
+/**
+ * Counts new users created in each of the last X months.
+ * @param months - Number of months to look back.
+ * @returns Array of objects { name: string, Users: number }.
+ */
+export const getNewUsersOverTime = async (months: number): Promise<{ name: string; Users: number }[]> => {
+    // 1. Calculate the start date (first day of the month X months ago)
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+    startDate.setDate(1); // Start from the 1st of that month
+
+    // 2. Fetch all users created since that date
+    // Note: Ideally, we'd use a Supabase RPC for grouping, but for now we'll fetch ID + created_at
+    const { data: users, error } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching new users over time:', error.message);
+        return [];
+    }
+
+    if (!users) return [];
+
+    // 3. Group by month in memory
+    // Format: "Jan", "Feb", etc.
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const statsMap = new Map<string, number>();
+
+    // Initialize all months with 0 to ensure continuity in the chart
+    for (let i = 0; i < months; i++) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (months - 1 - i));
+        const key = monthNames[d.getMonth()];
+        // Logic to handle year wrap-around if needed, but for simple charts 'Jan', 'Feb' is okay usually. 
+        // If overlapping years (e.g. Jan 2025 vs Jan 2026), key might need to be "Jan 25".
+        // Let's stick to simple names as per interface requirement for now.
+        if (!statsMap.has(key)) {
+            statsMap.set(key, 0);
+        }
+    }
+
+    users.forEach(u => {
+        const d = new Date(u.created_at);
+        const key = monthNames[d.getMonth()];
+        // Only count if it's one of the months we initialized (handles edge cases)
+        if (statsMap.has(key)) {
+            statsMap.set(key, (statsMap.get(key) || 0) + 1);
+        }
+    });
+
+    // 4. Convert Map to Array
+    // We want to preserve the chronological order we initialized
+    const result: { name: string; Users: number }[] = [];
+
+    // Re-iterate the initialized months to build the result in order
+    for (let i = 0; i < months; i++) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (months - 1 - i));
+        const key = monthNames[d.getMonth()];
+        result.push({
+            name: key,
+            Users: statsMap.get(key) || 0
+        });
+    }
+
+    return result;
 };
