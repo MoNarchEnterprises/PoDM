@@ -187,29 +187,53 @@ export const findAdmins = async (): Promise<User[] | null> => {
  * @param months - Number of months to look back.
  * @returns Array of objects { name: string, Users: number }.
  */
+/**
+ * Counts new users created in each of the last X months.
+ * Uses supabase.auth.admin.listUsers() because profiles table (public) may lack created_at.
+ * @param months - Number of months to look back.
+ * @returns Array of objects { name: string, Users: number }.
+ */
 export const getNewUsersOverTime = async (months: number): Promise<{ name: string; Users: number }[]> => {
     // 1. Calculate the start date (first day of the month X months ago)
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - months);
-    startDate.setDate(1); // Start from the 1st of that month
+    startDate.setDate(1);
 
-    // 2. Fetch all users created since that date
-    // Note: Ideally, we'd use a Supabase RPC for grouping, but for now we'll fetch ID + created_at
-    const { data: users, error } = await supabase
-        .from('profiles')
-        .select('created_at')
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: true });
+    // 2. Fetch all users using Auth Admin API (pagination required)
+    const allUsers: any[] = [];
+    let page = 1;
+    let hasMore = true;
+    const PER_PAGE = 50;
 
-    if (error) {
-        console.error('Error fetching new users over time:', error.message);
-        return [];
+    // Use a loop to fetch all users. 
+    // Optimization: In a huge production app, this should be an SQL RPC or dedicated analytics service.
+    // For this app scale, fetching pages is acceptable.
+    while (hasMore) {
+        const { data, error } = await supabase.auth.admin.listUsers({
+            page: page,
+            perPage: PER_PAGE
+        });
+
+        if (error) {
+            console.error('Error fetching users from auth admin:', error.message);
+            hasMore = false;
+            break;
+        }
+
+        if (data && data.users.length > 0) {
+            allUsers.push(...data.users);
+            // If we got less than requested, we are done
+            if (data.users.length < PER_PAGE) {
+                hasMore = false;
+            } else {
+                page++;
+            }
+        } else {
+            hasMore = false;
+        }
     }
 
-    if (!users) return [];
-
-    // 3. Group by month in memory
-    // Format: "Jan", "Feb", etc.
+    // 3. Filter and Group by month in memory
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const statsMap = new Map<string, number>();
 
@@ -218,28 +242,25 @@ export const getNewUsersOverTime = async (months: number): Promise<{ name: strin
         const d = new Date();
         d.setMonth(d.getMonth() - (months - 1 - i));
         const key = monthNames[d.getMonth()];
-        // Logic to handle year wrap-around if needed, but for simple charts 'Jan', 'Feb' is okay usually. 
-        // If overlapping years (e.g. Jan 2025 vs Jan 2026), key might need to be "Jan 25".
-        // Let's stick to simple names as per interface requirement for now.
         if (!statsMap.has(key)) {
             statsMap.set(key, 0);
         }
     }
 
-    users.forEach(u => {
-        const d = new Date(u.created_at);
-        const key = monthNames[d.getMonth()];
-        // Only count if it's one of the months we initialized (handles edge cases)
-        if (statsMap.has(key)) {
-            statsMap.set(key, (statsMap.get(key) || 0) + 1);
+    // Process users
+    allUsers.forEach(u => {
+        const createdAt = new Date(u.created_at);
+        // Only count if it's after our start date
+        if (createdAt >= startDate) {
+            const key = monthNames[createdAt.getMonth()];
+            if (statsMap.has(key)) {
+                statsMap.set(key, (statsMap.get(key) || 0) + 1);
+            }
         }
     });
 
-    // 4. Convert Map to Array
-    // We want to preserve the chronological order we initialized
+    // 4. Build Result
     const result: { name: string; Users: number }[] = [];
-
-    // Re-iterate the initialized months to build the result in order
     for (let i = 0; i < months; i++) {
         const d = new Date();
         d.setMonth(d.getMonth() - (months - 1 - i));
