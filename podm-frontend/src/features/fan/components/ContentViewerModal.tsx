@@ -194,13 +194,13 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
                 {/* Main content area - scrollable when in full-size mode */}
                 <main
                     ref={viewportRef}
-                    className={`relative flex-1 flex items-center justify-center ${isFullSize ? 'overflow-auto' : 'overflow-hidden'}`}
+                    className={`relative flex-1 flex ${isFullSize ? 'overflow-auto' : 'items-center justify-center overflow-hidden'}`}
                 >
                     {isFullSize && secureUrl && contentType === 'photo' ? (
                         <img
                             src={secureUrl}
                             alt={contentItem?.content?.title || 'Full Size Image'}
-                            className="max-w-none select-none"
+                            className="max-w-none select-none m-auto"
                             onContextMenu={(e) => e.preventDefault()}
                             onDragStart={(e) => e.preventDefault()}
                         />
