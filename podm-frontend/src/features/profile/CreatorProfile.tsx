@@ -17,6 +17,7 @@ import TierCard from '../../components/shared/TierCard';
 import PostCard from '../../components/shared/ContentCard';
 import Button from '../../components/ui/Button';
 import { useModal } from '../../hooks/useModal';
+import AuthModal from '../auth/AuthModal'; // Import AuthModal here
 
 // Import BOTH subscription modals
 import SubscriptionModal from './SubscriptionModal';
@@ -37,6 +38,20 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
     // State for the two different modals
     const { isOpen: isSubModalOpen, openModal: openSubModal, closeModal: closeSubModal } = useModal();
     const { isOpen: isSubAuthModalOpen, openModal: openSubAuthModal, closeModal: closeSubAuthModal } = useModal();
+
+    // State for the general AuthModal (Login/Signup from Header)
+    const { isOpen: isAuthModalOpen, openModal: openAuthModal, closeModal: closeAuthModal } = useModal();
+    const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+
+    const handleLoginClick = () => {
+        setAuthModalMode('login');
+        openAuthModal();
+    };
+
+    const handleSignUpClick = () => {
+        setAuthModalMode('signup');
+        openAuthModal();
+    };
 
     // State for UI selection and loading
     const [selectedTierId, setSelectedTierId] = useState(creator.creator_data.subscriptionTiers[0]?.id || '');
@@ -140,6 +155,13 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
 
     return (
         <>
+            {/* General Auth Modal (Login/Signup) */}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={closeAuthModal}
+                initialMode={authModalMode}
+            />
+
             {/* Modal for LOGGED-IN users, uses the simple payment flow */}
             {tierForModal && (
                 <SubscriptionModal
@@ -163,8 +185,12 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
             )}
 
             <div className="bg-gray-50 dark:bg-gray-900 font-sans">
-                {/* Header is kept simple, login/signup is handled by the subscribe button */}
-                <Header user={user} onLoginClick={() => { }} onSignUpClick={() => { }} />
+                {/* Header with Login/Signup handlers wired up */}
+                <Header
+                    user={user}
+                    onLoginClick={handleLoginClick}
+                    onSignUpClick={handleSignUpClick}
+                />
 
                 <main className="py-8">
                     <Container>
