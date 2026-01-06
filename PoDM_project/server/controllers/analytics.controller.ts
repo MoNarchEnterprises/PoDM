@@ -7,8 +7,6 @@ export const logEvent = async (req: Request, res: Response, next: NextFunction) 
         const viewerId = req.user?.id || null;
         const { eventType, creatorId, contentId } = req.body;
 
-        console.log('[Analytics Controller] logEvent body:', req.body);
-
         if (!eventType || !creatorId) {
             throw new AppError('eventType and creatorId are required.', 400);
         }
