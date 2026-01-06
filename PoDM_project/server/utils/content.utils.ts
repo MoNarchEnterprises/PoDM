@@ -165,30 +165,35 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     // console.log("[ContentUtils] unlockedContentIds: ", unlockedContentIds);
     // 3. Enrich each post
     return Promise.all(contentList.map(async post => {
+        // --- FIX: Generate signed URLs first ---
+        const postWithSignedUrls = await generateSignedUrlsForContent(post);
+        // Use the signed post for further processing
+        const finalPost = { ...postWithSignedUrls };
+
         // A. Creator always unlocks their own content
-        if (post.creator_id === viewerId) {
-            return { ...post, isUnlocked: true, isSubscribedToCreator: true };
+        if (finalPost.creator_id === viewerId) {
+            return { ...finalPost, isUnlocked: true, isSubscribedToCreator: true };
         }
 
         // B. Check specific unlock conditions
         let isUnlocked = false;
         let isLockedByTier = false; // New property to track tier-based locking
-        const isSubscribedToCreator = subscribedCreatorIds.has(String(post.creator_id));
-        console.log(`[ContentUtils] Checking post ${post.id} (creator: ${post.creator_id}, type: ${typeof post.creator_id}), isSubscribed: ${isSubscribedToCreator}, subscribedSet has: [${Array.from(subscribedCreatorIds)}]`);
+        const isSubscribedToCreator = subscribedCreatorIds.has(String(finalPost.creator_id));
+        console.log(`[ContentUtils] Checking post ${finalPost.id} (creator: ${finalPost.creator_id}, type: ${typeof finalPost.creator_id}), isSubscribed: ${isSubscribedToCreator}, subscribedSet has: [${Array.from(subscribedCreatorIds)}]`);
 
-        if (post.visibility === 'pay_per_view') {
+        if (finalPost.visibility === 'pay_per_view') {
             // Unlocked if purchased
             // We check both string and number ID formats to be safe
-            isUnlocked = unlockedContentIds.has(post.id?.toString());
-        } else if (post.visibility === 'subscribers_only') {
+            isUnlocked = unlockedContentIds.has(finalPost.id?.toString());
+        } else if (finalPost.visibility === 'subscribers_only') {
             // Check if subscribed AND tier level is sufficient
             if (isSubscribedToCreator) {
                 // Check tier level requirement
-                if (post.min_tier_level && post.min_tier_level > 1) {
-                    const fanTierLevel = subscribedCreatorTierLevels.get(String(post.creator_id)) || 1;
-                    console.log(`[ContentUtils] Post ${post.id} requires tier ${post.min_tier_level}, fan has tier ${fanTierLevel}`);
+                if (finalPost.min_tier_level && finalPost.min_tier_level > 1) {
+                    const fanTierLevel = subscribedCreatorTierLevels.get(String(finalPost.creator_id)) || 1;
+                    console.log(`[ContentUtils] Post ${finalPost.id} requires tier ${finalPost.min_tier_level}, fan has tier ${fanTierLevel}`);
 
-                    if (fanTierLevel >= post.min_tier_level) {
+                    if (fanTierLevel >= finalPost.min_tier_level) {
                         // Fan's tier is sufficient
                         isUnlocked = true;
                     } else {
@@ -206,8 +211,8 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
             }
         } else {
             // Public or Unlisted content is usually unlocked, UNLESS it has a price (Hidden PPV)
-            if (post.visibility === 'unlisted' && post.price && post.price > 0) {
-                isUnlocked = unlockedContentIds.has(post.id?.toString());
+            if (finalPost.visibility === 'unlisted' && finalPost.price && finalPost.price > 0) {
+                isUnlocked = unlockedContentIds.has(finalPost.id?.toString());
             } else {
                 isUnlocked = true;
             }
@@ -215,7 +220,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
         // C. Check if content is in the viewer's gallery
         let inGallery = false;
-        if (viewerId && post.id) {
+        if (viewerId && finalPost.id) {
             try {
                 const { data: galleryData } = await supabase
                     .from('galleries')
@@ -225,8 +230,8 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
                 if (galleryData?.content && Array.isArray(galleryData.content)) {
                     inGallery = galleryData.content.some((item: any) =>
-                        item.contentId === post.id?.toString() ||
-                        item.contentId === parseInt(post.id)
+                        item.contentId === finalPost.id?.toString() ||
+                        item.contentId === parseInt(finalPost.id)
                     );
                 }
             } catch (error) {
@@ -235,9 +240,9 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
             }
         }
 
-        console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}, inGallery=${inGallery}`);
+        console.log(`[ContentUtils] About to return post ${finalPost.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}, inGallery=${inGallery}`);
         return {
-            ...post,
+            ...finalPost,
             isUnlocked,
             isSubscribedToCreator,
             isLockedByTier,
