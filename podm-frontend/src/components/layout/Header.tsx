@@ -94,12 +94,8 @@ const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSig
                 ) : (
                     // Logged-out state
                     <div className="flex items-center space-x-3">
-                        <button className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors sm:hidden">
-                            <Search className="w-5 h-5 text-gray-400" />
-                        </button>
                         <div className="hidden sm:flex relative">
-                            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input type="text" placeholder="Search..." className="bg-gray-800 border-none rounded-full py-1.5 pl-10 pr-4 text-sm text-gray-300 focus:ring-1 focus:ring-purple-500 w-48 lg:w-64 transition-all" />
+                            {/* Search removed for Anti-Algorithm strategy */}
                         </div>
                         <button onClick={onLoginClick} className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-200 hover:text-white transition-colors">
                             Log In
