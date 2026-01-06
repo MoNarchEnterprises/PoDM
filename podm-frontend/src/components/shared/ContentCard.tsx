@@ -100,7 +100,21 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         className={`w-full h-auto object-cover aspect-[4/5] ${isLocked ? 'blur-md' : ''}`}
                         src={post.files[0]?.thumbnailUrl}
                         alt={post.title}
-                        onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error'; }}
+                        onError={(e) => {
+                            const target = e.currentTarget;
+                            // If content is locked and thumbnail fails (e.g. R2 CORS), show the nice locked placeholder
+                            if (isLocked) {
+                                // Prevent infinite loop if placeholder is missing
+                                if (!target.src.includes('locked-placeholder.png')) {
+                                    target.src = '/assets/locked-placeholder.png';
+                                    // Remove blur if we are showing the clean placeholder
+                                    target.classList.remove('blur-md');
+                                }
+                            } else {
+                                // Standard error fallback
+                                target.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error';
+                            }
+                        }}
                     />
                     <ContentLockOverlay
                         isUnlocked={localIsUnlocked}
