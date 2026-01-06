@@ -102,11 +102,11 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         alt={post.title}
                         onError={(e) => {
                             const target = e.currentTarget;
-                            console.log(`[PostCard Debug] Image Error for post ${post.id}:`, {
+                            console.log(`[PostCard Debug] Image Error for post ${post.id}:`, JSON.stringify({
                                 src: target.src,
                                 originalThumbnail: post.files[0]?.thumbnailUrl,
                                 isLocked
-                            });
+                            }, null, 2));
 
                             // If content is locked and thumbnail fails (e.g. R2 CORS), show the nice locked placeholder
                             if (isLocked) {
