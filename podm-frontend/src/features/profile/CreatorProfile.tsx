@@ -324,7 +324,7 @@ const CreatorProfileLoader = () => {
                 if (response.data.creator) {
                     apiClient.logAnalyticsEvent({
                         eventType: 'profile_visit',
-                        creatorId: response.data.creator._id,
+                        creatorId: response.data.creator.id,
                     });
                 }
                 // --- END OF FIX ---

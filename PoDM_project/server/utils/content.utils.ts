@@ -165,6 +165,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     // console.log("[ContentUtils] unlockedContentIds: ", unlockedContentIds);
     // 3. Enrich each post
     return Promise.all(contentList.map(async post => {
+        console.log(`[ContentUtils] Processing post ${post.id}, files:`, JSON.stringify(post.files, null, 2));
         // --- FIX: Generate signed URLs first ---
         const postWithSignedUrls = await generateSignedUrlsForContent(post);
         // Use the signed post for further processing
