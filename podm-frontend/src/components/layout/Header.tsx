@@ -35,7 +35,7 @@ const ProfileDropdown = ({ user }: { user: User }) => {
     } else {
         // Fan Role
         dropdownItems = [
-            { label: 'Fan Feed', icon: List, href: '/feed' },
+            { label: 'Fan Feed', icon: List, href: '/fan/feed' },
             { label: 'Settings', icon: Settings, href: '/fan/settings' },
         ];
     }
@@ -96,6 +96,14 @@ const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSig
     const currentUser = impersonatedUser || user;
     const navigate = useNavigate();
 
+    const handleMessageClick = () => {
+        if (currentUser?.role === 'creator') {
+            navigate('/hub/messages');
+        } else {
+            navigate('/fan/messages');
+        }
+    };
+
     return (
         <header className="bg-gray-900/80 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700 dark:border-gray-700 transition-all duration-300">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
@@ -107,7 +115,7 @@ const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSig
                     // Logged-in state
                     <div className="flex items-center space-x-2 sm:space-x-4">
                         <button
-                            onClick={() => navigate('/messages')}
+                            onClick={handleMessageClick}
                             className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                         >
                             <MessageSquare className="w-5 h-5 text-gray-300" />

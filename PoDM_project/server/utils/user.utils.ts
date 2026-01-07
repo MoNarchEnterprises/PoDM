@@ -33,7 +33,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
         updated_at: flatUser.updated_at,
         profile: {
             name: fullName || full_name || username || 'Unknown User',
-            avatar: avatar_url || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=U',
+            avatar: avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || full_name || username || 'U')}&background=random`,
             bio: bio || '',
         },
     };
