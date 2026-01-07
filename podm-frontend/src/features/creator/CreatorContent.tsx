@@ -415,7 +415,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }: { isOpen: boolean; on
 };
 
 // --- Table Components ---
-type SortKey = 'created_at' | 'views' | 'galleryAdds' | 'tips';
+type SortKey = 'created_at' | 'views' | 'galleryAdds' | 'tips' | 'ppvEarnings';
 
 const SortableHeader = ({ label, sortKey, currentSort, setSort, Icon }: { label: string; sortKey: SortKey; currentSort: { key: SortKey; direction: 'asc' | 'desc' }; setSort: (sort: { key: SortKey; direction: 'asc' | 'desc' }) => void; Icon: React.ElementType }) => {
     const isActive = currentSort.key === sortKey;
@@ -486,6 +486,7 @@ const ContentRow = ({ item, onRowClick, onDelete, onEdit }: { item: Content; onR
             <td className="px-4 py-3 text-center text-xs font-semibold text-gray-400">{visibilityMap[item.visibility] || 'N/A'}</td>
             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats?.views?.toLocaleString() || 0}</td>
             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{item.stats?.galleryAdds?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3 text-sm font-semibold text-blue-600 dark:text-blue-400 text-center">{formatCurrency(item.stats?.ppvEarnings || 0)}</td>
             <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 text-center">{formatCurrency(item.stats?.tips || 0)}</td>
             <td className="px-4 py-3 text-center relative">
                 <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -543,6 +544,7 @@ const CreatorContentPage = () => {
                 if (sort.key === 'views') apiSortKey = 'stats->>views';
                 if (sort.key === 'galleryAdds') apiSortKey = 'stats->>galleryAdds';
                 if (sort.key === 'tips') apiSortKey = 'stats->>tips';
+                if (sort.key === 'ppvEarnings') apiSortKey = 'stats->>ppvEarnings';
 
                 const response = await apiClient.getMyCreatorContent({
                     type: filter,
@@ -715,6 +717,7 @@ const CreatorContentPage = () => {
                                         <th className="px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Visibility</th>
                                         <SortableHeader label="Views" sortKey="views" currentSort={sort} setSort={setSort} Icon={Eye} />
                                         <SortableHeader label="Gallery Adds" sortKey="galleryAdds" currentSort={sort} setSort={setSort} Icon={Bookmark} />
+                                        <SortableHeader label="PPV" sortKey="ppvEarnings" currentSort={sort} setSort={setSort} Icon={DollarSign} />
                                         <SortableHeader label="Tips" sortKey="tips" currentSort={sort} setSort={setSort} Icon={DollarSign} />
                                         <th className="px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Actions</th>
                                     </tr>
