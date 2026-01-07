@@ -69,6 +69,12 @@ export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.Payme
                 message: message_id,
             });
 
+            // Update PPV Earnings on the content
+            if (content_id) {
+                const { error: rpcError } = await supabase.rpc('increment_ppv_earnings', { content_id_to_update: content_id, amount: amountInCents });
+                if (rpcError) console.error('Error incrementing ppv earnings for message:', rpcError);
+            }
+
             const updatedMessage = await MessageModel.unlockContentInMessage(message_id);
             if (updatedMessage) {
                 const messageWithSignedUrl = await generateSignedUrlsForContent(updatedMessage);
@@ -98,6 +104,12 @@ export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.Payme
                 payment_gateway_id: paymentIntent.id,
                 related_content_id: content_id,
             });
+
+            // Update PPV Earnings on the content
+            if (content_id) {
+                const { error: rpcError } = await supabase.rpc('increment_ppv_earnings', { content_id_to_update: content_id, amount: amountInCents });
+                if (rpcError) console.error('Error incrementing ppv earnings for post:', rpcError);
+            }
         }
 
         console.log(`[PaymentService] Transaction created for ${paymentIntent.id}`);
