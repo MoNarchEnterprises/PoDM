@@ -54,6 +54,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
+        console.log(`[Watermark] Watermark text: ${fan.username}`);
         const tempFileName = `wm-${fan.id}-${Date.now()}.webp`;
         const tempFilePath = `temp/${tempFileName}`;
 
