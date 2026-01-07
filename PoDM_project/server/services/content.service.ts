@@ -65,7 +65,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
                 input: Buffer.from(
                     `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="120">
                         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
-                              font-size="32" fill="rgba(255, 255, 255, 0.5)" 
+                              font-size="10" fill="rgba(255, 255, 255, 0.25)" 
                               font-family="sans-serif" font-weight="bold">
                             ${watermarkText}
                         </text>
