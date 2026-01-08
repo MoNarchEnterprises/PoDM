@@ -87,15 +87,15 @@ const FanMessagesPage = () => {
             console.log('[FanMessages] Conversations loaded:', response.data);
             let convos = response.data;
             if (initialState?.creatorId) {
-                const existing = convos.find((c: any) => c.creator._id === initialState.creatorId);
-                if (!existing) { convos = [{ _id: null, creator: { _id: initialState.creatorId, profile: { name: initialState.creatorName, avatar: initialState.creatorAvatar } }, updatedAt: new Date().toISOString() }, ...convos]; }
+                const existing = convos.find((c: any) => c.creator.id === initialState.creatorId);
+                if (!existing) { convos = [{ _id: null, creator: { id: initialState.creatorId, profile: { name: initialState.creatorName, avatar: initialState.creatorAvatar } }, updatedAt: new Date().toISOString() }, ...convos]; }
                 setSelectedCreatorId(initialState.creatorId);
             }
             setConversations(convos);
         }).catch(err => console.error("Failed to fetch conversations", err)).finally(() => setIsLoadingConvos(false));
     }, [initialState]);
 
-    const activeConversation = conversations.find(c => c.creator._id === selectedCreatorId);
+    const activeConversation = conversations.find(c => c.creator.id === selectedCreatorId);
 
     useEffect(() => {
         socket.connect();
@@ -243,7 +243,7 @@ const FanMessagesPage = () => {
                 <div className={`w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
                     <div className="p-4 border-b border-gray-700"><h2 className="text-xl font-bold">Messages</h2></div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                        {isLoadingConvos ? <p className="p-4 text-center">Loading...</p> : conversations.map(convo => <ConversationListItem key={convo.creator._id} conversation={convo} isActive={selectedCreatorId === convo.creator._id} onClick={() => setSelectedCreatorId(convo.creator._id)} />)}
+                        {isLoadingConvos ? <p className="p-4 text-center">Loading...</p> : conversations.map(convo => <ConversationListItem key={convo.creator.id} conversation={convo} isActive={selectedCreatorId === convo.creator.id} onClick={() => setSelectedCreatorId(convo.creator.id)} />)}
                     </div>
                 </div>
                 <div className={`flex-1 flex flex-col bg-gray-900 ${!activeConversation && 'hidden md:flex'}`}>
