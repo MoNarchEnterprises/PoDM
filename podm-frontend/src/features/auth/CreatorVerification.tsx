@@ -16,7 +16,7 @@ const CreatorVerificationPage = () => {
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [signature, setSignature] = useState('');
     const [agreed, setAgreed] = useState(false);
-    
+
     // --- Add loading and error state ---
     const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +45,7 @@ const CreatorVerificationPage = () => {
 
             const updatedUser = await apiClient.submitVerification(formData);
             setUser(updatedUser.data); // Update the user context with the new status
-            navigate('/creator/dashboard'); // Redirect to creator dashboard
+            navigate('/hub/dashboard'); // Redirect to creator dashboard
         } catch (err: any) {
         } finally {
             setIsLoading(false);
@@ -83,7 +83,7 @@ const CreatorVerificationPage = () => {
                 <div>
                     <h2 className="text-lg font-semibold mb-2 flex items-center"><span className="text-purple-500 mr-2">Step 2:</span> Upload Selfie with ID</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Upload a photo of yourself holding the same ID. Your face and the ID must be clearly visible.</p>
-                     <label htmlFor="selfie-upload" className="cursor-pointer bg-gray-50 dark:bg-gray-700/50 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center block hover:border-purple-500">
+                    <label htmlFor="selfie-upload" className="cursor-pointer bg-gray-50 dark:bg-gray-700/50 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center block hover:border-purple-500">
                         {selfieFile ? (
                             <div className="text-green-500 flex items-center justify-center"><CheckCircle className="w-5 h-5 mr-2" /><span>{selfieFile.name}</span></div>
                         ) : (
