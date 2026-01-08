@@ -30,6 +30,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -62,7 +63,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
 
         try {
             if (mode === 'login') {
-                const loggedInUser = await login(email, password);
+                const loggedInUser = await login(email, password, rememberMe);
 
                 switch (loggedInUser.role) {
                     case 'admin': navigate('/admin/dashboard'); break;
@@ -137,7 +138,20 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                             <Input id="password" type="password" label="Password" placeholder="Password" leftIcon={KeyRound} value={password} onChange={e => setPassword(e.target.value)} required disabled={isLoading} />
 
                             {mode === 'login' && (
-                                <div className="text-right text-sm">
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center">
+                                        <input
+                                            id="remember-me"
+                                            name="remember-me"
+                                            type="checkbox"
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                        />
+                                        <label htmlFor="remember-me" className="ml-2 block text-gray-700 dark:text-gray-300">
+                                            Remember me
+                                        </label>
+                                    </div>
                                     <button type="button" onClick={() => setMode('forgot')} className="font-medium text-purple-600 dark:text-purple-400 hover:underline">Forgot password?</button>
                                 </div>
                             )}

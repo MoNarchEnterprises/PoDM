@@ -19,7 +19,7 @@ interface AuthContextType {
     paymentMethod: PaymentMethod | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<User>;
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
     signup: (username: string, email: string, password: string, userType: UserRole) => Promise<void>;
     logout: () => void;
     startImpersonation: (targetUser: User) => Promise<void>;
@@ -66,8 +66,8 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         const initializeAuth = async () => {
             setIsLoading(true);
 
-            // 1. Check for an existing token in localStorage (Backend Auth Source of Truth)
-            const token = localStorage.getItem('authToken');
+            // 1. Check for an existing token in localStorage (Remember Me) or sessionStorage (Session only)
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 
             if (token) {
                 try {
@@ -83,7 +83,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
                     }
 
                     // Restore impersonation if active
-                    const impersonatingUserId = localStorage.getItem('impersonating_user_id');
+                    const impersonatingUserId = localStorage.getItem('impersonating_user_id') || sessionStorage.getItem('impersonating_user_id');
                     if (impersonatingUserId && fetchedUser?.role === 'admin') {
                         try {
                             const { data: impersonatedUserData } = await api.getUserById(impersonatingUserId);
@@ -91,6 +91,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
                         } catch (error) {
                             console.error("Failed to restore impersonated user:", error);
                             localStorage.removeItem('impersonating_user_id');
+                            sessionStorage.removeItem('impersonating_user_id');
                         }
                     }
                 } catch (error) {
@@ -100,7 +101,9 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
                     setImpersonatedUser(null);
                     setPaymentMethod(null);
                     localStorage.removeItem('authToken');
+                    sessionStorage.removeItem('authToken');
                     localStorage.removeItem('impersonating_user_id');
+                    sessionStorage.removeItem('impersonating_user_id');
                 }
             }
 
@@ -108,7 +111,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
             // We do NOT clear the session here if it's null, because we might be using backend auth.
             const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
                 if (session) {
-                    // If Supabase reports a session (e.g. after OAuth), sync it
+                    // If Supabase reports a session (e.g. after OAuth), sync it to localStorage by default
                     localStorage.setItem('authToken', session.access_token);
                     const userProfile = await api.getMe();
                     setUser(userProfile.data.user);
@@ -127,11 +130,21 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         initializeAuth();
     }, []);
 
-    const login = async (email: string, password: string): Promise<User> => {
+    const login = async (email: string, password: string, rememberMe: boolean = false): Promise<User> => {
         try {
             // The API returns { success, data: { user, token } }
             const response = await api.login(email, password);
-            localStorage.setItem('authToken', response.data.token);
+
+            // Clear any old tokens first
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
+
+            if (rememberMe) {
+                localStorage.setItem('authToken', response.data.token);
+            } else {
+                sessionStorage.setItem('authToken', response.data.token);
+            }
+
             setUser(response.data.user);
 
             if (response.data.user.role === 'fan') {
@@ -161,7 +174,9 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setPaymentMethod(null);
         localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
         localStorage.removeItem('impersonating_user_id');
+        sessionStorage.removeItem('impersonating_user_id');
         // Add Supabase sign out for consistency
         supabase.auth.signOut();
         navigate('/');
