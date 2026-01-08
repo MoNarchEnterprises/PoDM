@@ -42,11 +42,16 @@ export const syncTiersWithStripe = async (tiers: Partial<SubscriptionTier>[]): P
             }
 
             // If it's a new tier, create a corresponding Price in Stripe.
+            // If it's a new tier, create a corresponding Price in Stripe.
+            // We use product_data to create a One-off product for this tier. 
+            // This ensures we don't rely on a global ENV variable that might be missing.
             const stripePrice = await stripe.prices.create({
-                product: process.env.STRIPE_SUBSCRIPTION_PRODUCT_ID!,
-                unit_amount: Math.round(tier.price * 100), // Ensure price is in cents
                 currency: 'usd',
+                unit_amount: Math.round(tier.price * 100), // Ensure price is in cents
                 recurring: { interval: 'month' },
+                product_data: {
+                    name: tier.name,
+                },
                 nickname: tier.name, // For reference in the Stripe dashboard
             });
 
