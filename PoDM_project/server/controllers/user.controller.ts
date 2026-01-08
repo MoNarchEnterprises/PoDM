@@ -3,6 +3,8 @@ import { AppError } from '../middleware/error.middleware';
 
 // --- Import Service Functions ---
 import * as UserService from '../services/user.service';
+import * as AnalyticsService from '../services/analytics.service';
+import * as ContentModel from '../models/content.model';
 
 /**
  * @desc    Get the profile of the currently logged-in user
@@ -90,6 +92,24 @@ export const addToGallery = async (req: Request, res: Response, next: NextFuncti
         }
 
         const updatedGallery = await UserService.addToUserGallery(fanId, contentId);
+
+        // Fetch content to get creator_id for analytics
+        // We do this after successful addition to avoid logging if the addition failed
+        try {
+            const content = await ContentModel.findContentById(contentId);
+            if (content && content.creator_id) {
+                await AnalyticsService.logAnalyticsEvent({
+                    eventType: 'gallery_add',
+                    creatorId: content.creator_id,
+                    viewerId: fanId,
+                    contentId: contentId,
+                });
+            }
+        } catch (analyticsError) {
+            // Non-blocking error logging
+            console.error('[User Controller] Failed to log gallery_add analytics event:', analyticsError);
+        }
+
         res.status(200).json({ success: true, data: updatedGallery });
     } catch (error) {
         next(error);

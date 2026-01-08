@@ -136,6 +136,7 @@ export const getAnalyticsData = async (creator_id: string) => {
         revenuePrior30Days,
         totalViews,
         viewsLast30Days,
+        galleryAddsLast30Days, // New Metric
         { data: contentStats, error: contentStatsError },
     ] = await Promise.all([
         SubscriptionModel.findSubscriptionsByCreator(creator_id).then(subs => subs?.length || 0),
@@ -144,6 +145,7 @@ export const getAnalyticsData = async (creator_id: string) => {
         TransactionModel.sumCreatorEarningsForPeriod(creator_id, sixtyDaysAgo, thirtyDaysAgo),
         AnalyticsService.countEventsForCreator(creator_id, 'post_view'), // Total Lifetime
         AnalyticsService.countEventsForCreator(creator_id, 'post_view', thirtyDaysAgo, today), // Last 30 Days
+        AnalyticsService.countEventsForCreator(creator_id, 'gallery_add', thirtyDaysAgo, today), // New Metric
         supabase.from('content').select('stats').eq('creator_id', creator_id),
     ]);
 
@@ -156,13 +158,13 @@ export const getAnalyticsData = async (creator_id: string) => {
     for (let i = 5; i >= 0; i--) {
         const date = new Date();
         date.setMonth(date.getMonth() - i);
-        const monthName = date.toLocaleString('default', { month: 'short' });
-        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        // Set to end of month for the "snapshot"
         const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        const monthName = date.toLocaleString('default', { month: 'short' });
 
-        // For simplicity, we'll count new subs in that month. A more complex query could get the total count at that point in time.
-        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creator_id, startOfMonth, endOfMonth);
-        subscriberGrowth.push({ name: monthName, Subscribers: newSubs });
+        // Count TOTAL active subscribers at that point in time
+        const totalSubsAtDate = await SubscriptionModel.countTotalActiveSubscribersAtDate(creator_id, endOfMonth);
+        subscriberGrowth.push({ name: monthName, Subscribers: totalSubsAtDate });
     }
 
     // --- 3. Fetch data for Revenue Breakdown Pie Chart ---
@@ -234,7 +236,7 @@ export const getAnalyticsData = async (creator_id: string) => {
             totalSubscribers: { value: totalSubscribers, change: newSubscribersLast30Days },
             monthlyRevenue: { value: revenueLast30Days, change: revenueLast30Days - revenuePrior30Days },
             totalViews: { value: totalViews, change: viewsLast30Days },
-            galleryAdds: { value: totalGalleryAdds, change: 0 },
+            galleryAdds: { value: totalGalleryAdds, change: galleryAddsLast30Days },
         },
         subscriberGrowth,
         revenueBreakdown: Object.entries(revenueBreakdown).map(([name, value]) => ({ name, value })),

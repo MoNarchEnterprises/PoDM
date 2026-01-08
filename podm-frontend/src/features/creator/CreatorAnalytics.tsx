@@ -69,7 +69,12 @@ const ContentRow = ({ item, onViewPost, onEditPost }: {
                 <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {imageUrl ? (
-                            <img src={imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                            <img
+                                src={imageUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                                onError={() => setImageUrl(null)}
+                            />
                         ) : (
                             item.type === 'audio' ? <Music className="w-5 h-5 text-gray-400" /> : <ImageIcon className="w-5 h-5 text-gray-400" />
                         )}
@@ -247,12 +252,21 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Revenue Breakdown</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={revenueBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={true} label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
+                            <Pie
+                                data={revenueBreakdown}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                label={false}
+                            >
                                 {revenueBreakdown.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -287,7 +301,7 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                     </table>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

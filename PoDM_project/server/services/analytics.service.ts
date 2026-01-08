@@ -4,7 +4,7 @@ import { AppError } from '../middleware/error.middleware';
 import * as UserModel from '../models/user.model';
 
 interface AnalyticsEvent {
-    eventType: 'profile_visit' | 'post_view';
+    eventType: 'profile_visit' | 'post_view' | 'gallery_add';
     creatorId: string;
     viewerId: string | null;
     contentId?: string;
@@ -51,7 +51,7 @@ export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
  * @param days - The number of days to look back.
  * @returns The total count of the specified event.
  */
-export const countEventsForCreator = async (creatorId: string, eventType: 'profile_visit' | 'post_view', startDate?: Date, endDate?: Date) => {
+export const countEventsForCreator = async (creatorId: string, eventType: 'profile_visit' | 'post_view' | 'gallery_add', startDate?: Date, endDate?: Date) => {
     let query = supabase
         .from('analytics_events')
         .select('*', { count: 'exact', head: true })

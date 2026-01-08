@@ -164,3 +164,25 @@ export const countAllNewSubscribersInPeriod = async (startDate: Date): Promise<n
     }
     return count || 0;
 };
+
+/**
+ * Counts total active subscribers for a creator at a specific point in time.
+ * Logic: Created before date AND (Still active OR ended after date).
+ * @param creatorId - The UUID of the creator.
+ * @param date - The date to check active status against.
+ * @returns The number of active subscribers on that date.
+ */
+export const countTotalActiveSubscribersAtDate = async (creatorId: string, date: Date): Promise<number> => {
+    const { count, error } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', creatorId)
+        .lte('created_at', date.toISOString())
+        .or(`end_date.is.null,end_date.gt.${date.toISOString()}`);
+
+    if (error) {
+        console.error('Error counting total active subscribers at date:', error.message);
+        return 0;
+    }
+    return count || 0;
+};
