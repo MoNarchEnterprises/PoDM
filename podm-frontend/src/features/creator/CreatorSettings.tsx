@@ -52,27 +52,55 @@ const ToggleSwitch = ({ label, description, enabled, setEnabled }: { label: stri
 );
 
 // --- NEW COMPONENT: Modal for selecting welcome message content ---
+// --- NEW COMPONENT: Modal for selecting welcome message content ---
 const WelcomeContentModal = ({ isOpen, onClose, contentItems, onSelect }: { isOpen: boolean; onClose: () => void; contentItems: Content[]; onSelect: (content: Content) => void; }) => {
+    // Helper to get thumbnail URL consistent with AttachmentModal
+    const getThumbnailUrl = (item: Content): string => {
+        const thumbnailUrl = item.files[0]?.thumbnailUrl;
+        if (!thumbnailUrl) return '';
+        if (thumbnailUrl.startsWith('http')) return thumbnailUrl;
+        return thumbnailUrl;
+    };
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
             <div className="flex flex-col max-h-[90vh]">
-                <header className="p-6 border-b border-gray-700">
-                    <h2 className="text-xl font-bold text-white">Select Content to Attach</h2>
+                <header className="p-6 border-b border-gray-700 bg-pink-700">
+                    <h2 className="text-xl font-bold text-white">Select Content from Vault</h2>
                 </header>
-                <main className="flex-1 overflow-y-auto p-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {contentItems.map(item => (
-                            <div
-                                key={item.id}
-                                onClick={() => { onSelect(item); onClose(); }}
-                                className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                            >
-                                <img src={(item.files[0] as any).thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                                    <p className="text-xs text-white font-bold truncate">{item.title}</p>
+                <main className="flex-1 overflow-y-auto p-6 bg-gray-900">
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-400">Select Item</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {contentItems.map(item => (
+                                <div
+                                    key={item.id}
+                                    onClick={() => { onSelect(item); onClose(); }}
+                                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group border-2 border-transparent hover:border-pink-500 transition-all"
+                                >
+                                    {item.type === 'audio' ? (
+                                        <div className="w-full h-full bg-purple-600 flex items-center justify-center">
+                                            <Music className="w-12 h-12 text-white" />
+                                        </div>
+                                    ) : (
+                                        <img
+                                            src={getThumbnailUrl(item)}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23374151" width="100" height="100"/%3E%3Ctext fill="%239CA3AF" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                            }}
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                        <p className="text-xs text-white font-bold truncate">{item.title}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+                        {contentItems.length === 0 && (
+                            <p className="text-center text-gray-400 py-12">No content available in your vault.</p>
+                        )}
                     </div>
                 </main>
             </div>
@@ -606,16 +634,23 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     };
 
     const handleWelcomeMessageChange = (field: string, value: any) => {
-        setSettingsData((prev: Creator) => ({
-            ...prev,
-            creatorData: {
-                ...prev.creator_data,
-                welcomeMessage: {
-                    ...prev.creator_data.welcomeMessage,
-                    [field]: value
+        setSettingsData((prev: Creator) => {
+            // Ensure creator_data exists
+            const currentCreatorData = prev.creator_data || { subscriptionTiers: [], welcomeMessage: {}, payoutSettings: {}, contentSettings: {} };
+            // Ensure welcomeMessage exists with defaults
+            const currentWelcomeMessage = currentCreatorData.welcomeMessage || { isActive: false, message: '' };
+
+            return {
+                ...prev,
+                creator_data: {
+                    ...currentCreatorData,
+                    welcomeMessage: {
+                        ...currentWelcomeMessage,
+                        [field]: value
+                    }
                 }
-            }
-        }));
+            };
+        });
     };
 
     const handleSaveChanges = async () => {
