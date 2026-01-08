@@ -85,13 +85,19 @@ export const findSubscriptionsByCreator = async (creatorId: string): Promise<Sub
  * @param startDate - The start of the date range.
  * @returns The number of new subscribers.
  */
-export const countNewSubscribersInPeriod = async (creatorId: string, startDate: Date): Promise<number> => {
-    const { count, error } = await supabase
+export const countNewSubscribersInPeriod = async (creatorId: string, startDate: Date, endDate?: Date): Promise<number> => {
+    let query = supabase
         .from('subscriptions')
         .select('*', { count: 'exact', head: true })
         .eq('creator_id', creatorId)
         .eq('status', 'active')
         .gte('created_at', startDate.toISOString());
+
+    if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
+    }
+
+    const { count, error } = await query;
 
     if (error) {
         console.error('Error counting new subscribers:', error.message);

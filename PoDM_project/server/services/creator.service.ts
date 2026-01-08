@@ -124,19 +124,26 @@ export const getDashboardData = async (creator_id: string) => {
 export const getAnalyticsData = async (creator_id: string) => {
     // --- 1. Fetch data for Key Metrics ---
     const today = new Date();
-    const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(today.getDate() - 60);
 
     const [
         totalSubscribers,
         newSubscribersLast30Days,
         revenueLast30Days,
+        revenuePrior30Days,
         totalViews,
+        viewsLast30Days,
         { data: contentStats, error: contentStatsError },
     ] = await Promise.all([
         SubscriptionModel.findSubscriptionsByCreator(creator_id).then(subs => subs?.length || 0),
         SubscriptionModel.countNewSubscribersInPeriod(creator_id, thirtyDaysAgo),
         TransactionModel.sumCreatorEarningsForPeriod(creator_id, thirtyDaysAgo, today),
-        AnalyticsService.countEventsForCreator(creator_id, 'post_view'),
+        TransactionModel.sumCreatorEarningsForPeriod(creator_id, sixtyDaysAgo, thirtyDaysAgo),
+        AnalyticsService.countEventsForCreator(creator_id, 'post_view'), // Total Lifetime
+        AnalyticsService.countEventsForCreator(creator_id, 'post_view', thirtyDaysAgo, today), // Last 30 Days
         supabase.from('content').select('stats').eq('creator_id', creator_id),
     ]);
 
@@ -151,9 +158,10 @@ export const getAnalyticsData = async (creator_id: string) => {
         date.setMonth(date.getMonth() - i);
         const monthName = date.toLocaleString('default', { month: 'short' });
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
         // For simplicity, we'll count new subs in that month. A more complex query could get the total count at that point in time.
-        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creator_id, startOfMonth);
+        const newSubs = await SubscriptionModel.countNewSubscribersInPeriod(creator_id, startOfMonth, endOfMonth);
         subscriberGrowth.push({ name: monthName, Subscribers: newSubs });
     }
 
@@ -224,8 +232,8 @@ export const getAnalyticsData = async (creator_id: string) => {
     return {
         metrics: {
             totalSubscribers: { value: totalSubscribers, change: newSubscribersLast30Days },
-            monthlyRevenue: { value: revenueLast30Days, change: 0 }, // Change calculation requires more historical data
-            totalViews: { value: totalViews, change: 0 },
+            monthlyRevenue: { value: revenueLast30Days, change: revenueLast30Days - revenuePrior30Days },
+            totalViews: { value: totalViews, change: viewsLast30Days },
             galleryAdds: { value: totalGalleryAdds, change: 0 },
         },
         subscriberGrowth,

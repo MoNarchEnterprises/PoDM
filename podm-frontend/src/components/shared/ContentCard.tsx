@@ -119,7 +119,11 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                                 }
                             } else {
                                 // Standard error fallback
-                                target.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error';
+                                if (post.type === 'audio') {
+                                    target.src = '/assets/audio-placeholder.png'; // Ensure this asset exists or use a generic one
+                                } else {
+                                    target.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error';
+                                }
                             }
                         }}
                     />

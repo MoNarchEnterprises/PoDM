@@ -51,17 +51,18 @@ export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
  * @param days - The number of days to look back.
  * @returns The total count of the specified event.
  */
-export const countEventsForCreator = async (creatorId: string, eventType: 'profile_visit' | 'post_view', days?: number) => {
+export const countEventsForCreator = async (creatorId: string, eventType: 'profile_visit' | 'post_view', startDate?: Date, endDate?: Date) => {
     let query = supabase
         .from('analytics_events')
         .select('*', { count: 'exact', head: true })
         .eq('creator_id', creatorId)
         .eq('event_type', eventType);
 
-    if (days) {
-        const date = new Date();
-        date.setDate(date.getDate() - days);
-        query = query.gte('created_at', date.toISOString());
+    if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+    }
+    if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
     }
 
     const { count, error } = await query;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, DollarSign, Eye, Bookmark, MoreVertical, ArrowUp, ArrowDown, Edit, ExternalLink, ImageIcon } from 'lucide-react';
+import { Users, DollarSign, Eye, Bookmark, MoreVertical, ArrowUp, ArrowDown, Edit, ExternalLink, ImageIcon, Music } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // --- Import Shared Types ---
@@ -71,7 +71,7 @@ const ContentRow = ({ item, onViewPost, onEditPost }: {
                         {imageUrl ? (
                             <img src={imageUrl} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
-                            <ImageIcon className="w-5 h-5 text-gray-400" />
+                            item.type === 'audio' ? <Music className="w-5 h-5 text-gray-400" /> : <ImageIcon className="w-5 h-5 text-gray-400" />
                         )}
                     </div>
                     <span className="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{item.title}</span>
@@ -247,7 +247,7 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Revenue Breakdown</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={revenueBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} labelLine={false} label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
+                            <Pie data={revenueBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={true} label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
                                 {revenueBreakdown.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
