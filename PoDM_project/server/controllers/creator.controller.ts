@@ -105,7 +105,10 @@ export const updateCreatorSettings = async (req: Request, res: Response, next: N
         // When using FormData, non-file fields are sent as strings.
         // We need to parse them back into objects.
         const profileData = req.body.profile ? JSON.parse(req.body.profile) : {};
-        const creator_data = req.body.creator_data ? JSON.parse(req.body.creator_data) : {};
+
+        // FIX: Check for 'creatorData' (camelCase) first as sent by frontend, fallback to 'creator_data'
+        const rawCreatorData = req.body.creatorData || req.body.creator_data;
+        const creator_data = rawCreatorData ? JSON.parse(rawCreatorData) : {};
 
         const settingsData = {
             profile: profileData,
