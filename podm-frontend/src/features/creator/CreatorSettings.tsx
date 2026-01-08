@@ -4,7 +4,8 @@ import {
     HelpCircle, Save, Camera, Edit, Trash2, PlusCircle, Twitter, Instagram,
     Globe, Link,
     X,
-    Send
+    Send,
+    Music
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -684,7 +685,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                 />;
             case 'Welcome Message':
                 return <WelcomeMessagePanel
-                    welcomeMessage={settingsData.creator_data?.welcomeMessage || {}}
+                    welcomeMessage={settingsData.creator_data?.welcomeMessage || { isActive: false, message: '' }}
                     onMessageChange={handleWelcomeMessageChange}
                     onSelectContentClick={openWelcomeModal}
                     attachedContent={attachedContentDetails}
