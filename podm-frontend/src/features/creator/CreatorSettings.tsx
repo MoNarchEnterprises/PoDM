@@ -209,7 +209,14 @@ const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange, onSelectContentC
             {attachedContent ? (
                 <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <div className="flex items-center space-x-3">
-                        <img src={(attachedContent.files[0] as any).thumbnailUrl} alt={attachedContent.title} className="w-10 h-10 rounded-md object-cover" />
+                        <img
+                            src={(attachedContent.files[0] as any).thumbnailUrl}
+                            alt={attachedContent.title}
+                            className="w-10 h-10 rounded-md object-cover"
+                            onError={(e) => {
+                                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23374151" width="100" height="100"/%3E%3Ctext fill="%239CA3AF" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3EN/A%3C/text%3E%3C/svg%3E';
+                            }}
+                        />
                         <span className="text-sm font-medium">{attachedContent.title}</span>
                     </div>
                     <Button variant="ghost" size="sm" className="text-red-500" onClick={() => onMessageChange('freeContentId', null)}>
@@ -457,50 +464,21 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         setBannerPreview(creator.profile.coverImageUrl || null);
     }, [creator]);
 
-    // --- THIS IS THE FIX ---
-    // This effect fetches content and processes it to include secure, viewable thumbnail URLs.
+    // Effect to fetch content for the welcome message modal
     useEffect(() => {
-        const fetchAndProcessContent = async () => {
+        const fetchContent = async () => {
             try {
-                // 1. Fetch the raw content list with private storage paths
+                // Fetch the content list - the backend ALREADY provides signed URLs for thumbnails
                 const response = await apiClient.getMyCreatorContent({ type: 'All' });
                 const validContent = response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted');
 
-                // 2. Process each item to get a signed URL for its thumbnail
-                const contentWithSignedUrls = await Promise.all(
-                    validContent.map(async (contentItem: Content) => {
-                        // Skip items without a valid ID to prevent 404 errors
-                        if (!contentItem.id) {
-                            console.warn('Skipping content item without id:', contentItem);
-                            return contentItem;
-                        }
-                        try {
-                            const urlResponse = await apiClient.getSecureContentUrl(contentItem.id);
-                            // Create a deep copy to safely modify the nested files array
-                            const newItem = JSON.parse(JSON.stringify(contentItem));
-                            if (newItem.files && newItem.files.length > 0) {
-                                // Replace the private path with the temporary public URL
-                                newItem.files[0].thumbnailUrl = urlResponse.data.secureUrl;
-                            }
-                            return newItem;
-                        } catch (urlError) {
-                            console.error(`Failed to get signed URL for content ${contentItem.id}`, urlError);
-                            // On failure, return the original item to prevent crashes
-                            return contentItem;
-                        }
-                    })
-                );
-
-                // 3. Set the state with the fully processed, viewable content list
-                setAttachableContent(contentWithSignedUrls);
-
+                setAttachableContent(validContent);
             } catch (error) {
                 console.error("Failed to fetch content for welcome message modal:", error);
             }
         };
-        fetchAndProcessContent();
+        fetchContent();
     }, []);
-    // --- END OF FIX ---
 
     // Effect to find and set the details of the currently attached content
     useEffect(() => {
