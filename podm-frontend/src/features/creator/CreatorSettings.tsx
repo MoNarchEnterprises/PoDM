@@ -508,7 +508,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
 
         setSettingsData(prev => ({
             ...prev,
-            creatorData: {
+            creator_data: {
                 ...prev.creator_data,
                 // Add the new tier to the existing array
                 subscriptionTiers: [...(prev.creator_data.subscriptionTiers || []), newTier],
@@ -519,7 +519,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const handleTierChange = (tierId: string, field: 'name' | 'price' | 'level', value: string | number) => {
         setSettingsData(prev => ({
             ...prev,
-            creatorData: {
+            creator_data: {
                 ...prev.creator_data,
                 subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier =>
                     tier.id === tierId ? { ...tier, [field]: value } : tier
@@ -532,7 +532,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         if (window.confirm("Are you sure you want to delete this tier? This cannot be undone.")) {
             setSettingsData(prev => ({
                 ...prev,
-                creatorData: {
+                creator_data: {
                     ...prev.creator_data,
                     // Filter out the tier with the matching ID
                     subscriptionTiers: (prev.creator_data.subscriptionTiers || []).filter(tier => tier.id !== tierId),
@@ -544,7 +544,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const handleAddTierFeature = (tierId: string) => {
         setSettingsData(prev => ({
             ...prev,
-            creatorData: {
+            creator_data: {
                 ...prev.creator_data,
                 subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier =>
                     tier.id === tierId
@@ -559,7 +559,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const handleTierFeatureChange = (tierId: string, featureIndex: number, value: string) => {
         setSettingsData(prev => ({
             ...prev,
-            creatorData: {
+            creator_data: {
                 ...prev.creator_data,
                 // First, map over the tiers to find the correct one
                 subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier => {
@@ -579,7 +579,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const handleDeleteTierFeature = (tierId: string, featureIndex: number) => {
         setSettingsData(prev => ({
             ...prev,
-            creatorData: {
+            creator_data: {
                 ...prev.creator_data,
                 subscriptionTiers: (prev.creator_data.subscriptionTiers || []).map(tier => {
                     if (tier.id === tierId) {
