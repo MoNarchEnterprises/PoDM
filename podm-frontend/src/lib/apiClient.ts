@@ -35,8 +35,9 @@ const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('authToken');
-        const impersonatingUserId = localStorage.getItem('impersonating_user_id');
+        // Check localStorage first (persistent), then sessionStorage (temporary)
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const impersonatingUserId = localStorage.getItem('impersonating_user_id') || sessionStorage.getItem('impersonating_user_id');
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -105,6 +106,7 @@ apiClient.interceptors.response.use(
                 // Handle unauthorized errors, e.g., redirect to login
                 console.error("Unauthorized request. Redirecting to login.");
                 localStorage.removeItem('authToken');
+                sessionStorage.removeItem('authToken');
                 errorMessage = "Your session has expired. Please log in again.";
 
                 // Call the registered error handler if it exists
