@@ -299,7 +299,7 @@ export const updateSettings = async (creator_id: string, settingsData: any, file
     // --- STRIPE SYNC LOGIC ---
     if (creator_data?.subscriptionTiers) {
         newCreatorData.subscriptionTiers = await syncTiersWithStripe(creator_data.subscriptionTiers);
-        console.log('[updateSettings] Synced tiers with Stripe:', newCreatorData.subscriptionTiers);
+
     }
     // --- END OF STRIPE SYNC LOGIC ---
 

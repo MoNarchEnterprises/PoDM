@@ -45,12 +45,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
             return;
         }
 
-        console.log('[TIP MODAL DEBUG] Starting tip flow:', {
-            amount: finalAmount,
-            hasPaymentMethod: !!paymentMethod,
-            paymentMethodId: paymentMethod?.id,
-            showCardForm
-        });
+
 
         setIsLoading(true);
         setError(null);
@@ -66,53 +61,39 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                 const { error: pmError, paymentMethod: newPaymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
                 if (pmError || !newPaymentMethod) throw new Error(pmError?.message || "Invalid card details.");
                 tipPaymentMethodId = newPaymentMethod.id;
-                console.log('[TIP MODAL DEBUG] New payment method created:', newPaymentMethod.id);
+
             }
 
-            console.log('[TIP MODAL DEBUG] Calling onSubmit with:', {
-                amount: finalAmount,
-                message,
-                paymentMethodId: tipPaymentMethodId
-            });
+
 
             const { clientSecret, status, paymentIntentId } = await onSubmit(finalAmount, message, tipPaymentMethodId);
 
-            console.log('[TIP MODAL DEBUG] Backend response:', {
-                status,
-                paymentIntentId,
-                hasClientSecret: !!clientSecret
-            });
+
 
             let finalPaymentIntentId = paymentIntentId;
 
             // Handle confirmation based on status
             if (status === 'requires_confirmation') {
-                console.log('[TIP MODAL DEBUG] Status is requires_confirmation - confirming payment');
+
                 const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
                 if (confirmationError) {
-                    console.error('[TIP MODAL DEBUG] Confirmation error:', confirmationError);
+
                     throw new Error(confirmationError.message);
                 }
                 if (paymentIntent) {
                     finalPaymentIntentId = paymentIntent.id;
-                    console.log('[TIP MODAL DEBUG] Payment confirmed:', {
-                        id: paymentIntent.id,
-                        status: paymentIntent.status
-                    });
+
                 }
             } else if (status === 'requires_action' || status === 'requires_payment_method') {
-                console.log('[TIP MODAL DEBUG] Confirming card payment for status:', status);
+
                 const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
                 if (confirmationError) {
-                    console.error('[TIP MODAL DEBUG] Confirmation error:', confirmationError);
+
                     throw new Error(confirmationError.message);
                 }
                 if (paymentIntent) {
                     finalPaymentIntentId = paymentIntent.id;
-                    console.log('[TIP MODAL DEBUG] Payment confirmed:', {
-                        id: paymentIntent.id,
-                        status: paymentIntent.status
-                    });
+
                 }
             } else {
                 console.log('[TIP MODAL DEBUG] No confirmation needed, status:', status);
@@ -120,9 +101,8 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
 
             // Manually confirm transaction to ensure DB record is created
             if (finalPaymentIntentId) {
-                console.log('[TIP MODAL DEBUG] Calling confirmTransaction for:', finalPaymentIntentId);
                 await apiClient.confirmTransaction(finalPaymentIntentId);
-                console.log('[TIP MODAL DEBUG] Transaction confirmed successfully');
+
             }
 
             setStep(2);

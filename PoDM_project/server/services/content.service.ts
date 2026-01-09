@@ -41,8 +41,6 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
     }
 
     try {
-        console.log(`[Watermark] Starting process for content: ${content.id}, fan: ${fan.username}`);
-        console.log(`[Watermark] Original file path: ${originalFilePath}`);
 
         // 1. Download the original image from R2 Storage into a buffer
         const { buffer: fileBuffer, error: downloadError } = await StorageService.downloadFromPrivate(originalFilePath);
@@ -50,11 +48,9 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
         if (downloadError || !fileBuffer) {
             throw new Error(`Failed to download original file: ${downloadError?.message}`);
         }
-        console.log(`[Watermark] Original file downloaded successfully. Size: ${fileBuffer.length} bytes`);
 
         // 2. Define watermark properties
         const watermarkText = `@${fan.username}`; // Use the fan's username as the watermark
-        console.log(`[Watermark] Watermark text: ${fan.username}`);
         const tempFileName = `wm-${fan.id}-${Date.now()}.webp`;
         const tempFilePath = `temp/${tempFileName}`;
 
@@ -77,7 +73,6 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
             .webp({ quality: 90 }) // Convert to WebP for efficient delivery
             .toBuffer();
 
-        console.log(`[Watermark] Image processed with Sharp. Output size: ${watermarkedBuffer.length} bytes`);
 
         // 4. Upload the watermarked buffer to a temporary folder in R2 storage
         const { error: uploadError } = await StorageService.uploadToPrivate(
@@ -90,12 +85,10 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
         if (uploadError) {
             throw new Error(`Failed to upload watermarked file: ${uploadError.message}`);
         }
-        console.log(`[Watermark] SUCCESS - Temporary watermarked file uploaded to: ${tempFilePath}`);
 
         return tempFilePath;
 
     } catch (error) {
-        console.error(`[Watermark] ERROR creating watermarked image for content ${content.id}:`, error);
         return originalFilePath; // If anything fails, fall back to serving the original image
     }
 };
@@ -497,7 +490,6 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
 
     if (content.visibility === 'pay_per_view') {
         const purchase = await TransactionModel.findSuccessfulTransactionByFanAndContent(fanId, contentId);
-        console.log("[ContentService] purchase: ", purchase);
         if (!purchase) {
             throw new AppError('You must purchase this content to view it.', 403);
         }

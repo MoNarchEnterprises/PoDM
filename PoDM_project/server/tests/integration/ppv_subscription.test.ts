@@ -119,7 +119,6 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
         if (error) throw error;
 
         // 2. Attempt unlock again
-        console.log('Attempting unlock for fan:', fanId, 'creator:', creatorId, 'content:', contentId);
         try {
             const response = await axios.post(`${API_URL}/payments/unlock-post`,
                 { contentId },

@@ -64,8 +64,7 @@ export const syncTiersWithStripe = async (tiers: Partial<SubscriptionTier>[]): P
                 level: tier.level || 1,
                 stripePriceId: stripePrice.id,
             };
-            console.log(`[Tier Utility] Processed Tier "${tier.name}". Final Object:`, JSON.stringify(finalTierObject, null, 2));
-            // --- END CRITICAL DEBUG LOG ---
+
 
             return finalTierObject;
         })

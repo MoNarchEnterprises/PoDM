@@ -38,10 +38,8 @@ export const uploadToPrivate = async (
         });
 
         await r2Client.send(command);
-        console.log(`[R2] Uploaded to private: ${path}`);
         return { path, error: null };
     } catch (error) {
-        console.error(`[R2] Failed to upload to private: ${path}`, error);
         return { path: '', error: error as Error };
     }
 };
@@ -68,7 +66,6 @@ export const uploadToPublic = async (
 
         await r2Client.send(command);
         const publicUrl = `${R2_PUBLIC_URL}/${path}`;
-        console.log(`[R2] Uploaded to public: ${publicUrl}`);
         return { publicUrl, error: null };
     } catch (error) {
         console.error(`[R2] Failed to upload to public: ${path}`, error);
@@ -156,7 +153,6 @@ export const deleteFromPrivate = async (
         });
 
         await r2Client.send(command);
-        console.log(`[R2] Deleted ${paths.length} files from private`);
         return { success: true, error: null };
     } catch (error) {
         console.error(`[R2] Failed to delete files`, error);

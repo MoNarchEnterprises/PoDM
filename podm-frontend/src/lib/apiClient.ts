@@ -160,7 +160,6 @@ export const signup = async (username: string, email: string, password: string, 
         password,
         role,
     });
-    console.log("API Client: Signup response:", response.data);
     return response.data;
 };
 
@@ -250,7 +249,6 @@ export const signupAndSubscribe = async (data: any) => {
  * @returns The client_secret for the Stripe PaymentIntent.
  */
 export const sendTip = async (creatorId: string, amount: number, message: string | undefined, contentId: string, paymentMethodId?: string) => {
-    console.log(`[apiClient] Sending tip of $${amount} to creator ${creatorId} for content ${contentId}`);
     const response = await apiClient.post('/payments/tip', {
         creatorId,
         amount: Math.round(amount * 100), // Convert to cents
@@ -266,7 +264,6 @@ export const sendTip = async (creatorId: string, amount: number, message: string
  * @param paymentIntentId The ID of the Stripe PaymentIntent.
  */
 export const confirmTransaction = async (paymentIntentId: string) => {
-    console.log(`[apiClient] Confirming transaction for PaymentIntent: ${paymentIntentId}`);
     const response = await apiClient.post('/payments/confirm-transaction', { paymentIntentId });
     return response.data.data;
 };
@@ -541,7 +538,6 @@ export const getMyConversations = async () => {
  */
 export const getMessagesInConversation = async (conversationId: string) => {
     const response = await apiClient.get(`/messages/conversations/${conversationId}`);
-    console.log('[apiClient] getMessagesInConversation response:', response.data);
     return response.data;
 };
 

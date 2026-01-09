@@ -23,7 +23,7 @@ export const createMessage = async (messageData: Partial<Message>): Promise<Mess
     // Step 2: Update the parent conversation
     const { error: conversationError } = await supabase
         .from('conversations')
-        .update({ 
+        .update({
             last_message_id: newMessage.id,
             updated_at: new Date().toISOString() // Also bump the updated_at timestamp
         })
@@ -139,12 +139,11 @@ export const unlockContentInMessage = async (messageId: string): Promise<any | n
         return null;
     }
     // --- END OF FIX ---
-    
+
     const message = await findMessageById(messageId);
     if (!message || !message.content) return null;
 
     const updatedContent = { ...message.content, isUnlocked: true, unlockDate: new Date().toISOString() };
-    console.log('[Model] Updating message content to:', updatedContent);
     const { data, error } = await supabase
         .from('messages')
         .update({ content: updatedContent })

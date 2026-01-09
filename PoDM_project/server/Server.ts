@@ -141,4 +141,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use(errorHandler);
 
 // 5. Start the http server, NOT the express app
-httpServer.listen(PORT, () => console.log(`🚀 Server (with WebSockets) is running at http://localhost:${PORT}`));
+httpServer.listen(PORT, () => {
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`🚀 Server (with WebSockets) is running on port ${PORT}`);
+    } else {
+        console.log(`🚀 Server (with WebSockets) is running at http://localhost:${PORT}`);
+    }
+});

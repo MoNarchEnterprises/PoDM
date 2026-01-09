@@ -38,7 +38,6 @@ export const getOrCreateStripeCustomer = async (userId: string): Promise<string>
     }
 
     // User doesn't have a valid Stripe ID yet (or we just cleared it), so we create one.
-    console.log(`[Stripe Util] Creating new Stripe customer for user: ${userId}`);
 
     const customer = await stripe.customers.create({
         email: user.email,

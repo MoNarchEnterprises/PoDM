@@ -84,7 +84,6 @@ const FanMessagesPage = () => {
     useEffect(() => {
         console.log('[FanMessages] Fetching conversations...');
         apiClient.getMyConversations().then(response => {
-            console.log('[FanMessages] Conversations loaded:', response.data);
             let convos = response.data;
             if (initialState?.creatorId) {
                 const existing = convos.find((c: any) => c.creator.id === initialState.creatorId);
@@ -141,7 +140,6 @@ const FanMessagesPage = () => {
         }
         if (conversationId) {
             setIsLoadingMessages(true);
-            console.log('[FanMessages] Fetching messages for conversation:', conversationId);
             apiClient.getMessagesInConversation(conversationId).then(response => setMessages(response.data))
                 .catch(err => console.error("Failed to fetch messages", err)).finally(() => setIsLoadingMessages(false));
             socket.emit('join_conversation', conversationId);

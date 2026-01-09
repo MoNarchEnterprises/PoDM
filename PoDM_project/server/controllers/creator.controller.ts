@@ -67,9 +67,6 @@ export const getCreatorEarnings = async (req: Request, res: Response, next: Next
 export const requestPayout = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const creatorId = req.user?.id;
-        // Log the incoming body to see exactly what the frontend is sending.
-        console.log('[Payout Controller] Received payout request with body:', req.body);
-
         // Safely parse the amount from the request body.
         const amount = parseFloat(req.body.amount);
 
@@ -120,9 +117,7 @@ export const updateCreatorSettings = async (req: Request, res: Response, next: N
         res.status(200).json({ success: true, data: updatedCreator });
 
     } catch (error) {
-        console.error('--- ERROR IN updateCreatorSettings CONTROLLER ---');
-        console.error(error);
-        console.error('--- END OF ERROR ---');
+        console.error('Error in updateCreatorSettings:', error);
         next(error);
     }
 };

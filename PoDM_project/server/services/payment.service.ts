@@ -16,12 +16,10 @@ import * as ContentModel from '../models/content.model';
  */
 export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.PaymentIntent) => {
     const transactionType = paymentIntent.metadata.transaction_type;
-    console.log(`[PaymentService] Processing successful payment intent: ${paymentIntent.id}, type: ${transactionType}`);
 
     // 1. Check for duplicates
     const existingTransaction = await TransactionModel.findTransactionByPaymentGatewayId(paymentIntent.id);
     if (existingTransaction) {
-        console.log(`[PaymentService] Transaction ${paymentIntent.id} already exists. Skipping.`);
         return existingTransaction;
     }
 
@@ -112,11 +110,9 @@ export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.Payme
             }
         }
 
-        console.log(`[PaymentService] Transaction created for ${paymentIntent.id}`);
         return transaction;
 
     } catch (error: any) {
-        console.error(`[PaymentService] Error creating transaction for ${paymentIntent.id}:`, error);
         throw error;
     }
 };
@@ -126,11 +122,9 @@ export const processSuccessfulPaymentIntent = async (paymentIntent: Stripe.Payme
  * Useful for frontend to ensure transaction is recorded after client-side confirmation.
  */
 export const confirmTransaction = async (paymentIntentId: string) => {
-    console.log(`[PaymentService] Manual confirmation requested for ${paymentIntentId}`);
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status !== 'succeeded') {
-        console.warn(`[PaymentService] PaymentIntent ${paymentIntentId} is not succeeded (status: ${paymentIntent.status})`);
         throw new AppError(`Payment is not successful (status: ${paymentIntent.status})`, 400);
     }
 
@@ -163,28 +157,17 @@ export const sendTipToCreator = async (fanId: string, creatorId: string, amountI
             metadata: metadata,
         };
 
-        console.log('[TIP DEBUG] Creating PaymentIntent with config:', {
-            amount: amountInCents,
-            customer: fanStripeCustomerId,
-            hasPaymentMethod: !!paymentMethodId
-        });
+
 
         // For tips, always let the frontend handle confirmation to support 3D Secure
         if (paymentMethodId) {
             paymentIntentConfig.payment_method = paymentMethodId;
-            console.log('[TIP DEBUG] Attaching payment method:', paymentMethodId);
             // Don't set confirm:true - let the frontend always confirm via stripe.confirmCardPayment()
         }
 
         const paymentIntent = await stripe.paymentIntents.create(paymentIntentConfig);
 
-        console.log('[TIP DEBUG] PaymentIntent created:', {
-            id: paymentIntent.id,
-            status: paymentIntent.status,
-            client_secret: paymentIntent.client_secret ? 'present' : 'missing',
-            payment_method: paymentIntent.payment_method,
-            confirmation_method: paymentIntent.confirmation_method
-        });
+
 
         // Don't attempt immediate processing for tips - let frontend confirm first
         // Transactions will be created either:
@@ -232,7 +215,7 @@ export const createMessageUnlockIntent = async (fanId: string, messageId: string
         message_id: messageId,
         content_id: message.content.contentId,
     };
-    console.log('[PaymentService] Creating and confirming PaymentIntent with metadata:', metadataPayload);
+    // console.log('[PaymentService] Creating and confirming PaymentIntent with metadata:', metadataPayload);
 
     try {
         const paymentIntent = await stripe.paymentIntents.create({
@@ -278,8 +261,8 @@ export const createPostUnlockIntent = async (fanId: string, contentId: string) =
 
     // Enforce subscription requirement
     const activeSubs = await SubscriptionModel.findActiveSubscriptionsByFan(fanId);
-    console.log(`[PaymentService] Checking subscription for fan ${fanId} and creator ${content.creator_id}`);
-    console.log(`[PaymentService] Active subs:`, activeSubs?.length, activeSubs?.map(s => s.creator_id));
+    // console.log(`[PaymentService] Checking subscription for fan ${fanId} and creator ${content.creator_id}`);
+    // console.log(`[PaymentService] Active subs:`, activeSubs?.length, activeSubs?.map(s => s.creator_id));
 
     const isSubscribed = activeSubs?.some(sub => sub.creator_id === content.creator_id);
     if (!isSubscribed) {
@@ -354,7 +337,6 @@ export const handleStripeWebhookEvent = async (event: Stripe.Event) => {
 
         // Get subscription ID from invoice lines
         const subscriptionLineItem = invoice.lines.data.find(line => typeof line.subscription === 'string' && line?.subscription.length > 0);
-        console.log('[Webhook] Handling invoice.payment_succeeded for invoice:', invoice.id);
 
         if (!subscriptionLineItem || !subscriptionLineItem.subscription) {
             console.error('[Webhook] Invoice paid, but no subscription line item found. Skipping transaction creation.');

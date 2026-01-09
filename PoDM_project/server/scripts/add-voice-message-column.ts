@@ -6,6 +6,7 @@
  */
 
 import supabase from '../config/supabaseClient';
+declare var process: any;
 
 async function addVoiceMessageUrlColumn() {
     console.log('Starting migration: Add voiceMessageUrl column to messages table...');

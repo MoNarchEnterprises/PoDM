@@ -41,7 +41,6 @@ export const updateMe = async (req: Request, res: Response, next: NextFunction) 
         if (!userId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }
-        console.log('Profile updates received:', profileUpdates);
         const updatedUser = await UserService.updateUserProfile(userId, profileUpdates);
         res.status(200).json({ success: true, data: updatedUser });
     } catch (error) {

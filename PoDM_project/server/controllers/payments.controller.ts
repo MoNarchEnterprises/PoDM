@@ -13,7 +13,6 @@ export const sendTip = async (req: Request, res: Response, next: NextFunction) =
     try {
         const fanId = req.user?.id;
         const { creatorId, amount, message, contentId, paymentMethodId } = req.body; // amount should be in cents
-        console.log('[payments.controller] Tip request:', req.body);
         if (!fanId) {
             throw new AppError('Authentication error, user ID not found.', 401);
         }

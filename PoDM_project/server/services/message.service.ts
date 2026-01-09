@@ -109,7 +109,6 @@ export const getMessagesForConversation = async (conversation_id: string, userId
     }
 
     const messages = await MessageModel.findMessagesByConversationId(conversation_id);
-    console.log('[MessageService] Found messages:', messages);
     if (!messages) return [];
 
     return Promise.all(messages.map(async (message: any) => {
@@ -225,7 +224,6 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
     };
 
     io.to(roomName).emit('new_message', messageForFrontend);
-    console.log(`[MessageService] Broadcasted to room: ${roomName}`);
 
     // Check if this message should append to a detailed support ticket
     // Only sync if the message is TO an admin (user replying to support)
@@ -272,7 +270,6 @@ export const deleteMessage = async (messageId: string, userId: string) => {
     // 4. Broadcast the deletion event to all clients in the conversation room
     const roomName = `conversation:${message.conversation_id}`;
     io.to(roomName).emit('message_deleted', { messageId });
-    console.log(`[MessageService] Broadcasted message deletion for ID ${messageId} to room: ${roomName}`);
 
     return { success: true, message: 'Message deleted successfully.' };
 };
@@ -293,7 +290,7 @@ export const markConversationAsRead = async (conversation_id: string, userId: st
 
         if (userSocket) {
             userSocket.emit('conversation_read', { conversation_id });
-            console.log(`[MessageService] Emitted conversation_read for convo ${conversation_id} to user ${userId}`);
+
         }
     }
 

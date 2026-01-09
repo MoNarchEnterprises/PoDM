@@ -47,7 +47,6 @@ interface ContentViewerPageProps {
 }
 
 const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPageProps) => {
-    console.log('ContentViewerPage content:', content);
     const { user } = useAuth();
     const navigate = useNavigate();
     const [secureUrl, setSecureUrl] = useState<string | null>(null);

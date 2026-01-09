@@ -69,7 +69,7 @@ const ContentModal = ({ isOpen, onClose, onSave, initialContent }: ContentModalP
                     // Format to 'YYYY-MM-DDTHH:mm'
                     const formattedDate = localDate.toISOString().slice(0, 16);
                     setPublishDate(formattedDate);
-                    console.log(`[ContentModal] Setting schedule date. DB Value: ${initialContent.schedule.publishDate}, Formatted Value: ${formattedDate}`);
+
                 } catch (e) {
                     console.error("Error formatting schedule date:", e);
                     setPublishDate('');
