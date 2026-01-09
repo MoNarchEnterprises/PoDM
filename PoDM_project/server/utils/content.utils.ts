@@ -33,7 +33,7 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
                 if (file.url.startsWith('http')) {
                     publicFullUrl = file.url;
                 } else {
-                    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.url, 60);
+                    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.url, 3600);
                     if (!error && signedUrl) {
                         publicFullUrl = signedUrl;
                     } else {
@@ -48,7 +48,7 @@ export const generateSignedUrlsForContent = async (post: any): Promise<any> => {
                 if (file.thumbnailUrl.startsWith('http')) {
                     publicThumbnailUrl = file.thumbnailUrl;
                 } else {
-                    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.thumbnailUrl, 60);
+                    const { signedUrl, error } = await StorageService.getPrivateSignedUrl(file.thumbnailUrl, 3600);
 
                     if (!error && signedUrl) {
                         publicThumbnailUrl = signedUrl;
