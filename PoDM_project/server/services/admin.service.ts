@@ -40,7 +40,7 @@ export const getDashboardStats = async () => {
         UserModel.countActiveCreators(),
         TransactionModel.sumPlatformFeeForPeriod(30),
         SupportTicketModel.countOpenTickets(),
-        UserModel.getNewUsersOverTime(6) // Fetch last 6 months of user growth
+        UserModel.getNewUsersOverTime(6)
     ]);
 
     return {
@@ -123,18 +123,74 @@ export const updateContentStatus = async (contentId: string, status: string) => 
 /**
  * Fetches platform-wide analytics data.
  */
-export const getPlatformAnalytics = async () => {
+/**
+ * Fetches platform-wide analytics data with support for filtering and drill-down.
+ */
+export const getPlatformAnalytics = async (
+    period: string = '6m',
+    groupBy: 'month' | 'day' = 'month',
+    creatorId?: string,
+    year?: number,
+    month?: string, // 'Jan', 'Feb', etc.
+    startDateParam?: string,
+    endDateParam?: string
+) => {
+    let startDate = new Date();
+    let endDate = new Date();
+
+    // Grouping Logic handle
+    let effectiveGroupBy = groupBy;
+
+    if (year && month) {
+        // --- Drill Down Logic ---
+        effectiveGroupBy = 'day';
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = monthNames.indexOf(month);
+
+        if (monthIndex !== -1) {
+            startDate = new Date(year, monthIndex, 1);
+            endDate = new Date(year, monthIndex + 1, 0); // Last day of month
+            endDate.setHours(23, 59, 59, 999);
+        }
+    } else if (startDateParam && endDateParam) {
+        // --- Custom Date Range ---
+        startDate = new Date(startDateParam);
+        endDate = new Date(endDateParam);
+        endDate.setHours(23, 59, 59, 999);
+    } else {
+        // --- Standard Period Logic ---
+        startDate = new Date();
+
+        switch (period) {
+            case '30d':
+                startDate.setDate(startDate.getDate() - 30);
+                break;
+            case '1y':
+                startDate.setMonth(startDate.getMonth() - 12);
+                startDate.setDate(1);
+                break;
+            case 'ytd':
+                startDate = new Date(new Date().getFullYear(), 0, 1);
+                break;
+            case '6m':
+            default:
+                startDate.setMonth(startDate.getMonth() - 6);
+                startDate.setDate(1);
+                break;
+        }
+    }
+
     const [
-        monthlyStats,
+        stats,
         topCreators
     ] = await Promise.all([
-        TransactionModel.getMonthlyTransactionStats(6), // Last 6 months
-        TransactionModel.getTopCreatorsByRevenue(5)     // Top 5 creators this month
+        TransactionModel.getTransactionStats(startDate, endDate, effectiveGroupBy, creatorId),
+        TransactionModel.getTopCreatorsByRevenue(5, startDate, endDate)
     ]);
 
     return {
-        revenueGrowth: monthlyStats.revenueGrowth,
-        engagement: monthlyStats.engagement,
+        revenueGrowth: stats.revenueGrowth,
+        engagement: stats.engagement,
         topCreators: topCreators
     };
 };

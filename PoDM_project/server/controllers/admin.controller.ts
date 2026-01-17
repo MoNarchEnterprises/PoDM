@@ -114,7 +114,26 @@ export const updateContentStatus = async (req: Request, res: Response, next: Nex
  */
 export const getPlatformAnalytics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const analytics = await AdminService.getPlatformAnalytics();
+        const { period, groupBy, creatorId, year, month, startDate, endDate } = req.query;
+
+        // Type conversion
+        const periodStr = period as string;
+        const groupByStr = (groupBy === 'day') ? 'day' : 'month';
+        const creatorIdStr = creatorId as string;
+        const yearNum = year ? parseInt(year as string) : undefined;
+        const monthStr = month as string;
+        const startDateStr = startDate as string;
+        const endDateStr = endDate as string;
+
+        const analytics = await AdminService.getPlatformAnalytics(
+            periodStr,
+            groupByStr,
+            creatorIdStr,
+            yearNum,
+            monthStr,
+            startDateStr,
+            endDateStr
+        );
         res.status(200).json({ success: true, data: analytics });
     } catch (error) {
         next(error);

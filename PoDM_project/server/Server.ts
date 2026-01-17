@@ -3,7 +3,19 @@ import path from 'path';
 import fs from 'fs';
 
 // --- Load Environment Variables ---
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+// --- Load Environment Variables ---
+const envPath = path.resolve(__dirname, '.env');
+const parentEnvPath = path.resolve(__dirname, '../.env'); // In case running from dist/server or server/
+
+if (fs.existsSync(envPath)) {
+    console.log(`Loading .env from ${envPath}`);
+    dotenv.config({ path: envPath });
+} else if (fs.existsSync(parentEnvPath)) {
+    console.log(`Loading .env from ${parentEnvPath}`);
+    dotenv.config({ path: parentEnvPath });
+} else {
+    console.warn("WARNING: No .env file found in server directory or parent.");
+}
 
 function logToFile(message: string) {
     const logPath = path.resolve(__dirname, 'debug.log');

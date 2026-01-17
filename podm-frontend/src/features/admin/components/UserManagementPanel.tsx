@@ -324,7 +324,7 @@ const UserManagementPanel = () => {
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
             if (!user || !user.profile) return false;
-            console.log('User management panel: User name:', user.profile.name, 'Email:', user.email, 'Role:', user.role, 'Status:', user.status);
+            // console.log('User management panel: User name:', user.profile.name, 'Email:', user.email, 'Role:', user.role, 'Status:', user.status);
             const lowercasedTerm = searchTerm.toLowerCase();
             const searchMatch = (user.profile.name?.toLowerCase() || '').includes(lowercasedTerm) ||
                 (user.email?.toLowerCase() || '').includes(lowercasedTerm);

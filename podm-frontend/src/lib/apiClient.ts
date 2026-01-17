@@ -775,6 +775,31 @@ export const generateReport = async (reportParams: any) => {
     return response.data;
 };
 
+/**
+ * Gets platform-wide analytics data with filtering.
+ */
+export const getPlatformAnalytics = async (params: {
+    period?: string;
+    groupBy?: 'month' | 'day';
+    creatorId?: string;
+    year?: number;
+    month?: string;
+    startDate?: string;
+    endDate?: string;
+} = {}) => {
+    const query = new URLSearchParams();
+    if (params.period) query.append('period', params.period);
+    if (params.groupBy) query.append('groupBy', params.groupBy);
+    if (params.creatorId) query.append('creatorId', params.creatorId);
+    if (params.year) query.append('year', params.year.toString());
+    if (params.month) query.append('month', params.month);
+    if (params.startDate) query.append('startDate', params.startDate);
+    if (params.endDate) query.append('endDate', params.endDate);
+
+    const response = await apiClient.get(`/admin/analytics?${query.toString()}`);
+    return response.data;
+};
+
 export const getSavedReports = async () => {
     const response = await apiClient.get('/admin/reports');
     return response.data;
