@@ -1,6 +1,7 @@
 // src/features/creator/CreatorMessages.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Send, Paperclip, Lock, ArrowLeft, DollarSign, Mic, X } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,6 +9,7 @@ import Button from '../../components/ui/Button';
 import { socket } from '../../lib/socket';
 import { Content } from '@common/types/Content';
 import AttachmentModal from './components/AttachmentModal';
+import BroadcastModal from './components/BroadcastModal';
 import { useModal } from '../../hooks/useModal';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import MessageBubble from '../messages/components/MessageBubble';
@@ -30,7 +32,7 @@ interface ConversationWithFan {
 const ConversationListItem = ({ conversation, isActive, onClick }: { conversation: ConversationWithFan; isActive: boolean; onClick: () => void; }) => (
     <div onClick={onClick} className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${isActive ? 'bg-purple-900/50' : 'hover:bg-gray-700/50'}`}>
         <div className="relative mr-3">
-            <img className="w-12 h-12 rounded-full" src={conversation.fan.profile.avatar} alt={conversation.fan.profile.name} />
+            <img className="w-12 h-12 rounded-full" src={conversation.fan.profile.avatar || 'https://via.placeholder.com/150'} alt={conversation.fan.profile.name} />
             {conversation.lastMessage && !conversation.lastMessage.isRead && <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-pink-500 border-2 border-gray-800"></span>}
         </div>
         <div className="flex-1 min-w-0">
@@ -49,9 +51,16 @@ const ConversationListItem = ({ conversation, isActive, onClick }: { conversatio
 
 // --- Main Component ---
 const CreatorMessagesPage = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const startUserId = searchParams.get('userId');
+    const startText = searchParams.get('text');
+    const shouldAutoSend = searchParams.get('autoSend') === 'true';
+
     const { user, impersonatedUser } = useAuth();
     const currentCreator = impersonatedUser || user;
     const { isOpen: isAttachmentModalOpen, openModal: openAttachmentModal, closeModal: closeAttachmentModal } = useModal();
+    const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+
     const [existingContent, setExistingContent] = useState<Content[]>([]);
     const [conversations, setConversations] = useState<ConversationWithFan[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -60,6 +69,7 @@ const CreatorMessagesPage = () => {
     const [isLoadingConvos, setIsLoadingConvos] = useState(true);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const previousConversationId = useRef<string | null>(null);
+    const hasAutoSent = useRef(false);
 
     // Voice recording state
     const { isRecording, recordingTime, audioBlob, startRecording, stopRecording, cancelRecording, error: recordingError } = useVoiceRecorder();
@@ -95,15 +105,89 @@ const CreatorMessagesPage = () => {
     }, []);
 
     useEffect(() => {
-        apiClient.getMyConversations().then(response => {
-            setConversations(response.data);
-            if (!selectedFanId && response.data.length > 0) {
-                setSelectedFanId(response.data[0].fan._id);
+        // Handle pre-filled text
+        if (startText) {
+            setNewMessageText(startText);
+        }
+    }, [startText]);
+
+    useEffect(() => {
+        const loadConversations = async () => {
+            try {
+                const response = await apiClient.getMyConversations();
+                let loadedConversations = response.data;
+
+                // Handle Deep Linking for User
+                if (startUserId) {
+                    const existingConvo = loadedConversations.find((c: ConversationWithFan) => c.fan._id === startUserId);
+
+                    if (existingConvo) {
+                        setSelectedFanId(startUserId);
+                    } else {
+                        // User not in recent conversations, fetch them
+                        try {
+                            const userResponse = await apiClient.getUserById(startUserId);
+                            if (userResponse.success && userResponse.data) {
+                                const newFan = userResponse.data;
+                                const tempConvo: ConversationWithFan = {
+                                    _id: null, // New conversation, no ID yet
+                                    fan: {
+                                        _id: newFan.id,
+                                        profile: {
+                                            name: newFan.username || 'Fan',
+                                            avatar: newFan.profile.avatar || 'https://via.placeholder.com/150'
+                                        },
+                                        totalSpent: 0,
+                                        isNewSubscriber: false
+                                    },
+                                    updatedAt: new Date().toISOString()
+                                };
+                                loadedConversations = [tempConvo, ...loadedConversations];
+                                setSelectedFanId(startUserId);
+                            }
+                        } catch (err) {
+                            console.error("Failed to fetch user for deep link", err);
+                        }
+                    }
+                } else if (!selectedFanId && loadedConversations.length > 0) {
+                    setSelectedFanId(loadedConversations[0].fan._id);
+                }
+
+                setConversations(loadedConversations);
+            } catch (err) {
+                console.error("Failed to fetch conversations", err);
+            } finally {
+                setIsLoadingConvos(false);
             }
-        }).catch(err => console.error("Failed to fetch conversations", err)).finally(() => setIsLoadingConvos(false));
-    }, []);
+        };
+
+        loadConversations();
+    }, [startUserId]); // Re-run if query param changes
 
     const activeConversation = conversations.find(c => c.fan._id === selectedFanId);
+
+    // Auto-send effect
+    useEffect(() => {
+        const autoSend = async () => {
+            if (shouldAutoSend && activeConversation && newMessageText && !hasAutoSent.current) {
+                hasAutoSent.current = true;
+                try {
+                    const response = await apiClient.sendMessage(activeConversation.fan._id, newMessageText);
+                    if (response.success && response.data) {
+                        const newMessage = response.data;
+                        setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
+                    }
+                    setNewMessageText('');
+                    // Clear query params to prevent re-send
+                    setSearchParams({});
+                } catch (error) {
+                    console.error("Auto-send failed", error);
+                    alert("Failed to auto-send message.");
+                }
+            }
+        };
+        autoSend();
+    }, [shouldAutoSend, activeConversation, newMessageText, setSearchParams]);
 
     useEffect(() => {
         socket.connect();
@@ -134,7 +218,7 @@ const CreatorMessagesPage = () => {
     useEffect(() => {
         const conversationId = activeConversation?._id;
         if (previousConversationId.current && previousConversationId.current !== conversationId) {
-            socket.emit('leave_conversation', previousConversationId.current);
+            if (previousConversationId.current) socket.emit('leave_conversation', previousConversationId.current);
         }
         if (conversationId) {
             setIsLoadingMessages(true);
@@ -155,7 +239,11 @@ const CreatorMessagesPage = () => {
     const handleSendMessage = async (text: string, contentPayload?: any) => {
         if (!activeConversation) return;
         try {
-            await apiClient.sendMessage(activeConversation.fan._id, text, contentPayload);
+            const response = await apiClient.sendMessage(activeConversation.fan._id, text, contentPayload);
+            if (response.success && response.data) {
+                const newMessage = response.data;
+                setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
+            }
         } catch (error) {
             console.error("Failed to send message", error);
             alert('Failed to send message.');
@@ -199,7 +287,11 @@ const CreatorMessagesPage = () => {
             formData.append('voiceMessage', audioBlob, 'voice-message.webm');
             formData.append('receiverId', activeConversation.fan._id);
 
-            await apiClient.sendVoiceMessage(formData);
+            const response = await apiClient.sendVoiceMessage(formData);
+            if (response.success && response.data) {
+                const newMessage = response.data;
+                setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
+            }
 
             // Reset voice recording state
             cancelRecording();
@@ -217,10 +309,18 @@ const CreatorMessagesPage = () => {
                 contentItems={existingContent}
                 onSend={handleSendAttachment}
             />
+            <BroadcastModal
+                isOpen={isBroadcastModalOpen}
+                onClose={() => setIsBroadcastModalOpen(false)}
+                onSuccess={() => alert('Message broadcasted!')}
+            />
 
             <div className="flex h-screen bg-gray-900 text-gray-200">
                 <div className={`w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
-                    <div className="p-4 border-b border-gray-700"><h2 className="text-xl font-bold">Messages</h2></div>
+                    <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                        <h2 className="text-xl font-bold">Messages</h2>
+                        <Button size="sm" variant="secondary" onClick={() => setIsBroadcastModalOpen(true)}>Broadcast</Button>
+                    </div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
                         {isLoadingConvos ? <p className="p-4 text-center">Loading...</p> : conversations.map(convo => <ConversationListItem key={convo.fan._id} conversation={convo} isActive={selectedFanId === convo.fan._id} onClick={() => setSelectedFanId(convo.fan._id)} />)}
                     </div>
@@ -228,7 +328,7 @@ const CreatorMessagesPage = () => {
                 <div className={`flex-1 flex flex-col bg-gray-900 ${!activeConversation && 'hidden md:flex'}`}>
                     {activeConversation ? (
                         <>
-                            <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gray-800"><div className="flex items-center"><button onClick={() => setSelectedFanId(null)} className="md:hidden mr-2 p-2 rounded-full hover:bg-gray-700"><ArrowLeft className="w-5 h-5" /></button><img className="w-10 h-10 rounded-full mr-3" src={activeConversation.fan.profile.avatar} alt={activeConversation.fan.profile.name} /><div><p className="font-bold">{activeConversation.fan.profile.name}</p><p className="text-xs text-green-500 font-semibold flex items-center"><DollarSign className="w-3 h-3 mr-1" /> Total Spent: ${(activeConversation.fan.totalSpent || 0).toFixed(2)}</p></div></div></div>
+                            <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gray-800"><div className="flex items-center"><button onClick={() => setSelectedFanId(null)} className="md:hidden mr-2 p-2 rounded-full hover:bg-gray-700"><ArrowLeft className="w-5 h-5" /></button><img className="w-10 h-10 rounded-full mr-3" src={activeConversation.fan.profile.avatar || 'https://via.placeholder.com/150'} alt={activeConversation.fan.profile.name} /><div><p className="font-bold">{activeConversation.fan.profile.name}</p><p className="text-xs text-green-500 font-semibold flex items-center"><DollarSign className="w-3 h-3 mr-1" /> Total Spent: ${(activeConversation.fan.totalSpent || 0).toFixed(2)}</p></div></div></div>
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                                 {isLoadingMessages ? <p className="text-center">Loading messages...</p> : messages.map((msg) => {
                                     const isMe = msg.sender_id === currentCreator?.id;

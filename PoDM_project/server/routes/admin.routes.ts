@@ -1,7 +1,9 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports, getSettings, 
-    updateSettings, setCreatorCommission, getCreatorVerificationDocs } from '../controllers/admin.controller';
+import {
+    getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports, getSettings,
+    updateSettings, setCreatorCommission, getCreatorVerificationDocs, messageUser
+} from '../controllers/admin.controller';
 import { protect, adminOnly } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -114,6 +116,14 @@ router.put('/users/:id/commission', setCreatorCommission);
  * @access  Private (Admins only)
  */
 router.get('/users/:id/verification-docs', getCreatorVerificationDocs);
+
+
+/**
+ * @route   POST /api/v1/admin/users/:id/message
+ * @desc    Send an email message to a user
+ * @access  Private (Admins only)
+ */
+router.post('/users/:id/message', messageUser);
 
 
 export default router;

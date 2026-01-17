@@ -515,3 +515,74 @@ export const getCreatorActivity = async (creatorId: string, page: number = 1, li
 
     return reshapedActivity;
 };
+
+import * as MessageService from './message.service';
+
+/**
+ * Sends a broadcast message to all active subscribers, optionally filtered by minimum tier.
+ * @param creatorId - The ID of the creator sending the message.
+ * @param text - The message text with optional {{username}} placeholder.
+ * @param minTierId - Optional ID of the minimum tier to filter subscribers.
+ */
+export const broadcastMessage = async (creatorId: string, text: string, minTierId?: string) => {
+    // 1. Fetch all active subscriptions with fan details
+    const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creatorId);
+
+    if (!subscriptions || subscriptions.length === 0) {
+        return { success: true, count: 0, message: 'No active subscribers found.' };
+    }
+
+    // 2. Filter by Tier if minTierId is provided
+    let eligibleSubs = subscriptions;
+    if (minTierId) {
+        const tiers = await getCreatorTiers(creatorId);
+        const targetTier = tiers.find((t: any) => t.id === minTierId);
+
+        if (targetTier) {
+            // Find all tiers with price >= target tier price
+            const eligibleTierIds = tiers
+                .filter((t: any) => (t.price || 0) >= (targetTier.price || 0))
+                .map((t: any) => t.id);
+
+            eligibleSubs = subscriptions.filter(sub => eligibleTierIds.includes(sub.tier_id));
+        }
+    }
+
+    // 3. Send personalized messages
+    let sentCount = 0;
+
+    // We process sequentially or with limited concurrency to avoid overwhelming the DB/Socket
+    // For MVP, sequential loop is fine.
+    for (const sub of eligibleSubs) {
+        const fan = (sub as any).fan;
+        if (!fan) continue;
+
+        // Personalize text
+        const personalizedText = text.replace(/{{username}}/g, fan.username || 'Fan');
+
+        try {
+            await MessageService.sendDirectMessage(creatorId, fan.id, { text: personalizedText });
+            sentCount++;
+        } catch (error) {
+            console.error(`Failed to send broadcast to fan ${fan.id}:`, error);
+            // Continue to next fan even if one fails
+        }
+    }
+
+    return { success: true, count: sentCount, message: `Successfully sent ${sentCount} messages.` };
+};
+
+/**
+ * Fetches the subscription tiers for a specific creator.
+ * @param creatorId - The ID of the creator.
+ */
+export const getCreatorTiers = async (creatorId: string) => {
+    const user = await UserModel.findUserById(creatorId);
+    if (!user) {
+        throw new AppError('Creator not found.', 404);
+    }
+
+    // Tiers are stored in the JSONB column 'creator_data'
+    const tiers = user.creator_data?.subscriptionTiers || [];
+    return tiers;
+};

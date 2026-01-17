@@ -141,6 +141,44 @@ export const getCreatorActivity = async (req: Request, res: Response, next: Next
         const activityData = await CreatorService.getCreatorActivity(creatorId, pageNumber, limitNumber);
         res.status(200).json({ success: true, data: activityData });
     } catch (error) {
+    }
+};
+
+/**
+ * @desc    Get subscription tiers for the logged-in creator
+ * @route   GET /api/v1/creator/tiers
+ * @access  Private (Creators only)
+ */
+export const getTiers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?.id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, creator ID not found.', 401);
+        }
+
+        const tiers = await CreatorService.getCreatorTiers(creatorId);
+        res.status(200).json({ success: true, data: tiers });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Send a broadcast message to subscribers
+ * @route   POST /api/v1/creator/broadcast
+ * @access  Private (Creators only)
+ */
+export const broadcastMessage = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?.id;
+        if (!creatorId) throw new AppError('Authentication error.', 401);
+
+        const { text, minTierId } = req.body;
+        if (!text) throw new AppError('Message text is required.', 400);
+
+        const result = await CreatorService.broadcastMessage(creatorId, text, minTierId);
+        res.status(200).json(result);
+    } catch (error) {
         next(error);
     }
 };

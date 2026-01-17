@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, MoreVertical, Eye, Percent, Ban, Slash, Undo, Shield, X } from 'lucide-react';
+import { Search, MoreVertical, Eye, Percent, Ban, Slash, Undo, Shield, X, MessageSquare } from 'lucide-react';
+
 
 // --- Import Shared Types ---
 import { User, UserStatus } from '@common/types/User';
@@ -80,13 +81,76 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
 };
 
 
-const UserActionsMenu = ({ user, currentUser, onManageCommission, onViewVerification, onUpdateStatus, onImpersonate }: {
+
+
+const MessageUserModal = ({ isOpen, onClose, user, onSend }: { isOpen: boolean; onClose: () => void; user: User | null; onSend: (userId: string, subject: string, message: string) => Promise<void>; }) => {
+    const [subject, setSubject] = useState('');
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setSubject('');
+            setMessage('');
+        }
+    }, [isOpen]);
+
+    if (!isOpen || !user) return null;
+
+    const handleSend = async () => {
+        if (!subject.trim() || !message.trim()) {
+            alert('Subject and message are required.');
+            return;
+        }
+        setIsLoading(true);
+        await onSend(user.id, subject, message);
+        setIsLoading(false);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col">
+                <header className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <h2 className="text-xl font-bold">Message {user.profile.name}</h2>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-6 h-6 text-gray-500" /></button>
+                </header>
+                <main className="p-6 space-y-4">
+                    <Input
+                        id="message-subject"
+                        label="Subject"
+                        type="text"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="Subject..."
+                    />
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                        <textarea
+                            className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                            rows={6}
+                            placeholder="Type your message here..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                        />
+                    </div>
+                </main>
+                <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <Button onClick={handleSend} isLoading={isLoading} leftIcon={MessageSquare}>Send Email</Button>
+                </footer>
+            </div>
+        </div>
+    );
+};
+
+const UserActionsMenu = ({ user, currentUser, onManageCommission, onViewVerification, onUpdateStatus, onImpersonate, onMessageUser }: {
     user: User;
     currentUser: User | null;
     onManageCommission: () => void;
     onViewVerification: () => void;
     onUpdateStatus: (user: User, status: UserStatus) => void;
     onImpersonate: (user: User) => void;
+    onMessageUser: (user: User) => void;
 }) => {
     const { isOpen, openModal, closeModal } = useModal();
     const menuRef = useRef<HTMLDivElement>(null);
@@ -94,6 +158,7 @@ const UserActionsMenu = ({ user, currentUser, onManageCommission, onViewVerifica
 
     const actions = [
         { label: 'View Verification', icon: Shield, show: user.status === 'pending verification', action: onViewVerification },
+        { label: 'Message User', icon: MessageSquare, show: true, action: () => onMessageUser(user) },
         { label: 'Impersonate User', icon: Eye, show: user.id !== currentUser?.id, action: () => onImpersonate(user) },
         { label: 'Manage Commission', icon: Percent, show: user.role === 'creator', action: onManageCommission },
         { label: 'Suspend User', icon: Ban, show: user.status === 'active', action: () => onUpdateStatus(user, 'suspended') },
@@ -134,6 +199,7 @@ const UserManagementPanel = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ type: 'All', status: 'All' });
     const { isOpen: isCommissionModalOpen, openModal: openCommissionModal, closeModal: closeCommissionModal } = useModal();
+    const { isOpen: isMessageModalOpen, openModal: openMessageModal, closeModal: closeMessageModal } = useModal();
     const [selectedUserForModal, setSelectedUserForModal] = useState<User | null>(null);
 
     // 3. CREATE THE HANDLER FUNCTION
@@ -168,6 +234,22 @@ const UserManagementPanel = () => {
         setSelectedUserForModal(user);
         openCommissionModal();
     };
+
+    const handleMessageUser = (user: User) => {
+        setSelectedUserForModal(user);
+        openMessageModal();
+    };
+
+    const handleSendMessage = async (userId: string, subject: string, message: string) => {
+        try {
+            await apiClient.messageUser(userId, subject, message);
+            alert('Email sent successfully!');
+        } catch (error) {
+            console.error("Failed to send email:", error);
+            alert("Failed to send email. Please try again.");
+        }
+    };
+
 
     const handleUpdateCommission = async (userId: string, commissionRate: number | null) => {
         try {
@@ -277,6 +359,12 @@ const UserManagementPanel = () => {
                 user={selectedUserForModal}
                 onSave={handleUpdateCommission}
             />
+            <MessageUserModal
+                isOpen={isMessageModalOpen}
+                onClose={closeMessageModal}
+                user={selectedUserForModal}
+                onSend={handleSendMessage}
+            />
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
@@ -321,6 +409,7 @@ const UserManagementPanel = () => {
                                                 onViewVerification={() => setViewingVerificationId(user.id)}
                                                 onUpdateStatus={handleUpdateStatus}
                                                 onImpersonate={handleImpersonate}
+                                                onMessageUser={handleMessageUser}
                                             />
                                         </td>
                                     </tr>

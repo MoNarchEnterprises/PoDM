@@ -131,7 +131,7 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                                         placeholder="e.g., Here's that special video you asked for!"
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
-                                        className="w-full bg-gray-200 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                        className="w-full bg-gray-200 text-gray-900 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                                     ></textarea>
                                 </div>
                                 {error && <p className="text-sm text-red-500 text-center">{error}</p>}

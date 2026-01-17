@@ -36,6 +36,7 @@ import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import notificationRoutes from './routes/notification.routes';
+import contestRoutes from './routes/contest.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { verifyStripeSignature } from './middleware/stripe.middleware';
 import { handleStripeWebhook } from './controllers/payments.controller';
@@ -131,6 +132,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/stripe', stripeRoutes);
 app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/contests', contestRoutes);
 
 // Health Check Route - with explicit types to fix the linting error
 app.get('/', (req: Request, res: Response) => {

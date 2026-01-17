@@ -86,7 +86,7 @@ const SupportTicketsPanel = () => {
                                     <TicketStatusBadge status={ticket.status} />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    #{ticket.id} from user {ticket.user_id}
+                                    #{ticket.id} from user {ticket.user_name || ticket.user_id}
                                 </p>
                             </li>
                         ))}

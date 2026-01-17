@@ -780,6 +780,17 @@ export const getSavedReports = async () => {
     return response.data;
 };
 
+/**
+ * Sends a direct email message to a user (Admin only).
+ * @param userId - The ID of the user to message.
+ * @param subject - The subject of the email.
+ * @param message - The body of the email.
+ */
+export const messageUser = async (userId: string, subject: string, message: string) => {
+    const response = await apiClient.post(`/admin/users/${userId}/message`, { subject, message });
+    return response.data;
+};
+
 // --- Notification Endpoints ---
 
 export const getNotifications = async (limit?: number) => {
@@ -797,10 +808,55 @@ export const markNotificationAsRead = async (notificationId: string) => {
     return response.data;
 };
 
-export const markAllNotificationsAsRead = async () => {
-    const response = await apiClient.put('/notifications/read-all');
+export const getCreatorTiers = async () => {
+    const response = await apiClient.get('/creator/tiers');
     return response.data;
 };
+
+/**
+ * Sends a broadcast message to all subscribers or a specific tier.
+ * @param text - The message text.
+ * @param minTierId - Optional ID of the minimum tier to filter by.
+ */
+export const broadcastMessage = async (text: string, minTierId?: string) => {
+    const response = await apiClient.post('/creator/broadcast', { text, minTierId });
+    return response.data;
+};
+
+
+
+// --- Contest Endpoints ---
+
+export const createContest = async (contestData: any) => {
+    const response = await apiClient.post('/contests', contestData);
+    return response.data;
+};
+
+export const getMyContests = async () => {
+    const response = await apiClient.get('/contests/creator/my');
+    return response.data;
+};
+
+export const publishContest = async (contestId: string) => {
+    const response = await apiClient.put(`/contests/${contestId}/publish`);
+    return response.data;
+};
+
+export const finalizeContest = async (contestId: string) => {
+    const response = await apiClient.post(`/contests/${contestId}/finalize`);
+    return response.data;
+};
+
+export const getFanContests = async () => {
+    const response = await apiClient.get('/contests/feed');
+    return response.data;
+};
+
+export const enterContest = async (contestId: string) => {
+    const response = await apiClient.post(`/contests/${contestId}/enter`);
+    return response.data;
+};
+
 
 export const deleteNotification = async (notificationId: string) => {
     const response = await apiClient.delete(`/notifications/${notificationId}`);

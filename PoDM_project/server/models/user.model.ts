@@ -56,6 +56,26 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
 };
 
 /**
+ * Finds users by an array of IDs.
+ * @param ids - Array of user UUIDs.
+ * @returns An array of user profile objects.
+ */
+export const findUsersByIds = async (ids: string[]): Promise<User[]> => {
+    if (ids.length === 0) return [];
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', ids);
+
+    if (error) {
+        console.error('Error finding users by IDs:', error.message);
+        return [];
+    }
+    return data as User[];
+};
+
+/**
  * Creates a new public profile for a user after they have signed up.
  * This is typically called right after the user is created in Supabase Auth.
  * @param profileData - The data for the new profile.

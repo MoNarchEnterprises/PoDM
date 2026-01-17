@@ -11,6 +11,7 @@ import { ContentWithCreator } from '../../components/shared/ContentCard';
 import PostCard from '../../components/shared/ContentCard';
 import Button from '../../components/ui/Button';
 import { getContentLockState } from '../../components/shared/ContentLockManager';
+import FanContestList from '../contests/FanContestList';
 
 // --- Main Fan Feed Component ---
 const FanFeed = () => {
@@ -85,6 +86,7 @@ const FanFeed = () => {
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
+            <FanContestList />
             <div className="flex items-center space-x-2 mb-8 overflow-x-auto pb-2">
                 {filters.map(filter => (
                     <Button

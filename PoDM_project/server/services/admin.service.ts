@@ -221,7 +221,19 @@ export const getSupportTickets = async () => {
     if (!ticketsFromDb) {
         return [];
     }
-    return ticketsFromDb;
+
+    // Extract unique user IDs
+    const userIds = Array.from(new Set(ticketsFromDb.map(ticket => ticket.user_id)));
+
+    // Fetch users info
+    const users = await UserModel.findUsersByIds(userIds);
+    const userMap = new Map(users.map(u => [u.id, u.profile?.name || 'Unknown']));
+
+    // Enrich tickets with user_name
+    return ticketsFromDb.map(ticket => ({
+        ...ticket,
+        user_name: userMap.get(ticket.user_id) || 'Unknown User'
+    }));
 };
 
 /**

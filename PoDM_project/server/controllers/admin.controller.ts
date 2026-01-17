@@ -3,6 +3,8 @@ import { AppError } from '../middleware/error.middleware';
 
 // --- Import Service Functions ---
 import * as AdminService from '../services/admin.service';
+import * as EmailService from '../services/email.service';
+import * as UserModel from '../models/user.model';
 
 
 
@@ -238,6 +240,46 @@ export const getCreatorVerificationDocs = async (req: Request, res: Response, ne
         const { id: userId } = req.params;
         const urls = await AdminService.getVerificationDocs(userId);
         res.status(200).json({ success: true, data: urls });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Send an email message to a user
+ * @route   POST /api/v1/admin/users/:id/message
+ * @access  Private (Admins only)
+ */
+export const messageUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: userId } = req.params;
+        const { subject, message } = req.body;
+        const adminUser = req.user as any;
+
+        if (!subject || !message) {
+            throw new AppError('Subject and message are required.', 400);
+        }
+
+        const user = await UserModel.findUserById(userId);
+        if (!user || !user.email) {
+            throw new AppError('User not found or has no email.', 404);
+        }
+
+        // Construct dynamic sender address
+        const adminUsername = adminUser.profile?.name?.replace(/\s+/g, '').toLowerCase() || 'admin';
+        const fromAddress = `${adminUsername}@podm.app`;
+        const replyToAddress = adminUser.email; // The admin's real email
+
+        await EmailService.sendEmail(
+            user.email,
+            subject,
+            message,
+            undefined, // No HTML for now
+            fromAddress,
+            replyToAddress
+        );
+
+        res.status(200).json({ success: true, message: 'Email sent successfully.' });
     } catch (error) {
         next(error);
     }

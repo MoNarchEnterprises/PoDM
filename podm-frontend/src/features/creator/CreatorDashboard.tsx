@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2, X } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react'; // --- THIS IS THE FIX ---
+import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2, X, Trophy } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // --- Import Shared Types ---
 import { Creator } from '@common/types/Creator';
@@ -15,6 +15,7 @@ import Button from '../../components/ui/Button';
 import StatCard from '../../components/shared/StatCard';
 import { formatCurrency, timeAgo } from '../../lib/formatters';
 import Modal from '../../components/ui/Modal';
+import CreatorContestList from '../contests/CreatorContestList';
 
 // --- Local Types ---
 interface TransactionWithFan extends Transaction {
@@ -70,6 +71,7 @@ interface CreatorDashboardProps {
 const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }: CreatorDashboardProps) => {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
+    const [showContestsModal, setShowContestsModal] = useState(false);
     const navigate = useNavigate();
 
     const baseUrl = import.meta.env.VITE_APP_BASE_URL;
@@ -106,11 +108,17 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                 <div className="p-6 text-center">
                     <h3 className="text-xl font-bold mb-4">Scan QR Code</h3>
                     <div className="flex justify-center mb-4 bg-white p-4 rounded-lg">
-                        {/* --- AND THE CORRESPONDING JSX FIX --- */}
                         <QRCodeSVG value={profileLink} size={256} level="H" />
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Scan this code to visit your profile.</p>
                     <Button onClick={() => setShowQrModal(false)} className="mt-6">Close</Button>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showContestsModal} onClose={() => setShowContestsModal(false)}>
+                <div className="p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Manage Contests</h2>
+                    <CreatorContestList />
                 </div>
             </Modal>
 
@@ -149,6 +157,7 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/content')}><PlusCircle className="w-6 h-6 text-green-500" /><span>Create Post</span></Button>
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/messages')}><MessageSquare className="w-6 h-6 text-blue-500" /><span>View Messages</span></Button>
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/earnings')}><DollarSign className="w-6 h-6 text-purple-500" /><span>Check Earnings</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => setShowContestsModal(true)}><Trophy className="w-6 h-6 text-yellow-500" /><span>Contests</span></Button>
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={handleShare}><Share2 className="w-6 h-6 text-pink-500" /><span>Share Profile</span></Button>
                             </div>
                         </Card>

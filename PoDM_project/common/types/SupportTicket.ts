@@ -26,6 +26,7 @@ export interface TicketMessage {
 export interface SupportTicket {
   id: string; // Unique identifier for the ticket
   user_id: string; // The ID of the user who submitted the ticket
+  user_name?: string; // The username of the user (enriched field)
   subject: string;
   status: TicketStatus;
   priority: TicketPriority;

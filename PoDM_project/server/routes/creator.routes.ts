@@ -1,9 +1,9 @@
 // /server/routes/creator.routes.ts
 
 import { Router } from 'express';
-import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity } from '../controllers/creator.controller';
+import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity, getTiers, broadcastMessage } from '../controllers/creator.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
-import { uploadBanner } from '../middleware/upload.middleware'; 
+import { uploadBanner } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -53,5 +53,19 @@ router.post('/payouts', protect, creatorOnly, requestPayout);
  * @access  Private (Creators only)
  */
 router.get('/activity', protect, creatorOnly, getCreatorActivity);
+
+/**
+ * @route   GET /api/v1/creator/tiers
+ * @desc    Get subscription tiers for the logged-in creator
+ * @access  Private (Creators only)
+ */
+router.get('/tiers', protect, creatorOnly, getTiers);
+
+/**
+ * @route   POST /api/v1/creator/broadcast
+ * @desc    Send a broadcast message to subscribers
+ * @access  Private (Creators only)
+ */
+router.post('/broadcast', protect, creatorOnly, broadcastMessage);
 
 export default router;
