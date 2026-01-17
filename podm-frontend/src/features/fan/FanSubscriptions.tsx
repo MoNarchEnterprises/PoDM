@@ -245,7 +245,7 @@ const FanSubscriptionsPage = () => {
                             <div>
                                 <h2 className="text-lg font-semibold text-white mb-3">Active ({activeSubs.length})</h2>
                                 <div className="space-y-3">
-                                    {activeSubs.map(sub => <SubscriptionCard key={sub.id} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
+                                    {activeSubs.map(sub => <SubscriptionCard key={`active-${sub.id}`} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
                                 </div>
                             </div>
                         )}
@@ -253,7 +253,7 @@ const FanSubscriptionsPage = () => {
                             <div>
                                 <h2 className="text-lg font-semibold text-white mb-3">Inactive ({inactiveSubs.length})</h2>
                                 <div className="space-y-3">
-                                    {inactiveSubs.map(sub => <SubscriptionCard key={sub.id} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
+                                    {inactiveSubs.map(sub => <SubscriptionCard key={`inactive-${sub.id}`} subscription={sub} isSelected={selectedSub?.id === sub.id} onClick={() => setSelectedSub(sub)} />)}
                                 </div>
                             </div>
                         )}

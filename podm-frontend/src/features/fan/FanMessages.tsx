@@ -97,6 +97,13 @@ const FanMessagesPage = () => {
     const activeConversation = conversations.find(c => c.creator.id === selectedCreatorId);
 
     useEffect(() => {
+        // Only connect if we have an auth token
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.warn('[Socket.IO] No auth token found, skipping connection');
+            return;
+        }
+
         socket.connect();
         socket.on('connect', () => console.log('[Socket.IO] Connected to server!'));
         socket.on('connect_error', (err) => console.error('[Socket.IO] Connection Error:', err.message));
