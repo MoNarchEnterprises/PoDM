@@ -16353,3 +16353,1992 @@
 [AUTH_DEBUG] 2026-01-17T19:36:34.697Z - User attached to request. Proceeding...
 [AUTH_DEBUG] 2026-01-17T19:36:34.715Z - Full user profile found: ashleighfoxx
 [AUTH_DEBUG] 2026-01-17T19:36:34.717Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:29.311Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.312Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.319Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.320Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.551Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:29.591Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:29.662Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:29.663Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:29.706Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:29.706Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:29.782Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.783Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.810Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.811Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.815Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.816Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.835Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.837Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.842Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:29.843Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:29.855Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:29.938Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:29.939Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:29.956Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:29.969Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:29.984Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.004Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.059Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.061Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.067Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.068Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.071Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.072Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.075Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.076Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.083Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.084Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.134Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.148Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.149Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.165Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.166Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.168Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.170Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.210Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.211Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.214Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.215Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.217Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.218Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.222Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.238Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.243Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.289Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.297Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.303Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.304Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.305Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.306Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.321Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.322Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.336Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.337Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.361Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.362Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.367Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.368Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.376Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.404Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.406Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.410Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.411Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.426Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.427Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.457Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.458Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.461Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.464Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.468Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.471Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.478Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.492Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.514Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.543Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.546Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.550Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.552Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.557Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.558Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.564Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.565Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.591Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.592Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.611Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.612Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.619Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.620Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.631Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.632Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.636Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.650Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.651Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.668Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.668Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.707Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.715Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.717Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.719Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.720Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.726Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.741Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.772Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.773Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.794Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.800Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.801Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.807Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.808Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.840Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.841Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.849Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.849Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.872Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.873Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.878Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.888Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.890Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.922Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.932Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.933Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.947Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T19:40:30.948Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:30.952Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.953Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:30.970Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:30.988Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:30.990Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:31.008Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:31.033Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:31.040Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:31.041Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:31.078Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:31.079Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:31.105Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:31.107Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:31.139Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T19:40:31.140Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:31.217Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:31.283Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:31.284Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:42.690Z - --- New Request: DELETE /74 ---
+[AUTH_DEBUG] 2026-01-17T19:40:42.691Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:42.846Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:42.918Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:42.919Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:45.743Z - --- New Request: DELETE /76 ---
+[AUTH_DEBUG] 2026-01-17T19:40:45.745Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:45.811Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:45.880Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:45.881Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:48.833Z - --- New Request: DELETE /77 ---
+[AUTH_DEBUG] 2026-01-17T19:40:48.835Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:48.911Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:48.995Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:48.996Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:53.015Z - --- New Request: GET /conversations/6 ---
+[AUTH_DEBUG] 2026-01-17T19:40:53.016Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:53.019Z - --- New Request: PUT /conversations/6/read ---
+[AUTH_DEBUG] 2026-01-17T19:40:53.020Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:40:53.082Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:53.161Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:53.162Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:40:53.203Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:40:53.285Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:40:53.286Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:41:01.469Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T19:41:01.470Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:41:01.474Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T19:41:01.475Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:41:01.649Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:41:01.661Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:41:01.737Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:41:01.738Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:41:01.757Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:41:01.758Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:46.868Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:46:46.869Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.234Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:47.613Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:47.614Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:47.930Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.932Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.935Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.936Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.941Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.943Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.946Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.947Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.951Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.952Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:47.989Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:47.990Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.005Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.089Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.098Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.104Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.113Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.115Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.121Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.160Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.198Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.199Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.213Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.214Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.217Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.220Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.226Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.228Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.241Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.242Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.250Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.251Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.289Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.291Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.307Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.310Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.311Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.319Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.321Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.345Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.347Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.350Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.351Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.361Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.408Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.411Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.418Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.419Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.428Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.436Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.437Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.456Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.487Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.489Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.492Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.493Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.529Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.531Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.533Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.534Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.540Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.541Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.548Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.551Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.579Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.580Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.589Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.589Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.608Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.616Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.634Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.635Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.664Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.670Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.671Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.672Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.681Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.682Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.708Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.709Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.713Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.735Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.736Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.771Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.773Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.790Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.792Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.818Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.820Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.823Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.831Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.832Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.837Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.838Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.843Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.874Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:46:48.875Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:46:48.911Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.913Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.920Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.920Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:48.927Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.929Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.944Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:46:48.995Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:48.996Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:49.010Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:49.011Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:46:49.034Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:46:49.035Z - User attached to request. Proceeding...
+[2026-01-17T19:47:39.305Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-01-17T19:47:52.288Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T19:47:52.290Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:52.553Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:52.693Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:52.695Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:52.713Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T19:47:52.721Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:52.809Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:52.907Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:52.908Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:53.149Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.151Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.230Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:53.327Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:53.329Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:53.601Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.602Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.605Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.606Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.614Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.615Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.647Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.648Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.653Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.654Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.659Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.660Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.697Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:53.797Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:53.802Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:53.810Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:53.811Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:53.892Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:53.894Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:53.898Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.899Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:53.903Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:53.904Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:53.967Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:53.968Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.003Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.007Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.011Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.012Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.044Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.062Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.067Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.081Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.082Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.087Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.088Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.101Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.119Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.120Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.137Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.139Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.171Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.172Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.184Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.196Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.206Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.207Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.218Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.219Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.225Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.226Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.239Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.240Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.261Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.262Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.274Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.295Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.299Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.300Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.307Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.319Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.352Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.356Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.357Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.377Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.378Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.400Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.405Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.407Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.411Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.413Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.439Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.440Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.455Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.456Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.460Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.461Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.489Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.490Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.500Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.501Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.512Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.532Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.533Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.557Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.576Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.577Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.582Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.584Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.590Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.593Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.594Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.624Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.637Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.638Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.681Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.687Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.691Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.693Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.699Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:47:54.700Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:47:54.707Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.708Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.762Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.763Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.767Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.768Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:47:54.779Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:47:54.858Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:47:54.859Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:10.996Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:48:10.998Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:11.003Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T19:48:11.003Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:11.177Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:11.185Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:11.275Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:11.276Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:11.281Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:11.282Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:11.429Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:48:11.431Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:11.512Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:11.620Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:11.621Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:11.801Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T19:48:11.802Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:11.880Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:11.962Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:11.963Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.115Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.116Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.119Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.120Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.123Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.125Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.132Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.133Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.143Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.145Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.196Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.203Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.225Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.276Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.280Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.281Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.292Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.294Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.312Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.319Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.321Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.357Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.358Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.377Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.378Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.418Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.419Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.438Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.439Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.451Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.454Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.461Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.462Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.465Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.512Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.513Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.521Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.522Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.525Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.532Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.549Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.552Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.554Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.588Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.609Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.636Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.642Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.649Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.650Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.661Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.663Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.670Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.671Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.677Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.678Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.725Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.726Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.735Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.736Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.748Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.749Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.756Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.772Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.773Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.777Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.781Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.817Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.827Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.828Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.833Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.846Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.848Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.864Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.868Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.893Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.894Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.922Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:12.927Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.928Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.942Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.944Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.954Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.955Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.961Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.962Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:12.987Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:12.989Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:12.995Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:12.996Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.012Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.014Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.029Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.052Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.053Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.073Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.084Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.085Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.092Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.098Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.099Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.129Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.142Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.142Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.153Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.154Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.171Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.172Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.177Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.199Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.200Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.215Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.221Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.223Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.238Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.241Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.264Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T19:48:13.265Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:13.269Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.269Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.276Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.313Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.314Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.319Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.335Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:13.354Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.356Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.409Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.411Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:13.420Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:13.422Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:14.711Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T19:48:14.711Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:14.786Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:14.862Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:14.864Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.427Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.429Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.433Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.435Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.437Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.438Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.440Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.441Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.445Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.447Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.448Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.449Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.522Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.538Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.542Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.556Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.559Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.561Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.603Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.605Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.614Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.615Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.629Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.630Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.639Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.640Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.647Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.648Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.656Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.657Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.693Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.694Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.719Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.725Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.738Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.739Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.774Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.783Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.794Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.796Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.799Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.803Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:15.816Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.830Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.833Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.869Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.876Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.884Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:15.910Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.911Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.915Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.915Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.929Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.930Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.946Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.947Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.962Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.963Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.968Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:15.969Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:15.998Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:15.999Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.038Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.039Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.044Z - --- New Request: GET /67/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.045Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.092Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.094Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.098Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.100Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.102Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.105Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.105Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.125Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.147Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.164Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.179Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.191Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.203Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.204Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.226Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.227Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.230Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.231Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.235Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.236Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.267Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.268Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.271Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.273Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.283Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.285Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.330Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.332Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.338Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.339Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.352Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:48:16.352Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:16.384Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.411Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.413Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.427Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:16.463Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.464Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.494Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.495Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.509Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.510Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:16.519Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:16.519Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:48:48.594Z - --- New Request: DELETE /67 ---
+[AUTH_DEBUG] 2026-01-17T19:48:48.596Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:48:48.849Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:48:48.956Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:48:48.957Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:49:17.993Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-01-17T19:49:17.995Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:49:18.209Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:49:18.310Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:49:18.312Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:49:19.620Z - --- New Request: GET /68/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:49:19.621Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:49:19.779Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:49:19.899Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:49:19.900Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T19:49:19.993Z - --- New Request: GET /68/secure-url ---
+[AUTH_DEBUG] 2026-01-17T19:49:19.994Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T19:49:20.077Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T19:49:20.154Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T19:49:20.155Z - User attached to request. Proceeding...
+[2026-01-17T20:06:03.911Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-01-17T20:42:15.391Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T20:42:15.394Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:16.184Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-01-17T20:42:16.210Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T20:42:16.211Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:16.311Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-01-17T20:42:24.789Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T20:42:24.790Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:24.882Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:25.022Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:25.023Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:26.082Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T20:42:26.084Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:26.166Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:26.664Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:26.664Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.129Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.131Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.214Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.318Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.319Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.567Z - --- New Request: GET /68/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.569Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.573Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.574Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.577Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.577Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.580Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.581Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.585Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.586Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.622Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.623Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.667Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.688Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.692Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.697Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.748Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.750Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.769Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.770Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.785Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.786Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.803Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.805Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.816Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.828Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.851Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.851Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.872Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.873Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.898Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.898Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.908Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.909Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.913Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:29.914Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:29.918Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.920Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.928Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.961Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:29.983Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:29.985Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:29.996Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.016Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.017Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.020Z - --- New Request: GET /68/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.021Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.024Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.029Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.030Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.070Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.078Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.080Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.102Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.103Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.117Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.129Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.130Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.133Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.134Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.140Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.142Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.166Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.167Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.197Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.199Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.204Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.204Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.210Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.216Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.227Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.228Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.250Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.284Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.294Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.296Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.306Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.307Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.311Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.312Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.315Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.324Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.326Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.392Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.393Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.396Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.399Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.400Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.403Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.405Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.501Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.502Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.505Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.506Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.509Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.514Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.516Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.560Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:42:30.561Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:30.578Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.586Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.595Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.596Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.627Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:30.653Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.654Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.657Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.659Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:30.699Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:30.700Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:42:38.033Z - --- New Request: DELETE /68 ---
+[AUTH_DEBUG] 2026-01-17T20:42:38.034Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:42:38.257Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:42:38.331Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:42:38.332Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:43:59.500Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-01-17T20:43:59.502Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:43:59.757Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:43:59.861Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:43:59.861Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:44:01.092Z - --- New Request: GET /69/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:44:01.094Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:44:01.243Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:44:01.339Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:44:01.340Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:44:01.494Z - --- New Request: GET /69/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:44:01.495Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:44:01.568Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:44:01.657Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:44:01.659Z - User attached to request. Proceeding...
+[2026-01-17T20:46:28.104Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-01-17T20:47:55.194Z - --- New Request: DELETE /69 ---
+[AUTH_DEBUG] 2026-01-17T20:47:55.196Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:47:55.600Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:47:55.704Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:47:55.706Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:49:14.027Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-01-17T20:49:14.028Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:49:14.211Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:49:14.314Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:49:14.315Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:49:17.553Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:49:17.555Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:49:17.718Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:49:17.807Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:49:17.808Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T20:49:17.954Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T20:49:17.955Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T20:49:18.079Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T20:49:18.157Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T20:49:18.159Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:13.062Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:38:13.064Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:13.815Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:14.317Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:14.318Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:15.398Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:38:15.400Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:15.480Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:15.572Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:15.575Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:26.701Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-01-17T21:38:26.702Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:26.937Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:27.015Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:27.016Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:27.249Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-01-17T21:38:27.250Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:27.330Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:27.402Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:27.404Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.026Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.027Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.042Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.043Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.239Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.245Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.319Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.320Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.340Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.341Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.492Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.494Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.520Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.521Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.535Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.548Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.552Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.553Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.557Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.559Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.572Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.644Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.645Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.686Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.701Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.704Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.724Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.794Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.796Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.814Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.814Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.822Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.824Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.841Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.842Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.848Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:50.850Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:50.887Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.889Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.924Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:50.936Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.937Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.956Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.958Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.964Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.965Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.968Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:50.969Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:50.972Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.007Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.008Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.022Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.037Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.048Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.049Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.056Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.081Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.098Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.100Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.116Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.117Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.121Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.122Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.148Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.150Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.154Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.157Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.162Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.163Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.180Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.212Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.214Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.225Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.227Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.242Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.257Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.259Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.281Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.282Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.316Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.317Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.322Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.333Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.339Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.339Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.356Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.372Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.391Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.391Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.407Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.409Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.414Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.416Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.434Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.434Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.443Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.445Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.466Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.513Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.514Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.524Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.526Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.555Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.558Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.563Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.563Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.567Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.568Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.582Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.608Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.632Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.643Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.662Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.663Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.668Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.670Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.682Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.683Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.719Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.720Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.723Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.724Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.729Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.731Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.744Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.758Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.760Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.770Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.771Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.799Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.820Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.821Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.836Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.850Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.861Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T21:38:51.862Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:51.974Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.976Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.988Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:51.989Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:51.991Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:51.997Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:52.000Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:52.018Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T21:38:52.019Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:38:52.068Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:52.070Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:38:52.102Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:38:52.171Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:38:52.173Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:02.143Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:39:02.144Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:02.380Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:02.460Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:02.461Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:03.270Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:39:03.271Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:03.360Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:03.433Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:03.435Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:18.418Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.419Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.623Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:18.714Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:18.714Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:18.904Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.906Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.914Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.916Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.924Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.927Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.933Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.934Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.938Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.939Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:18.947Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:18.948Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.000Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.065Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.082Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.093Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.099Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.102Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.103Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.143Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.149Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.150Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.167Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.169Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.180Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.181Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.183Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.185Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.199Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.200Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.246Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.247Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.290Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.301Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.301Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.304Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.304Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.307Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.308Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.315Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.318Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.330Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.374Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.382Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.383Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.392Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.397Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.398Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.406Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.411Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.413Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.450Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.452Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.464Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.465Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.474Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.475Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.485Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.489Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.490Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.506Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.506Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.525Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.527Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.543Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.559Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.563Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.569Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.570Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.586Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.587Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.589Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.611Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.624Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.625Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.644Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.669Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.674Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.676Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.684Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.685Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.695Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.697Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.703Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.704Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.713Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.714Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.756Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.757Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.765Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.770Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.772Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.782Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.783Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.804Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.827Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:19.829Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:19.844Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.845Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.853Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.859Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.887Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.888Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.913Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:19.927Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.928Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.937Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.938Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:19.995Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:19.997Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:21.326Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:39:21.326Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:21.410Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:21.482Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:21.483Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:22.312Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T21:39:22.313Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:22.405Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:22.499Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:22.500Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:24.420Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-01-17T21:39:24.421Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:24.513Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:24.607Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:24.609Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:24.800Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-01-17T21:39:24.819Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:24.921Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:25.020Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:25.020Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:29.461Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.463Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.472Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.473Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.622Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:29.645Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:29.715Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:29.717Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:29.730Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:29.732Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:29.866Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.869Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.879Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.880Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.896Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.897Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.905Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.906Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.913Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:29.914Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:29.956Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.030Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.038Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.039Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.082Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.091Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.108Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.109Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.167Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.167Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.169Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.188Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.189Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.194Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.200Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.246Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.247Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.249Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.266Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.267Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.319Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.322Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.329Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.330Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.333Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.338Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.349Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.350Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.356Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.365Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.369Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.404Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.437Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.448Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.458Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.459Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.462Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.465Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.469Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.485Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.488Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.512Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.513Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.545Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.548Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.549Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.574Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.576Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.580Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.582Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.587Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.589Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.604Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.608Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.622Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.623Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.639Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.642Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.674Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.676Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.684Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.700Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.708Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.731Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.760Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.761Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.774Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.778Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.779Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.785Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.786Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.790Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.790Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.806Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.810Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.842Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.850Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.850Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.882Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.883Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.910Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.911Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.916Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.917Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.921Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:30.922Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:30.942Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:30.945Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:30.961Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:30.992Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.009Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.020Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.025Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.027Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.056Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.057Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.079Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.080Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.102Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.115Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.117Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.124Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.125Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.505Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.507Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.596Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.596Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.603Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.604Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.608Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.610Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.620Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.621Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.636Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.637Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.674Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.680Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.700Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.720Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.724Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:31.754Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.755Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.768Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.769Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.787Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.788Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.813Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.815Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.821Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:31.823Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:31.919Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T21:39:31.921Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:31.992Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:32.059Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:32.060Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:32.335Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T21:39:32.337Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:32.426Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:32.499Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:32.500Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:32.909Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T21:39:32.909Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:32.912Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T21:39:32.913Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:32.988Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:32.990Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:33.060Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:33.062Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:33.067Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:33.068Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T21:39:58.570Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-01-17T21:39:58.570Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T21:39:58.820Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T21:39:58.901Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T21:39:58.906Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:07.350Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T22:23:07.352Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:07.990Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-01-17T22:23:16.151Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T22:23:16.152Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:16.244Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:16.380Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:16.381Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:17.439Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-01-17T22:23:17.440Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:17.519Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:17.601Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:17.602Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:19.974Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T22:23:19.975Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.054Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.131Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.132Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.311Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.314Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.318Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.318Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.320Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.322Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.324Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.325Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.330Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.331Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.385Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.386Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.419Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.424Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.430Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.434Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.500Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.501Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.505Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.507Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.527Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.528Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.532Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.532Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.536Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.543Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.589Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.591Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.600Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.601Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.622Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.623Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.628Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.630Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.633Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.633Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.653Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.654Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.664Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.690Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.710Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.713Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.732Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.733Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.740Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.742Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.744Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.745Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.769Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.770Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.792Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.794Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.800Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.801Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.823Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.825Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.826Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.832Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.883Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.885Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.911Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.916Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.917Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.921Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.923Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.946Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.947Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:20.951Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:20.953Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:20.975Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:20.986Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:20.987Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.002Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.016Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.017Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.026Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.031Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.032Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.041Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.042Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.066Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.066Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.091Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.092Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.107Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.108Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.113Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.116Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.141Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.147Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.148Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.169Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.171Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.198Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:21.199Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:21.202Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.203Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.206Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.207Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.234Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.237Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.237Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.249Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.268Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:21.305Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.306Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.338Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.339Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:21.356Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:21.357Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:23.892Z - --- New Request: GET /70/view ---
+[AUTH_DEBUG] 2026-01-17T22:23:23.894Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:23.965Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:24.034Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:24.035Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:33.288Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T22:23:33.290Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:33.297Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:23:33.300Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:33.801Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:33.808Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.250Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.251Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.256Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.257Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.518Z - --- New Request: GET /my-content ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.519Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.574Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.575Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.581Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.583Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.588Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.590Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.593Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.594Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.602Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.683Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.684Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.733Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.741Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.791Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.792Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.820Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.857Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.859Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.866Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.867Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.875Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.906Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:34.951Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.952Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:34.967Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.968Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.976Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:34.978Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:34.982Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:34.983Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.086Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.157Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.160Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.192Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.205Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.206Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.246Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.247Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.257Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.258Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.313Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.317Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.318Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.333Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.335Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.370Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.435Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.438Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.440Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.442Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.444Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.490Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.491Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.553Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.563Z - --- New Request: GET /65/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.564Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.568Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.571Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.614Z - --- New Request: GET /64/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.615Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.662Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.663Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.679Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.699Z - --- New Request: GET /70/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.700Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.703Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.726Z - --- New Request: GET /63/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.727Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.774Z - --- New Request: GET /62/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.775Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.786Z - --- New Request: GET /61/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.787Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.789Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.795Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.796Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.800Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.803Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.879Z - --- New Request: GET /60/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.881Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.891Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:35.893Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:35.897Z - --- New Request: GET /16/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.898Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:35.967Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:35.971Z - --- New Request: GET /15/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:35.974Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.061Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.062Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.171Z - --- New Request: GET /25/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:36.171Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.287Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.290Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.348Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.352Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.363Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.366Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.378Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.379Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.386Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.387Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.422Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.423Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.454Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.455Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.458Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.460Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.469Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.470Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.482Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:23:36.483Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.502Z - --- New Request: GET /13/secure-url ---
+[AUTH_DEBUG] 2026-01-17T22:23:36.504Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.527Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:23:36.529Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.584Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:23:36.586Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:36.599Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.619Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.622Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.673Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:36.695Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.697Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.703Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.704Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.706Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.707Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:36.749Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:36.751Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:37.551Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:23:37.552Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:37.558Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:23:37.559Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:23:37.626Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:37.629Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:23:37.704Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:37.705Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:23:37.718Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:23:37.719Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:35.190Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:25:35.199Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:35.460Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:25:35.668Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:25:35.669Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:35.674Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:25:35.676Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:35.779Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-01-17T22:25:35.969Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-01-17T22:25:35.970Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:47.346Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:25:47.347Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:47.417Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:47.513Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:47.514Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:48.526Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-01-17T22:25:48.527Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:48.530Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-01-17T22:25:48.530Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:48.594Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:48.669Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:48.669Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:48.682Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:48.769Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:48.770Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:48.780Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-01-17T22:25:48.781Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:48.863Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:48.955Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:48.956Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:49.452Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-01-17T22:25:49.453Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:49.533Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:49.609Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:49.610Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:52.325Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:25:52.326Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:52.398Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:52.468Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:52.471Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:52.766Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:25:52.766Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:52.845Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:52.917Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:52.918Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:55.242Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:25:55.244Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:55.329Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:55.402Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:55.403Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:55.633Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:25:55.633Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:55.702Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:55.773Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:55.773Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:57.585Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:25:57.586Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:57.588Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:25:57.589Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:25:57.656Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:57.724Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:57.725Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:25:57.742Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:25:57.807Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:25:57.808Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:04.821Z - --- New Request: GET /70/view ---
+[AUTH_DEBUG] 2026-01-17T22:26:04.822Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:04.998Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:05.067Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:05.068Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:19.539Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:26:19.540Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:19.708Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:19.791Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:19.792Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:20.116Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:26:20.117Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:20.196Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:20.272Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:20.272Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:30.090Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:26:30.091Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:30.285Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:30.368Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:30.368Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:30.644Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:26:30.645Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:30.723Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:30.798Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:30.799Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:33.111Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:26:33.112Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:33.113Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:26:33.116Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:26:33.192Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:33.254Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:26:33.277Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:33.278Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:26:33.330Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:26:33.330Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:19.003Z - --- New Request: GET / ---
+[AUTH_DEBUG] 2026-01-17T22:27:19.003Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:19.290Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:19.387Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:19.388Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:19.583Z - --- New Request: GET / ---
+[AUTH_DEBUG] 2026-01-17T22:27:19.583Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:19.663Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:19.753Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:19.755Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:27.655Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:27:27.655Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:27.820Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:27.916Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:27.917Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:28.164Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:27:28.165Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:28.237Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:28.320Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:28.321Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:44.112Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:27:44.113Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:44.116Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:27:44.117Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:27:44.269Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:44.274Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:27:44.343Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:44.344Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:27:44.359Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:27:44.360Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:28:56.894Z - --- New Request: GET /70/view ---
+[AUTH_DEBUG] 2026-01-17T22:28:56.895Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:28:57.081Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:28:57.195Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:28:57.197Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:41.363Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-01-17T22:35:41.365Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:41.369Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-01-17T22:35:41.370Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:41.709Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:41.711Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:42.076Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:42.077Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:42.081Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:42.082Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:42.180Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-01-17T22:35:42.181Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:42.265Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:42.345Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:42.345Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:42.693Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-01-17T22:35:42.693Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:42.776Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:42.848Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:42.849Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:54.235Z - --- New Request: POST /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:35:54.237Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:54.392Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:54.471Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:54.472Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:57.182Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:35:57.182Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:57.252Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:57.324Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:57.325Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:35:57.644Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:35:57.644Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:35:57.750Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:35:57.818Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:35:57.819Z - User attached to request. Proceeding...
+[2026-01-17T22:39:52.756Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-01-17T22:43:30.444Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:43:30.450Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:30.881Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:31.006Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:31.007Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:31.364Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:43:31.365Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:31.438Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:31.554Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:31.554Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:33.010Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:43:33.067Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:33.072Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:43:33.073Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:33.146Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:33.287Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:33.288Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:33.392Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:33.486Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:33.487Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:57.351Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:43:57.351Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:57.493Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:57.563Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:57.563Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:57.569Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:43:57.570Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:57.605Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:43:57.606Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:57.620Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:43:57.621Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:57.640Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:57.717Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:57.718Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:57.742Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:57.760Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:57.815Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:57.816Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:57.837Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:57.839Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:58.044Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:43:58.045Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:58.110Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:58.178Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:58.179Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:43:58.229Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:43:58.230Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:43:58.330Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:43:58.398Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:43:58.398Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:02.753Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:44:02.754Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:02.758Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:44:02.759Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:02.911Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:02.984Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:02.985Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:02.988Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:03.075Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:03.076Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:07.704Z - --- New Request: GET /70/view ---
+[AUTH_DEBUG] 2026-01-17T22:44:07.704Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:07.917Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:08.017Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:08.018Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:23.756Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:44:23.757Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:23.846Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:44:23.847Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:24.044Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:24.125Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:24.354Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:24.355Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:24.357Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:24.359Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:24.361Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:44:24.361Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:24.373Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:44:24.374Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:24.449Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:24.525Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:24.627Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:24.628Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:24.710Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:24.711Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:24.731Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:44:24.732Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:24.819Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:25.041Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:44:25.042Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:25.110Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:25.375Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:25.376Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:25.388Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:25.389Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:38.103Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:44:38.104Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:38.108Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:44:38.109Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:44:38.282Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:38.290Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:44:38.373Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:38.373Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:44:38.375Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:44:38.376Z - User attached to request. Proceeding...
+[2026-01-17T22:45:27.467Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-01-17T22:57:08.058Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:57:08.061Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:08.274Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:57:08.276Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:08.586Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:08.611Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:08.964Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:08.965Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:08.972Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-01-17T22:57:08.972Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:08.976Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:08.977Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:09.005Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:57:09.006Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:09.068Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:09.136Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:09.213Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:09.213Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:09.273Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:09.273Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:09.299Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-01-17T22:57:09.301Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:09.383Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:09.487Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:09.488Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:09.661Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-01-17T22:57:09.663Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:09.738Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:09.823Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:09.824Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:13.527Z - --- New Request: PUT /conversations/3/read ---
+[AUTH_DEBUG] 2026-01-17T22:57:13.528Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:13.530Z - --- New Request: GET /conversations/3 ---
+[AUTH_DEBUG] 2026-01-17T22:57:13.531Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:13.610Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:13.622Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:13.686Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:13.686Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:13.697Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:13.697Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:20.410Z - --- New Request: POST /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:57:20.412Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:20.596Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:20.685Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:20.686Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:24.880Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:57:24.881Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:24.967Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:25.053Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:25.053Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-01-17T22:57:25.415Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-01-17T22:57:25.415Z - Token found in header.
+[AUTH_DEBUG] 2026-01-17T22:57:25.510Z - Token validated for user ID: e79c2344-4c38-401a-8795-3834f9248a5c
+[AUTH_DEBUG] 2026-01-17T22:57:25.609Z - Full user profile found: Leonard
+[AUTH_DEBUG] 2026-01-17T22:57:25.609Z - User attached to request. Proceeding...

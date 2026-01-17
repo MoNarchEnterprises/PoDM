@@ -118,6 +118,11 @@ export const getMessagesForConversation = async (conversation_id: string, userId
             const signedContent = await generateSignedUrlsForContent(tempContent);
             processedContent = { ...message.content, thumbnailUrl: signedContent.files[0].thumbnailUrl };
 
+            // Auto-unlock free content (price = 0)
+            if (processedContent.price === 0) {
+                processedContent.isUnlocked = true;
+            }
+
             // Check if content is in user's gallery (for fans only)
             if (message.content.contentId && userId === message.receiver_id) {
                 // Fetch the fan's gallery (content is a JSON array)
@@ -185,6 +190,11 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
             throw new AppError('Attached content could not be found.', 404);
         }
         messageData.content.thumbnailUrl = originalContent.files[0].thumbnailUrl;
+
+        // Auto-unlock free content (price = 0)
+        if (messageData.content.price === 0) {
+            messageData.content.isUnlocked = true;
+        }
     }
 
     const newMessageData = {

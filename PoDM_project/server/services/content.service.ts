@@ -17,6 +17,10 @@ import { generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../
 import * as StorageService from './storage.service';
 import * as NotificationService from './notification.service';
 
+// Set FFmpeg path explicitly
+const ffmpegPath = path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages', 'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-8.0.1-full_build', 'bin', 'ffmpeg.exe');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
 
 // Define a type for the query parameters for clarity
 interface ContentQuery {
