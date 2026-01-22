@@ -113,3 +113,9 @@ const voiceMessageMulterInstance = multer({
  * Processes one audio file from a field named 'voiceMessage'.
  */
 export const uploadVoiceMessage = createUploadMiddleware(voiceMessageMulterInstance.single('voiceMessage'));
+
+/**
+ * Middleware for handling a single image upload for AI captioning.
+ * Processes one image file from a field named 'image'.
+ */
+export const uploadAICaptionImage = createUploadMiddleware(multerInstance.single('image'));

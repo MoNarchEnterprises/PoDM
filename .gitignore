@@ -6,3 +6,9 @@ build/
 coverage/
 *.log
 .DS_Store
+
+# Local Automation & Data
+instagram_liker.ts
+scrape_ig.js
+cookies.json
+*.csv

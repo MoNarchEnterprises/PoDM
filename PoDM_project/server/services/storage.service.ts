@@ -28,20 +28,33 @@ export const uploadToPrivate = async (
     contentType: string,
     options?: { cacheControl?: string }
 ): Promise<{ path: string; error: Error | null }> => {
-    try {
-        const command = new PutObjectCommand({
-            Bucket: R2_BUCKETS.PRIVATE,
-            Key: path,
-            Body: buffer,
-            ContentType: contentType,
-            CacheControl: options?.cacheControl,
-        });
+    let lastError: Error | null = null;
+    const MAX_RETRIES = 3;
 
-        await r2Client.send(command);
-        return { path, error: null };
-    } catch (error) {
-        return { path: '', error: error as Error };
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const command = new PutObjectCommand({
+                Bucket: R2_BUCKETS.PRIVATE,
+                Key: path,
+                Body: buffer,
+                ContentType: contentType,
+                CacheControl: options?.cacheControl,
+            });
+
+            await r2Client.send(command);
+            return { path, error: null };
+        } catch (error) {
+            console.warn(`[R2] Upload failed for ${path} (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+            lastError = error as Error;
+
+            // Wait before retrying (exponential backoff: 500ms, 1000ms, 2000ms...)
+            if (attempt < MAX_RETRIES) {
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+            }
+        }
     }
+
+    return { path: '', error: lastError };
 };
 
 /**

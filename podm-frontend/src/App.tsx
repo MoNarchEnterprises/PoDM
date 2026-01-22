@@ -39,6 +39,7 @@ const CreatorMessages = React.lazy(() => import('./features/creator/CreatorMessa
 const CreatorAnalytics = React.lazy(() => import('./features/creator/CreatorAnalytics'));
 const CreatorEarnings = React.lazy(() => import('./features/creator/CreatorEarnings'));
 const CreatorSettings = React.lazy(() => import('./features/creator/CreatorSettings'));
+const BulkUploadPage = React.lazy(() => import('./features/creator/pages/BulkUploadPage'));
 
 
 // --- Import Admin Panel Components (Lazy Loaded) ---
@@ -319,6 +320,7 @@ const App = () => {
                                     <Route path="analytics" element={<CreatorAnalyticsLoader />} />
                                     <Route path="earnings" element={<CreatorEarningsLoader />} />
                                     <Route path="settings" element={<CreatorSettingsLoader />} />
+                                    <Route path="bulk-upload" element={<BulkUploadPage />} />
 
                                 </Route>
                             </Route>

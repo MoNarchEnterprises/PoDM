@@ -181,6 +181,7 @@ export const createNewContent = async (creator_id: string, contentData: Partial<
         );
 
         if (uploadError) {
+            console.error(`[ContentService] Upload failed for ${file.originalname}:`, uploadError);
             // If upload fails, attempt to clean up any files that might have been uploaded
             if (filePaths.length > 0) {
                 await StorageService.deleteFromPrivate(filePaths);

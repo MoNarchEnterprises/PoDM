@@ -16,7 +16,8 @@ export const createContent = async (req: Request, res: Response, next: NextFunct
         }
 
         const { title, description, type, visibility, tags } = req.body;
-        const price = req.body.price ? Number(req.body.price) : undefined;
+        // Fix: Convert price from dollars (float) to cents (integer) for DB storage
+        const price = req.body.price ? Math.round(Number(req.body.price) * 100) : undefined;
         const scheduleIsScheduled = req.body.scheduleIsScheduled === 'true';
         const schedulePublishDate = req.body.schedulePublishDate || undefined;
 

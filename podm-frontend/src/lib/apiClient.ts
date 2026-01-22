@@ -888,4 +888,23 @@ export const deleteNotification = async (notificationId: string) => {
     return response.data;
 };
 
+/**
+ * Generates an AI caption for an image URL.
+ * @param imageUrl The public URL of the image.
+ */
+export const generateCaption = (image: string | File) => {
+    if (typeof image === 'string') {
+        return apiClient.post<{ status: string; data: { caption: string } }>('/ai/caption', { imageUrl: image });
+    } else {
+        const formData = new FormData();
+        formData.append('image', image);
+        return apiClient.post<{ status: string; data: { caption: string } }>('/ai/caption', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+};
+
+// --- End of API Client ---
 export default apiClient;

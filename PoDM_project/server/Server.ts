@@ -35,6 +35,7 @@ import bodyParser from 'body-parser';
 
 
 import supportRoutes from './routes/support.routes';
+import aiRoutes from './routes/ai.routes';
 
 // Your other imports
 import authRoutes from './routes/auth.routes';
@@ -143,6 +144,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/stripe', stripeRoutes);
 app.use('/api/v1/support', supportRoutes);
+app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/contests', contestRoutes);
 

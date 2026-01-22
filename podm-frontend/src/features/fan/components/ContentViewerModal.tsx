@@ -181,14 +181,20 @@ const ContentViewerModal = ({ galleryItems, currentIndex, onClose, onNext, onPre
 
     // Compute modal classes based on full-size mode
     const modalClassName = isFullSize
-        ? "w-[95vw] h-[95vh] max-w-none bg-black/95 backdrop-blur-lg border border-gray-700 transition-all duration-300"
-        : "max-w-6xl w-full h-5/6 bg-black/80 backdrop-blur-lg border border-gray-700 transition-all duration-300";
+        ? "w-[95vw] h-[95vh] max-w-none bg-pink-700/95 backdrop-blur-lg border border-pink-500 transition-all duration-300"
+        : "max-w-6xl w-full h-5/6 bg-pink-700/95 backdrop-blur-lg border border-pink-500 transition-all duration-300";
 
     return (
         <Modal isOpen={currentIndex !== null} onClose={onClose} className={modalClassName}>
             <div className="relative flex flex-col h-full">
-                <header className="flex items-center justify-between p-2 text-white z-20">
-                    <h3 className="font-bold text-lg">{contentItem?.content?.title}</h3>
+                <header className="flex items-center justify-between p-4 text-white z-20 bg-gradient-to-b from-black/20 to-transparent">
+                    <h3 className="font-bold text-lg drop-shadow-md">{contentItem?.content?.title}</h3>
+                    <button
+                        onClick={onClose}
+                        className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                    >
+                        <X className="w-6 h-6 text-white drop-shadow-md" />
+                    </button>
                 </header>
 
                 {/* Main content area - scrollable when in full-size mode */}

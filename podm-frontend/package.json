@@ -15,6 +15,7 @@
     "@stripe/react-stripe-js": "^3.9.2",
     "@stripe/stripe-js": "^7.9.0",
     "@supabase/supabase-js": "^2.86.0",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.11.0",
     "eslint": "^9.38.0",
     "eslint-plugin-react": "^7.37.5",
@@ -24,10 +25,12 @@
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.8",
     "react-router-dom": "^7.8.0",
     "recharts": "^3.1.2",
     "socket.io-client": "^4.8.1",
-    "typescript-eslint": "^8.46.2"
+    "typescript-eslint": "^8.46.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",

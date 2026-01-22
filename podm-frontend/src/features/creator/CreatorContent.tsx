@@ -688,9 +688,18 @@ const CreatorContentPage = () => {
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and track your posts.</p>
                     </div>
                     {/* This button now opens the unified modal in create mode */}
-                    <Button onClick={handleOpenCreateModal} leftIcon={PlusCircle} className="mt-4 sm:mt-0">
-                        Upload New Content
-                    </Button>
+                    <div className="flex gap-2 mt-4 sm:mt-0">
+                        <Button
+                            variant="secondary"
+                            onClick={() => window.location.href = '/hub/bulk-upload'}
+                            leftIcon={UploadCloud}
+                        >
+                            Bulk Upload (AI)
+                        </Button>
+                        <Button onClick={handleOpenCreateModal} leftIcon={PlusCircle}>
+                            Upload New Content
+                        </Button>
+                    </div>
                 </header>
 
                 <Card noPadding>

@@ -21,9 +21,9 @@ export class AppError extends Error {
  * standardized JSON response.
  */
 export const errorHandler = (
-    err: Error, 
-    req: Request, 
-    res: Response, 
+    err: Error,
+    req: Request,
+    res: Response,
     next: NextFunction
 ) => {
     // Default to a 500 Internal Server Error if no specific status is set
@@ -35,8 +35,31 @@ export const errorHandler = (
         statusCode = err.statusCode;
         message = err.message;
     } else {
-        // You can add more specific error checks here if needed
-        // For example, handling Supabase or database-specific errors.
+        // Check if the error object has a status code (e.g., from OpenAI or other libs)
+        console.log('Error Handler Received Non-AppError:', {
+            name: err.name,
+            message: err.message,
+            stack: err.stack,
+            fullError: err
+        });
+
+        if ((err as any).status) {
+            statusCode = (err as any).status;
+        } else if ((err as any).statusCode) {
+            statusCode = (err as any).statusCode;
+        } else if ((err as any).code && typeof (err as any).code === 'number') {
+            // Sometimes 'code' is the status code (like 429)
+            statusCode = (err as any).code;
+        } else if ((err as any).error && (err as any).error.code && typeof (err as any).error.code === 'number') {
+            // OpenAI sometimes puts it in error.code
+            statusCode = (err as any).error.code;
+        }
+
+        // Use the error message if available, or fallback
+        if (err.message) {
+            message = err.message;
+        }
+
         console.error('UNHANDLED ERROR:', err);
     }
 
