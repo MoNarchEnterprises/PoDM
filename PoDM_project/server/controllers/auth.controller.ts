@@ -34,10 +34,10 @@ export const signupAndSubscribe = async (req: Request, res: Response, next: Next
  */
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, password, username, role } = req.body;
-        console.log('[Signup Controller] Received signup request:', { email, username, role });
+        const { email, password, username, role, referralCode } = req.body;
+        console.log('[Signup Controller] Received signup request:', { email, username, role, referralCode });
 
-        const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole);
+        const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole, referralCode);
 
         console.log(`[Signup Controller] User registered successfully: ${username} (${role})`);
         res.status(201).json({

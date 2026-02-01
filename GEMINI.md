@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project is a creator-fan interaction platform called PoDM (Proof of Digital Ownership and Monetization), similar to OnlyFans or FanVue. It enables creators to monetize their content through subscriptions and direct interactions with fans.
+This project is a creator-fan interaction platform called PoDM, similar to OnlyFans or FanVue. It enables creators to monetize their content through subscriptions and direct interactions with fans.
 
 The project is structured as a monorepo with two main parts:
 

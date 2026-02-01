@@ -36,6 +36,8 @@ import bodyParser from 'body-parser';
 
 import supportRoutes from './routes/support.routes';
 import aiRoutes from './routes/ai.routes';
+import enclaveRoutes from './routes/enclave.routes';
+import referralRoutes from './routes/referral.routes';
 
 // Your other imports
 import authRoutes from './routes/auth.routes';
@@ -147,6 +149,8 @@ app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/contests', contestRoutes);
+app.use('/api/v1/enclave', enclaveRoutes);
+app.use('/api/v1/referrals', referralRoutes);
 
 // Health Check Route - with explicit types to fix the linting error
 app.get('/', (req: Request, res: Response) => {

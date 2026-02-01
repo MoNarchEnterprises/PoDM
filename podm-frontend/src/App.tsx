@@ -22,6 +22,9 @@ import { useCreatorData } from './hooks/useCreatorData'; // Import the new hook
 
 // --- Import Page Components (Lazy Loaded) ---
 const SplashPage = React.lazy(() => import('./pages/SplashPage'));
+const Enclave = React.lazy(() => import('./pages/Enclave'));
+const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage'));
 const CreatorProfilePage = React.lazy(() => import('./features/profile/CreatorProfile'));
@@ -49,6 +52,7 @@ const UserManagementPanel = React.lazy(() => import('./features/admin/components
 const ContentModerationPanel = React.lazy(() => import('./features/admin/components/ContentModerationPanel'));
 const AnalyticsPanel = React.lazy(() => import('./features/admin/components/AnalyticsPanel'));
 const ReportsPanel = React.lazy(() => import('./features/admin/components/ReportsPanel'));
+const EnclaveApplications = React.lazy(() => import('./features/admin/EnclaveApplications'));
 const SupportTicketsPanel = React.lazy(() => import('./features/admin/components/SupportTicketsPanel'));
 const SettingsPanel = React.lazy(() => import('./features/admin/components/SettingsPanel'));
 
@@ -290,6 +294,9 @@ const App = () => {
                         <Routes>
                             {/* --- Public Routes --- */}
                             <Route path="/" element={<SplashPage />} />
+                            <Route path="/enclave" element={<Enclave />} />
+                            <Route path="/terms-of-service" element={<TermsOfService />} />
+                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                             <Route path="/creator/:username" element={<CreatorProfileLoader />} />
                             <Route path="/content/:contentId" element={<ContentViewerLoader />} />
 
@@ -328,6 +335,9 @@ const App = () => {
                             {/* --- Admin Routes (Protected) --- */}
                             <Route element={<ProtectedRoute requiredRole="admin" />}>
                                 <Route path="/admin" element={<AdminLayout />}>
+                                    {/* Enclave route - standalone, doesn't need AdminPanel data */}
+                                    <Route path="enclave" element={<EnclaveApplications />} />
+
                                     {/* The AdminPanel now acts as a data loader and provides the Outlet */}
                                     <Route element={<AdminPanel />}>
                                         <Route index element={<DashboardPanel />} />

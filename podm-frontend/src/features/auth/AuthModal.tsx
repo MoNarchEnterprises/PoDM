@@ -31,19 +31,46 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
+    const [referralCode, setReferralCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
     const { login, signup } = useAuth();
 
+    // Check for email and enclave parameters in URL
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        const enclaveParam = urlParams.get('enclave');
+        const refParam = urlParams.get('ref');
+
+        if (emailParam) {
+            setEmail(decodeURIComponent(emailParam));
+        }
+
+        if (refParam) {
+            setReferralCode(refParam.toUpperCase());
+        }
+
+        if (enclaveParam === 'true') {
+            setUserType('creator'); // Enclave members are creators
+            setMode('signup'); // Force signup mode
+        }
+    }, []);
+
     useEffect(() => {
         if (isOpen) {
             setMode(initialMode);
             setError('');
-            // Reset fields when opening
-            setEmail('');
-            setPassword('');
-            setUsername('');
+            // Only reset fields if not coming from Enclave link
+            const urlParams = new URLSearchParams(window.location.search);
+            const enclaveParam = urlParams.get('enclave');
+
+            if (enclaveParam !== 'true') {
+                setEmail('');
+                setPassword('');
+                setUsername('');
+            }
         }
     }, [initialMode, isOpen]);
 
@@ -52,6 +79,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
         setUsername('');
         setEmail('');
         setPassword('');
+        setReferralCode('');
         setError('');
         onClose();
     };
@@ -77,7 +105,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                     case 'fan': default: navigate('/fan/feed'); break;
                 }
             } else {
-                await signup(username, email, password, userType);
+                await signup(username, email, password, userType, referralCode);
                 if (userType === 'creator') {
                     navigate('/onboarding');
                 } else {
@@ -136,6 +164,31 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                             <Input id="email" type="email" label="Email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
 
                             <Input id="password" type="password" label="Password" placeholder="Password" leftIcon={KeyRound} value={password} onChange={e => setPassword(e.target.value)} required disabled={isLoading} />
+
+                            {mode === 'signup' && (
+                                <div>
+                                    <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Referral Code (Optional)
+                                    </label>
+                                    <input
+                                        id="referralCode"
+                                        type="text"
+                                        value={referralCode}
+                                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                                        disabled={isLoading || new URLSearchParams(window.location.search).get('ref') !== null}
+                                        className={`w-full px-4 py-3 rounded-lg border ${new URLSearchParams(window.location.search).get('ref') !== null
+                                            ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700 cursor-not-allowed'
+                                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+                                            } focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                                        placeholder="Enter referral code"
+                                    />
+                                    {new URLSearchParams(window.location.search).get('ref') && (
+                                        <p className="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                                            ✓ Referral code applied from link
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {mode === 'login' && (
                                 <div className="flex items-center justify-between text-sm">

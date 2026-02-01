@@ -16,6 +16,7 @@ import StatCard from '../../components/shared/StatCard';
 import { formatCurrency, timeAgo } from '../../lib/formatters';
 import Modal from '../../components/ui/Modal';
 import CreatorContestList from '../contests/CreatorContestList';
+import ReferralCodes from './ReferralCodes';
 
 // --- Local Types ---
 interface TransactionWithFan extends Transaction {
@@ -177,12 +178,7 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                             </div>
                         </Card>
 
-                        <Card noPadding>
-                            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h3></div>
-                            <div className="p-4 sm:p-6 divide-y divide-gray-200 dark:divide-gray-700 h-96 overflow-y-auto">
-                                {recentActivity.map((item, index) => <ActivityItem key={(item as any)._id || (item as any).id || `activity-${index}`} item={item} />)}
-                            </div>
-                        </Card>
+                        <ReferralCodes />
                     </div>
                 </div>
             </div>

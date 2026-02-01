@@ -20,7 +20,7 @@ interface AuthContextType {
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
     isLoading: boolean;
     login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
-    signup: (username: string, email: string, password: string, userType: UserRole) => Promise<void>;
+    signup: (username: string, email: string, password: string, userType: UserRole, referralCode?: string) => Promise<void>;
     logout: () => void;
     startImpersonation: (targetUser: User) => Promise<void>;
     stopImpersonation: () => void;

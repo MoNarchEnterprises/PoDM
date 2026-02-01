@@ -7,6 +7,7 @@ import supabase from '../config/supabaseClient';
 import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import * as SubscriptionService from './subscription.service';
 import * as UserModel from '../models/user.model';
+import * as ReferralModel from '../models/referral.model';
 
 
 // --- Local Supabase Client for Authentication ---
@@ -110,7 +111,7 @@ export const signupAndSubscribe = async (
 /**
  * Handles the business logic for registering a new user.
  */
-export const signupUser = async (email: string, password: string, username: string, role: UserRole) => {
+export const signupUser = async (email: string, password: string, username: string, role: UserRole, referralCode?: string) => {
     const { data: authData, error: authError } = await authSupabase.auth.signUp({
         email,
         password,
@@ -140,6 +141,68 @@ export const signupUser = async (email: string, password: string, username: stri
         // If profile creation fails, we must delete the auth user to prevent orphans
         await supabase.auth.admin.deleteUser(authData.user.id);
         throw new AppError('Database error creating profile.', 400);
+    }
+
+    // Check if this email matches an accepted Enclave application
+    try {
+        const { data: enclaveApp, error: enclaveError } = await supabase
+            .from('enclave_applications')
+            .select('id, referral_code')
+            .eq('email', email)
+            .eq('status', 'accepted')
+            .single();
+
+        if (!enclaveError && enclaveApp) {
+            console.log(`[AuthService] Found accepted Enclave application for ${email}. Linking to user account.`);
+
+            // Link user to referral application if they used a referral code
+            if (enclaveApp.referral_code) {
+                await ReferralModel.awardReferralBonus(enclaveApp.id, authData.user.id);
+                console.log(`[AuthService] Linked referral tracking for application ${enclaveApp.id}`);
+            }
+
+            // Grant Enclave benefits (10% fee tier)
+            await supabase
+                .from('profiles')
+                .update({
+                    is_enclave_member: true,
+                    enclave_joined_at: new Date().toISOString()
+                })
+                .eq('id', authData.user.id);
+
+            console.log(`[AuthService] Granted Enclave membership to user ${authData.user.id}`);
+        }
+    } catch (enclaveCheckError) {
+        // Don't fail signup if Enclave linking fails, just log it
+        console.error('[AuthService] Error checking/linking Enclave application:', enclaveCheckError);
+    }
+
+    // Track referral code for regular signups (non-Enclave)
+    if (referralCode && role === 'creator') {
+        try {
+            const referral = await ReferralModel.validateReferralCode(referralCode);
+            if (referral && referral.is_active) {
+                // Create a "virtual" application record for tracking
+                const { data: virtualApp, error: appError } = await supabase
+                    .from('enclave_applications')
+                    .insert({
+                        full_name: username,
+                        email: email,
+                        status: 'accepted', // Auto-accepted for regular signups
+                        referral_code: referralCode,
+                    })
+                    .select()
+                    .single();
+
+                if (!appError && virtualApp) {
+                    await ReferralModel.awardReferralBonus(virtualApp.id, authData.user.id);
+                    console.log(`[AuthService] Tracked referral code ${referralCode} for regular signup`);
+                }
+            }
+        } catch (referralError) {
+            // Don't fail signup if referral tracking fails
+            console.error('[AuthService] Error tracking referral code:', referralError);
+        }
     }
 
     // **FIX:** Use the session token directly from Supabase

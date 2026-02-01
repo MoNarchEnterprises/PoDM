@@ -142,6 +142,194 @@ const SplashPage = () => {
                     </Container>
                 </section>
 
+                {/* Value Proposition Section */}
+                <section className="py-20 bg-gray-950">
+                    <Container>
+                        <div className="text-center mb-16">
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                                Built Different. <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Built for Creators.</span>
+                            </h2>
+                            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+                                A platform that actually puts creators first
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                            {/* Privacy First */}
+                            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300">
+                                <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/30">
+                                    <Shield className="w-8 h-8 text-purple-400" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-3">Privacy First</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Your success stays private. We never use creator names or images in marketing. Discretion is our brand.
+                                </p>
+                            </div>
+
+                            {/* Creator-Owned Platform */}
+                            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-700/50 hover:border-pink-500/50 transition-all duration-300">
+                                <div className="w-16 h-16 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-6 border border-pink-500/30">
+                                    <Users className="w-8 h-8 text-pink-400" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-3">Creator-Owned Platform</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Shape features. Set priorities. Direct access to founders. This is YOUR platform.
+                                </p>
+                            </div>
+
+                            {/* Fair Economics */}
+                            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300">
+                                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/30">
+                                    <span className="text-3xl">💰</span>
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-3">Fair Economics</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Tiered fees (10-15%). Instant payouts. Keep more of what you earn.
+                                </p>
+                            </div>
+                        </div>
+                    </Container>
+                </section>
+
+                {/* Platform Comparison Section */}
+                <section className="py-20 bg-gray-900 border-t border-gray-800">
+                    <Container>
+                        <div className="text-center mb-12">
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                                Why Top Creators Choose PoDM
+                            </h2>
+                            <p className="text-xl text-gray-400">
+                                See how we stack up against the competition
+                            </p>
+                        </div>
+
+                        {/* Comparison Table */}
+                        <div className="max-w-5xl mx-auto overflow-x-auto">
+                            <div className="inline-block min-w-full align-middle">
+                                <div className="overflow-hidden rounded-2xl border border-gray-700">
+                                    <table className="min-w-full divide-y divide-gray-700">
+                                        <thead className="bg-gray-800/50">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Feature</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">OnlyFans</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Fansly</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Patreon</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white">PoDM</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-700 bg-gray-900/50">
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Platform Fee</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">20%</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">20%</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">5-12%</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">10-15% ✓<br /><span className="text-xs text-purple-400">(Enclave: 10%)</span></td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Payout Schedule</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Weekly</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Instant ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Privacy & Discretion</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Premium ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Creator Support</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Priority Direct Line ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Feature Input</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Limited</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Full Input ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Analytics</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Good</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Advanced ✓</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </Container>
+                </section>
+
+                {/* The Enclave CTA Section */}
+                <section className="py-20 bg-gradient-to-br from-purple-900/20 via-gray-900 to-pink-900/20 border-t border-gray-800">
+                    <Container>
+                        <div className="max-w-4xl mx-auto text-center">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
+                                <Star className="w-4 h-4 text-purple-400" />
+                                <span className="text-sm font-semibold text-purple-300">Limited Opportunity</span>
+                            </div>
+
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                                Join The Enclave
+                            </h2>
+                            <p className="text-xl text-gray-300 mb-8">
+                                Founding Creator Program - Only 50 Spots Available
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">💎</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">10% Platform Fee</h3>
+                                    <p className="text-sm text-gray-400">Keep 90% of earnings - for life</p>
+                                </div>
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">⚡</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">Instant Payouts</h3>
+                                    <p className="text-sm text-gray-400">Access your earnings immediately</p>
+                                </div>
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">🔒</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">Premium Privacy</h3>
+                                    <p className="text-sm text-gray-400">White-glove discretion guaranteed</p>
+                                </div>
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">🎧</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">Priority Support</h3>
+                                    <p className="text-sm text-gray-400">Direct line to dev team</p>
+                                </div>
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">💡</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">Shape the Platform</h3>
+                                    <p className="text-sm text-gray-400">Full input on features</p>
+                                </div>
+                                <div className="p-6 rounded-2xl bg-gray-800/40 border border-gray-700/50">
+                                    <div className="text-3xl mb-3">👑</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">Exclusive Status</h3>
+                                    <p className="text-sm text-gray-400">Enclave badge + private Discord</p>
+                                </div>
+                            </div>
+
+                            <a
+                                href="/enclave"
+                                className="inline-block px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
+                            >
+                                Apply to The Enclave
+                            </a>
+                            <p className="mt-4 text-sm text-gray-500">
+                                Limited to 50 founding creators • Application required
+                            </p>
+                        </div>
+                    </Container>
+                </section>
+
                 <Footer />
             </div>
         </>
