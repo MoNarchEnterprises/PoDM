@@ -246,11 +246,22 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
         try {
             if (status === 'accepted') {
                 const signupLink = `${process.env.CLIENT_URL}/signup?email=${encodeURIComponent(application.email)}&enclave=true`;
+                const discordInvite = process.env.DISCORD_ENCLAVE_INVITE_URL;
+
+                // Log warning if Discord invite is not configured
+                if (!discordInvite || discordInvite === 'https://discord.gg/your-invite-code') {
+                    console.warn('Discord invite URL not configured. Acceptance email will not include Discord link.');
+                }
+
+                // Plain text version
+                const plainTextSteps = discordInvite && discordInvite !== 'https://discord.gg/your-invite-code'
+                    ? `1. Create your creator account: ${signupLink}\n2. Join The Enclave Discord community: ${discordInvite}\n3. Complete your profile setup\n4. Start connecting with your audience`
+                    : `1. Create your creator account: ${signupLink}\n2. Complete your profile setup\n3. Start connecting with your audience\n\nYou'll receive a Discord invite separately.`;
 
                 await EmailService.sendEmail(
                     application.email,
                     '🎉 Welcome to The Enclave!',
-                    `Hi ${application.full_name},\n\nCongratulations! Your application to The Enclave has been accepted!\n\nYou're now part of an exclusive community of elite creators. Here's what to do next:\n\n1. Create your creator account: ${signupLink}\n2. Complete your profile setup\n3. Start connecting with your audience\n\nWe're excited to have you on board!\n\nBest regards,\nThe PoDM Team`,
+                    `Hi ${application.full_name},\n\nCongratulations! Your application to The Enclave has been accepted!\n\nYou're now part of an exclusive community of elite creators. Here's what to do next:\n\n${plainTextSteps}\n\nWe're excited to have you on board!\n\nBest regards,\nThe PoDM Team`,
                     `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 10px;">
                         <div style="background: white; padding: 30px; border-radius: 8px;">
@@ -262,6 +273,7 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
                                 <h3 style="color: #8B5CF6; margin-top: 0;">Next Steps:</h3>
                                 <ol style="color: #333; line-height: 1.8;">
                                     <li>Create your creator account using the button below</li>
+                                    ${discordInvite && discordInvite !== 'https://discord.gg/your-invite-code' ? '<li>Join The Enclave Discord community</li>' : ''}
                                     <li>Complete your profile setup</li>
                                     <li>Start connecting with your audience</li>
                                 </ol>
@@ -269,6 +281,15 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="${signupLink}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Create Your Account</a>
                             </div>
+                            ${discordInvite && discordInvite !== 'https://discord.gg/your-invite-code' ? `
+                            <div style="text-align: center; margin: 20px 0;">
+                                <a href="${discordInvite}" style="display: inline-block; background: #5865F2; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">💬 Join Enclave Discord</a>
+                            </div>
+                            ` : `
+                            <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+                                <p style="margin: 0; color: #92400E; font-size: 14px;">📧 Your Discord invite will be sent separately within 24 hours.</p>
+                            </div>
+                            `}
                             <p style="font-size: 14px; color: #666; margin-top: 20px;">Or copy this link: <a href="${signupLink}" style="color: #8B5CF6; word-break: break-all;">${signupLink}</a></p>
                             <p style="font-size: 16px; color: #333;">We're excited to have you on board!</p>
                             <p style="margin-top: 30px; color: #666;">Best regards,<br><strong style="color: #8B5CF6;">The PoDM Team</strong></p>
