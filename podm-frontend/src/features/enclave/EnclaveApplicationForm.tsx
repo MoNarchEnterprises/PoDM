@@ -2,6 +2,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import apiClient from '../../lib/apiClient';
 
 interface FormData {
     fullName: string;
@@ -103,20 +104,12 @@ export default function EnclaveApplicationForm() {
                 referralCode: formData.referralCode
             };
 
-            const response = await fetch('/api/v1/enclave/applications', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(applicationData)
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to submit application');
-            }
+            // Use apiClient which properly uses VITE_API_URL in production
+            await apiClient.post('/enclave/applications', applicationData);
 
             setSubmitted(true);
         } catch (err: any) {
-            setError(err.message || 'Something went wrong. Please try again.');
+            setError(err.response?.data?.error || err.message || 'Something went wrong. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -349,8 +342,8 @@ export default function EnclaveApplicationForm() {
                                 onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
                                 disabled={referralCodeFromUrl}
                                 className={`w-full px-4 py-3 rounded-lg border text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#6B46C1] focus:border-transparent ${referralCodeFromUrl
-                                        ? 'bg-gray-700/50 border-purple-500/50 cursor-not-allowed'
-                                        : 'bg-gray-800/50 border-gray-700'
+                                    ? 'bg-gray-700/50 border-purple-500/50 cursor-not-allowed'
+                                    : 'bg-gray-800/50 border-gray-700'
                                     }`}
                                 placeholder="Enter code"
                             />

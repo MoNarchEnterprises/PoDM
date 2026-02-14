@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import apiClient from '../../lib/apiClient';
 
 export default function EnclaveHero() {
     const [spotsRemaining, setSpotsRemaining] = useState<number | null>(null);
 
     useEffect(() => {
-        // Fetch spots remaining from API
-        fetch('/api/v1/enclave/spots-remaining')
-            .then(res => res.json())
-            .then(data => setSpotsRemaining(data.spotsRemaining))
-            .catch(() => setSpotsRemaining(42)); // Fallback
+        // Fetch spots remaining from API using apiClient (which uses VITE_API_URL)
+        apiClient.get('/enclave/spots-remaining')
+            .then(res => setSpotsRemaining(res.data.spotsRemaining))
+            .catch((error) => {
+                console.error('Failed to fetch spots remaining:', error);
+                setSpotsRemaining(null); // Show loading state instead of misleading fallback
+            });
     }, []);
 
     const scrollToForm = () => {
