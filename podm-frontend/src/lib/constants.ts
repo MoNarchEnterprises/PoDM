@@ -37,6 +37,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     { key: 'Reports', label: 'Reports', icon: FileText, href: '/admin/reports' },
     { key: 'Support Tickets', label: 'Support', icon: LifeBuoy, href: '/admin/support' },
     { key: 'Settings', label: 'Settings', icon: Settings, href: '/admin/settings' },
+    { key: 'Enclave Applications', label: 'Enclave', icon: Users, href: '/admin/enclave' },
 ];
 
 
@@ -62,13 +63,13 @@ export const CARD_ELEMENT_OPTIONS: StripeCardElementOptions = {
             // Use your brand's primary purple for the card icon
             iconColor: '#6B46C1',
             // Use a light text color that's easy to read on the dark modal background
-            color: '#F3F4F6', 
+            color: '#F3F4F6',
             fontFamily: 'sans-serif',
             fontSmoothing: 'antialiased',
             fontSize: '16px',
             '::placeholder': {
                 // Use your secondary text color for placeholders
-                color: '#6B7280', 
+                color: '#6B7280',
             },
         },
         invalid: {

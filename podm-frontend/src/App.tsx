@@ -337,6 +337,7 @@ const App = () => {
                                 <Route path="/admin" element={<AdminLayout />}>
                                     {/* Enclave route - standalone, doesn't need AdminPanel data */}
                                     <Route path="enclave" element={<EnclaveApplications />} />
+                                    <Route path="enclave-applications" element={<EnclaveApplications />} />
 
                                     {/* The AdminPanel now acts as a data loader and provides the Outlet */}
                                     <Route element={<AdminPanel />}>
