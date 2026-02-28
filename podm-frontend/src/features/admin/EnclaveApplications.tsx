@@ -43,7 +43,7 @@ export default function EnclaveApplications() {
     const fetchApplications = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get('/api/v1/enclave/applications');
+            const response = await apiClient.get('/enclave/applications');
             setApplications(response.data.applications);
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to fetch applications');
@@ -54,7 +54,7 @@ export default function EnclaveApplications() {
 
     const fetchSpotsRemaining = async () => {
         try {
-            const response = await apiClient.get('/api/v1/enclave/spots-remaining');
+            const response = await apiClient.get('/enclave/spots-remaining');
             setSpotsRemaining(response.data.spotsRemaining);
         } catch (err) {
             console.error('Failed to fetch spots remaining:', err);
