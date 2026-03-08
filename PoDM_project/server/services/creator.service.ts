@@ -586,3 +586,149 @@ export const getCreatorTiers = async (creatorId: string) => {
     const tiers = user.creator_data?.subscriptionTiers || [];
     return tiers;
 };
+
+/**
+ * Generates a CSV string containing creator analytics metrics.
+ * @param creator_id - The ID of the creator.
+ */
+export const exportMetricsCSV = async (creator_id: string): Promise<string> => {
+    const analyticsData = await getAnalyticsData(creator_id);
+
+    const rows: string[] = [];
+
+    // 1. Top Level Metrics
+    rows.push('--- Top Level Metrics ---');
+    rows.push('Metric,Value');
+    rows.push(`Total Subscribers,${analyticsData.metrics.totalSubscribers.value}`);
+    // Assuming revenue is in cents
+    rows.push(`Monthly Revenue (USD),${(analyticsData.metrics.monthlyRevenue.value / 100).toFixed(2)}`);
+    rows.push(`Total Content Views,${analyticsData.metrics.totalViews.value}`);
+    rows.push(`Gallery Adds,${analyticsData.metrics.galleryAdds.value}`);
+    rows.push('');
+
+    // 2. Revenue Breakdown
+    rows.push('--- Revenue Breakdown ---');
+    rows.push('Source,Amount (USD)');
+    analyticsData.revenueBreakdown.forEach(item => {
+        rows.push(`${item.name},${(item.value / 100).toFixed(2)}`);
+    });
+    rows.push('');
+
+    // 3. Top Content
+    rows.push('--- Top Performing Content ---');
+    rows.push('Title,Views,Gallery Adds,Tips (USD),PPV Earnings (USD)');
+    analyticsData.topContent.forEach(item => {
+        const title = item.title ? `"${item.title.replace(/"/g, '""')}"` : 'Untitled';
+        const views = item.stats.views || 0;
+        const galleryAdds = item.stats.galleryAdds || 0;
+        const tips = ((item.stats.tips || 0) / 100).toFixed(2);
+        const ppv = ((item.stats.ppvEarnings || 0) / 100).toFixed(2);
+        rows.push(`${title},${views},${galleryAdds},${tips},${ppv}`);
+    });
+
+    return rows.join('\\n');
+};
+
+/**
+ * Generates a CSV string containing fan engagement metrics.
+ * @param creator_id - The ID of the creator.
+ */
+export const exportFanEngagementCSV = async (creator_id: string): Promise<string> => {
+    // 1. Fetch all subscriptions (active and historical) for the creator
+    const { data: subscriptionsData, error: subsError } = await supabase
+        .from('subscriptions')
+        .select('*, fan:fan_id(id, username, email)')
+        .eq('creator_id', creator_id);
+
+    // 2. Fetch all cleared transactions
+    const { data: txData, error: txError } = await supabase
+        .from('transactions')
+        .select('fan_id, amount, type, created_at')
+        .eq('creator_id', creator_id)
+        .eq('status', 'Cleared');
+
+    // 3. Fetch analytics events
+    const { data: analyticsData, error: analyticsError } = await supabase
+        .from('analytics_events')
+        .select('viewer_id, event_type')
+        .eq('creator_id', creator_id);
+
+    // 4. Fetch creator's subscription tiers to map IDs to Names
+    const tiers = await getCreatorTiers(creator_id);
+    const tierMap = new Map<string, string>();
+    tiers.forEach((t: any) => tierMap.set(t.id, t.name));
+
+    // Aggregate data per fan
+    const fanStats: Record<string, any> = {};
+
+    if (subscriptionsData) {
+        subscriptionsData.forEach(sub => {
+            const fan = (sub as any).fan;
+            if (!fan) return;
+            if (!fanStats[fan.id]) {
+                fanStats[fan.id] = {
+                    username: fan.username || 'Unknown',
+                    email: fan.email || 'Unknown',
+                    tier: tierMap.get(sub.tier_id) || sub.tier_id || 'None',
+                    status: sub.status || 'inactive',
+                    createdAt: sub.created_at,
+                    tips: 0,
+                    spend: 0,
+                    views: 0,
+                    galleryAdds: 0,
+                };
+            } else if (sub.status === 'active') {
+                // If a user has multiple sub records, favor the active one
+                fanStats[fan.id].status = 'active';
+                fanStats[fan.id].tier = tierMap.get(sub.tier_id) || sub.tier_id || 'None';
+                // Keep the earliest creation date to maximize months subscribed
+                if (new Date(sub.created_at) < new Date(fanStats[fan.id].createdAt)) {
+                    fanStats[fan.id].createdAt = sub.created_at;
+                }
+            }
+        });
+    }
+
+    if (txData) {
+        txData.forEach(tx => {
+            const fanId = tx.fan_id;
+            if (!fanId) return;
+            if (!fanStats[fanId]) {
+                fanStats[fanId] = { username: 'Unknown', email: 'Unknown', tier: 'None', status: 'inactive', createdAt: tx.created_at, tips: 0, spend: 0, views: 0, galleryAdds: 0 };
+            }
+            fanStats[fanId].spend += (tx.amount || 0);
+            if (tx.type === 'Tip') {
+                fanStats[fanId].tips += (tx.amount || 0);
+            }
+        });
+    }
+
+    if (analyticsData) {
+        analyticsData.forEach(evt => {
+            const fanId = evt.viewer_id;
+            if (!fanId) return;
+            if (!fanStats[fanId]) {
+                fanStats[fanId] = { username: 'Unknown', email: 'Unknown', tier: 'None', status: 'inactive', createdAt: new Date().toISOString(), tips: 0, spend: 0, views: 0, galleryAdds: 0 };
+            }
+            if (evt.event_type === 'post_view') fanStats[fanId].views++;
+            if (evt.event_type === 'gallery_add') fanStats[fanId].galleryAdds++;
+        });
+    }
+
+    const rows: string[] = [];
+    rows.push('Username,Email,Status,Tier,Months Subscribed,Tips (USD),Total Spend (USD),Content Views,Gallery Adds');
+
+    Object.values(fanStats).forEach(stat => {
+        const username = `"${stat.username.replace(/"/g, '""')}"`;
+        const email = `"${stat.email.replace(/"/g, '""')}"`;
+        const daysSinceFirstAction = (new Date().getTime() - new Date(stat.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+        const monthsSubscribed = Math.max(1, Math.ceil(daysSinceFirstAction / 30));
+        
+        const tips = (stat.tips / 100).toFixed(2);
+        const spend = (stat.spend / 100).toFixed(2);
+
+        rows.push(`${username},${email},${stat.status},${stat.tier},${monthsSubscribed},${tips},${spend},${stat.views},${stat.galleryAdds}`);
+    });
+
+    return rows.join('\\n');
+};

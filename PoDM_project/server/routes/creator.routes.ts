@@ -1,7 +1,7 @@
 // /server/routes/creator.routes.ts
 
 import { Router } from 'express';
-import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity, getTiers, broadcastMessage } from '../controllers/creator.controller';
+import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity, getTiers, broadcastMessage, exportMetrics, exportFanEngagement } from '../controllers/creator.controller';
 import { protect, creatorOnly } from '../middleware/auth.middleware';
 import { uploadBanner } from '../middleware/upload.middleware';
 
@@ -30,6 +30,19 @@ router.put('/settings', protect, creatorOnly, uploadBanner, updateCreatorSetting
  */
 router.get('/analytics', protect, creatorOnly, getCreatorAnalytics);
 
+/**
+ * @route   GET /api/v1/creator/metrics/export
+ * @desc    Export creator metrics as CSV
+ * @access  Private (Creators only)
+ */
+router.get('/metrics/export', protect, creatorOnly, exportMetrics);
+
+/**
+ * @route   GET /api/v1/creator/metrics/export-fans
+ * @desc    Export fan engagement metrics as CSV
+ * @access  Private (Creators only)
+ */
+router.get('/metrics/export-fans', protect, creatorOnly, exportFanEngagement);
 
 /**
  * @route   GET /api/v1/creator/earnings

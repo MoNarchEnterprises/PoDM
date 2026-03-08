@@ -40,6 +40,59 @@ export const getCreatorAnalytics = async (req: Request, res: Response, next: Nex
         next(error);
     }
 };
+
+/**
+ * @desc    Export metrics to CSV
+ * @route   GET /api/v1/creator/metrics/export
+ * @access  Private (Creators only)
+ */
+export const exportMetrics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?.id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, creator ID not found.', 401);
+        }
+        const format = req.query.format as string;
+        if (format !== 'csv') {
+            throw new AppError('Unsupported format. Please use format=csv', 400);
+        }
+        
+        const csvData = await CreatorService.exportMetricsCSV(creatorId);
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=metrics_export.csv');
+        res.status(200).send(csvData);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Export fan engagement metrics to CSV
+ * @route   GET /api/v1/creator/metrics/export-fans
+ * @access  Private (Creators only)
+ */
+export const exportFanEngagement = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const creatorId = req.user?.id;
+        if (!creatorId) {
+            throw new AppError('Authentication error, creator ID not found.', 401);
+        }
+        const format = req.query.format as string;
+        if (format !== 'csv') {
+            throw new AppError('Unsupported format. Please use format=csv', 400);
+        }
+        
+        const csvData = await CreatorService.exportFanEngagementCSV(creatorId);
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=fan_engagement_export.csv');
+        res.status(200).send(csvData);
+    } catch (error) {
+        next(error);
+    }
+};
+
 /**
  * @desc    Get all data for the creator earnings page
  * @route   GET /api/v1/creator/earnings

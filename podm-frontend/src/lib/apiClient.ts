@@ -399,6 +399,26 @@ export const getCreatorAnalyticsData = async () => {
 };
 
 /**
+ * Exports the creator analytics metrics as a CSV string.
+ */
+export const exportCreatorMetricsCSV = async () => {
+    const response = await apiClient.get('/creator/metrics/export?format=csv', {
+        responseType: 'text', // Ensure it is treated as text
+    });
+    return response.data;
+};
+
+/**
+ * Exports the fan engagement metrics as a CSV string.
+ */
+export const exportCreatorFanEngagementCSV = async () => {
+    const response = await apiClient.get('/creator/metrics/export-fans?format=csv', {
+        responseType: 'text', 
+    });
+    return response.data;
+};
+
+/**
  * Logs an analytics event like a profile or post view.
  */
 export const logAnalyticsEvent = async (data: {

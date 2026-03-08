@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, DollarSign, Eye, Bookmark, MoreVertical, ArrowUp, ArrowDown, Edit, ExternalLink, ImageIcon, Music } from 'lucide-react';
+import { Users, DollarSign, Eye, Bookmark, MoreVertical, ArrowUp, ArrowDown, Edit, ExternalLink, ImageIcon, Music, Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // --- Import Shared Types ---
@@ -8,9 +8,11 @@ import { Content } from '@common/types/Content';
 
 // --- Import Reusable Components & Helpers ---
 import StatCard from '../../components/shared/StatCard';
+import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../lib/formatters';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import * as apiClient from '../../lib/apiClient';
+import { useToast } from '../../context/ToastContext';
 
 // --- Local Types ---
 interface KeyMetrics {
@@ -169,6 +171,9 @@ export interface CreatorAnalyticsPageProps {
 
 const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, topContent }: CreatorAnalyticsPageProps) => {
     const navigate = useNavigate();
+    const { addToast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
+    const [isExportingFans, setIsExportingFans] = useState(false);
     const COLORS = ['#6B46C1', '#EC4899', '#F59E0B'];
 
     // Sorting state - default to Tips descending
@@ -220,11 +225,85 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
         navigate(`/creator/content?edit=${id}`);
     };
 
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const csvData = await apiClient.exportCreatorMetricsCSV();
+            
+            // Create a blob from the CSV string
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create a temporary link element to trigger the download
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `metrics_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            addToast('success', 'Metrics exported successfully');
+        } catch (error) {
+            console.error('Failed to export metrics:', error);
+            addToast('error', 'Failed to export metrics. Please try again later.');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleExportFans = async () => {
+        try {
+            setIsExportingFans(true);
+            const csvData = await apiClient.exportCreatorFanEngagementCSV();
+            
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `fan_engagement_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            addToast('success', 'Fan engagement exported successfully');
+        } catch (error) {
+            console.error('Failed to export fan engagement:', error);
+            addToast('error', 'Failed to export fan engagement. Please try again later.');
+        } finally {
+            setIsExportingFans(false);
+        }
+    };
+
     return (
         <div className="p-4 sm:p-6 lg:p-8">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Track your performance and growth.</p>
+            <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Track your performance and growth.</p>
+                </div>
+                <div className="flex space-x-2">
+                    <Button 
+                        onClick={handleExportFans} 
+                        disabled={isExportingFans}
+                        variant="ghost"
+                        className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
+                    >
+                        <Download className="w-4 h-4" />
+                        <span>{isExportingFans ? 'Exporting Fans...' : 'Export Fan Data'}</span>
+                    </Button>
+                    <Button 
+                        onClick={handleExport} 
+                        disabled={isExporting}
+                        className="flex items-center space-x-2"
+                    >
+                        <Download className="w-4 h-4" />
+                        <span>{isExporting ? 'Exporting Stats...' : 'Export Analytics'}</span>
+                    </Button>
+                </div>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -265,7 +344,7 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                            <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
