@@ -6,7 +6,7 @@ export default function EnclaveValueProps() {
             icon: DollarSign,
             title: 'Better Economics',
             points: [
-                'Keep 90% of your earnings (vs 80% on OnlyFans)',
+                'Keep 90% of your earnings (vs 80% on other platforms)',
                 'Lifetime Enclave rate - never increases',
                 'Tiered fees reward your growth',
                 'Transparent, no hidden costs'
