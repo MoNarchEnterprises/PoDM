@@ -151,7 +151,7 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 </BarChart>
                             </ResponsiveContainer>
                         </Card>
-
+                        <ReferralCodes />
                         <Card noPadding>
                             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-gray-800 dark:text-white">Quick Actions</h3></div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 sm:p-6">
@@ -178,7 +178,6 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                             </div>
                         </Card>
 
-                        <ReferralCodes />
                     </div>
                 </div>
             </div>

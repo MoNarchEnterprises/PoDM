@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Copy, Check, Share2, TrendingUp, DollarSign, Percent } from 'lucide-react';
 import apiClient from '../../lib/apiClient';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 
 interface Referral {
     id: string;
@@ -80,63 +81,61 @@ export default function ReferralCodes() {
 
     if (referrals.length === 0) {
         return (
-            <div className="max-w-4xl mx-auto p-6">
-                <div className="bg-gray-900/40 backdrop-blur-lg border border-gray-700/50 rounded-xl p-8 text-center">
-                    <Share2 className="w-16 h-16 mx-auto mb-4 text-purple-400" />
-                    <h2 className="text-2xl font-bold text-white mb-2">Generate Your Referral Codes</h2>
-                    <p className="text-gray-400 mb-6">
-                        Get two unique referral codes to share with potential Enclave members and earn bonuses!
-                    </p>
-                    <Button
-                        onClick={generateCodes}
-                        isLoading={generating}
-                        className="bg-gradient-to-r from-[#6B46C1] to-[#EC4899] hover:from-[#553C9A] hover:to-[#D63384]"
-                    >
-                        Generate Referral Codes
-                    </Button>
-                </div>
-            </div>
+            <Card className="text-center">
+                <Share2 className="w-16 h-16 mx-auto mb-4 text-purple-400" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Generate Your Referral Codes</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Get two unique referral codes to share with potential Enclave members and earn bonuses!
+                </p>
+                <Button
+                    onClick={generateCodes}
+                    isLoading={generating}
+                    className="w-full bg-gradient-to-r from-[#6B46C1] to-[#EC4899] hover:from-[#553C9A] hover:to-[#D63384]"
+                >
+                    Generate Referral Codes
+                </Button>
+            </Card>
         );
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Referral Program</h1>
-                <p className="text-gray-400">Share your referral links and earn bonuses when creators join The Enclave</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Referral Program</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Earn bonuses by referring creators to The Enclave</p>
             </div>
 
             {/* Stats */}
             {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-900/40 backdrop-blur-lg border border-gray-700/50 rounded-xl p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 shadow-sm flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">
-                            <TrendingUp className="w-5 h-5 text-blue-400" />
-                            <span className="text-sm text-gray-400">Total Uses</span>
+                            <TrendingUp className="w-5 h-5 text-blue-500" />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Total Uses</span>
                         </div>
-                        <div className="text-3xl font-bold text-white">{stats.totalUses}</div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalUses}</div>
                     </div>
-                    <div className="bg-gray-900/40 backdrop-blur-lg border border-green-500/50 rounded-xl p-6">
+                    <div className="bg-white dark:bg-gray-800/40 border border-green-200 dark:border-green-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">
-                            <DollarSign className="w-5 h-5 text-green-400" />
-                            <span className="text-sm text-gray-400">Total Earned</span>
+                            <DollarSign className="w-5 h-5 text-green-500" />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Total Earned</span>
                         </div>
-                        <div className="text-3xl font-bold text-white">${stats.totalEarned.toFixed(2)}</div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">${stats.totalEarned.toFixed(2)}</div>
                     </div>
-                    <div className="bg-gray-900/40 backdrop-blur-lg border border-purple-500/50 rounded-xl p-6">
+                    <div className="bg-white dark:bg-gray-800/40 border border-purple-200 dark:border-purple-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">
-                            <DollarSign className="w-5 h-5 text-purple-400" />
-                            <span className="text-sm text-gray-400">Cash Referrals</span>
+                            <DollarSign className="w-5 h-5 text-purple-500" />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Cash Referrals</span>
                         </div>
-                        <div className="text-3xl font-bold text-white">{stats.cashReferrals}</div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.cashReferrals}</div>
                     </div>
-                    <div className="bg-gray-900/40 backdrop-blur-lg border border-pink-500/50 rounded-xl p-6">
+                    <div className="bg-white dark:bg-gray-800/40 border border-pink-200 dark:border-pink-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">
-                            <Percent className="w-5 h-5 text-pink-400" />
-                            <span className="text-sm text-gray-400">% Share Referrals</span>
+                            <Percent className="w-5 h-5 text-pink-500" />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">% Share Referrals</span>
                         </div>
-                        <div className="text-3xl font-bold text-white">{stats.percentageReferrals}</div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.percentageReferrals}</div>
                     </div>
                 </div>
             )}
@@ -144,97 +143,100 @@ export default function ReferralCodes() {
             {/* Referral Codes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {referrals.map((referral) => (
-                    <div
-                        key={referral.id}
-                        className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-lg border border-gray-700/50 rounded-xl p-6"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    {referral.bonus_type === 'cash' ? (
-                                        <DollarSign className="w-5 h-5 text-green-400" />
-                                    ) : (
-                                        <Percent className="w-5 h-5 text-pink-400" />
-                                    )}
-                                    <h3 className="text-lg font-semibold text-white">
-                                        {referral.bonus_type === 'cash' ? 'Cash Bonus' : 'Revenue Share'}
-                                    </h3>
+                    <Card key={referral.id} className="relative overflow-hidden" noPadding>
+                         <div className={`absolute top-0 left-0 w-1 h-full ${referral.bonus_type === 'cash' ? 'bg-green-500' : 'bg-pink-500'}`} />
+                         
+                         <div className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        {referral.bonus_type === 'cash' ? (
+                                            <DollarSign className="w-4 h-4 text-green-500" />
+                                        ) : (
+                                            <Percent className="w-4 h-4 text-pink-500" />
+                                        )}
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            {referral.bonus_type === 'cash' ? 'Cash Bonus' : 'Revenue Share'}
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        {referral.bonus_type === 'cash'
+                                            ? `$${referral.bonus_value} per referral`
+                                            : `${referral.bonus_value}% revenue share`
+                                        }
+                                    </p>
                                 </div>
-                                <p className="text-sm text-gray-400">
-                                    {referral.bonus_type === 'cash'
-                                        ? `$${referral.bonus_value} per referral`
-                                        : `${referral.bonus_value}% revenue share`
-                                    }
-                                </p>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${referral.is_active
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400'
+                                    }`}>
+                                    {referral.is_active ? 'Active' : 'Inactive'}
+                                </span>
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${referral.is_active
-                                ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                                : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
-                                }`}>
-                                {referral.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
 
-                        {/* Code Display */}
-                        <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
-                            <label className="text-xs text-gray-400 mb-2 block">Referral Code</label>
-                            <div className="font-mono text-lg text-white break-all">{referral.referral_code}</div>
-                        </div>
+                            <div className="space-y-3">
+                                {/* Link Display */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-100 dark:border-gray-800">
+                                    <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1 block">Referral Link</label>
+                                    <div className="text-sm font-medium text-purple-600 dark:text-purple-400 break-all line-clamp-1">{getReferralLink(referral.referral_code)}</div>
+                                </div>
 
-                        {/* Link Display */}
-                        <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
-                            <label className="text-xs text-gray-400 mb-2 block">Referral Link</label>
-                            <div className="text-sm text-purple-400 break-all">{getReferralLink(referral.referral_code)}</div>
-                        </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Uses</div>
+                                        <div className="text-lg font-bold text-gray-900 dark:text-white">{referral.uses_count}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Code</div>
+                                        <div className="text-lg font-mono font-bold text-gray-900 dark:text-white">{referral.referral_code}</div>
+                                    </div>
+                                </div>
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <div className="text-xs text-gray-400">Uses</div>
-                                <div className="text-xl font-bold text-white">{referral.uses_count}</div>
+                                <Button
+                                    onClick={() => copyToClipboard(referral.referral_code)}
+                                    size="sm"
+                                    className="w-full h-9 text-xs font-semibold flex items-center justify-center gap-2"
+                                >
+                                    {copiedCode === referral.referral_code ? (
+                                        <>
+                                            <Check className="w-3.5 h-3.5" />
+                                            Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="w-3.5 h-3.5" />
+                                            Copy Link
+                                        </>
+                                    )}
+                                </Button>
                             </div>
-                            <div>
-                                <div className="text-xs text-gray-400">Earned</div>
-                                <div className="text-xl font-bold text-white">${referral.total_bonus_earned.toFixed(2)}</div>
-                            </div>
-                        </div>
-
-                        {/* Copy Button */}
-                        <button
-                            onClick={() => copyToClipboard(referral.referral_code)}
-                            className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                        >
-                            {copiedCode === referral.referral_code ? (
-                                <>
-                                    <Check className="w-4 h-4" />
-                                    Copied!
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-4 h-4" />
-                                    Copy Link
-                                </>
-                            )}
-                        </button>
-                    </div>
+                         </div>
+                    </Card>
                 ))}
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-500/10 border border-blue-500/50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-2">How It Works</h3>
-                <ul className="space-y-2 text-gray-300">
-                    <li className="flex items-start gap-2">
-                        <span className="text-blue-400 mt-1">•</span>
-                        <span><strong>Cash Bonus:</strong> Earn ${referrals.find(r => r.bonus_type === 'cash')?.bonus_value || 50} when your referral earns $750 in their first month (+ $25 speed bonus if within 2 weeks)</span>
+            <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl p-6">
+                <h3 className="text-base font-semibold text-blue-900 dark:text-blue-400 mb-4 flex items-center gap-2">
+                    <Share2 className="w-5 h-5" />
+                    How It Works
+                </h3>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-blue-800 dark:text-gray-400">
+                    <li className="flex items-start gap-3">
+                        <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
+                        <span><strong>Cash Bonus:</strong> Earn ${referrals.find(r => r.bonus_type === 'cash')?.bonus_value || 50} when your referral earns $750 in their first month (+ $25 speed bonus if within 2 weeks).</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                        <span className="text-blue-400 mt-1">•</span>
-                        <span><strong>Revenue Share:</strong> Earn {referrals.find(r => r.bonus_type === 'percentage')?.bonus_value || 1}% of your referral's earnings for their first 6 months</span>
+                    <li className="flex items-start gap-3">
+                        <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
+                        <span><strong>Revenue Share:</strong> Earn {referrals.find(r => r.bonus_type === 'percentage')?.bonus_value || 1}% of your referral's earnings for their first 6 months.</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                        <span className="text-blue-400 mt-1">•</span>
-                        <span>Share the link with potential creators - the referral code will be automatically filled in their application</span>
+                    <li className="flex items-start gap-3">
+                        <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
+                        <span>Share the link with potential creators - the referral code will be automatically filled in their application.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
+                        <span>Track your earnings and referral success in real-time right here on your dashboard.</span>
                     </li>
                 </ul>
             </div>
