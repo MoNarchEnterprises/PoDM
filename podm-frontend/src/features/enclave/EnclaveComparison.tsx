@@ -2,13 +2,13 @@ import { Check, X } from 'lucide-react';
 
 export default function EnclaveComparison() {
     const features = [
-        { name: 'Creator Cut', podm: '90%', onlyfans: '80%', fansly: '80%', highlight: true },
-        { name: 'Platform Fee', podm: '10% (lifetime)', onlyfans: '20%', fansly: '20%', highlight: true },
-        { name: 'Content Protection', podm: 'Advanced watermarking', onlyfans: 'Basic', fansly: 'Basic', highlight: false },
-        { name: 'Privacy', podm: 'Velvet rope, private', onlyfans: 'Public profiles', fansly: 'Public profiles', highlight: false },
-        { name: 'Support', podm: 'Priority, direct access', onlyfans: 'Email only', fansly: 'Email only', highlight: false },
-        { name: 'Feature Input', podm: true, onlyfans: false, fansly: false, highlight: false },
-        { name: 'AI Content', podm: 'Fully supported', onlyfans: 'Restricted', fansly: 'Restricted', highlight: false }
+        { name: 'Creator Cut', podm: '90%', onlyfans: '80%', fansly: '80%', youtube: '70%', highlight: true },
+        { name: 'Platform Fee', podm: '10% (lifetime)', onlyfans: '20%', fansly: '20%', youtube: '30% (memberships)', highlight: true },
+        { name: 'Content Protection', podm: 'Advanced watermarking', onlyfans: 'Basic', fansly: 'Basic', youtube: 'Basic', highlight: false },
+        { name: 'Privacy', podm: 'Velvet rope, private', onlyfans: 'Public profiles', fansly: 'Public profiles', youtube: 'Public profiles', highlight: false },
+        { name: 'Support', podm: 'Priority, direct access', onlyfans: 'Email only', fansly: 'Email only', youtube: 'Email only', highlight: false },
+        { name: 'Feature Input', podm: true, onlyfans: false, fansly: false, youtube: false, highlight: false },
+        { name: 'AI Content', podm: 'Fully supported', onlyfans: 'Restricted', fansly: 'Restricted', youtube: 'Restricted', highlight: false }
     ];
 
     return (
@@ -26,7 +26,7 @@ export default function EnclaveComparison() {
             {/* Comparison table */}
             <div className="overflow-x-auto">
                 <div className="inline-block min-w-full align-middle">
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-5 gap-4">
                         {/* Header row */}
                         <div className="font-semibold text-gray-400 text-sm uppercase tracking-wider py-4">
                             Feature
@@ -42,10 +42,13 @@ export default function EnclaveComparison() {
                         <div className="text-center font-semibold text-gray-300 py-4">
                             Fansly
                         </div>
+                        <div className="text-center font-semibold text-gray-300 py-4">
+                            YouTube
+                        </div>
 
                         {/* Feature rows */}
                         {features.map((feature, index) => (
-                            <div key={index} className="col-span-4 grid grid-cols-4 gap-4 py-4 border-t border-gray-800">
+                            <div key={index} className="col-span-5 grid grid-cols-5 gap-4 py-4 border-t border-gray-800">
                                 {/* Feature name */}
                                 <div className="font-medium text-white flex items-center">
                                     {feature.name}
@@ -89,6 +92,19 @@ export default function EnclaveComparison() {
                                         )
                                     ) : (
                                         <span className="text-gray-400">{feature.fansly}</span>
+                                    )}
+                                </div>
+
+                                {/* YouTube value */}
+                                <div className="text-center flex items-center justify-center p-4 rounded-xl bg-gray-900/40">
+                                    {typeof feature.youtube === 'boolean' ? (
+                                        feature.youtube ? (
+                                            <Check className="w-6 h-6 text-green-400" />
+                                        ) : (
+                                            <X className="w-6 h-6 text-red-400" />
+                                        )
+                                    ) : (
+                                        <span className="text-gray-400">{feature.youtube}</span>
                                     )}
                                 </div>
                             </div>

@@ -214,6 +214,7 @@ const SplashPage = () => {
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">OnlyFans</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Fansly</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Patreon</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">YouTube</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white">PoDM</th>
                                             </tr>
                                         </thead>
@@ -223,6 +224,7 @@ const SplashPage = () => {
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">20%</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">20%</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">5-12%</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">30% <span className="text-xs">(memberships)</span></td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">10-15% ✓<br /><span className="text-xs text-purple-400">(Enclave: 10%)</span></td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
@@ -230,17 +232,20 @@ const SplashPage = () => {
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Weekly</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Instant ✓</td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
-                                                <td className="px-6 py-4 text-sm text-gray-300">Privacy & Discretion</td>
+                                                <td className="px-6 py-4 text-sm text-gray-300">Privacy &amp; Discretion</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Premium ✓</td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-300">Creator Support</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Email only</td>
@@ -251,12 +256,14 @@ const SplashPage = () => {
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Limited</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">None</td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Full Input ✓</td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-300">Analytics</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Basic</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Good</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Good</td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Advanced ✓</td>
                                             </tr>
