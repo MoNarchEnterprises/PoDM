@@ -5,8 +5,10 @@ import {
     Globe, Link,
     X,
     Send,
-    Music
+    Music,
+    Wallet as WalletIcon
 } from 'lucide-react';
+import WalletSettings from './WalletSettings';
 import { useAuth } from '../../hooks/useAuth';
 
 // --- Import Shared Types ---
@@ -682,6 +684,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
         { key: 'Account', label: 'Account', icon: UserIcon },
         { key: 'Welcome Message', label: 'Welcome Message', icon: MessageCircle },
         { key: 'Payments', label: 'Payments', icon: CreditCard },
+        { key: 'Crypto Wallet', label: 'Crypto Wallet', icon: WalletIcon },
         { key: 'Help', label: 'Help', icon: HelpCircle },
     ];
 
@@ -714,6 +717,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     onTierFeatureChange={handleTierFeatureChange}
                     onDeleteTierFeature={handleDeleteTierFeature}
                 />;
+            case 'Crypto Wallet':
+                return <WalletSettings />;
             case 'Help':
                 return <HelpPanel />;
             default:
