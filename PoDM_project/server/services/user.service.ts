@@ -8,12 +8,8 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import { SubscriptionTier } from '@common/types/Creator';
 import * as ContentModel from '../models/content.model';
 import * as SubscriptionModel from '../models/subscription.model';
-import stripe from '../config/stripeClient';
-import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
-import { getOrCreateStripeConnectedAccount } from './stripe.service';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../../server/utils/content.utils';
-import Stripe from 'stripe';
 import * as StorageService from './storage.service';
 
 
@@ -429,25 +425,12 @@ export const getFanSettings = async (fan_id: string) => {
 
     let paymentMethod = null;
 
-    if (user.stripe_customer_id) {
-        try {
-            const customer = await stripe.customers.retrieve(user.stripe_customer_id, {
-                expand: ['invoice_settings.default_payment_method'],
-            }) as Stripe.Customer;
-
-            const defaultPaymentMethod = customer.invoice_settings?.default_payment_method as any;
-            if (defaultPaymentMethod && defaultPaymentMethod.card) {
-                // --- THIS IS THE FIX ---
-                paymentMethod = {
-                    id: defaultPaymentMethod.id, // Include the Payment Method ID (pm_...)
-                    brand: defaultPaymentMethod.card.brand,
-                    last4: defaultPaymentMethod.card.last4,
-                };
-                // --- END OF FIX ---
-            }
-        } catch (error) {
-            console.error(`Failed to retrieve Stripe customer data for ${fan_id}:`, error);
-        }
+    if (user.crypto_wallet_address) {
+        paymentMethod = {
+            id: user.crypto_wallet_address,
+            brand: 'Base Wallet',
+            last4: user.crypto_wallet_address.slice(-4),
+        };
     }
 
     return {
@@ -496,23 +479,16 @@ export const updateFanSettings = async (fan_id: string, updates: any) => {
  * @param paymentMethodId - The `pm_...` ID from the frontend.
  */
 export const updateFanPaymentMethod = async (fan_id: string, paymentMethodId: string) => {
-    const stripeCustomerId = await getOrCreateStripeCustomer(fan_id);
-
     try {
-        await stripe.paymentMethods.attach(paymentMethodId, {
-            customer: stripeCustomerId,
-        });
-
-        await stripe.customers.update(stripeCustomerId, {
-            invoice_settings: {
-                default_payment_method: paymentMethodId,
-            },
-        });
-
-        return { success: true, message: 'Payment method updated successfully.' };
+        const { error } = await supabase
+            .from('profiles')
+            .update({ crypto_wallet_address: paymentMethodId })
+            .eq('id', fan_id);
+        if (error) throw error;
+        return { success: true, message: 'Crypto wallet successfully linked.' };
     } catch (error: any) {
-        console.error("Stripe payment method update error:", error);
-        throw new AppError(`Stripe Error: ${error.message}`, 500);
+        console.error("Wallet link error:", error);
+        throw new AppError(`Wallet Error: ${error.message}`, 500);
     }
 };
 
@@ -522,13 +498,5 @@ export const updateFanPaymentMethod = async (fan_id: string, paymentMethodId: st
  * @returns An object containing the clientSecret for the SetupIntent.
  */
 export const createSetupIntent = async (fanId: string) => {
-    const stripeCustomerId = await getOrCreateStripeCustomer(fanId);
-
-    const setupIntent = await stripe.setupIntents.create({
-        customer: stripeCustomerId,
-        usage: 'off_session', // Indicate this card will be charged later
-        automatic_payment_methods: { enabled: true },
-    });
-
-    return { clientSecret: setupIntent.client_secret };
+    return { clientSecret: 'web3_pure_payment_no_stripe_intent' };
 };

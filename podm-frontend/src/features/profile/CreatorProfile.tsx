@@ -1,4 +1,3 @@
-import { useStripe } from '@stripe/react-stripe-js';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -33,7 +32,6 @@ interface CreatorProfilePageProps {
 
 const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePageProps) => {
     const { user } = useAuth();
-    const stripe = useStripe();
 
     // State for the two different modals
     const { isOpen: isSubModalOpen, openModal: openSubModal, closeModal: closeSubModal } = useModal();
@@ -77,7 +75,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
             const freshCreator = response.data.creator;
             const freshTier = freshCreator.creatorData.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
 
-            if (!freshTier || !freshTier.stripePriceId) {
+            if (!freshTier) {
                 throw new Error("This tier is not available. Please refresh the page and try again.");
             }
 
@@ -129,19 +127,9 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
      * Handles the final payment confirmation for a logged-in user via SubscriptionModal.
      */
     const handleSubscriptionConfirm = async ({ creatorId, tierId, paymentMethodId }: { creatorId: string, tierId: string, paymentMethodId: string }) => {
-        if (!stripe) throw new Error("Stripe is not initialized.");
-
         try {
-            const result = await apiClient.createSubscription(creatorId, tierId, paymentMethodId);
-            const { requiresAction, clientSecret } = result.data;
-
-            if (requiresAction && clientSecret) {
-                const { error: confirmationError } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) throw new Error(confirmationError.message);
-                alert(`Your payment for ${creator.profile.name} is processing!`);
-            } else {
-                alert(`Successfully subscribed to ${creator.profile.name}!`);
-            }
+            await apiClient.createSubscription(creatorId, tierId, paymentMethodId);
+            alert(`Successfully subscribed to ${creator.profile.name}!`);
             window.location.reload(); // Refresh the page to show the new subscribed state
         } catch (err: any) {
             console.error("Subscription failed:", err);

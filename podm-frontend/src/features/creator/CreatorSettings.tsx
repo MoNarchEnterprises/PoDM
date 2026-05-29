@@ -234,8 +234,7 @@ const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange, onSelectContentC
     </SettingsCard>
 );
 
-const PaymentsSettingsPanel = ({
-    creator,
+const TiersSettingsPanel = ({
     tiers,
     onAddTier,
     onTierChange,
@@ -244,7 +243,6 @@ const PaymentsSettingsPanel = ({
     onTierFeatureChange,
     onDeleteTierFeature
 }: {
-    creator: Creator;
     tiers: SubscriptionTier[];
     onAddTier: () => void;
     onTierChange: (tierId: string, field: 'name' | 'price' | 'level', value: string | number) => void;
@@ -253,45 +251,11 @@ const PaymentsSettingsPanel = ({
     onTierFeatureChange: (tierId: string, featureIndex: number, value: string) => void;
     onDeleteTierFeature: (tierId: string, featureIndex: number) => void;
 }) => {
-    const [isConnecting, setIsConnecting] = useState(false);
-
-    const handleConnectStripe = async () => {
-        setIsConnecting(true);
-        try {
-            const response = await apiClient.createStripeOnboardingLink();
-            window.location.href = response.data.url; // Redirect the user to Stripe
-        } catch (error: any) {
-            alert(`Could not connect to Stripe: ${error.response?.data?.message || 'Please try again.'}`);
-            console.error(error);
-        } finally {
-            setIsConnecting(false);
-        }
-    };
-
     return (
         <SettingsCard
-            title="Subscription Tiers & Payouts"
-            subtitle="Manage your subscription options and connect your Stripe account for payouts."
+            title="Subscription Tiers"
+            subtitle="Manage your subscription tiers and benefits."
         >
-            {/* --- STRIPE CONNECTION STATUS --- */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg mb-6">
-                <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">Payout Settings</h4>
-                {creator.stripe_account_id ? (
-                    <div className="text-center py-4">
-                        <CheckCircle className="h-6 w-6 mx-auto text-green-500 mb-2" />
-                        <p className="text-sm font-medium text-green-700 dark:text-green-300">Stripe Account Connected!</p>
-                    </div>
-                ) : (
-                    <Button
-                        onClick={handleConnectStripe}
-                        isLoading={isConnecting}
-                        leftIcon={Link}
-                        className="w-full"
-                    >
-                        Connect with Stripe
-                    </Button>
-                )}
-            </div>
 
             {/* --- SUBSCRIPTION TIERS --- */}
             <div className="space-y-4">
@@ -683,7 +647,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
     const menuItems = [
         { key: 'Account', label: 'Account', icon: UserIcon },
         { key: 'Welcome Message', label: 'Welcome Message', icon: MessageCircle },
-        { key: 'Payments', label: 'Payments', icon: CreditCard },
+        { key: 'Subscription Tiers', label: 'Subscription Tiers', icon: CreditCard },
         { key: 'Crypto Wallet', label: 'Crypto Wallet', icon: WalletIcon },
         { key: 'Help', label: 'Help', icon: HelpCircle },
     ];
@@ -706,9 +670,8 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
                     onSelectContentClick={openWelcomeModal}
                     attachedContent={attachedContentDetails}
                 />;
-            case 'Payments':
-                return <PaymentsSettingsPanel
-                    creator={settingsData} // Pass the creator object
+            case 'Subscription Tiers':
+                return <TiersSettingsPanel
                     tiers={settingsData.creator_data?.subscriptionTiers || []}
                     onAddTier={handleAddTier}
                     onTierChange={handleTierChange}

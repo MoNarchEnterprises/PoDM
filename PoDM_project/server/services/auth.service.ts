@@ -4,7 +4,6 @@ import { AppError } from '../middleware/error.middleware';
 import { User, UserRole } from '@common/types/User';
 import { reshapeUserForApp } from "../utils/user.utils";
 import supabase from '../config/supabaseClient';
-import { getOrCreateStripeCustomer } from '../utils/stripe.utils';
 import * as SubscriptionService from './subscription.service';
 import * as UserModel from '../models/user.model';
 import * as ReferralModel from '../models/referral.model';

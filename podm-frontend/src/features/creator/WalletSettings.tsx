@@ -7,7 +7,6 @@ export const WalletSettings: React.FC = () => {
         walletAddress,
         balance,
         isLoading: isWalletLoading,
-        error: walletError,
         connectWallet,
         disconnectWallet
     } = useCryptoWallet();
@@ -16,6 +15,7 @@ export const WalletSettings: React.FC = () => {
     const [walletType, setWalletType] = useState<'embedded' | 'custom'>('embedded');
     const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain'>('debit_card');
     const [customAddress, setCustomAddress] = useState<string>('');
+    const [payoutNetwork, setPayoutNetwork] = useState<'base' | 'monad' | 'megaeth'>('base'); // Default is Base
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -24,6 +24,29 @@ export const WalletSettings: React.FC = () => {
     const [withdrawAmount, setWithdrawAmount] = useState<string>('');
     const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
     const [withdrawalStatus, setWithdrawalStatus] = useState<any>(null);
+
+    // Load initial wallet settings on mount
+    useEffect(() => {
+        const loadConfigs = async () => {
+            try {
+                const response = await fetch('/api/v1/payments/crypto/wallet');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.data) {
+                        setWalletType(result.data.walletType || 'embedded');
+                        setPayoutPreference(result.data.payoutPreference || 'debit_card');
+                        if (result.data.walletType === 'custom') {
+                            setCustomAddress(result.data.walletAddress || '');
+                        }
+                        setPayoutNetwork(result.data.payoutNetwork || 'base');
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load wallet configurations:", err);
+            }
+        };
+        loadConfigs();
+    }, []);
 
     // Auto-connect embedded wallet on render for mock demonstration
     useEffect(() => {
@@ -38,16 +61,26 @@ export const WalletSettings: React.FC = () => {
         setSaveMessage(null);
 
         try {
-            // Simulate saving configs to Express Backend (/api/v1/payments/crypto/wallet)
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            
             const payload = {
                 walletAddress: walletType === 'embedded' ? walletAddress : customAddress,
                 walletType,
-                payoutPreference: walletType === 'embedded' ? 'debit_card' : payoutPreference
+                payoutPreference: walletType === 'embedded' ? 'debit_card' : payoutPreference,
+                payoutNetwork
             };
 
-            console.log('[WalletSettings] Saved parameters:', payload);
+            const response = await fetch('/api/v1/payments/crypto/wallet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errResult = await response.json();
+                throw new Error(errResult.message || 'Failed to save settings.');
+            }
+
             setSaveMessage('Payout settings saved successfully!');
         } catch (err: any) {
             setSaveMessage('Failed to save settings: ' + err.message);
@@ -64,7 +97,6 @@ export const WalletSettings: React.FC = () => {
         try {
             const amountInCents = Math.round(parseFloat(withdrawAmount) * 100);
             
-            // Send API call to Express Backend (/api/v1/payments/crypto/withdraw)
             const response = await fetch('/api/v1/payments/crypto/withdraw', {
                 method: 'POST',
                 headers: {
@@ -87,6 +119,12 @@ export const WalletSettings: React.FC = () => {
         }
     };
 
+    const networkNames: Record<string, string> = {
+        base: 'Base Network (USDC) Active',
+        monad: 'Monad Network (USDC) Active',
+        megaeth: 'MegaETH Network (USDC) Active'
+    };
+
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 font-sans p-6 md:p-12">
             <div className="max-w-4xl mx-auto space-y-8">
@@ -103,7 +141,7 @@ export const WalletSettings: React.FC = () => {
                     {/* Network Badge */}
                     <div className="self-start px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-950/20 text-purple-300 text-xs font-semibold flex items-center gap-2">
                         <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                        Base Network (USDC) Enabled
+                        {networkNames[payoutNetwork] || 'Base Network (USDC) Active'}
                     </div>
                 </div>
 
@@ -211,13 +249,58 @@ export const WalletSettings: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Ecosystem payout network selector */}
+                            <div className="space-y-3 p-4 rounded-xl bg-gray-950/60 border border-gray-800/80">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+                                    Ecosystem Payout Network
+                                </label>
+                                <p className="text-2xs text-gray-400 leading-relaxed">
+                                    Choose the blockchain network where you want to receive USDC. Every payment you receive creates visible on-chain activity on your chosen network, helping PoDM qualify for ecosystem builder grants!
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'base' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
+                                        <input
+                                            type="radio"
+                                            name="payoutNetwork"
+                                            value="base"
+                                            checked={payoutNetwork === 'base'}
+                                            onChange={() => setPayoutNetwork('base')}
+                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
+                                        />
+                                        <span className="font-semibold text-white">Base L2 (Default)</span>
+                                    </label>
+                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'monad' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
+                                        <input
+                                            type="radio"
+                                            name="payoutNetwork"
+                                            value="monad"
+                                            checked={payoutNetwork === 'monad'}
+                                            onChange={() => setPayoutNetwork('monad')}
+                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
+                                        />
+                                        <span className="font-semibold text-white">Monad L1 (Testnet)</span>
+                                    </label>
+                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'megaeth' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
+                                        <input
+                                            type="radio"
+                                            name="payoutNetwork"
+                                            value="megaeth"
+                                            checked={payoutNetwork === 'megaeth'}
+                                            onChange={() => setPayoutNetwork('megaeth')}
+                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
+                                        />
+                                        <span className="font-semibold text-white">MegaETH L2 (Testnet)</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             {/* Conditional Panels */}
                             {walletType === 'embedded' ? (
                                 <div className="p-4 rounded-xl bg-gray-950/60 border border-gray-900 space-y-3">
                                     <p className="text-xs font-semibold text-purple-400">Embedded Payout Profile</p>
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
                                         <div>
-                                            <span className="text-gray-400">Your Base Wallet:</span>
+                                            <span className="text-gray-400">Your Wallet Address:</span>
                                             <code className="text-gray-300 ml-2 bg-gray-900 px-2 py-0.5 rounded text-[10px]">
                                                 {isWalletLoading ? 'Connecting...' : walletAddress}
                                             </code>
@@ -227,7 +310,7 @@ export const WalletSettings: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-[10px] text-gray-500 border-t border-gray-900 pt-3">
-                                        * Fees are fractions of a cent on Base. Withdrawals to linked debit cards occur immediately via our secure off-ramp engine.
+                                        * Fees are fractions of a cent. Withdrawals to linked debit cards occur immediately via our secure off-ramp engine.
                                     </div>
                                 </div>
                             ) : (
@@ -235,7 +318,7 @@ export const WalletSettings: React.FC = () => {
                                     <p className="text-xs font-semibold text-pink-400">Custom Wallet Details</p>
                                     
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Base Wallet Address (ERC-20)</label>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Wallet Address (ERC-20)</label>
                                         <input
                                             type="text"
                                             value={customAddress}

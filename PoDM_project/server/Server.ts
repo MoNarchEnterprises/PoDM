@@ -42,21 +42,16 @@ import referralRoutes from './routes/referral.routes';
 // Your other imports
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
-import stripeRoutes from './routes/stripe.routes';
 import creatorRoutes from './routes/creator.routes';
 import contentRoutes from './routes/content.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import messageRoutes from './routes/message.routes';
-import paymentRoutes from './routes/payment.routes';
 import cryptoPaymentRoutes from './routes/cryptoPayment.routes';
 import adminRoutes from './routes/admin.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import notificationRoutes from './routes/notification.routes';
 import contestRoutes from './routes/contest.routes';
 import { errorHandler } from './middleware/error.middleware';
-import { verifyStripeSignature } from './middleware/stripe.middleware';
-import { handleStripeWebhook } from './controllers/payments.controller';
-import { handleWebhook } from './controllers/stripe.controller';
 
 const app = express();
 const httpServer = createServer(app); // 3. Create an http server from our app
@@ -90,42 +85,7 @@ app.use(cors({
     credentials: true
 }));
 
-// Stripe webhook routes MUST come before app.use(express.json())
-// Custom middleware to capture raw body for Stripe webhooks
-app.use('/api/v1/payments/stripe/webhooks', (req, res, next) => {
-    logToFile('!!! HIT WEBHOOK (Custom Capture) !!!');
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk) => {
-        chunks.push(chunk);
-    });
-    req.on('end', () => {
-        const rawBody = Buffer.concat(chunks);
-        (req as any).rawBody = rawBody;
-        logToFile(`Captured raw body length: ${rawBody.length}`);
-        next();
-    });
-});
 
-app.post(
-    '/api/v1/payments/stripe/webhooks',
-    verifyStripeSignature,
-    handleStripeWebhook
-);
-
-// Alternative webhook endpoint for Stripe CLI
-app.post(
-    '/api/v1/webhooks/stripe',
-    (req, res, next) => {
-        logToFile('👉 Hit /api/v1/webhooks/stripe');
-        const chunks: Buffer[] = [];
-        req.on('data', (chunk) => chunks.push(chunk));
-        req.on('end', () => {
-            (req as any).rawBody = Buffer.concat(chunks);
-            next();
-        });
-    },
-    handleWebhook
-);
 
 // This middleware is for all other routes
 // Increase the body limit for JSON and URL-encoded requests.
@@ -142,11 +102,9 @@ app.use('/api/v1/creator', creatorRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/messages', messageRoutes);
-app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/payments/crypto', cryptoPaymentRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
-app.use('/api/v1/stripe', stripeRoutes);
 app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/notifications', notificationRoutes);

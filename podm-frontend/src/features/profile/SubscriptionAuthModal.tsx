@@ -1,18 +1,13 @@
 // src/features/profile/SubscriptionAuthModal.tsx
 
 import React, { useState } from 'react';
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useAuth } from '../../hooks/useAuth';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
-import * as apiClient from '../../lib/apiClient';
 import { Mail, KeyRound, User as UserIcon } from 'lucide-react';
-import { CARD_ELEMENT_OPTIONS } from '../../lib/constants';
-
-
 
 interface SubscriptionAuthModalProps {
     isOpen: boolean;
@@ -23,10 +18,8 @@ interface SubscriptionAuthModalProps {
 }
 
 const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLoginSuccess }: SubscriptionAuthModalProps) => {
-    const stripe = useStripe();
-    const elements = useElements();
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, signup } = useAuth();
     const [mode, setMode] = useState<'signup' | 'login'>('signup');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -36,57 +29,26 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!stripe || !elements) {
-            setError("Payment form is not ready. Please try again.");
-            return;
-        }
         setIsLoading(true);
         setError(null);
 
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) {
-            setError("Payment form is not available. Please refresh.");
-            setIsLoading(false);
-            return;
-        }
-
-        const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-        if (pmError || !paymentMethod) {
-            setError(pmError?.message || "Invalid card details.");
-            setIsLoading(false);
-            return;
-        }
-
         try {
             if (mode === 'signup') {
-                // --- THIS IS THE FIX ---
-                await apiClient.signupAndSubscribe({
-                    email,
-                    password,
-                    fullName,
-                    creatorId: creator.id,
-                    tierId: selectedTier.id,
-                    // The key must be `paymentMethodId` as the backend expects,
-                    // and the value is `paymentMethod.id` from the Stripe call above.
-                    paymentMethodId: paymentMethod.id,
-                });
-                // --- END OF FIX ---
+                // Generate a unique username from full name or email split
+                const usernameBase = fullName.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const username = `${usernameBase || 'fan'}_${Math.random().toString(36).substring(2, 6)}`;
+                
+                // Sign up using the useAuth hook
+                await signup(username, email, password, 'fan');
+                // Automatically log them in
                 await login(email, password);
-                onClose();
-                navigate('/fan/feed');
-
+                onLoginSuccess();
             } else { // Mode is 'login'
-                const loggedInUser = await login(email, password);
-                await apiClient.createSubscription(
-                    creator.id,
-                    selectedTier.id,
-                    paymentMethod.id
-                );
-                onClose();
-                navigate('/fan/feed');
+                await login(email, password);
+                onLoginSuccess();
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || "An error occurred.");
+            setError(err.response?.data?.message || err.message || "An authentication error occurred.");
         } finally {
             setIsLoading(false);
         }
@@ -94,55 +56,84 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            <header className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold">Subscribe to {creator.profile.name}</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                    You're getting the <span className="font-semibold text-purple-400">{selectedTier.name}</span> for <span className="font-semibold text-purple-400">${selectedTier.price.toFixed(2)}/month</span>.
+            <header className="p-6 border-b border-gray-700 bg-gradient-to-r from-purple-900/30 to-pink-900/30">
+                <h2 className="text-xl font-bold text-white">Subscribe to {creator.profile.name}</h2>
+                <p className="text-xs text-gray-400 mt-1">
+                    You're getting the <span className="font-semibold text-purple-400">{selectedTier.name}</span> for <span className="font-semibold text-purple-400">{selectedTier.price.toFixed(2)} USDC/month</span>.
                 </p>
             </header>
 
-            {/* --- NEW: TABS TO SWITCH BETWEEN MODES --- */}
-            <div className="grid grid-cols-2 text-center font-semibold border-b border-gray-700">
+            {/* TABS TO SWITCH BETWEEN MODES */}
+            <div className="grid grid-cols-2 text-center font-semibold border-b border-gray-800 bg-slate-900/40">
                 <button
+                    type="button"
                     onClick={() => setMode('signup')}
-                    className={`py-3 ${mode === 'signup' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
+                    className={`py-3 text-sm ${mode === 'signup' ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5' : 'text-gray-400 hover:text-gray-300'}`}
                 >
-                    New Fan
+                    New Fan Account
                 </button>
                 <button
+                    type="button"
                     onClick={() => setMode('login')}
-                    className={`py-3 ${mode === 'login' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
+                    className={`py-3 text-sm ${mode === 'login' ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5' : 'text-gray-400 hover:text-gray-300'}`}
                 >
-                    Existing Fan
+                    Log In
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="bg-slate-900">
                 <main className="p-6 space-y-6">
                     <div>
-                        <h3 className="text-md font-semibold text-gray-200 mb-2">
-                            {mode === 'signup' ? '1. Create Your Account' : '1. Log In To Your Account'}
+                        <h3 className="text-sm font-semibold text-purple-300 mb-3 uppercase tracking-wider">
+                            {mode === 'signup' ? '1. Create Your Fan Profile' : '1. Sign In To Your Account'}
                         </h3>
                         <div className="space-y-4">
-                            {/* --- 3. ADD THE FULL NAME INPUT (only for signup mode) --- */}
                             {mode === 'signup' && (
-                                <Input id="fullName" type="text" placeholder="Full Name (on card)" leftIcon={UserIcon} value={fullName} onChange={e => setFullName(e.target.value)} required />
+                                <Input
+                                    id="fullName"
+                                    type="text"
+                                    placeholder="Full Name"
+                                    leftIcon={UserIcon}
+                                    value={fullName}
+                                    onChange={e => setFullName(e.target.value)}
+                                    required
+                                    className="bg-slate-800 border-slate-700 text-white placeholder-gray-500"
+                                />
                             )}
-                            <Input id="email" type="email" placeholder="Email Address" leftIcon={Mail} value={email} onChange={e => setEmail(e.target.value)} required />
-                            <Input id="password" type="password" placeholder="Password" leftIcon={KeyRound} value={password} onChange={e => setPassword(e.target.value)} required />
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="Email Address"
+                                leftIcon={Mail}
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                required
+                                className="bg-slate-800 border-slate-700 text-white placeholder-gray-500"
+                            />
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Password"
+                                leftIcon={KeyRound}
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                required
+                                className="bg-slate-800 border-slate-700 text-white placeholder-gray-500"
+                            />
                         </div>
                     </div>
-                    <div>
-                        <h3 className="text-md font-semibold text-gray-200 mb-2">2. Enter Payment Details</h3>
-                        <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
-                            <CardElement options={CARD_ELEMENT_OPTIONS} />
-                        </div>
+
+                    <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-800 text-xs text-gray-400">
+                        <p className="leading-relaxed">
+                            💡 **What's Next?** After creating or logging into your account, you will connect your crypto wallet to authorize the autopilot monthly USDC recurring payment.
+                        </p>
                     </div>
-                    {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+                    {error && <p className="text-sm text-red-400 text-center font-medium">{error}</p>}
                 </main>
-                <footer className="p-6 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <Button type="submit" isLoading={isLoading} disabled={!stripe || isLoading}>
-                        {mode === 'signup' ? 'Sign Up & Pay' : 'Log In & Pay'} ${selectedTier.price.toFixed(2)}
+                <footer className="p-6 bg-slate-950 border-t border-gray-800 flex justify-end">
+                    <Button type="submit" isLoading={isLoading} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-6 shadow-md border-none">
+                        {mode === 'signup' ? 'Sign Up & Continue' : 'Log In & Continue'}
                     </Button>
                 </footer>
             </form>

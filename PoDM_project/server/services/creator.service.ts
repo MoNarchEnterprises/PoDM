@@ -9,7 +9,7 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import supabase from '../../server/config/supabaseClient';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
 import * as AnalyticsService from './analytics.service';
-import stripe from '../config/stripeClient';
+import * as CryptoPaymentService from './cryptoPayment.service';
 import { Content } from '@common/types/Content';
 import * as StorageService from './storage.service';
 
@@ -389,21 +389,21 @@ export const getEarningsData = async (creator_id: string) => {
  * @param amountInCents - The amount they wish to withdraw, in cents.
  */
 export const createPayout = async (creatorId: string, amountInCents: number) => {
-    // 1. Fetch the creator's full profile to get their Stripe account ID and current balance.
+    // 1. Fetch the creator's full profile to get their crypto wallet address and current balance.
     const creator = await UserModel.findUserById(creatorId);
     if (!creator) {
         throw new AppError('Creator not found.', 404);
     }
 
-    // 2. Security and validation checks
-    if (!creator.stripe_account_id) {
-        throw new AppError('No Stripe connected account found. Please set up payments in your settings.', 400);
+    const walletConfig = await CryptoPaymentService.getUserWalletConfig(creatorId);
+    if (!walletConfig.walletAddress) {
+        throw new AppError('Please configure your payout wallet address before withdrawing.', 400);
     }
     if (amountInCents <= 0) {
         throw new AppError('Payout amount must be positive.', 400);
     }
 
-    // 3. Recalculate their available balance on the server to prevent race conditions.
+    // 2. Recalculate their available balance on the server to prevent race conditions.
     const { data: clearedTransactions, error } = await supabase
         .from('transactions')
         .select('creator_payout')
@@ -419,34 +419,12 @@ export const createPayout = async (creatorId: string, amountInCents: number) => 
     }
 
     try {
-        // 4. Create a Stripe Transfer from the platform's account to the creator's connected account.
-        const transfer = await stripe.transfers.create({
-            amount: amountInCents,
-            currency: 'usd',
-            destination: creator.stripe_account_id,
-            description: `Payout for ${creator.username} on PoDM`,
-            metadata: {
-                pod_creator_id: creatorId,
-            },
-        });
-
-        // 5. Record this withdrawal as a "Payout" transaction in our database.
-        // We use a negative value for the payout amount to correctly decrease their balance.
-        await TransactionModel.createTransaction({
-            creator_id: creatorId,
-            type: 'Payout',
-            amount: 0, // No fan involved
-            platform_fee: 0,
-            creator_payout: -amountInCents, // This is a debit from their earnings
-            status: 'Cleared', // Or 'Pending' depending on the transfer status
-            payment_gateway_id: transfer.id, // Store the Stripe Transfer ID (tr_...)
-        });
-
-        return { success: true, message: 'Payout successfully initiated.' };
-
+        // 3. Delegate to the CryptoPaymentService debit card off-ramp or on-chain transfer
+        const result = await CryptoPaymentService.processDebitCardOffRamp(creatorId, amountInCents);
+        return { success: true, message: 'USDC Payout successfully initiated.', transferId: result.transferId };
     } catch (error: any) {
-        console.error("Stripe Transfer creation error:", error);
-        throw new AppError(`Stripe Error: ${error.message}`, 500);
+        console.error("USDC Payout creation error:", error);
+        throw new AppError(`Payout Error: ${error.message}`, 500);
     }
 };
 

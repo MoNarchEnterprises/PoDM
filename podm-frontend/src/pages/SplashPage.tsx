@@ -228,12 +228,36 @@ const SplashPage = () => {
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">10-15% ✓<br /><span className="text-xs text-purple-400">(Enclave: 10%)</span></td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Chargeback Fraud</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">1-5% lost to scams</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">1-5% lost to scams</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">1-3% lost to scams</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Medium risk</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">0% (USDC Immutable Ledger) ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Processor Censorship</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">High Risk (Bans/Holds)</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">High Risk (Bans/Holds)</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">Medium Risk</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">High Risk (Demonetization)</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Zero Risk (Base L2 Blockchain) ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-300">Processing Fees</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~3% Stripe cut</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~3% Stripe cut</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">3% + credit card fees</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">30% total cut</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">&lt; $0.01 Sub-penny Gas ✓</td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-800/30 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-300">Payout Schedule</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Weekly</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">Monthly</td>
-                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Instant ✓</td>
+                                                <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">Instant / Direct-to-Wallet ✓</td>
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-300">Privacy &amp; Discretion</td>
