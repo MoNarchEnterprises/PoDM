@@ -27318,3 +27318,94 @@
 [AUTH_DEBUG] 2026-03-08T02:43:51.771Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
 [AUTH_DEBUG] 2026-03-08T02:43:52.251Z - Full user profile found: ashleighfoxx
 [AUTH_DEBUG] 2026-03-08T02:43:52.251Z - User attached to request. Proceeding...
+[2026-05-29T21:38:59.651Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-05-29T21:47:05.476Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-05-29T21:47:05.478Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:05.551Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:05.639Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:05.640Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:06.142Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-05-29T21:47:06.143Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:06.157Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-05-29T21:47:06.161Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:06.217Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:06.313Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:06.314Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:06.333Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-05-29T21:47:06.334Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:06.377Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:06.402Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:06.483Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:06.484Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:06.492Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-05-29T21:47:06.493Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:06.509Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:06.510Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:06.551Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:06.633Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:06.634Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:10.673Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-05-29T21:47:10.674Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:10.676Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-05-29T21:47:10.677Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:10.743Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:10.833Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:10.834Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:10.849Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-05-29T21:47:10.849Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:10.907Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:10.937Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:11.003Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:11.004Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:11.035Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:11.036Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:11.100Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-05-29T21:47:11.101Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:11.164Z - Token validated for user ID: 3683200e-9bdd-44e7-b8b4-cb96db23bee2
+[AUTH_DEBUG] 2026-05-29T21:47:11.256Z - Full user profile found: fan
+[AUTH_DEBUG] 2026-05-29T21:47:11.257Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:12.648Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-05-29T21:47:12.649Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:12.651Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-05-29T21:47:12.651Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:12.706Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:12.733Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:12.768Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:12.769Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:12.810Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:12.811Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:13.928Z - --- New Request: GET /my-codes ---
+[AUTH_DEBUG] 2026-05-29T21:47:13.929Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:13.932Z - --- New Request: GET /stats ---
+[AUTH_DEBUG] 2026-05-29T21:47:13.933Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:13.936Z - --- New Request: GET /my-codes ---
+[AUTH_DEBUG] 2026-05-29T21:47:13.937Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:13.940Z - --- New Request: GET /stats ---
+[AUTH_DEBUG] 2026-05-29T21:47:13.940Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:13.991Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.005Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.011Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.018Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.055Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.055Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.073Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.074Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.078Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.078Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.094Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.095Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.723Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-05-29T21:47:14.723Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:14.725Z - --- New Request: GET /creator/my ---
+[AUTH_DEBUG] 2026-05-29T21:47:14.726Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:14.789Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.808Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:14.855Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.855Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.888Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:14.889Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-05-29T21:47:14.945Z - --- New Request: GET /tiers ---
+[AUTH_DEBUG] 2026-05-29T21:47:14.946Z - Token found in header.
+[AUTH_DEBUG] 2026-05-29T21:47:15.005Z - Token validated for user ID: 7253e7c3-2413-49bd-971d-aa687a593725
+[AUTH_DEBUG] 2026-05-29T21:47:15.074Z - Full user profile found: creator
+[AUTH_DEBUG] 2026-05-29T21:47:15.075Z - User attached to request. Proceeding...
