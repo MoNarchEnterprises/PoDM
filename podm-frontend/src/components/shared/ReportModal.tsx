@@ -1,19 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
-
-// --- Reusable Modal Component ---
-// In a real app, this might be imported from a generic ui/Modal.tsx file
-const Modal = ({ isOpen, onClose, children, className = '' }: { isOpen: boolean; onClose: () => void; children: React.ReactNode; className?: string }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col relative ${className}`}>
-                {children}
-            </div>
-        </div>
-    );
-};
-
+import Modal from '../ui/Modal';
 
 // --- Main Report Modal Component ---
 interface ReportModalProps {
@@ -44,7 +31,6 @@ const ReportModal = ({ isOpen, onClose, reportType, targetName, onSubmit }: Repo
     const [details, setDetails] = useState('');
 
     const handleSubmit = () => {
-        // In a real app, you would perform validation here before submitting.
         onSubmit(reason, details);
         onClose(); // Close the modal after submission
     };
@@ -62,14 +48,14 @@ const ReportModal = ({ isOpen, onClose, reportType, targetName, onSubmit }: Repo
             </header>
             <main className="p-6 space-y-4">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    You are reporting {reportType === 'Content' ? `a post by` : ''} <span className="font-bold text-gray-700 dark:text-gray-200">{targetName}</span>.
+                    You are reporting {reportType === 'Content' ? `a post by`: ''} <span className="font-bold text-gray-700 dark:text-gray-200">{targetName}</span>.
                 </p>
                 <div>
                     <label htmlFor="reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Reason for report
                     </label>
-                    <select 
-                        id="reason" 
+                    <select
+                        id="reason"
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -85,19 +71,19 @@ const ReportModal = ({ isOpen, onClose, reportType, targetName, onSubmit }: Repo
                     <label htmlFor="details" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Additional Details (Optional)
                     </label>
-                    <textarea 
-                        id="details" 
-                        rows={4} 
+                    <textarea
+                        id="details"
+                        rows={4}
                         value={details}
                         onChange={(e) => setDetails(e.target.value)}
-                        placeholder="Please provide any additional information..." 
+                        placeholder="Please provide any additional information..."
                         className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     ></textarea>
                 </div>
             </main>
             <footer className="p-6 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                <button 
-                    onClick={handleSubmit} 
+                <button
+                    onClick={handleSubmit}
                     className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
                 >
                     Submit Report

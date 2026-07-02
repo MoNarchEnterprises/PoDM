@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
 
@@ -13,6 +13,8 @@ import Modal from '../../components/ui/Modal';
 import { useModal } from '../../hooks/useModal';
 import * as apiClient from '../../lib/apiClient';
 
+import SettingsCard from '../../components/shared/SettingsCard';
+import ToggleSwitch from '../../components/shared/ToggleSwitch';
 // --- Local Type Definitions ---
 export interface FanSettingsData {
     notifications: { newContent?: boolean; creatorLive?: boolean; emailPromotions?: boolean; };
@@ -20,25 +22,6 @@ export interface FanSettingsData {
     paymentMethod: { brand: string; last4: string; };
 }
 
-// --- Reusable Sub-Components ---
-
-const SettingsCard = ({ title, subtitle, children, footerContent }: { title: string; subtitle?: string; children: React.ReactNode; footerContent?: React.ReactNode; }) => (
-    <Card noPadding>
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-            {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
-        </div>
-        <div className="p-6 space-y-4">{children}</div>
-        {footerContent && (<footer className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center gap-4">{footerContent}</footer>)}
-    </Card>
-);
-
-const ToggleSwitch = ({ label, description, enabled, setEnabled }: { label: string; description?: string; enabled: boolean; setEnabled: (enabled: boolean) => void; }) => (
-    <div className="flex items-center justify-between py-2">
-        <div><p className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</p>{description && <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>}</div>
-        <button onClick={() => setEnabled(!enabled)} className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${enabled ? 'bg-purple-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`} /></button>
-    </div>
-);
 
 const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean; onClose: () => void; onUpdateSuccess: () => void; }) => {
     const stripe = useStripe();

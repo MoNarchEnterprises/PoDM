@@ -1,44 +1,18 @@
-import React from 'react';
-import { type  LucideIcon, ArrowUp, ArrowDown } from 'lucide-react';
-
-// --- Reusable Card Component (base) ---
-// In a real app, this might be imported from a generic ui/Card.tsx file
-const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-    <div className={`bg-white dark:bg-gray-800/50 rounded-xl shadow-md p-4 ${className}`}>
-        {children}
-    </div>
-);
+﻿import React from 'react';
+import { type LucideIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import Card from '../ui/Card';
 
 // --- Main Stat Card Component ---
 interface StatCardProps {
-    /**
-     * The title of the metric being displayed.
-     */
     title: string;
-    /**
-     * The main value of the metric.
-     */
     value: string;
-    /**
-     * The icon to display in the corner of the card.
-     */
     icon: LucideIcon;
-    /**
-     * The color theme for the icon.
-     */
     color: 'purple' | 'pink' | 'green' | 'blue';
-    /**
-     * Optional: A numerical value representing the change over a period.
-     * Positive for an increase, negative for a decrease.
-     */
     change?: number;
-    /**
-     * Optional: A label for the change value (e.g., "this month").
-     */
     changeLabel?: string;
 }
 
-const StatCard = ({ title, value, icon: Icon, color, change, changeLabel = "this month" }: StatCardProps) => {
+const StatCard = ({ title, value, icon: Icon, color, change, changeLabel = 'this month' }: StatCardProps) => {
     const isPositiveChange = change !== undefined && change >= 0;
 
     return (

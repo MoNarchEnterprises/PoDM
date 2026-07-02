@@ -1,4 +1,4 @@
-// src/features/creator/CreatorMessages.tsx
+﻿// src/features/creator/CreatorMessages.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import MessageBubble from '../messages/components/MessageBubble';
 import { Message, MessageContent } from '@common/types/Message';
 
+import ConversationListItem from '../../components/shared/ConversationListItem';
 // --- Local Types ---
 interface ConversationWithFan {
     _id: string | null;
@@ -27,27 +28,6 @@ interface ConversationWithFan {
     lastMessage?: { text?: string; isRead: boolean; };
     updatedAt: string;
 }
-
-// --- Reusable Sub-Components ---
-const ConversationListItem = ({ conversation, isActive, onClick }: { conversation: ConversationWithFan; isActive: boolean; onClick: () => void; }) => (
-    <div onClick={onClick} className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${isActive ? 'bg-purple-900/50' : 'hover:bg-gray-700/50'}`}>
-        <div className="relative mr-3">
-            <img className="w-12 h-12 rounded-full" src={conversation.fan.profile.avatar || 'https://via.placeholder.com/150'} alt={conversation.fan.profile.name} />
-            {conversation.lastMessage && !conversation.lastMessage.isRead && <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-pink-500 border-2 border-gray-800"></span>}
-        </div>
-        <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-center">
-                <p className={`font-bold text-sm ${isActive ? 'text-purple-200' : 'text-gray-200'}`}>{conversation.fan.profile.name}</p>
-                <p className="text-xs text-gray-500">{new Date(conversation.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-            <p className="text-sm text-gray-400 truncate">{conversation.lastMessage?.text || 'No messages yet'}</p>
-            <div className="flex items-center mt-1 text-xs text-green-400 font-semibold">
-                <DollarSign className="w-3 h-3 mr-1" />
-                {(conversation.fan.totalSpent || 0).toFixed(2)}
-            </div>
-        </div>
-    </div>
-);
 
 // --- Main Component ---
 const CreatorMessagesPage = () => {

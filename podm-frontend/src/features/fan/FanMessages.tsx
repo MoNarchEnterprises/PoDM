@@ -1,4 +1,4 @@
-// src/features/fan/FanMessages.tsx
+﻿// src/features/fan/FanMessages.tsx
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { socket } from '../../lib/socket';
 import ContentViewerModal from './components/ContentViewerModal';
 import { formatMessageTimestamp, formatDate } from '../../lib/formatters';
 import MessageBubble from '../messages/components/MessageBubble';
+import ConversationListItem from '../../components/shared/ConversationListItem';
 import { Message, MessageContent } from '@common/types/Message';
 
 // --- Types ---
@@ -22,29 +23,6 @@ interface ConversationWithCreator {
 }
 
 // --- Components ---
-const ConversationListItem = ({ conversation, isActive, onClick }: { conversation: ConversationWithCreator; isActive: boolean; onClick: () => void; }) => (
-    <div onClick={onClick}
-        className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${isActive ? 'bg-purple-900/50' : 'hover:bg-gray-700/50'}`}>
-        <div className="relative mr-3">
-            <img className="w-12 h-12 rounded-full" src={conversation.creator.profile.avatar} alt={conversation.creator.profile.name} />
-            {conversation.lastMessage && !conversation.lastMessage.isRead &&
-                <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-pink-500 border-2 border-gray-800"></span>}
-        </div>
-        <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-center">
-                <p className={`font-bold text-sm ${isActive ? 'text-purple-200' : 'text-gray-200'}`}>
-                    {conversation.creator.profile.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                    {formatMessageTimestamp(conversation.updatedAt)}
-                </p>
-            </div>
-            <p className="text-sm text-gray-400 truncate">
-                {conversation.lastMessage?.text || 'Sent content'}
-            </p>
-        </div>
-    </div>
-);
 
 // --- Main Component ---
 const FanMessagesPage = () => {
