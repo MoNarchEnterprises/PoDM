@@ -143,3 +143,19 @@ export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
         return next(new AppError('Access denied. Admin role required.', 403));
     }
 };
+
+/**
+ * @desc    Factory that creates a role-based access middleware.
+ * Usage: requireRole('creator'), requireRole('admin'), requireRole('creator', 'admin')
+ */
+export const requireRole = (...roles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (req.user && roles.includes(req.user.role)) {
+            return next();
+        }
+        return next(new AppError(`Access denied. ${roles.join(' or ')} role required.`, 403));
+    };
+};
+
+export const protectAndCreator = [protect, creatorOnly];
+export const protectAndAdmin = [protect, adminOnly];

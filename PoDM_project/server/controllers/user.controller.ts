@@ -1,331 +1,133 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../middleware/error.middleware';
-
-// --- Import Service Functions ---
 import * as UserService from '../services/user.service';
 import * as AnalyticsService from '../services/analytics.service';
 import * as ContentModel from '../models/content.model';
+import { asyncHandler } from '../utils/asyncHandler';
+import { requireAuth } from '../utils/requestHelpers';
+import { ok, okMsg } from '../utils/response';
 
-/**
- * @desc    Get the profile of the currently logged-in user
- * @route   GET /api/v1/users/me
- * @access  Private
- */
-export const getMe = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // The 'protect' middleware has already attached the full user profile.
-        // We can just send it back to the client.
-        const user = req.user;
-        console.log('Retrieved user from request:', user);
-
-        if (!user) {
-            throw new AppError('Authentication error, user not found in request.', 401);
-        }
-
-        res.status(200).json({ success: true, data: user });
-    } catch (error) {
-        next(error);
+export const getMe = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user;
+    if (!user) {
+        throw new AppError('Authentication error, user not found in request.', 401);
     }
-};
+    ok(res, user);
+});
 
-/**
- * @desc    Update the profile of the currently logged-in user
- * @route   PUT /api/v1/users/me
- * @access  Private
- */
-export const updateMe = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const profileUpdates = req.body;
+export const updateMe = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const updatedUser = await UserService.updateUserProfile(userId, req.body);
+    ok(res, updatedUser);
+});
 
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        const updatedUser = await UserService.updateUserProfile(userId, profileUpdates);
-        res.status(200).json({ success: true, data: updatedUser });
-    } catch (error) {
-        next(error);
+export const updateMyAvatar = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const file = req.file;
+    if (!file) {
+        throw new AppError('No file uploaded.', 400);
     }
-};
+    const updatedUser = await UserService.uploadUserAvatar(userId, file);
+    ok(res, updatedUser);
+});
 
-/**
- * @desc    Update the avatar of the currently logged-in user
- * @route   PUT /api/v1/users/me/avatar
- * @access  Private
- */
-export const updateMyAvatar = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const file = req.file; // From the uploadAvatar middleware
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        if (!file) {
-            throw new AppError('No file uploaded.', 400);
-        }
-
-        const updatedUser = await UserService.uploadUserAvatar(userId, file);
-        res.status(200).json({ success: true, data: updatedUser });
-    } catch (error) {
-        next(error);
+export const addToGallery = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const { contentId } = req.body;
+    if (!contentId) {
+        throw new AppError('Content ID is required to add an item to the gallery.', 400);
     }
-};
 
+    const updatedGallery = await UserService.addToUserGallery(fanId, contentId);
 
-/**
- * @desc    Add a piece of content to the current user's gallery
- * @route   POST /api/v1/users/me/gallery
- * @access  Private
- */
-export const addToGallery = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const fanId = req.user?.id;
-        const { contentId } = req.body;
-
-        if (!fanId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
+        const content = await ContentModel.findContentById(contentId);
+        if (content && content.creator_id) {
+            await AnalyticsService.logAnalyticsEvent({
+                eventType: 'gallery_add',
+                creatorId: content.creator_id,
+                viewerId: fanId,
+                contentId: contentId,
+            });
         }
-        if (!contentId) {
-            throw new AppError('Content ID is required to add an item to the gallery.', 400);
-        }
-
-        const updatedGallery = await UserService.addToUserGallery(fanId, contentId);
-
-        // Fetch content to get creator_id for analytics
-        // We do this after successful addition to avoid logging if the addition failed
-        try {
-            const content = await ContentModel.findContentById(contentId);
-            if (content && content.creator_id) {
-                await AnalyticsService.logAnalyticsEvent({
-                    eventType: 'gallery_add',
-                    creatorId: content.creator_id,
-                    viewerId: fanId,
-                    contentId: contentId,
-                });
-            }
-        } catch (analyticsError) {
-            // Non-blocking error logging
-            console.error('[User Controller] Failed to log gallery_add analytics event:', analyticsError);
-        }
-
-        res.status(200).json({ success: true, data: updatedGallery });
-    } catch (error) {
-        next(error);
+    } catch (analyticsError) {
+        console.error('[User Controller] Failed to log gallery_add analytics event:', analyticsError);
     }
-};
 
-/**
- * @desc    Remove a piece of content from the current user's gallery
- * @route   DELETE /api/v1/users/me/gallery/:contentId
- * @access  Private
- */
-export const removeFromGallery = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const fanId = req.user?.id;
-        const { contentId } = req.params;
+    ok(res, updatedGallery);
+});
 
-        if (!fanId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
+export const removeFromGallery = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const { contentId } = req.params;
+    const updatedGallery = await UserService.removeFromUserGallery(fanId, contentId);
+    ok(res, updatedGallery);
+});
 
-        const updatedGallery = await UserService.removeFromUserGallery(fanId, contentId);
-        res.status(200).json({ success: true, data: updatedGallery });
-    } catch (error) {
-        next(error);
+export const getPublicProfile = asyncHandler(async (req: Request, res: Response) => {
+    const { username } = req.params;
+    const userProfile = await UserService.getPublicUserProfile(username);
+    ok(res, userProfile);
+});
+
+export const completeOnboarding = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const updatedUser = await UserService.onboardCreator(userId, req.body);
+    ok(res, updatedUser);
+});
+
+export const submitVerification = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const { signature } = req.body;
+    const result = await UserService.submitVerificationDocs(userId, files, signature);
+    res.status(200).json(result);
+});
+
+export const getFullPublicProfile = asyncHandler(async (req: Request, res: Response) => {
+    const { username } = req.params;
+    const viewerId = req.user?.id;
+    const profileData = await UserService.getFullPublicProfile(username, viewerId);
+    ok(res, profileData);
+});
+
+export const getMyFeed = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const page = parseInt(req.query.page as string) || 1;
+    const feed = await UserService.generateFanFeed(fanId, page);
+    ok(res, feed);
+});
+
+export const getMyGallery = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const galleryData = await UserService.getFanGallery(fanId);
+    ok(res, galleryData);
+});
+
+export const getMySettings = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const settings = await UserService.getFanSettings(userId);
+    ok(res, settings);
+});
+
+export const updateMySettings = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const updatedSettings = await UserService.updateFanSettings(userId, req.body);
+    ok(res, updatedSettings);
+});
+
+export const updateMyPaymentMethod = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { paymentMethodId } = req.body;
+    if (!paymentMethodId) {
+        throw new AppError('A paymentMethodId is required.', 400);
     }
-};
+    const result = await UserService.updateFanPaymentMethod(userId, paymentMethodId);
+    ok(res, result);
+});
 
-/**
- * @desc    Get a user's public profile by their username
- * @route   GET /api/v1/users/:username
- * @access  Public
- */
-export const getPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { username } = req.params;
-        const userProfile = await UserService.getPublicUserProfile(username);
-        res.status(200).json({ success: true, data: userProfile });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Complete the onboarding process for a new creator
- * @route   POST /api/v1/users/me/onboarding
- * @access  Private (Creators only)
- */
-export const completeOnboarding = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const updatedUser = await UserService.onboardCreator(userId, req.body);
-        res.status(200).json({ success: true, data: updatedUser });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Submit documents for creator verification
- * @route   POST /api/v1/users/me/verification
- * @access  Private (Creators only)
- */
-export const submitVerification = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-        const { signature } = req.body;
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const result = await UserService.submitVerificationDocs(userId, files, signature);
-        res.status(200).json(result);
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Get a creator's full public profile data (profile, tiers, content)
- * @route   GET /api/v1/users/profile/:username
- * @access  Public
- */
-export const getFullPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { username } = req.params;
-        const viewerId = req.user?.id;
-        const profileData = await UserService.getFullPublicProfile(username, viewerId);
-        res.status(200).json({ success: true, data: profileData });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Get the personalized content feed for the logged-in fan
- * @route   GET /api/v1/users/me/feed
- * @access  Private
- */
-export const getMyFeed = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const fanId = req.user?.id;
-        if (!fanId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const page = parseInt(req.query.page as string) || 1;
-        const feed = await UserService.generateFanFeed(fanId, page);
-
-        res.status(200).json({ success: true, data: feed });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Get the gallery data for the currently logged-in user
- * @route   GET /api/v1/users/me/gallery
- * @access  Private
- */
-export const getMyGallery = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const fanId = req.user?.id;
-        if (!fanId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const galleryData = await UserService.getFanGallery(fanId);
-
-        res.status(200).json({ success: true, data: galleryData });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Get all settings data for the currently logged-in user
- * @route   GET /api/v1/users/me/settings
- * @access  Private
- */
-export const getMySettings = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        const settings = await UserService.getFanSettings(userId);
-        res.status(200).json({ success: true, data: settings });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Update the settings for the currently logged-in user
- * @route   PUT /api/v1/users/me/settings
- * @access  Private
- */
-export const updateMySettings = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        const updatedSettings = await UserService.updateFanSettings(userId, req.body);
-        res.status(200).json({ success: true, data: updatedSettings });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Update the default payment method for the current user
- * @route   PUT /api/v1/users/me/payment-method
- * @access  Private
- */
-export const updateMyPaymentMethod = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const { paymentMethodId } = req.body;
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        if (!paymentMethodId) {
-            throw new AppError('A paymentMethodId is required.', 400);
-        }
-
-        const result = await UserService.updateFanPaymentMethod(userId, paymentMethodId);
-        res.status(200).json({ success: true, data: result });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Create a Stripe Setup Intent for saving a payment method
- * @route   POST /api/v1/users/me/setup-payment-method
- * @access  Private
- */
-export const createSetupIntent = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const result = await UserService.createSetupIntent(userId);
-        res.status(200).json({ success: true, data: result });
-    } catch (error) {
-        next(error);
-    }
-};
+export const createSetupIntent = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const result = await UserService.createSetupIntent(userId);
+    ok(res, result);
+});

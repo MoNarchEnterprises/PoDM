@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
 import { createContent, getContentById, updateContent, deleteContent, getContentByCreator, getMyContent, getSecureContentUrl, getContentView, getContentViewerData, reportContent } from '../controllers/content.controller';
-import { protect, creatorOnly, optionalProtect } from '../middleware/auth.middleware';
+import { protect, protectAndCreator, optionalProtect } from '../middleware/auth.middleware';
 import { uploadContent } from '../middleware/upload.middleware';
 
 const router = Router();
@@ -14,7 +14,7 @@ const router = Router();
 // --- THIS IS THE FIX ---
 // The `uploadContent` middleware now handles its own errors, so we remove the extra handler.
 // The chain is now simpler and architecturally correct.
-router.post('/', protect, creatorOnly, uploadContent, createContent);
+router.post('/', ...protectAndCreator, uploadContent, createContent);
 
 
 /**
@@ -29,7 +29,7 @@ router.get('/:id/secure-url', protect, getSecureContentUrl);
  * @desc    Get all content for the currently logged-in creator
  * @access  Private (Creators only)
  */
-router.get('/my-content', protect, creatorOnly, getMyContent);
+router.get('/my-content', ...protectAndCreator, getMyContent);
 
 
 /**
@@ -65,14 +65,14 @@ router.post('/:id/report', protect, reportContent);
  * @desc    Update a piece of content
  * @access  Private (Owner only)
  */
-router.put('/:id', protect, creatorOnly, updateContent);
+router.put('/:id', ...protectAndCreator, updateContent);
 
 /**
  * @route   DELETE /api/v1/content/:id
  * @desc    Delete a piece of content
  * @access  Private (Owner only)
  */
-router.delete('/:id', protect, creatorOnly, deleteContent);
+router.delete('/:id', ...protectAndCreator, deleteContent);
 
 /**
  * @route   GET /api/v1/content/:id/viewer-data

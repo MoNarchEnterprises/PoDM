@@ -5,6 +5,7 @@ import * as SubscriptionModel from '../models/subscription.model';
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
+import { requireUser, requireContent, requireContentOwnership } from '../utils/entityGuards';
 import { Content, MediaFile } from '@common/types/Content';
 import sharp from 'sharp';
 import { User } from '@common/types/User';
@@ -458,10 +459,7 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
  * @returns The full content object if access is granted.
  */
 export const getContentForFan = async (contentId: string, fanId: string) => {
-    const content = await ContentModel.findContentById(contentId);
-    if (!content) {
-        throw new AppError('Content not found.', 404);
-    }
+    const content = await requireContent(contentId);
 
     // Check against the camelCase property `creator_id` from the model.
     if (content.creator_id === fanId) {
@@ -511,13 +509,7 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
  * @returns The updated content object.
  */
 export const updateCreatorContent = async (contentId: string, creator_id: string, updates: Partial<Content>) => {
-    const content = await ContentModel.findContentById(contentId);
-    if (!content) {
-        throw new AppError('Content not found.', 404);
-    }
-    if (content.creator_id !== creator_id) {
-        throw new AppError('You are not authorized to update this content.', 403);
-    }
+    const content = await requireContentOwnership(contentId, creator_id);
 
     // Validate price for PPV content
     if (updates.visibility === 'pay_per_view') {
@@ -568,14 +560,7 @@ export const updateCreatorContent = async (contentId: string, creator_id: string
  * @param creator_id - The ID of the creator making the request.
  */
 export const deleteCreatorContent = async (contentId: string, creator_id: string) => {
-    const content = await ContentModel.findContentById(contentId);
-    if (!content) {
-        throw new AppError('Content not found.', 404);
-    }
-
-    if (content.creator_id !== creator_id) {
-        throw new AppError('You are not authorized to delete this content.', 403);
-    }
+    const content = await requireContentOwnership(contentId, creator_id);
 
     const filePaths: string[] = [];
     if (content.files && content.files.length > 0) {
@@ -613,11 +598,7 @@ export const deleteCreatorContent = async (contentId: string, creator_id: string
  */
 export const getSecureUrlForThumbnail = async (contentId: string, userId: string) => {
 
-    const content = await ContentModel.findContentById(contentId);
-    if (!content) {
-        console.error(`[Service] Content not found in database for id="${contentId}"`);
-        throw new AppError('Content not found.', 404);
-    }
+    const content = await requireContent(contentId);
 
     // Owner check
     if (content.creator_id !== userId) {
@@ -679,11 +660,7 @@ export const getSecureUrlForThumbnail = async (contentId: string, userId: string
 export const getSecureUrlForViewing = async (contentId: string, userId: string) => {
     // 1. Verify the fan has access to this content. This will throw an error if they don't.
     const content = await getContentForFan(contentId, userId);
-    const fan = await UserModel.findUserById(userId);
-
-    if (!fan) {
-        throw new AppError('User not found.', 404);
-    }
+    const fan = await requireUser(userId);
 
     let filePath = content.files?.[0]?.url;
     if (!filePath) {
@@ -716,10 +693,7 @@ export const getSecureUrlForViewing = async (contentId: string, userId: string) 
  */
 export const getViewData = async (contentId: string, viewerId?: string) => {
     // 1. Fetch the main content
-    const rawContent = await ContentModel.findContentById(contentId);
-    if (!rawContent) {
-        throw new AppError('Content not found.', 404);
-    }
+    const rawContent = await requireContent(contentId);
 
     // 2. Fetch the creator of the content
     const rawCreator = await UserModel.findUserById(rawContent.creator_id);

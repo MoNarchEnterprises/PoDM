@@ -229,7 +229,7 @@ const AnalyticsPanel = () => {
                             <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${(value / 100).toFixed(0)}`} />
                             <Tooltip
                                 contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem' }}
-                                formatter={(value: number) => formatCurrency(value)}
+                                formatter={(value: any) => formatCurrency(value ?? 0)}
                             />
                             <Line type="monotone" dataKey="Revenue" stroke="#10B981" strokeWidth={2} activeDot={{ r: 8 }} />
                         </LineChart>

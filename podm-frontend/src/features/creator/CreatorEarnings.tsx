@@ -195,7 +195,7 @@ const CreatorEarningsPage = ({ summary, monthlyEarnings, transactions }: Creator
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
                             <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} fontSize={12} />
                             <YAxis tick={{ fill: '#9ca3af' }} fontSize={12} tickFormatter={(value) => `$${value / 1000}k`} />
-                            <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem' }} formatter={(value: number) => formatCurrency(value * 100)} />
+                            <Tooltip cursor={{ fill: 'rgba(107, 70, 193, 0.1)' }} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem' }} formatter={(value: any) => formatCurrency((value ?? 0) * 100)} />
                             <Bar dataKey="Earnings" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>

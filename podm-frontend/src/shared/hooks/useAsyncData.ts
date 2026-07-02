@@ -1,96 +1,73 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 
-// --- Types ---
-
-/**
- * The shape of the state returned by useAsyncData.
- */
-export interface AsyncState<T> {
-    data: T | null;
-    isLoading: boolean;
-    error: string | null;
+interface UseAsyncDataResult<T> {
+  data: T | null;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
 }
 
-export type AsyncDataResult<T> = AsyncState<T> & {
-    /** Manually trigger a refetch. */
-    refetch: () => void;
-    /** Set data manually (e.g., after a mutation). */
-    setData: React.Dispatch<React.SetStateAction<T | null>>;
-    /** Reset to initial state. */
-    reset: () => void;
-};
+export function useAsyncData<T>(
+  fetchFn: () => Promise<T>,
+  deps: any[] = [],
+  options?: { onError?: (err: any) => string; debounceMs?: number }
+): UseAsyncDataResult<T> {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-// --- Hook ---
+  const refetch = useCallback(() => setRefreshKey(k => k + 1), []);
 
-/**
- * A generic hook for async data fetching with loading/error/data state management.
- *
- * Eliminates the repetitive useState/useEffect/loading/error pattern seen in 15+ files.
- *
- * @example
- * \\\	sx
- * const { data: posts, isLoading, error, refetch } = useAsyncData(
- *   () => apiClient.getFanFeed(1),
- *   []
- * );
- * \\\
- *
- * @param fetchFn - An async function that returns the data (resolved from axios or similar).
- * @param deps - Dependency array for the underlying useEffect.
- * @param extractData - Optional function to extract data from the response (e.g., \es => res.data\).
- * @param initialData - Optional initial value for data.
- */
-export function useAsyncData<T = any>(
-    fetchFn: () => Promise<{ data: T } | T>,
-    deps: React.DependencyList,
-    extractData?: (response: any) => T,
-    initialData: T | null = null,
-): AsyncDataResult<T> {
-    const [data, setData] = useState<T | null>(initialData);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const fetchCounter = useRef(0);
-
-    const executeFetch = useCallback(async () => {
-        const callId = ++fetchCounter.current;
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await fetchFn();
-            // Only update state if this is still the latest call
-            if (callId === fetchCounter.current) {
-                const result = extractData ? extractData(response) : response;
-                setData(result as T);
-            }
-        } catch (err: any) {
-            if (callId === fetchCounter.current) {
-                const message =
-                    err?.response?.data?.message ||
-                    err?.message ||
-                    'An unexpected error occurred.';
-                setError(message);
-                console.error('[useAsyncData] Fetch error:', err);
-            }
-        } finally {
-            if (callId === fetchCounter.current) {
-                setIsLoading(false);
-            }
+  useEffect(() => {
+    let cancelled = false;
+    const execute = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await fetchFn();
+        if (!cancelled) setData(result);
+      } catch (err: any) {
+        if (!cancelled) {
+          const message = options?.onError?.(err) || err?.message || 'An error occurred';
+          setError(message);
         }
-    }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
 
-    useEffect(() => {
-        executeFetch();
-    }, [executeFetch]);
+    if (options?.debounceMs) {
+      const timer = setTimeout(execute, options.debounceMs);
+      return () => { cancelled = true; clearTimeout(timer); };
+    } else {
+      execute();
+      return () => { cancelled = true; };
+    }
+  }, [...deps, refreshKey]);
 
-    const reset = useCallback(() => {
-        setData(initialData);
-        setError(null);
-        setIsLoading(false);
-    }, [initialData]);
-
-    return { data, isLoading, error, refetch: executeFetch, setData, reset };
+  return { data, isLoading, error, refetch };
 }
 
-export default useAsyncData;
+export function useFeedback(autoClearMs = 5000) {
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const showFeedback = useCallback((type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    if (autoClearMs > 0) {
+      setTimeout(() => setFeedback(null), autoClearMs);
+    }
+  }, [autoClearMs]);
+
+  return { feedback, showFeedback, setFeedback };
+}
+
+export function useAsyncAction() {
+  const [isLoading, setIsLoading] = useState(false);
+  const execute = useCallback(async <T>(fn: () => Promise<T>): Promise<T | undefined> => {
+    setIsLoading(true);
+    try { return await fn(); }
+    finally { setIsLoading(false); }
+  }, []);
+  return { isLoading, execute };
+}

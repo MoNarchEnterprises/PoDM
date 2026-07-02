@@ -1,6 +1,7 @@
 import * as UserModel from '../models/user.model';
 import * as GalleryModel from '../models/gallery.model';
 import { AppError } from '../middleware/error.middleware';
+import { requireUser } from '../utils/entityGuards';
 import { UserProfile } from '@common/types/User';
 import { GalleryItem } from '@common/types/Gallery';
 import supabase from '../config/supabaseClient'; // Import the Supabase client
@@ -179,10 +180,7 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
     const { profile, tiers } = onboardingData;
 
     // 1. Fetch the user's existing profile to not overwrite anything
-    const existingProfile = await UserModel.findUserById(userId);
-    if (!existingProfile) {
-        throw new AppError('User profile not found.', 404);
-    }
+    const existingProfile = await requireUser(userId);
 
     // 2. Prepare the updates
     // Update top-level fields like bio

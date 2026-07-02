@@ -1,65 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
 import * as ContestService from '../services/contest.service';
+import { asyncHandler } from '../utils/asyncHandler';
+import { ok, created } from '../utils/response';
 
-export const create = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const contest = await ContestService.createContest(req.user!.id, req.body);
-        res.status(201).json({ success: true, data: contest });
-    } catch (error) {
-        next(error);
-    }
-};
+export const create = asyncHandler(async (req: Request, res: Response) => {
+    const contest = await ContestService.createContest(req.user!.id, req.body);
+    created(res, contest);
+});
 
-export const getMyContests = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const contests = await ContestService.getCreatorContests(req.user!.id);
-        res.status(200).json({ success: true, data: contests });
-    } catch (error) {
-        next(error);
-    }
-};
+export const getMyContests = asyncHandler(async (req: Request, res: Response) => {
+    const contests = await ContestService.getCreatorContests(req.user!.id);
+    ok(res, contests);
+});
 
-export const publish = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const contest = await ContestService.publishContest(req.params.id, req.user!.id);
-        res.status(200).json({ success: true, data: contest });
-    } catch (error) {
-        next(error);
-    }
-};
+export const publish = asyncHandler(async (req: Request, res: Response) => {
+    const contest = await ContestService.publishContest(req.params.id, req.user!.id);
+    ok(res, contest);
+});
 
-export const finalize = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const winnerId = await ContestService.pickWinner(req.params.id, req.user!.id);
-        res.status(200).json({ success: true, data: { winnerId } });
-    } catch (error) {
-        next(error);
-    }
-};
+export const finalize = asyncHandler(async (req: Request, res: Response) => {
+    const winnerId = await ContestService.pickWinner(req.params.id, req.user!.id);
+    ok(res, { winnerId });
+});
 
-export const enter = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = await ContestService.enterContest(req.params.id, req.user!.id);
-        res.status(200).json({ success: true, data: result });
-    } catch (error) {
-        next(error);
-    }
-};
+export const enter = asyncHandler(async (req: Request, res: Response) => {
+    const result = await ContestService.enterContest(req.params.id, req.user!.id);
+    ok(res, result);
+});
 
-export const getFeed = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const contests = await ContestService.getFanContests();
-        res.status(200).json({ success: true, data: contests });
-    } catch (error) {
-        next(error);
-    }
-};
+export const getFeed = asyncHandler(async (req: Request, res: Response) => {
+    const contests = await ContestService.getFanContests();
+    ok(res, contests);
+});
 
-export const getDetails = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const contest = await ContestService.getContestDetails(req.params.id, req.user?.id);
-        res.status(200).json({ success: true, data: contest });
-    } catch (error) {
-        next(error);
-    }
-};
+export const getDetails = asyncHandler(async (req: Request, res: Response) => {
+    const contest = await ContestService.getContestDetails(req.params.id, req.user?.id);
+    ok(res, contest);
+});

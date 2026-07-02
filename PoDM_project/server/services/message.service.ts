@@ -6,6 +6,7 @@ import * as ConversationModel from '../models/conversation.model';
 import * as MessageModel from '../models/message.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import { AppError } from '../middleware/error.middleware';
+import { requireUser } from '../utils/entityGuards';
 import { Message } from '@common/types/Message';
 import { Conversation } from '@common/types/Conversation';
 import * as UserModel from '../models/user.model';
@@ -19,8 +20,7 @@ import * as ContentModel from '../models/content.model';
  * @returns An array of conversation objects.
  */
 export const getConversationsForUser = async (userId: string) => {
-    const user = await UserModel.findUserById(userId);
-    if (!user) throw new AppError('User not found.', 404);
+    const user = await requireUser(userId);
 
     if (user.role === 'creator') {
         // Fetch ALL conversations for this user (including admin support conversations)
@@ -170,8 +170,7 @@ export const getMessagesForConversation = async (conversation_id: string, userId
  * @returns The newly created message object.
  */
 export const sendDirectMessage = async (sender_id: string, receiver_id: string, messageData: Partial<Message>) => {
-    const sender = await UserModel.findUserById(sender_id);
-    if (!sender) throw new AppError('Sender not found.', 404);
+    const sender = await requireUser(sender_id);
     if (sender.role === 'creator' && sender.status !== 'active') {
         throw new AppError('Your account must be verified to send messages.', 403);
     }
@@ -313,10 +312,7 @@ export const markConversationAsRead = async (conversation_id: string, userId: st
  * @param messageData - The content of the message.
  */
 export const sendMassMessageToSubscribers = async (creatorId: string, messageData: Partial<Message>) => {
-    const sender = await UserModel.findUserById(creatorId);
-    if (!sender) {
-        throw new AppError('Sender not found.', 404);
-    }
+    const sender = await requireUser(creatorId);
     if (sender.role === 'creator' && sender.status !== 'active') {
         throw new AppError('Your account must be verified to send messages.', 403);
     }
@@ -346,8 +342,7 @@ export const sendMassMessageToSubscribers = async (creatorId: string, messageDat
  * @returns The newly created message object with voice message URL.
  */
 export const sendVoiceMessage = async (sender_id: string, receiver_id: string, voiceFile: Express.Multer.File) => {
-    const sender = await UserModel.findUserById(sender_id);
-    if (!sender) throw new AppError('Sender not found.', 404);
+    const sender = await requireUser(sender_id);
     if (sender.role === 'creator' && sender.status !== 'active') {
         throw new AppError('Your account must be verified to send messages.', 403);
     }

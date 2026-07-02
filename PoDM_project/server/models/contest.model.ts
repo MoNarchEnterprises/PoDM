@@ -1,6 +1,7 @@
 import supabase from '../config/supabaseClient';
 import { AppError } from '../middleware/error.middleware';
 import * as TransactionModel from './transaction.model';
+import { handleQuery } from '../utils/database';
 
 export interface Contest {
     id: string;
@@ -14,7 +15,7 @@ export interface Contest {
     status: 'draft' | 'active' | 'completed' | 'canceled';
     winner_id?: string;
     entry_type: 'standard' | 'weighted_spend';
-    entry_multiplier?: number; // Deprecated
+    entry_multiplier?: number;
     spend_threshold?: number;
     additional_entries?: number;
     created_at: string;
@@ -43,14 +44,10 @@ export const createContest = async (contestData: Partial<Contest>): Promise<Cont
 };
 
 export const getContestById = async (id: string): Promise<Contest | null> => {
-    const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-    if (error) return null;
-    return data;
+    return handleQuery<Contest>(
+        supabase.from('contests').select('*').eq('id', id).single(),
+        'get contest by ID', id
+    );
 };
 
 export const getContestsByCreator = async (creatorId: string): Promise<Contest[]> => {
@@ -62,7 +59,6 @@ export const getContestsByCreator = async (creatorId: string): Promise<Contest[]
 
     if (error) throw new Error(error.message);
 
-    // Enrich with winner details manually to avoid complex join syntax guessing
     const contests = await Promise.all(data.map(async (contest) => {
         if (contest.winner_id) {
             const { data: winner } = await supabase
@@ -115,7 +111,7 @@ export const createEntry = async (contestId: string, fanId: string): Promise<Con
         .single();
 
     if (error) {
-        if (error.code === '23505') { // Unique violation
+        if (error.code === '23505') {
             throw new AppError('You have already entered this contest.', 400);
         }
         throw new Error(error.message);
@@ -133,9 +129,6 @@ export const getEntriesForContest = async (contestId: string): Promise<ContestEn
     return data || [];
 };
 
-/**
- * Validates if a user has entered a contest.
- */
 export const hasUserEntered = async (contestId: string, fanId: string): Promise<boolean> => {
     const { data, error } = await supabase
         .from('contest_entries')
@@ -148,17 +141,10 @@ export const hasUserEntered = async (contestId: string, fanId: string): Promise<
     return !!data;
 };
 
-/**
- * Picks a winner based on the contest type.
- */
 export const pickWinner = async (contestId: string): Promise<string> => {
     const contest = await getContestById(contestId);
     if (!contest) throw new AppError('Contest not found', 404);
 
-    // 1. Get all entries (manual entries)
-    // Note: For 'weighted_spend', we assume all eligible people HAVE to click "Enter" 
-    // to verify age/consent, even if entries are calculated dynamically. 
-    // Or we can auto-enter everyone. For this MVP, let's assume "Opt-in" via contest_entries table is required.
     const entries = await getEntriesForContest(contestId);
 
     if (entries.length === 0) {
@@ -168,28 +154,20 @@ export const pickWinner = async (contestId: string): Promise<string> => {
     let winnerFanId = '';
 
     if (contest.entry_type === 'standard') {
-        // Simple random draw
         const randomIndex = Math.floor(Math.random() * entries.length);
         winnerFanId = entries[randomIndex].fan_id;
     }
     else if (contest.entry_type === 'weighted_spend') {
-        // Weighted draw based on spend
         const pool: { fanId: string; tickets: number }[] = [];
         let totalTickets = 0;
 
-        // Configuration for weights
-        const spendThresholdCents = contest.spend_threshold || 100; // Default $1.00
-        const entriesPerThreshold = contest.additional_entries || 1; // Default 1 ticket per $1
+        const spendThresholdCents = contest.spend_threshold || 100;
+        const entriesPerThreshold = contest.additional_entries || 1;
 
-        // Fetch transactions for all entrants within the window
-        // Optimization: In production, do this in SQL or Batch. Here we loop (MVP).
         for (const entry of entries) {
             const startDate = new Date(contest.start_date);
             const endDate = new Date(contest.end_date);
 
-            // Get user's spend on THIS creator
-            // Note: transaction model helper needed "sumFanSpendForCreator(fanId, creatorId, start, end)"
-            // implementing inline query here for speed
             const { data: transactions } = await supabase
                 .from('transactions')
                 .select('amount')
@@ -201,9 +179,6 @@ export const pickWinner = async (contestId: string): Promise<string> => {
 
             const totalSpendCents = transactions?.reduce((sum: number, t: { amount: number }) => sum + t.amount, 0) || 0;
 
-            // Formula: 1 Base Entry + (Spend / Threshold * Multiplier)
-            // e.g. Threshold 500 ($5), Entries 2. Spend 1200 ($12). 
-            // 1 + floor(1200 / 500) * 2 = 1 + 2 * 2 = 5 tickets.
             const additionalTickets = Math.floor(totalSpendCents / spendThresholdCents) * entriesPerThreshold;
             const entriesCount = 1 + additionalTickets;
 
@@ -211,10 +186,8 @@ export const pickWinner = async (contestId: string): Promise<string> => {
             totalTickets += entriesCount;
         }
 
-        // Pick a winning ticket number
         let winningTicket = Math.floor(Math.random() * totalTickets);
 
-        // Find which user holds that ticket
         for (const player of pool) {
             winningTicket -= player.tickets;
             if (winningTicket < 0) {
@@ -224,7 +197,6 @@ export const pickWinner = async (contestId: string): Promise<string> => {
         }
     }
 
-    // Update contest with winner
     await updateContest(contestId, {
         status: 'completed',
         winner_id: winnerFanId

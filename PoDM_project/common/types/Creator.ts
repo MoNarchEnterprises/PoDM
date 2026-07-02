@@ -101,6 +101,7 @@ export interface Creator extends User {
   profile: UserProfile & {
     coverImageUrl?: string;
     socialLinks?: SocialLinks;
+    crypto_wallet_payout_preference?: string;
   }
   verification_status: 'not_applicable' | 'not_submitted' | 'pending' | 'verified';
   verification_data?: VerificationData;

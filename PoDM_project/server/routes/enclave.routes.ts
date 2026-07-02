@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as enclaveController from '../controllers/enclave.controller';
-import { protect, adminOnly } from '../middleware/auth.middleware';
+import { protect, adminOnly, protectAndAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get('/spots-remaining', enclaveController.getSpotsRemaining);
 router.post('/applications', enclaveController.submitApplication);
 
 // Admin routes
-router.get('/applications', protect, adminOnly, enclaveController.getAllApplications);
-router.patch('/applications/:id', protect, adminOnly, enclaveController.updateApplicationStatus);
+router.get('/applications', ...protectAndAdmin, enclaveController.getAllApplications);
+router.patch('/applications/:id', ...protectAndAdmin, enclaveController.updateApplicationStatus);
 
 export default router;

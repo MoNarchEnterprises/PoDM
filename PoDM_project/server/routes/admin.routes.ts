@@ -4,12 +4,12 @@ import {
     getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSupportTickets, updateSupportTicket, getAdminUsers, getSavedReports, getSettings,
     updateSettings, setCreatorCommission, getCreatorVerificationDocs, messageUser
 } from '../controllers/admin.controller';
-import { protect, adminOnly } from '../middleware/auth.middleware';
+import { protect, adminOnly, protectAndAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // --- All routes in this file are protected and for admins only ---
-router.use(protect, adminOnly);
+router.use(...protectAndAdmin);
 
 /**
  * @route   GET /api/v1/admin/dashboard

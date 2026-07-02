@@ -1,22 +1,13 @@
 import supabase from '../config/supabaseClient';
 import { Content } from '@common/types/Content';
+import { handleQuery, handleCount, handleList } from '../utils/database';
 
-/**
- * Creates a new piece of content in the database.
- * @param contentData - The data for the new content.
- * @returns The newly created content object.
- */
 export const createContent = async (contentData: Partial<Content>): Promise<Content | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .insert([contentData])
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error creating content:', error.message);
-        return null;
-    }
+    const data = await handleQuery<any>(
+        supabase.from('content').insert([contentData]).select().single(),
+        'create content'
+    );
+    if (!data) return null;
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
@@ -26,26 +17,13 @@ export const createContent = async (contentData: Partial<Content>): Promise<Cont
     } as Content;
 };
 
-/**
- * Counts the total number of content pieces in the database.
- */
 export const countAllContent = async (): Promise<number> => {
-    const { count, error } = await supabase
-        .from('content')
-        .select('*', { count: 'exact', head: true });
-
-    if (error) {
-        console.error('Error counting content:', error.message);
-        return 0;
-    }
-    return count || 0;
+    return handleCount(
+        supabase.from('content').select('*', { count: 'exact', head: true }),
+        'count content'
+    );
 };
 
-/**
- * Finds a single piece of content by its unique ID.
- * @param id - The ID of the content to find.
- * @returns The content object or null if not found.
- */
 export const findContentById = async (id: string): Promise<Content | null> => {
     const contentId = parseInt(id, 10);
     if (isNaN(contentId)) {
@@ -53,20 +31,11 @@ export const findContentById = async (id: string): Promise<Content | null> => {
         return null;
     }
 
-    const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .eq('id', contentId)
-        .single();
-
-    if (error) {
-        // A "Not Found" error is expected if the ID doesn't exist, so we don't log it as a critical failure.
-        if (error.code !== 'PGRST116') { // PGRST116 = "The result contains 0 rows"
-            console.error(`[Model] Database error finding content by ID ${contentId}:`, error.message);
-        } else {
-        }
-        return null;
-    }
+    const data = await handleQuery<any>(
+        supabase.from('content').select('*').eq('id', contentId).single(),
+        'find content by ID', contentId
+    );
+    if (!data) return null;
     const { id: dbId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
@@ -76,24 +45,15 @@ export const findContentById = async (id: string): Promise<Content | null> => {
     } as Content;
 };
 
-/**
- * Finds multiple pieces of content by an array of their unique IDs.
- * @param ids - An array of content IDs to find.
- * @returns An array of content objects.
- */
 export const findContentByIds = async (ids: string[]): Promise<Content[] | null> => {
     if (ids.length === 0) {
         return [];
     }
-    const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .in('id', ids);
-
-    if (error) {
-        console.error('Error finding content by IDs:', error.message);
-        return null;
-    }
+    const data = await handleList<any>(
+        supabase.from('content').select('*').in('id', ids),
+        'find content by IDs'
+    );
+    if (!data) return null;
     return data.map(item => {
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
@@ -105,21 +65,12 @@ export const findContentByIds = async (ids: string[]): Promise<Content[] | null>
     });
 };
 
-/**
- * Finds content by its status (e.g., 'published', 'flagged', 'removed').
- * @param status - The status to filter content by.
- */
 export const findContentByStatus = async (status: string): Promise<Content[] | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .eq('status', status)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error finding content by status:', error.message);
-        return null;
-    }
+    const data = await handleList<any>(
+        supabase.from('content').select('*').eq('status', status).order('created_at', { ascending: false }),
+        'find content by status'
+    );
+    if (!data) return null;
     return data.map(item => {
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
@@ -131,11 +82,6 @@ export const findContentByStatus = async (status: string): Promise<Content[] | n
     });
 };
 
-/**
- * Finds all content created by a specific creator.
- * @param creatorId - The UUID of the creator.
- * @returns An array of content objects.
- */
 export const findContentByCreatorId = async (creatorId: string, limit?: number, offset?: number): Promise<Content[] | null> => {
     let query = supabase
         .from('content')
@@ -147,13 +93,8 @@ export const findContentByCreatorId = async (creatorId: string, limit?: number, 
         query = query.range(offset, offset + limit - 1);
     }
 
-    const { data, error } = await query;
-
-
-    if (error) {
-        console.error('Error finding content by creator ID:', error.message);
-        return null;
-    }
+    const data = await handleList<any>(query, 'find content by creator ID');
+    if (!data) return null;
     return data.map(item => {
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
@@ -165,36 +106,26 @@ export const findContentByCreatorId = async (creatorId: string, limit?: number, 
     });
 };
 
-/**
- * Finds all published content from a specific list of creator IDs, with pagination.
- * @param creatorIds - An array of creator UUIDs.
- * @param options - An object for pagination (limit, offset).
- * @returns An array of content objects, joined with creator profile data.
- */
 export const findContentByCreatorIds = async (creatorIds: string[], options: { limit: number; offset: number }): Promise<any[] | null> => {
     if (creatorIds.length === 0) {
         return [];
     }
 
-    const { data, error } = await supabase
-        .from('content')
-        .select(`
-            *,
-            creator: creator_id (*)
-        `)
-        .in('creator_id', creatorIds)
-        .eq('status', 'published')
-        // --- THIS IS THE CRITICAL FIX ---
-        // Exclude 'unlisted' content from any feed generated by this function.
-        .in('visibility', ['subscribers_only', 'pay_per_view'])
-        // --- END OF FIX ---
-        .order('created_at', { ascending: false })
-        .range(options.offset, options.offset + options.limit - 1);
-
-    if (error) {
-        console.error('Error finding content by creator IDs:', error.message);
-        return null;
-    }
+    const data = await handleList<any>(
+        supabase
+            .from('content')
+            .select(`
+                *,
+                creator: creator_id (*)
+            `)
+            .in('creator_id', creatorIds)
+            .eq('status', 'published')
+            .in('visibility', ['subscribers_only', 'pay_per_view'])
+            .order('created_at', { ascending: false })
+            .range(options.offset, options.offset + options.limit - 1),
+        'find content by creator IDs'
+    );
+    if (!data) return null;
     return data.map(item => {
         const { min_tier_level, ...rest } = item;
         return {
@@ -204,25 +135,12 @@ export const findContentByCreatorIds = async (creatorIds: string[], options: { l
     });
 };
 
-/**
- * Finds a limited number of the most recent published content pieces for a specific creator.
- * @param creatorId - The UUID of the creator.
- * @param limit - The maximum number of content pieces to return.
- * @returns An array of content objects.
- */
 export const findRecentContentByCreator = async (creatorId: string, limit: number): Promise<Content[] | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .eq('creator_id', creatorId)
-        .eq('status', 'published') // Only show published content
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-    if (error) {
-        console.error(`Error finding recent content for creator ${creatorId}:`, error.message);
-        return null;
-    }
+    const data = await handleList<any>(
+        supabase.from('content').select('*').eq('creator_id', creatorId).eq('status', 'published').order('created_at', { ascending: false }).limit(limit),
+        'find recent content for creator'
+    );
+    if (!data) return null;
     return data.map(item => {
         const { id, creator_id, min_tier_level, ...rest } = item;
         return {
@@ -234,29 +152,12 @@ export const findRecentContentByCreator = async (creatorId: string, limit: numbe
     });
 };
 
-/**
- * Finds a limited number of RECENT AND PUBLIC content pieces for a creator's profile.
- * @param creatorId - The UUID of the creator.
- * @param limit - The maximum number of content pieces to return.
- * @returns An array of content objects.
- */
 export const findPublicContentByCreator = async (creatorId: string, limit: number): Promise<Content[] | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .eq('creator_id', creatorId)
-        .eq('status', 'published')
-        // --- THIS IS THE CRITICAL ADDITION ---
-        // Only select content intended for the public feed.
-        .in('visibility', ['subscribers_only', 'pay_per_view'])
-        // --- END OF ADDITION ---
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-    if (error) {
-        console.error(`Error finding public content for creator ${creatorId}:`, error.message);
-        return null;
-    }
+    const data = await handleList<any>(
+        supabase.from('content').select('*').eq('creator_id', creatorId).eq('status', 'published').in('visibility', ['subscribers_only', 'pay_per_view']).order('created_at', { ascending: false }).limit(limit),
+        'find public content for creator'
+    );
+    if (!data) return null;
     return data.map(item => ({
         ...item,
         id: item.id.toString(),
@@ -265,44 +166,22 @@ export const findPublicContentByCreator = async (creatorId: string, limit: numbe
     } as Content));
 };
 
-/**
- * Calculates the sum of all views for a creator's content.
- * @param creatorId - The UUID of the creator.
- * @returns The total number of views.
- */
 export const sumCreatorContentViews = async (creatorId: string): Promise<number> => {
-    const { data, error } = await supabase
-        .from('content')
-        .select('stats')
-        .eq('creator_id', creatorId);
+    const data = await handleList<any>(
+        supabase.from('content').select('stats').eq('creator_id', creatorId),
+        'sum content views for creator'
+    );
+    if (!data) return 0;
 
-    if (error) {
-        console.error('Error summing content views:', error.message);
-        return 0;
-    }
-
-    // The 'stats' column is JSON, so we need to access the 'views' property
     return data.reduce((sum, item) => sum + (item.stats?.views || 0), 0);
 };
 
-/**
- * Updates a piece of content in the database.
- * @param id - The ID of the content to update.
- * @param updates - An object containing the fields to update.
- * @returns The updated content object.
- */
 export const updateContent = async (id: string, updates: Partial<Content>): Promise<Content | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error updating content:', error.message);
-        return null;
-    }
+    const data = await handleQuery<any>(
+        supabase.from('content').update(updates).eq('id', id).select().single(),
+        'update content', id
+    );
+    if (!data) return null;
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,
@@ -312,25 +191,12 @@ export const updateContent = async (id: string, updates: Partial<Content>): Prom
     } as Content;
 };
 
-/**
- * Deletes a piece of content from the database.
- * Note: This does not delete the associated files from storage.
- * That should be handled in a service layer.
- * @param id - The ID of the content to delete.
- * @returns The deleted content object.
- */
 export const deleteContent = async (id: string): Promise<Content | null> => {
-    const { data, error } = await supabase
-        .from('content')
-        .delete()
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error deleting content:', error.message);
-        return null;
-    }
+    const data = await handleQuery<any>(
+        supabase.from('content').delete().eq('id', id).select().single(),
+        'delete content', id
+    );
+    if (!data) return null;
     const { id: contentId, creator_id, min_tier_level, ...rest } = data;
     return {
         ...rest,

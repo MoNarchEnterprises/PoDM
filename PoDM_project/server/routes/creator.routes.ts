@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { getCreatorDashboard, updateCreatorSettings, getCreatorAnalytics, getCreatorEarnings, requestPayout, getCreatorActivity, getTiers, broadcastMessage, exportMetrics, exportFanEngagement } from '../controllers/creator.controller';
-import { protect, creatorOnly } from '../middleware/auth.middleware';
+import { protect, creatorOnly, protectAndCreator } from '../middleware/auth.middleware';
 import { uploadBanner } from '../middleware/upload.middleware';
 
 const router = Router();
@@ -13,7 +13,7 @@ const router = Router();
  * @access  Private (Creators only)
  */
 // 1. Add the new GET route
-router.get('/dashboard', protect, creatorOnly, getCreatorDashboard);
+router.get('/dashboard', ...protectAndCreator, getCreatorDashboard);
 
 /**
  * @route   PUT /api/v1/creator/settings
@@ -21,28 +21,28 @@ router.get('/dashboard', protect, creatorOnly, getCreatorDashboard);
  * @access  Private (Creators only)
  */
 // 2. Add the new PUT route
-router.put('/settings', protect, creatorOnly, uploadBanner, updateCreatorSettings);
+router.put('/settings', ...protectAndCreator, uploadBanner, updateCreatorSettings);
 
 /**
  * @route   GET /api/v1/creator/analytics
  * @desc    Get all data for the creator analytics page
  * @access  Private (Creators only)
  */
-router.get('/analytics', protect, creatorOnly, getCreatorAnalytics);
+router.get('/analytics', ...protectAndCreator, getCreatorAnalytics);
 
 /**
  * @route   GET /api/v1/creator/metrics/export
  * @desc    Export creator metrics as CSV
  * @access  Private (Creators only)
  */
-router.get('/metrics/export', protect, creatorOnly, exportMetrics);
+router.get('/metrics/export', ...protectAndCreator, exportMetrics);
 
 /**
  * @route   GET /api/v1/creator/metrics/export-fans
  * @desc    Export fan engagement metrics as CSV
  * @access  Private (Creators only)
  */
-router.get('/metrics/export-fans', protect, creatorOnly, exportFanEngagement);
+router.get('/metrics/export-fans', ...protectAndCreator, exportFanEngagement);
 
 /**
  * @route   GET /api/v1/creator/earnings
@@ -50,7 +50,7 @@ router.get('/metrics/export-fans', protect, creatorOnly, exportFanEngagement);
  * @access  Private (Creators only)
  */
 // 3. Add the new GET route
-router.get('/earnings', protect, creatorOnly, getCreatorEarnings);
+router.get('/earnings', ...protectAndCreator, getCreatorEarnings);
 
 /**
  * @route   POST /api/v1/creator/payouts
@@ -58,27 +58,27 @@ router.get('/earnings', protect, creatorOnly, getCreatorEarnings);
  * @access  Private (Creators only)
  */
 // 4. Add the new POST route
-router.post('/payouts', protect, creatorOnly, requestPayout);
+router.post('/payouts', ...protectAndCreator, requestPayout);
 
 /**
  * @route   GET /api/v1/creator/activity
  * @desc    Get all recent activity for the creator
  * @access  Private (Creators only)
  */
-router.get('/activity', protect, creatorOnly, getCreatorActivity);
+router.get('/activity', ...protectAndCreator, getCreatorActivity);
 
 /**
  * @route   GET /api/v1/creator/tiers
  * @desc    Get subscription tiers for the logged-in creator
  * @access  Private (Creators only)
  */
-router.get('/tiers', protect, creatorOnly, getTiers);
+router.get('/tiers', ...protectAndCreator, getTiers);
 
 /**
  * @route   POST /api/v1/creator/broadcast
  * @desc    Send a broadcast message to subscribers
  * @access  Private (Creators only)
  */
-router.post('/broadcast', protect, creatorOnly, broadcastMessage);
+router.post('/broadcast', ...protectAndCreator, broadcastMessage);
 
 export default router;

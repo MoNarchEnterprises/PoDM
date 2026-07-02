@@ -1,14 +1,12 @@
 import { createSupportTicket as createSupportTicketModel, findSupportTicketById, findSupportTicketsByUser, updateSupportTicket as updateSupportTicketModel } from '../models/supportTicket.model';
 import * as UserModel from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
+import { requireUser } from '../utils/entityGuards';
 import { SupportTicket, TicketMessage } from '@common/types/SupportTicket';
 import { User } from '@common/types/User';
 
 export const createSupportTicket = async (userId: string, subject: string, description: string) => {
-    const user = await UserModel.findUserById(userId);
-    if (!user) {
-        throw new AppError('User creating ticket not found.', 404);
-    }
+    const user = await requireUser(userId);
 
     // Safely access user's name - check for nested profile structure or flat structure
     const userName = user.profile?.name || (user as any).name || 'Unknown User';

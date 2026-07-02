@@ -5,6 +5,7 @@ import * as TransactionModel from '../models/transaction.model';
 import * as ContentModel from '../models/content.model';
 import * as UserModel from '../models/user.model';
 import { AppError } from '../middleware/error.middleware';
+import { requireUser } from '../utils/entityGuards';
 import { reshapeUserForApp } from '../utils/user.utils';
 import supabase from '../../server/config/supabaseClient';
 import { syncTiersWithStripe } from '../../server/utils/tier.utils';
@@ -254,10 +255,7 @@ export const updateSettings = async (creator_id: string, settingsData: any, file
     const { profile, creator_data } = settingsData;
 
     // 1. Fetch the user's existing profile to avoid overwriting data
-    const existingUser = await UserModel.findUserById(creator_id);
-    if (!existingUser) {
-        throw new AppError('User profile not found.', 404);
-    }
+    const existingUser = await requireUser(creator_id);
 
     let newCoverImageUrl: string | undefined = existingUser.creator_data?.coverImageUrl;
 
@@ -390,10 +388,7 @@ export const getEarningsData = async (creator_id: string) => {
  */
 export const createPayout = async (creatorId: string, amountInCents: number) => {
     // 1. Fetch the creator's full profile to get their crypto wallet address and current balance.
-    const creator = await UserModel.findUserById(creatorId);
-    if (!creator) {
-        throw new AppError('Creator not found.', 404);
-    }
+    const creator = await requireUser(creatorId);
 
     const walletConfig = await CryptoPaymentService.getUserWalletConfig(creatorId);
     if (!walletConfig.walletAddress) {
@@ -555,10 +550,7 @@ export const broadcastMessage = async (creatorId: string, text: string, minTierI
  * @param creatorId - The ID of the creator.
  */
 export const getCreatorTiers = async (creatorId: string) => {
-    const user = await UserModel.findUserById(creatorId);
-    if (!user) {
-        throw new AppError('Creator not found.', 404);
-    }
+    const user = await requireUser(creatorId);
 
     // Tiers are stored in the JSONB column 'creator_data'
     const tiers = user.creator_data?.subscriptionTiers || [];

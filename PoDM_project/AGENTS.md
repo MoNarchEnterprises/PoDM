@@ -35,6 +35,12 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - **Route prefix**: `/api/v1/{resource}`
 - **Error handling**: Custom `ApiError` class, centralized error middleware
 - **All source in TypeScript**, compiled via `tsc` to `/dist/`
+- **Controller pattern**: `asyncHandler`, `requireAuth`, `requireId`, `requireBody` utilities eliminate try/catch and manual guard blocks
+- **Response pattern**: `ok(res, data)`, `created(res, data)`, `okMsg(res, msg, data?)`, `createdMsg(res, msg, data?)` for consistent envelope
+- **Service guard pattern**: `requireUser`, `requireContent`, `requireContentOwnership` from `entityGuards.ts` replace inline null checks
+- **Route middleware pattern**: Composite middleware (`protectAndCreator`, `protectAndAdmin`, `requireRole(...roles)`) replaces `[protect, creatorOnly]` arrays
+- **Model query pattern**: `handleQuery<T>`, `handleCount`, `handleList<T>` wrappers replace `console.error + return null/0` blocks (73 instances eliminated)
+- **Model CRUD helpers**: `createRecord`, `updateRecord`, `deleteRecord`, `findRecordById`, `countRecords` for standard table operations
 
 ## Work Guidance
 
@@ -50,6 +56,8 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - Controllers handle request/response; services hold business logic; models define DB shape
 - Validate request bodies via `express-validator` (validation middleware)
 - All API responses follow consistent JSON envelope
+- New model functions: always use `handleQuery<T>`, `handleCount`, or `handleList<T>` for consistent error handling
+- New controller handlers: always use `asyncHandler` wrapper and response helpers; never catch errors or send 500 inline
 
 ## Verification
 

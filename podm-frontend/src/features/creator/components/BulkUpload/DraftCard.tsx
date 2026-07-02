@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Sparkles, AlertCircle } from 'lucide-react';
-import * as apiClient from '../../../../../lib/apiClient';
+import * as apiClient from '../../../../lib/apiClient';
 
 export interface DraftFile {
     id: string; // unique ID for React keys

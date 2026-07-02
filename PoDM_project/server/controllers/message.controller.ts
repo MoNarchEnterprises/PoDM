@@ -1,163 +1,77 @@
 import { Request, Response, NextFunction } from 'express';
 import * as MessageService from '../services/message.service';
 import { AppError } from '../middleware/error.middleware';
+import { asyncHandler } from '../utils/asyncHandler';
+import { requireAuth } from '../utils/requestHelpers';
+import { ok, created } from '../utils/response';
 
-/**
- * @desc    Get all conversations for the currently logged-in user
- * @route   GET /api/v1/messages
- * @access  Private
- */
-export const getConversations = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
+export const getConversations = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const conversations = await MessageService.getConversationsForUser(userId);
+    ok(res, conversations);
+});
 
-        const conversations = await MessageService.getConversationsForUser(userId);
-        res.status(200).json({ success: true, data: conversations });
-    } catch (error) {
-        next(error);
+export const getMessagesInConversation = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { conversationId } = req.params;
+
+    const messages = await MessageService.getMessagesForConversation(conversationId, userId);
+    ok(res, messages);
+});
+
+export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
+    const sender_id = requireAuth(req);
+    const receiver_id = req.body.receiverId || req.body.receiver_id;
+    const { text, content } = req.body;
+
+    if (!receiver_id || (!text && !content)) {
+        throw new AppError('Receiver ID and message content are required.', 400);
     }
-};
 
-/**
- * @desc    Get all messages for a specific conversation
- * @route   GET /api/v1/messages/:conversation_id
- * @access  Private (User must be a participant)
- */
-export const getMessagesInConversation = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const { conversationId } = req.params;  // Fix: Match route param name
+    const newMessage = await MessageService.sendDirectMessage(sender_id, receiver_id, { text, content });
+    created(res, newMessage);
+});
 
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
+export const markConversationAsRead = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { conversationId } = req.params;
 
-        const messages = await MessageService.getMessagesForConversation(conversationId, userId);
-        res.status(200).json({ success: true, data: messages });
-    } catch (error) {
-        next(error);
+    const result = await MessageService.markConversationAsRead(conversationId, userId);
+    res.status(200).json(result);
+});
+
+export const deleteMessage = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { id: messageId } = req.params;
+
+    const result = await MessageService.deleteMessage(messageId, userId);
+    res.status(200).json(result);
+});
+
+export const sendMassMessage = asyncHandler(async (req: Request, res: Response) => {
+    const creatorId = requireAuth(req);
+    const { text, content } = req.body;
+
+    if (!text && !content) {
+        throw new AppError('Message content is required.', 400);
     }
-};
 
-/**
- * @desc    Send a new message
- * @route   POST /api/v1/messages
- * @access  Private
- */
-export const sendMessage = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const sender_id = req.user?.id;
-        // Accept both camelCase (from frontend) and snake_case
-        const receiver_id = req.body.receiverId || req.body.receiver_id;
-        const { text, content } = req.body;
+    const result = await MessageService.sendMassMessageToSubscribers(creatorId, { text, content });
+    ok(res, result);
+});
 
-        if (!sender_id) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        if (!receiver_id || (!text && !content)) {
-            throw new AppError('Receiver ID and message content are required.', 400);
-        }
+export const sendVoiceMessage = asyncHandler(async (req: Request, res: Response) => {
+    const sender_id = requireAuth(req);
+    const receiver_id = req.body.receiverId || req.body.receiver_id;
+    const voiceFile = req.file;
 
-        const newMessage = await MessageService.sendDirectMessage(sender_id, receiver_id, { text, content });
-        res.status(201).json({ success: true, data: newMessage });
-    } catch (error) {
-        next(error);
+    if (!receiver_id) {
+        throw new AppError('Receiver ID is required.', 400);
     }
-};
-
-/**
- * @desc    Mark all messages in a conversation as read for the current user
- * @route   PUT /api/v1/messages/conversations/:id/read
- * @access  Private
- */
-export const markConversationAsRead = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const { conversationId } = req.params;  // Fix: Match route param name
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const result = await MessageService.markConversationAsRead(conversationId, userId);
-        res.status(200).json(result);
-    } catch (error) {
-        next(error);
+    if (!voiceFile) {
+        throw new AppError('Voice message file is required.', 400);
     }
-};
 
-/**
- * @desc    Delete a message
- * @route   DELETE /api/v1/messages/:id
- * @access  Private (Owner only)
- */
-export const deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?.id;
-        const { id: messageId } = req.params;
-
-        if (!userId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-
-        const result = await MessageService.deleteMessage(messageId, userId);
-        res.status(200).json(result);
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Send a message to all of a creator's subscribers
- * @route   POST /api/v1/messages/mass-message
- * @access  Private (Creators only)
- */
-export const sendMassMessage = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const creatorId = req.user?.id;
-        const { text, content } = req.body;
-
-        if (!creatorId) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        if (!text && !content) {
-            throw new AppError('Message content is required.', 400);
-        }
-
-        const result = await MessageService.sendMassMessageToSubscribers(creatorId, { text, content });
-        res.status(200).json({ success: true, data: result });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Send a voice message
- * @route   POST /api/v1/messages/voice
- * @access  Private (Creators only)
- */
-export const sendVoiceMessage = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const sender_id = req.user?.id;
-        const receiver_id = req.body.receiverId || req.body.receiver_id;
-        const voiceFile = req.file;
-
-        if (!sender_id) {
-            throw new AppError('Authentication error, user ID not found.', 401);
-        }
-        if (!receiver_id) {
-            throw new AppError('Receiver ID is required.', 400);
-        }
-        if (!voiceFile) {
-            throw new AppError('Voice message file is required.', 400);
-        }
-
-        const newMessage = await MessageService.sendVoiceMessage(sender_id, receiver_id, voiceFile);
-        res.status(201).json({ success: true, data: newMessage });
-    } catch (error) {
-        next(error);
-    }
-};
+    const newMessage = await MessageService.sendVoiceMessage(sender_id, receiver_id, voiceFile);
+    created(res, newMessage);
+});

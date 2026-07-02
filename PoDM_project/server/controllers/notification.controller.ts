@@ -1,65 +1,38 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
 import * as NotificationService from '../services/notification.service';
 import * as NotificationModel from '../models/notification.model';
+import { asyncHandler } from '../utils/asyncHandler';
+import { requireAuth } from '../utils/requestHelpers';
+import { ok, okMsg } from '../utils/response';
 
-export const getNotifications = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user!.id;
-        const limit = parseInt(req.query.limit as string) || 20;
+export const getNotifications = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const limit = parseInt(req.query.limit as string) || 20;
+    const notifications = await NotificationService.getEnrichedNotifications(userId, limit);
+    ok(res, notifications);
+});
 
-        const notifications = await NotificationService.getEnrichedNotifications(userId, limit);
+export const getUnreadCount = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const count = await NotificationModel.getUnreadCount(userId);
+    ok(res, { count });
+});
 
-        res.json({ success: true, data: notifications });
-    } catch (error: any) {
-        console.error('Error fetching notifications:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    await NotificationModel.markAsRead(id);
+    okMsg(res, 'Notification marked as read');
+});
 
-export const getUnreadCount = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user!.id;
-        const count = await NotificationModel.getUnreadCount(userId);
+export const markAllAsRead = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    await NotificationModel.markAllAsRead(userId);
+    okMsg(res, 'All notifications marked as read');
+});
 
-        res.json({ success: true, data: { count } });
-    } catch (error: any) {
-        console.error('Error fetching unread count:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-export const markAsRead = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        await NotificationModel.markAsRead(id);
-
-        res.json({ success: true, message: 'Notification marked as read' });
-    } catch (error: any) {
-        console.error('Error marking notification as read:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-export const markAllAsRead = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user!.id;
-        await NotificationModel.markAllAsRead(userId);
-
-        res.json({ success: true, message: 'All notifications marked as read' });
-    } catch (error: any) {
-        console.error('Error marking all notifications as read:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-export const deleteNotification = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        await NotificationModel.deleteNotification(id);
-
-        res.json({ success: true, message: 'Notification deleted' });
-    } catch (error: any) {
-        console.error('Error deleting notification:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+export const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    await NotificationModel.deleteNotification(id);
+    okMsg(res, 'Notification deleted');
+});

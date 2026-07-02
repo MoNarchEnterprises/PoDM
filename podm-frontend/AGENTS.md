@@ -33,7 +33,8 @@ Client-facing user interface for fans, creators, and administrators on the PoDM 
 - **HTTP client**: Axios (wrapped in `apiClient.ts`)
 - **Organization**: Feature-based (`src/features/{feature}/`); components split into `ui/`, `layout/`, `shared/`
 - **Component style**: Functional components with hooks; TypeScript strict
-- **API calls**: Centralized in `src/lib/apiClient.ts` (~930 lines)
+- **API calls**: Centralized in `src/lib/apiClient.ts` (~800 lines); use `api(method, url, data?, config?)` helper for single-line calls that unwrap `response.data`; keep `apiClient.get/post/put/delete` for requests needing custom config or multi-step logic
+- **Data fetching pattern**: `useAsyncData<T>(fetchFn, deps, opts?)` hook eliminates `useState/useEffect/isLoading/error` boilerplate; `useAsyncAction()` for mutation loading states; `useFeedback()` for auto-clearing success/error messages
 - **Build output**: `dist/` (Vite default)
 
 ## Work Guidance
@@ -47,11 +48,13 @@ Client-facing user interface for fans, creators, and administrators on the PoDM 
 | `npx playwright test` | Run E2E tests |
 
 - Feature modules under `src/features/` are the primary organizational boundary
-- Shared/domain components go in `src/components/shared/`
+- Shared/domain components go in `src/components/shared/` (SettingsCard, ToggleSwitch, ConfirmModal, ConversationListItem)
 - Primitive UI components go in `src/components/ui/`
 - Layout shell components go in `src/components/layout/`
-- Custom hooks go in `src/hooks/` (or `src/shared/hooks/` for cross-feature)
-- API calls go through `src/lib/apiClient.ts` — do not use raw Axios elsewhere
+- Custom hooks go in `src/hooks/` (or `src/shared/hooks/` for cross-feature: useAsyncData, useFeedback, useAsyncAction)
+- API calls go through `src/lib/apiClient.ts` — do not use raw Axios elsewhere; prefer `api()` helper for simple calls
+- Auth guards: use `withAuthGuard(Component, requiredRole?)` HOC instead of inline role checks
+- Status badges: use `statusBadgeMap` from `src/lib/statusBadgeMap.ts` instead of inline color mappings
 
 ## Verification
 

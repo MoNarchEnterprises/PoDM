@@ -1,117 +1,64 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../middleware/error.middleware';
 import * as ReferralModel from '../models/referral.model';
+import { asyncHandler } from '../utils/asyncHandler';
+import { requireAuth } from '../utils/requestHelpers';
+import { ok } from '../utils/response';
 
-/**
- * Get current user's referral codes
- * GET /api/v1/referrals/my-codes
- */
-export const getMyReferralCodes = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.id;
+export const getMyReferralCodes = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const referrals = await ReferralModel.getReferralsByUserId(userId);
+    res.json({ referrals });
+});
 
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+export const generateReferralCodes = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const username = req.user?.username;
 
-        const referrals = await ReferralModel.getReferralsByUserId(userId);
-        res.json({ referrals });
-    } catch (error) {
-        console.error('Error fetching referral codes:', error);
-        res.status(500).json({ error: 'Failed to fetch referral codes' });
+    if (!username) {
+        throw new AppError('Unauthorized or missing username', 401);
     }
-};
 
-/**
- * Generate referral codes for current user
- * POST /api/v1/referrals/generate
- */
-export const generateReferralCodes = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.id;
-        const username = (req as any).user?.username;
-
-        if (!userId || !username) {
-            return res.status(401).json({ error: 'Unauthorized or missing username' });
-        }
-
-        // Check if user already has referral codes
-        const existing = await ReferralModel.getReferralsByUserId(userId);
-        if (existing.length > 0) {
-            return res.status(400).json({ error: 'Referral codes already generated' });
-        }
-
-        const referrals = await ReferralModel.generateReferralCodes(userId, username);
-        res.json({ referrals });
-    } catch (error) {
-        console.error('Error generating referral codes:', error);
-        res.status(500).json({ error: 'Failed to generate referral codes' });
+    const existing = await ReferralModel.getReferralsByUserId(userId);
+    if (existing.length > 0) {
+        throw new AppError('Referral codes already generated', 400);
     }
-};
 
-/**
- * Get referral statistics for current user
- * GET /api/v1/referrals/stats
- */
-export const getReferralStats = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.id;
+    const referrals = await ReferralModel.generateReferralCodes(userId, username);
+    res.json({ referrals });
+});
 
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+export const getReferralStats = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const stats = await ReferralModel.getReferralStats(userId);
+    res.json(stats);
+});
 
-        const stats = await ReferralModel.getReferralStats(userId);
-        res.json(stats);
-    } catch (error) {
-        console.error('Error fetching referral stats:', error);
-        res.status(500).json({ error: 'Failed to fetch referral stats' });
+export const validateReferralCode = asyncHandler(async (req: Request, res: Response) => {
+    const { code } = req.params;
+    const referral = await ReferralModel.validateReferralCode(code);
+
+    if (!referral) {
+        res.status(404).json({ valid: false, error: 'Invalid or inactive referral code' });
+        return;
     }
-};
 
-/**
- * Validate a referral code (public endpoint)
- * GET /api/v1/referrals/validate/:code
- */
-export const validateReferralCode = async (req: Request, res: Response) => {
-    try {
-        const { code } = req.params;
+    res.json({
+        valid: true,
+        bonusType: referral.bonus_type,
+        bonusValue: referral.bonus_value
+    });
+});
 
-        const referral = await ReferralModel.validateReferralCode(code);
+export const checkMilestoneBonus = asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { totalEarnings } = req.body;
 
-        if (!referral) {
-            return res.status(404).json({ valid: false, error: 'Invalid or inactive referral code' });
-        }
-
-        res.json({
-            valid: true,
-            bonusType: referral.bonus_type,
-            bonusValue: referral.bonus_value
-        });
-    } catch (error) {
-        console.error('Error validating referral code:', error);
-        res.status(500).json({ error: 'Failed to validate referral code' });
+    if (!userId || totalEarnings === undefined) {
+        throw new AppError('userId and totalEarnings are required', 400);
     }
-};
 
-/**
- * Webhook/callback to check milestone bonuses for a creator
- * This should be called when a creator's earnings are updated
- * POST /api/v1/referrals/check-milestone/:userId
- */
-export const checkMilestoneBonus = async (req: Request, res: Response) => {
-    try {
-        const { userId } = req.params;
-        const { totalEarnings } = req.body;
+    await ReferralModel.checkAndAwardMilestoneBonus(userId, totalEarnings);
 
-        if (!userId || totalEarnings === undefined) {
-            return res.status(400).json({ error: 'userId and totalEarnings are required' });
-        }
-
-        await ReferralModel.checkAndAwardMilestoneBonus(userId, totalEarnings);
-
-        res.json({ success: true, message: 'Milestone check completed' });
-    } catch (error) {
-        console.error('Error checking milestone bonus:', error);
-        res.status(500).json({ error: 'Failed to check milestone bonus' });
-    }
-};
+    ok(res, { message: 'Milestone check completed' });
+});

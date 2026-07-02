@@ -4,7 +4,7 @@ import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery,
         updateMyAvatar, completeOnboarding, submitVerification, 
         getFullPublicProfile, getMyFeed, getMyGallery, getMySettings, 
         updateMySettings, updateMyPaymentMethod, createSetupIntent  } from '../controllers/user.controller';
-import { optionalProtect, protect, creatorOnly  } from '../middleware/auth.middleware';
+import { optionalProtect, protect, creatorOnly, protectAndCreator } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar, uploadBanner } from '../middleware/upload.middleware';
 import { uploadVerificationDocs } from '../middleware/upload.middleware';
@@ -75,14 +75,14 @@ router.get('/:username', getPublicProfile);
  * @desc    Complete the onboarding process for the current creator
  * @access  Private (Creators only)
  */
-router.post('/me/onboarding', protect, creatorOnly, completeOnboarding);
+router.post('/me/onboarding', ...protectAndCreator, completeOnboarding);
 
 /**
  * @route   POST /api/v1/users/me/verification
  * @desc    Submit creator verification documents
  * @access  Private (Creators only)
  */
-router.post('/me/verification', protect, creatorOnly, uploadVerificationDocs, submitVerification);
+router.post('/me/verification', ...protectAndCreator, uploadVerificationDocs, submitVerification);
 
 /**
  * @route   GET /api/v1/users/me/feed

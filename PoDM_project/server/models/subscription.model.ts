@@ -1,90 +1,35 @@
 import supabase from '../config/supabaseClient';
 import { Subscription } from '@common/types/Subscription';
+import { handleQuery, handleCount, handleList } from '../utils/database';
 
-/**
- * Creates a new subscription record in the database.
- * @param subscriptionData - The data for the new subscription.
- * @returns The newly created subscription object.
- */
 export const createSubscription = async (subscriptionData: Partial<Subscription>): Promise<Subscription | null> => {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .insert([subscriptionData])
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error creating subscription:', error.message);
-        return null;
-    }
-    return data as Subscription;
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions').insert([subscriptionData]).select().single(),
+        'create subscription'
+    );
 };
 
-/**
- * Finds a subscription by its unique ID.
- * @param id - The ID of the subscription to find.
- * @returns The subscription object or null if not found.
- */
-export const findSubscriptionById = async (id: number): Promise<Subscription | null> => { // <-- Change type to number
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('id', id) // Now this comparison is type-safe
-        .single();
-
-    if (error) {
-        console.error('Error finding subscription by ID:', error.message);
-        return null;
-    }
-    return data as Subscription;
+export const findSubscriptionById = async (id: number): Promise<Subscription | null> => {
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions').select('*').eq('id', id).single(),
+        'find subscription by ID', id
+    );
 };
 
-/**
- * Finds all active subscriptions for a specific fan.
- * @param fanId - The UUID of the fan.
- * @returns An array of active subscription objects.
- */
 export const findActiveSubscriptionsByFan = async (fanId: string): Promise<Subscription[] | null> => {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*, creator:creator_id(*)') // Also fetches the creator's profile
-        .eq('fan_id', fanId)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error finding subscriptions by fan:', error.message);
-        return null;
-    }
-    return data as Subscription[];
+    return handleList<Subscription>(
+        supabase.from('subscriptions').select('*, creator:creator_id(*)').eq('fan_id', fanId).eq('status', 'active').order('created_at', { ascending: false }),
+        'find subscriptions by fan'
+    );
 };
 
-/**
- * Finds all subscribers for a specific creator.
- * @param creatorId - The UUID of the creator.
- * @returns An array of subscription objects.
- */
 export const findSubscriptionsByCreator = async (creatorId: string): Promise<Subscription[] | null> => {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        // CHANGE THIS LINE:
-        .select('*, fan:fan_id(id, username, avatar_url)') // Select specific, existing columns
-        .eq('creator_id', creatorId)
-        .eq('status', 'active');
-
-    if (error) {
-        console.error('Error finding subscriptions by creator:', error.message);
-        return null;
-    }
-    return data as Subscription[];
+    return handleList<Subscription>(
+        supabase.from('subscriptions').select('*, fan:fan_id(id, username, avatar_url)').eq('creator_id', creatorId).eq('status', 'active'),
+        'find subscriptions by creator'
+    );
 };
 
-/**
- * Counts new subscribers for a creator within a given date range.
- * @param creatorId - The UUID of the creator.
- * @param startDate - The start of the date range.
- * @returns The number of new subscribers.
- */
 export const countNewSubscribersInPeriod = async (creatorId: string, startDate: Date, endDate?: Date): Promise<number> => {
     let query = supabase
         .from('subscriptions')
@@ -97,92 +42,33 @@ export const countNewSubscribersInPeriod = async (creatorId: string, startDate: 
         query = query.lte('created_at', endDate.toISOString());
     }
 
-    const { count, error } = await query;
-
-    if (error) {
-        console.error('Error counting new subscribers:', error.message);
-        return 0;
-    }
-    return count || 0;
+    return handleCount(query, 'count new subscribers in period');
 };
 
-/**
- * Updates a subscription's status or tier.
- * @param id - The ID of the subscription to update.
- * @param updates - An object containing the fields to update.
- * @returns The updated subscription object.
- */
 export const updateSubscription = async (id: string, updates: Partial<Subscription>): Promise<Subscription | null> => {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error updating subscription:', error.message);
-        return null;
-    }
-    return data as Subscription;
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions').update(updates).eq('id', id).select().single(),
+        'update subscription', id
+    );
 };
 
-/**
- * Finds all subscriptions for a specific fan, regardless of status.
- * @param fanId - The UUID of the fan.
- * @returns An array of subscription objects.
- */
 export const findSubscriptionsByFanId = async (fanId: string): Promise<Subscription[] | null> => {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('fan_id', fanId)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error finding subscriptions by fan ID:', error.message);
-        return null;
-    }
-    return data as Subscription[];
+    return handleList<Subscription>(
+        supabase.from('subscriptions').select('*').eq('fan_id', fanId).order('created_at', { ascending: false }),
+        'find subscriptions by fan ID'
+    );
 };
 
-/**
- * Counts all new subscribers across the platform within a given date range.
- * @param startDate - The start of the date range.
- * @returns The number of new subscribers.
- */
 export const countAllNewSubscribersInPeriod = async (startDate: Date): Promise<number> => {
-    const { count, error } = await supabase
-        .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .gte('created_at', startDate.toISOString());
-
-    if (error) {
-        console.error('Error counting all new subscribers:', error.message);
-        return 0;
-    }
-    return count || 0;
+    return handleCount(
+        supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active').gte('created_at', startDate.toISOString()),
+        'count all new subscribers in period'
+    );
 };
 
-/**
- * Counts total active subscribers for a creator at a specific point in time.
- * Logic: Created before date AND (Still active OR ended after date).
- * @param creatorId - The UUID of the creator.
- * @param date - The date to check active status against.
- * @returns The number of active subscribers on that date.
- */
 export const countTotalActiveSubscribersAtDate = async (creatorId: string, date: Date): Promise<number> => {
-    const { count, error } = await supabase
-        .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('creator_id', creatorId)
-        .lte('created_at', date.toISOString())
-        .or(`end_date.is.null,end_date.gt.${date.toISOString()}`);
-
-    if (error) {
-        console.error('Error counting total active subscribers at date:', error.message);
-        return 0;
-    }
-    return count || 0;
+    return handleCount(
+        supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('creator_id', creatorId).lte('created_at', date.toISOString()).or(`end_date.is.null,end_date.gt.${date.toISOString()}`),
+        'count total active subscribers at date'
+    );
 };
