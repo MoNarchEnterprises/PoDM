@@ -1,0 +1,142 @@
+{
+  "id": "F-02",
+  "title": "Data Flow Layer Architecture (10-Stage Pipeline)",
+  "category": "F — Data & State",
+  "diagramType": "Flowchart",
+  "purpose": "Document the cross-cutting 10-stage data lifecycle pipeline shared across all 14 features, with per-stage deviations and the caching gap",
+  "audience": "Backend developers, architects, new engineers onboarding, platform maintainers",
+  "description": "The data flow layer architecture defines a 10-stage pipeline that every feature's data traverses: Origin (where data enters — REST POST body, R2 upload via Multer, Socket.IO event, cron), Validation (Zod schema, manual checks, Multer MIME filter, Supabase Auth), Transformation (controller reshapes request, sharp/ffmpeg for media, fee calculation), Storage (Model.create() → INSERT, R2 s3.putObject, JSONB append), Caching (currently absent across all features — marked as gap), Retrieval (Model.findById() → response, signed URLs, aggregation queries), Modification (Model.update() → SET, JSONB append, R2 delete+re-upload), Deletion (Model.delete() → hard delete, R2 cleanup cascade), Synchronization (Ticket↔DM sync, notification after publish, payout after earnings aggregation — least standardized stage), and External Transmission (response JSON to client, Socket.IO broadcast, R2 upload, Stripe API, OpenAI API, Ethereum RPC). The complete absence of caching (Stage 5) is a cross-cutting concern.",
+  "actors": [],
+  "systems": [
+    { "id": "express-api", "label": "Express API Server", "description": "Backend server handling all HTTP requests through the 10-stage pipeline" },
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Primary data store for all relational data" },
+    { "id": "cloudflare-r2", "label": "Cloudflare R2", "description": "Object storage for media files, thumbnails, watermarked images, voice messages" }
+  ],
+  "modules": [
+    { "id": "mod-routes", "label": "All Route Files (15)", "description": "Express route definitions mounting controllers with middleware chains" },
+    { "id": "mod-controllers", "label": "All Controllers (15)", "description": "Request handlers performing validation and transformation before calling services" },
+    { "id": "mod-services", "label": "All Services (15)", "description": "Business logic layer handling storage, retrieval, modification, deletion, and external transmission" },
+    { "id": "mod-models", "label": "All Models (13+)", "description": "Database access layer wrapping Supabase queries with error handling" }
+  ],
+  "services": [],
+  "externalSystems": [
+    { "id": "ext-stripe", "label": "Stripe API", "description": "Payment processing (SetupIntent, customer creation; payment endpoints dead)" },
+    { "id": "ext-openai", "label": "OpenAI / OpenRouter API", "description": "AI caption generation service" },
+    { "id": "ext-ethereum", "label": "Ethereum RPC (Base/Monad/MegaETH)", "description": "Blockchain RPC for transaction verification" },
+    { "id": "ext-supabase-auth", "label": "Supabase Auth API", "description": "Authentication service (JWT validation, user management)" },
+    { "id": "ext-nodemailer", "label": "SMTP (nodemailer)", "description": "Email sending (wired but unused)" }
+  ],
+  "dataStores": [
+    { "id": "ds-pg", "label": "PostgreSQL Tables (15+)", "description": "All relational data storage: profiles, content, subscriptions, transactions, messages, etc." },
+    { "id": "ds-r2", "label": "Cloudflare R2 Buckets", "description": "Object storage: podm-private (content, thumbnails, watermarks, voice), podm-public (avatars, banners)" }
+  ],
+  "entryPoints": [
+    { "id": "ep-rest", "label": "REST POST body → Controller", "description": "Standard data entry: HTTP request body parsed by Express JSON middleware" },
+    { "id": "ep-upload", "label": "Multipart upload (Multer)", "description": "Deviated entry: file upload via Multer middleware with MIME filtering and size limits" },
+    { "id": "ep-socket", "label": "Socket.IO event", "description": "Deviated entry: real-time data via WebSocket events (messages, room management)" },
+    { "id": "ep-cron", "label": "Cron/internal trigger", "description": "Deviated entry: scheduled processes or internal system triggers" }
+  ],
+  "exitPoints": [
+    { "id": "ex-response", "label": "Response JSON to Client", "description": "Standard exit: JSON response returned to requesting client" },
+    { "id": "ex-broadcast", "label": "Socket.IO Broadcast", "description": "Deviated exit: real-time event pushed to WebSocket room" },
+    { "id": "ex-storage", "label": "R2 Upload / Stripe API / External", "description": "Deviated exit: data transmitted to external storage or third-party API" }
+  ],
+  "preconditions": [
+    "Express server is running with all middleware configured",
+    "Database connections are established and migrations applied",
+    "External service credentials are configured in environment variables"
+  ],
+  "postconditions": [
+    "Every feature's data has traversed all 10 stages",
+    "Stage 5 (Caching) gap documented as cross-cutting concern",
+    "Stage 9 (Synchronization) identified as least standardized stage"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "Stage 1: Origin", "type": "start", "description": "Where data enters the system. Standard: REST POST body → controller. Deviations: R2 upload via Multer middleware (content creation), Socket.IO event (messaging), cron/internal triggers (scheduled tasks, background processing)." },
+    { "id": "n2", "label": "Stage 2: Validation", "type": "validation", "description": "Input validation. Standard: Zod schema validation or manual field checks in controller. Deviations: Multer MIME type filter (content upload), Supabase Auth (login/registration), express-validator middleware." },
+    { "id": "n3", "label": "Stage 3: Transformation", "type": "process", "description": "Data reshaping. Standard: Controller reshapes request body for service. Deviations: reshapeUserForApp (auth snake_case→camelCase), sharp thumbnail generation (images), ffmpeg screenshot (videos), fee calculation (payments 12.5% commission)." },
+    { "id": "n4", "label": "Stage 4: Storage", "type": "database", "description": "Persistence. Standard: Model.create() → SQL INSERT. Deviations: R2 s3.putObject (content files), JSONB append (support ticket conversation array), R2 upload (avatars/verification docs)." },
+    { "id": "n5", "label": "Stage 5: Caching [GAP]", "type": "database", "description": "CACHING IS ABSENT ACROSS ALL FEATURES. No Redis, memcached, or in-memory caching. Every request queries the database directly. Signed URLs (60s-3600s) are the closest thing to caching but are per-request generated." },
+    { "id": "n6", "label": "Stage 6: Retrieval", "type": "process", "description": "Data reading. Standard: Model.findById() → JSON response. Deviations: Signed URL generation (content media), aggregation COUNT(*) queries (analytics, admin dashboard), enriched notification fetch (attaching creator/content data)." },
+    { "id": "n7", "label": "Stage 7: Modification", "type": "process", "description": "Data updates. Standard: Model.update() → SQL SET. Deviations: JSONB append (support ticket conversation), R2 delete + re-upload (content file replacement — though content files are immutable after creation)." },
+    { "id": "n8", "label": "Stage 8: Deletion", "type": "process", "description": "Data removal. Standard: Model.delete() → hard delete (DB row removed). Deviations: R2 cleanup cascade (content deletion removes associated R2 files), auth user + profile cleanup (signup orphan cleanup on failure). Most entities use soft-delete or status change." },
+    { "id": "n9", "label": "Stage 9: Synchronization", "type": "process", "description": "Cross-feature data sync. Standard: none (most features don't sync). Deviations: Ticket↔DM sync (support ticket reply creates DM), notification after content publish (fire-and-forget subscriber notification), payout after earnings aggregation." },
+    { "id": "n10", "label": "Stage 10: External Transmission", "type": "event", "description": "Data sent outside the system. Standard: Response JSON to HTTP client. Deviations: Socket.IO broadcast (real-time messaging), R2 upload (media storage), Stripe API (payment processing), OpenAI API (AI captions), Ethereum RPC (crypto payment verification), SMTP (email — unused)." },
+    { "id": "n11", "label": "Validation Failure Handling", "type": "errorPaths", "description": "If validation fails at Stage 2, appropriate HTTP error returned (400 Bad Request, 401 Unauthorized, 403 Forbidden) depending on the validation type" },
+    { "id": "n12", "label": "Storage Rollback on Failure", "type": "errorPaths", "description": "If any stage after storage fails, rollback mechanisms: content creation deletes previously uploaded R2 files, auth signup deletes orphan auth user if profile creation fails, R2 cleanup cascade on content deletion failure." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "calls", "label": "Data enters system" },
+    { "from": "n2", "to": "n3", "relationship": "calls", "label": "Validated data" },
+    { "from": "n3", "to": "n4", "relationship": "calls", "label": "Transformed data" },
+    { "from": "n4", "to": "n5", "relationship": "calls", "label": "Persisted data" },
+    { "from": "n5", "to": "n6", "relationship": "calls", "label": "No cache — pass through (always falls through)" },
+    { "from": "n6", "to": "n7", "relationship": "calls", "label": "Retrieved data ready for modification" },
+    { "from": "n7", "to": "n8", "relationship": "calls", "label": "Modified data ready for deletion" },
+    { "from": "n8", "to": "n9", "relationship": "calls", "label": "Deleted data triggers sync" },
+    { "from": "n9", "to": "n10", "relationship": "calls", "label": "Synced data ready for external transmission" },
+    { "from": "n2", "to": "n11", "relationship": "returns", "label": "Validation failure" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "Validation failure at Stage 2", "destination": "HTTP 400/401/403 error returned to client; pipeline stops", "recovery": "Client corrects input and retries" },
+    { "trigger": "Storage failure at Stage 4", "destination": "Rollback: delete previously uploaded files (content); delete orphan auth user (signup)", "recovery": "Error 500 returned; cleanup may have orphaned resources if rollback fails" },
+    { "trigger": "External transmission failure at Stage 10", "destination": "External API error; data may be persisted but not transmitted", "recovery": "Retry logic only exists for R2 upload (3 retries, exponential backoff); other external calls have no retry" },
+    { "trigger": "Synchronization failure at Stage 9", "destination": "Primary operation succeeds but sync step fails silently (fire-and-forget pattern)", "recovery": "Synchronization is best-effort; errors logged but not retried" }
+  ],
+  "validationRules": [
+    "All data must pass through Stage 2 (Validation) before reaching storage",
+    "Deviations from standard pipeline must be documented per feature",
+    "Stage 5 (Caching) is a known gap — no caching exists across any feature",
+    "Stage 9 (Synchronization) is the least standardized — only 3 features implement it"
+  ],
+  "businessRules": [
+    "All 14 features (data-flow.md) share this 10-stage lifecycle",
+    "Caching (Stage 5) is entirely absent — each request hits the database",
+    "Synchronization (Stage 9) is implemented by: support ticket↔DM sync, notification after publish, payout after earnings aggregation",
+    "Only R2 upload has retry logic (3 attempts, exponential backoff) — no other stage has retries",
+    "Only content creation has rollback (deletes R2 files if DB insert fails)"
+  ],
+  "securityConsiderations": [
+    "Validation at Stage 2 prevents injection and malformed data",
+    "No caching means no stale cache data exposure but also no cache poisoning surface",
+    "External transmission (Stage 10) sends data to third-party APIs — data classification should be checked before transmission",
+    "Synchronization (Stage 9) can create data consistency issues if not atomic"
+  ],
+  "performanceConsiderations": [
+    "No caching (Stage 5) means every request is a full database query — no read amplification reduction",
+    "Aggregation queries (Stage 6) run raw COUNT(*) without pre-computed summaries",
+    "Synchronization (Stage 9) adds latency to the request-response cycle for features that implement it",
+    "External transmission (Stage 10) can add 1-10 seconds depending on API latency (AI, Blockchain RPC)"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "🟡 Stage 5: No Caching", "description": "Caching is entirely absent across all features. Every request queries the database. This is a cross-cutting performance concern." },
+    { "id": "a2", "label": "🟡 Stage 9: Least Standardized", "description": "Only 3 of 14 features implement synchronization: Ticket↔DM sync, notification after publish, payout after earnings aggregation." },
+    { "id": "a3", "label": "Only rollback exists in content creation", "description": "If content DB insert fails after R2 upload, previously uploaded files are cleaned up." },
+    { "id": "a4", "label": "Only R2 upload has retry logic", "description": "3 attempts with exponential backoff (500ms, 1000ms, 2000ms). No other stage or external call has retry." }
+  ],
+  "swimlanes": [
+    { "id": "sl-pipeline", "label": "10-Stage Data Lifecycle Pipeline", "nodes": ["n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9", "n10"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-ingest", "label": "Data Ingestion (Stages 1-3)", "nodes": ["n1", "n2", "n3"] },
+    { "id": "sg-persist", "label": "Data Persistence (Stages 4-5)", "nodes": ["n4", "n5"] },
+    { "id": "sg-access", "label": "Data Access (Stages 6-8)", "nodes": ["n6", "n7", "n8"] },
+    { "id": "sg-distribute", "label": "Data Distribution (Stages 9-10)", "nodes": ["n9", "n10"] }
+  ],
+  "legend": [
+    { "symbol": "Stage", "meaning": "One of 10 data lifecycle stages" },
+    { "symbol": "Standard", "meaning": "Default behavior for most features" },
+    { "symbol": "Deviation", "meaning": "Feature-specific variation from the standard" },
+    { "symbol": "Gap", "meaning": "Missing capability across all features" },
+    { "symbol": "Error Path", "meaning": "Failure mode and recovery" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

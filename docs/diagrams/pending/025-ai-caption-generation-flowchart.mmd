@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant Creator as "Creator"
+    participant Frontend as "Frontend (DraftCard)"
+    participant MulterMdw as "Multer Middleware"
+    participant AICtrl as "AI Controller"
+    participant AISvc as "AI Service"
+    participant OpenRouter as "OpenRouter/OpenAI (gemma-3-27b-it:free)"
+
+    Creator->>Frontend: Click 'AI Caption' Button
+    Frontend->>MulterMdw: POST /api/v1/ai/caption (multipart)
+    MulterMdw->>MulterMdw: Multer In-Memory Buffer
+    MulterMdw->>AICtrl: buffer + metadata
+    AICtrl->>AISvc: generateCaption(imageBuffer)
+    AISvc->>AISvc: Base64 Encode (toString('base64'))
+    AISvc->>OpenRouter: base64 image URL + system prompt
+    alt OpenRouter/OpenAI call succeeds?
+        OpenRouter-->>AISvc: caption text
+        AISvc-->>AICtrl: caption response
+        AICtrl-->>Frontend: return { caption }
+        Frontend->>Frontend: Edit / Accept / Regenerate
+        Frontend->>Frontend: POST /api/v1/content (caption → description)
+        Frontend-->>Creator: caption in textarea
+    else API error
+        OpenRouter-->>AISvc: 429 / 5xx / timeout
+        AISvc-->>AICtrl: error
+        AICtrl-->>Frontend: error response
+        Frontend-->>Creator: error displayed (no retry)
+    end

@@ -1,0 +1,177 @@
+{
+  "id": "B-02",
+  "title": "Admin Impersonation Flow",
+  "category": "B — Authentication & Authorization",
+  "diagramType": "Sequence",
+  "purpose": "Admin impersonation: start impersonation → X-Impersonating-User-Id header → protect middleware swap → impersonated request → ImpersonationBanner → stop impersonation.",
+  "audience": "Engineers, security reviewers, admin panel developers",
+  "description": "Complete admin impersonation lifecycle showing how an admin can act as any user. Start: admin navigates to user management, clicks 'Impersonate' on target user, saves impersonating_user_id to localStorage, navigates to hub/feed. Impersonated request: apiClient interceptor reads impersonating_user_id from storage and attaches X-Impersonating-User-Id header to every request. Protect middleware verifies admin JWT, detects header, confirms admin role, fetches target user profile, sets req.originalUser = admin and req.user = reshapedTargetUser. All downstream logic sees req.user as target user. UI shows ImpersonationBanner 'You are impersonating {name}'. Stop: admin clicks 'Stop Impersonating', clears localStorage, navigates to admin dashboard, subsequent requests return to normal admin auth. No server-side session tracking—purely client-driven via header.",
+  "actors": [
+    {
+      "id": "admin-actor",
+      "label": "Admin (Frontend User)",
+      "description": "Administrator user who performs impersonation. Must have admin role. Initiates and stops impersonation via UI."
+    }
+  ],
+  "systems": [],
+  "modules": [
+    { "id": "frontend-spa", "label": "Frontend SPA", "description": "React application with useAuth context, apiClient interceptor, and ImpersonationBanner component." },
+    { "id": "backend-api", "label": "Backend API", "description": "Express server receiving requests with impersonation header. Downstream logic sees req.user as impersonated user." },
+    { "id": "auth-middleware-imp", "label": "Auth Middleware (auth.middleware.ts)", "description": "Performs JWT validation, detects X-Impersonating-User-Id header, swaps user context." },
+    { "id": "database-imp", "label": "Database (profiles table)", "description": "PostgreSQL profiles table storing admin and target user data." }
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "profiles-imp", "label": "Profiles Table (Supabase DB)", "description": "Queried twice: first for admin profile (JWT validation), second for target user profile (impersonation swap)." }
+  ],
+  "entryPoints": [
+    { "id": "start-impersonation", "label": "Admin clicks 'Impersonate' on target user", "description": "UI trigger: admin selects target user from user management panel." },
+    { "id": "impersonated-api-request", "label": "Impersonated API Request", "description": "Any API call made while impersonation is active." },
+    { "id": "stop-impersonation", "label": "Admin clicks 'Stop Impersonating'", "description": "UI trigger: admin ends impersonation session." }
+  ],
+  "exitPoints": [
+    { "id": "impersonated-response", "label": "Response as target user", "description": "API returns data as if the target user made the request." },
+    { "id": "normal-admin-response", "label": "Response as admin", "description": "After stopping impersonation, requests return to normal admin context." }
+  ],
+  "preconditions": [
+    "Admin is authenticated with valid JWT and admin role",
+    "Target user exists in profiles table",
+    "Frontend has access to user management UI"
+  ],
+  "postconditions": [
+    "Start: impersonating_user_id stored in localStorage, UI shows ImpersonationBanner",
+    "Impersonated request: req.user = target user, req.originalUser = admin (audit trail)",
+    "Stop: localStorage cleared, UI returns to admin context, subsequent requests use normal auth"
+  ],
+  "nodes": [
+    { "id": "A", "label": "Admin (Frontend)", "type": "actor", "description": "Administrator user interacting with the React SPA" },
+    { "id": "F", "label": "Frontend SPA", "type": "service", "description": "React application with apiClient.ts interceptor and ImpersonationBanner.tsx" },
+    { "id": "B", "label": "Backend API", "type": "api", "description": "Express server processing impersonated requests" },
+    { "id": "M", "label": "Auth Middleware", "type": "authentication", "description": "protect middleware with impersonation swap logic" },
+    { "id": "D", "label": "Database", "type": "database", "description": "Supabase PostgreSQL profiles table" },
+    { "id": "A_navigate", "label": "Navigate to admin user management", "type": "process", "description": "Admin navigates to the user management panel" },
+    { "id": "A_clickImp", "label": "Click 'Impersonate' on target user", "type": "process", "description": "Admin selects target user to impersonate" },
+    { "id": "F_saveStorage", "label": "Save impersonating_user_id to localStorage", "type": "process", "description": "Frontend stores target user ID in browser storage" },
+    { "id": "F_navigateHub", "label": "Navigate to /hub or /fan/feed", "type": "process", "description": "Redirect to target user's default landing page" },
+    { "id": "A_action", "label": "Any action (page load, API call)", "type": "process", "description": "Admin performs actions while impersonating" },
+    { "id": "F_interceptor", "label": "apiClient interceptor: read impersonating_user_id", "type": "process", "description": "Axios request interceptor reads impersonation ID from storage" },
+    { "id": "F_sendRequest", "label": "Request + Authorization + X-Impersonating-User-Id", "type": "process", "description": "API request with both auth token and impersonation header" },
+    { "id": "M_validJWT", "label": "Verify admin JWT via supabase.auth.getUser()", "type": "authentication", "description": "First, validate the admin's own JWT normally" },
+    { "id": "M_fetchAdmin", "label": "findUserById(admin.id)", "type": "process", "description": "Fetch admin profile from DB" },
+    { "id": "M_detectHeader", "label": "Detect X-Impersonating-User-Id header", "type": "authentication", "description": "Middleware checks for impersonation header presence" },
+    { "id": "M_verifyAdmin", "label": "admin.role === 'admin'?", "type": "decision", "description": "Confirm the authenticated user has admin role" },
+    { "id": "M_fetchTarget", "label": "findUserById(impersonatingUserId)", "type": "process", "description": "Fetch target user profile from DB" },
+    { "id": "M_swapContext", "label": "req.originalUser = admin, req.user = targetUser", "type": "process", "description": "Swap request context: preserve admin for audit, replace user with target" },
+    { "id": "M_continue", "label": "Continue with impersonated user", "type": "process", "description": "Proceed to controller with swapped req.user" },
+    { "id": "B_downstream", "label": "All downstream logic sees req.user as target", "type": "process", "description": "Controllers, services, and models operate on target user context" },
+    { "id": "B_respond", "label": "Response as if target user made request", "type": "process", "description": "API responds with target user's data" },
+    { "id": "F_banner", "label": "Show ImpersonationBanner", "type": "process", "description": "UI displays 'You are impersonating {name}' banner" },
+    { "id": "A_stop", "label": "Click 'Stop Impersonating'", "type": "process", "description": "Admin ends impersonation session" },
+    { "id": "F_clearStorage", "label": "Clear impersonating_user_id from localStorage", "type": "process", "description": "Remove stored impersonation ID" },
+    { "id": "F_navigateAdmin", "label": "Navigate to /admin/dashboard", "type": "process", "description": "Return to admin panel after stopping impersonation" },
+    { "id": "F_normalRequest", "label": "Subsequent requests: no impersonation header", "type": "process", "description": "Normal API calls without X-Impersonating-User-Id header" },
+    { "id": "M_normalAuth", "label": "Normal auth flow", "type": "authentication", "description": "Standard protect middleware execution without impersonation" },
+    { "id": "B_adminResponse", "label": "Response as admin", "type": "process", "description": "API responds with admin's own data" }
+  ],
+  "connections": [
+    { "from": "A_navigate", "to": "F", "relationship": "calls", "label": "Navigate to user management" },
+    { "from": "A_clickImp", "to": "F", "relationship": "calls", "label": "Click Impersonate" },
+    { "from": "F_saveStorage", "to": "F_navigateHub", "relationship": "triggers", "label": "Save + redirect" },
+    { "from": "A_action", "to": "F", "relationship": "calls", "label": "Any action" },
+    { "from": "A_action", "to": "F_interceptor", "relationship": "calls", "label": "apiClient reads impersonation ID" },
+    { "from": "F_interceptor", "to": "F_sendRequest", "relationship": "triggers", "label": "Attach header + send" },
+    { "from": "F_sendRequest", "to": "M_validJWT", "relationship": "calls", "label": "Request with Auth + Impersonation headers" },
+    { "from": "M_validJWT", "to": "M_fetchAdmin", "relationship": "calls", "label": "findUserById(admin.id)" },
+    { "from": "M_fetchAdmin", "to": "D", "relationship": "reads", "label": "Admin profile" },
+    { "from": "D", "to": "M_fetchAdmin", "relationship": "returns", "label": "admin profile" },
+    { "from": "M_fetchAdmin", "to": "M_detectHeader", "relationship": "triggers", "label": "Check for impersonation header" },
+    { "from": "M_detectHeader", "to": "M_verifyAdmin", "relationship": "calls", "label": "Verify admin role" },
+    { "from": "M_verifyAdmin", "to": "M_fetchTarget", "relationship": "calls", "label": "truePath: fetch target user" },
+    { "from": "M_fetchTarget", "to": "D", "relationship": "reads", "label": "Target user profile" },
+    { "from": "D", "to": "M_fetchTarget", "relationship": "returns", "label": "targetUser profile" },
+    { "from": "M_fetchTarget", "to": "M_swapContext", "relationship": "triggers", "label": "Swap req.user context" },
+    { "from": "M_swapContext", "to": "M_continue", "relationship": "triggers", "label": "Proceed with impersonated user" },
+    { "from": "M_continue", "to": "B_downstream", "relationship": "calls", "label": "Controller receives impersonated req.user" },
+    { "from": "B_downstream", "to": "B_respond", "relationship": "triggers", "label": "Generate response as target user" },
+    { "from": "B_respond", "to": "F_banner", "relationship": "returns", "label": "Response data" },
+    { "from": "F_banner", "to": "A_action", "relationship": "returns", "label": "UI shows impersonation banner" },
+    { "from": "A_stop", "to": "F", "relationship": "calls", "label": "Click Stop Impersonating" },
+    { "from": "F_clearStorage", "to": "F_navigateAdmin", "relationship": "triggers", "label": "Clear + redirect" },
+    { "from": "F_normalRequest", "to": "M_normalAuth", "relationship": "calls", "label": "Request without impersonation header" },
+    { "from": "M_normalAuth", "to": "B_adminResponse", "relationship": "calls", "label": "Normal auth response as admin" },
+    { "from": "B_adminResponse", "to": "A", "relationship": "returns", "label": "Response as admin" }
+  ],
+  "decisions": [
+    {
+      "condition": "X-Impersonating-User-Id header present AND user.role === 'admin'?",
+      "truePath": "Fetch target user profile, set req.originalUser, set req.user = reshapedTargetUser",
+      "falsePath": "Continue normal authenticated request flow (no impersonation)"
+    }
+  ],
+  "loops": [],
+  "errorPaths": [
+    {
+      "trigger": "Impersonating user ID not found in DB",
+      "destination": "Middleware throws AppError(404) 'User not found'",
+      "recovery": "Admin must verify target user ID or check if user was deleted"
+    },
+    {
+      "trigger": "Non-admin user sends impersonation header",
+      "destination": "Impersonation header ignored—normal auth flow continues",
+      "recovery": "No error—header silently discarded for non-admin users"
+    },
+    {
+      "trigger": "Admin's own JWT expired during impersonation",
+      "destination": "401 returned—impersonation session ends abruptly",
+      "recovery": "Admin must re-authenticate and restart impersonation"
+    }
+  ],
+  "validationRules": [
+    "X-Impersonating-User-Id header is only honored for admin users",
+    "Target user must exist in profiles table",
+    "Impersonation does not bypass role guards—admin still has admin role in req.originalUser"
+  ],
+  "businessRules": [
+    "Impersonation is purely client-driven via header—no server-side session state",
+    "req.originalUser preserves admin identity for audit trail",
+    "ImpersonationBanner is essential UI feedback—without it admin may not realize they're impersonating"
+  ],
+  "securityConsiderations": [
+    "No server-side impersonation audit log exists",
+    "Impersonation does not require re-authentication or confirmation",
+    "Any component checking req.user gets impersonated identity—could lead to unintended actions",
+    "Purely client-driven: if admin shares their token, impersonation context is transferred"
+  ],
+  "performanceConsiderations": [
+    "Impersonation adds 1 extra DB query (fetch target user) per request",
+    "Total: 3 Supabase calls per impersonated request (getUser + admin fetch + target fetch)"
+  ],
+  "annotations": [
+    {
+      "node": "F_saveStorage",
+      "text": "Impersonation state stored in localStorage—persists across browser sessions"
+    },
+    {
+      "node": "M_verifyAdmin",
+      "text": "Only admin role can impersonate—enforced at middleware level"
+    },
+    {
+      "node": "B_downstream",
+      "text": "All services, models, and controllers see req.user as target user—no impersonation awareness downstream"
+    }
+  ],
+  "swimlanes": [],
+  "subgraphs": [],
+  "legend": [
+    { "symbol": "Solid arrow →", "meaning": "Action/request flow" },
+    { "symbol": "Dashed arrow ⇢", "meaning": "Response/return" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "box",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

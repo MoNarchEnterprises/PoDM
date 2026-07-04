@@ -1,0 +1,534 @@
+[
+  {
+    "id": "auth-login",
+    "name": "User Login",
+    "category": "auth",
+    "description": "Email/password authentication with optional MFA verification and JWT token generation",
+    "actors": ["User", "AuthService", "Supabase", "Session"],
+    "preconditions": ["User has registered account", "User has verified email"],
+    "mainFlow": [
+      "User submits email and password",
+      "AuthService validates credentials against database",
+      "AuthService checks if MFA is enabled for user",
+      "If MFA enabled, send MFA challenge and wait for verification",
+      "AuthService generates access token and refresh token",
+      "Session record created in database",
+      "Tokens returned to user with expiration metadata"
+    ],
+    "alternativeFlows": [
+      {"condition": "Invalid credentials", "steps": ["Return 401 error with invalid credentials message", "Increment login attempt counter", "Lock account after max attempts"]},
+      {"condition": "Unverified email", "steps": ["Return 403 error", "Prompt user to verify email via verification link"]},
+      {"condition": "Account locked", "steps": ["Return 423 error", "Provide unlock instructions via email"]}
+    ],
+    "errorPaths": [
+      {"condition": "Database connection failure", "steps": ["Log error", "Return 503 service unavailable"]},
+      {"condition": "Token generation failure", "steps": ["Log error", "Return 500 internal server error"]}
+    ],
+    "retryPaths": ["Retry token generation up to 3 times", "Retry MFA verification up to 5 attempts"],
+    "modules": ["auth"],
+    "apis": ["auth-api"],
+    "tables": ["users", "sessions"],
+    "events": ["user-logged-in"],
+    "agents": [],
+    "diagramIds": ["B-01", "B-02", "B-03"]
+  },
+  {
+    "id": "auth-registration",
+    "name": "User Registration",
+    "category": "auth",
+    "description": "New user registration with email verification, profile creation, and welcome flow",
+    "actors": ["User", "AuthService", "UserService", "Nodemailer", "Supabase"],
+    "preconditions": ["User provides valid email", "Email not already registered", "Password meets strength requirements"],
+    "mainFlow": [
+      "User submits registration form with email, username, and password",
+      "AuthService validates input data and checks for existing email/username",
+      "AuthService hashes password with bcrypt",
+      "User record created in users table",
+      "Profile record created in profiles table",
+      "Email verification token generated and stored",
+      "Verification email sent via Nodemailer",
+      "Welcome notification created",
+      "User returned with pending verification status"
+    ],
+    "alternativeFlows": [
+      {"condition": "Email already registered", "steps": ["Return 409 conflict error", "Suggest password reset or login"]},
+      {"condition": "Username taken", "steps": ["Return 409 conflict error", "Suggest alternative usernames"]},
+      {"condition": "Weak password", "steps": ["Return 422 error", "List password requirements"]}
+    ],
+    "errorPaths": [
+      {"condition": "Email delivery failure", "steps": ["Log error", "Return success with warning", "Queue email retry"]}
+    ],
+    "retryPaths": ["Retry email sending up to 3 times with exponential backoff"],
+    "modules": ["auth", "users"],
+    "apis": ["auth-api"],
+    "tables": ["users", "profiles", "sessions"],
+    "events": ["user-registered"],
+    "agents": [],
+    "diagramIds": ["B-01", "B-05", "B-06"]
+  },
+  {
+    "id": "content-upload",
+    "name": "Content Upload Pipeline",
+    "category": "content",
+    "description": "Creator uploads content with watermarking, AI caption generation, and access tier assignment",
+    "actors": ["Creator", "ContentService", "UploadService", "WatermarkService", "AICaptionService", "Cloudflare R2", "OpenAI"],
+    "preconditions": ["Creator is authenticated", "Creator has completed onboarding", "File meets size and type requirements"],
+    "mainFlow": [
+      "Creator selects file and metadata (title, description, tier, PPV price)",
+      "UploadService validates file type, size, and scans for malware",
+      "File uploaded to Cloudflare R2 temporary bucket",
+      "Content record created with 'processing' status",
+      "WatermarkService triggered via watermark queue for image/video content",
+      "AICaptionService triggered via caption queue for caption generation",
+      "Content status updated to 'published' after processing completes",
+      "Notification sent to subscribers about new content"
+    ],
+    "alternativeFlows": [
+      {"condition": "Text-only content", "steps": ["Skip watermark step", "Proceed directly to publishing"]},
+      {"condition": "AI caption disabled", "steps": ["Skip caption generation", "Use creator-provided caption"]},
+      {"condition": "Bulk upload", "steps": ["Process files in batch", "Queue each file individually", "Aggregate completion status"]}
+    ],
+    "errorPaths": [
+      {"condition": "Upload to R2 fails", "steps": ["Retry upload up to 3 times", "Mark content as failed", "Notify creator"]},
+      {"condition": "Watermark processing error", "steps": ["Log error", "Publish without watermark", "Flag for manual review"]},
+      {"condition": "OpenAI API failure", "steps": ["Log error", "Skip AI caption", "Allow manual caption entry"]}
+    ],
+    "retryPaths": ["Watermark queue retry 3 times with backoff", "Caption queue retry 2 times"],
+    "modules": ["content", "ai"],
+    "apis": ["content-api", "ai-api"],
+    "tables": ["content", "content_access", "ai_captions"],
+    "events": ["content-published"],
+    "agents": ["caption-agent"],
+    "diagramIds": ["D-01", "D-02", "D-03"]
+  },
+  {
+    "id": "payment-subscription",
+    "name": "Subscription Purchase",
+    "category": "payments",
+    "description": "Fan subscribes to a creator's tier with Stripe payment processing and access grant",
+    "actors": ["Fan", "StripeService", "SubscriptionService", "Stripe", "Webhook"],
+    "preconditions": ["Fan is authenticated", "Fan does not have active subscription to this creator", "Tier is active and available"],
+    "mainFlow": [
+      "Fan selects tier and initiates subscription",
+      "SubscriptionService creates pending subscription record",
+      "StripeService creates Stripe Checkout Session or PaymentIntent",
+      "Fan completes payment on Stripe-hosted UI or modal",
+      "Stripe sends webhook event payment_intent.succeeded or checkout.session.completed",
+      "Webhook handler updates subscription status to active",
+      "ContentAccess records created for all tier-appropriate content",
+      "Creator notified of new subscriber",
+      "Fan receives confirmation and content access granted"
+    ],
+    "alternativeFlows": [
+      {"condition": "Trial period available", "steps": ["Create subscription without immediate charge", "Schedule first payment at trial end"]},
+      {"condition": "Promo code applied", "steps": ["Validate promo code", "Apply discount to Stripe session", "Record promo usage"]}
+    ],
+    "errorPaths": [
+      {"condition": "Stripe payment fails", "steps": ["Mark subscription as failed", "Return error to fan", "Offer alternative payment method"]},
+      {"condition": "Webhook delivery delayed", "steps": ["Implement idempotency keys", "Poll Stripe for status", "Grace period for activation"]},
+      {"condition": "Card declined", "steps": ["Return specific decline reason", "Suggest different card"]}
+    ],
+    "retryPaths": ["Webhook retry with 5 retries and backoff", "Stripe automatic payment retry for failed recurring charges"],
+    "modules": ["payments", "subscriptions"],
+    "apis": ["payments-api", "subscriptions-api"],
+    "tables": ["subscriptions", "payments", "content_access"],
+    "events": ["payment-completed", "subscription-created"],
+    "agents": [],
+    "diagramIds": ["C-01", "C-04"]
+  },
+  {
+    "id": "payment-tip",
+    "name": "Tip Payment",
+    "category": "payments",
+    "description": "Fan sends a tip to a creator with optional message and fee calculation",
+    "actors": ["Fan", "Creator", "StripeService", "FeeService", "Stripe"],
+    "preconditions": ["Fan is authenticated", "Creator account is active", "Fan has payment method on file"],
+    "mainFlow": [
+      "Fan selects tip amount and optional message",
+      "FeeService calculates platform fee and net creator amount",
+      "StripeService creates PaymentIntent for tip amount",
+      "Fan confirms payment",
+      "Stripe processes payment and sends webhook",
+      "Payment record created with fee breakdown",
+      "Creator notified of tip with message",
+      "Fan receives confirmation"
+    ],
+    "alternativeFlows": [
+      {"condition": "Referral bonus applicable", "steps": ["Check if referrer code was used", "Calculate referral bonus", "Credit referrer's bonus account"]}
+    ],
+    "errorPaths": [
+      {"condition": "Payment fails", "steps": ["Refund any partial charges", "Notify fan of failure", "Retry with different method"]}
+    ],
+    "retryPaths": ["Stripe automatic payment retry"],
+    "modules": ["payments"],
+    "apis": ["payments-api"],
+    "tables": ["payments", "fees", "referral_bonuses"],
+    "events": ["payment-completed", "tip-received"],
+    "agents": [],
+    "diagramIds": ["C-01", "C-05"]
+  },
+  {
+    "id": "payment-payout",
+    "name": "Creator Payout",
+    "category": "payments",
+    "description": "Scheduled payout to creators for accumulated earnings with fee deduction",
+    "actors": ["Creator", "PayoutService", "FeeService", "Stripe Connect", "System"],
+    "preconditions": ["Creator has connected Stripe account", "Creator has minimum payout balance", "Payout period has ended"],
+    "mainFlow": [
+      "System triggers payout batch processing at schedule interval",
+      "PayoutService calculates creator balance for the period",
+      "FeeService deducts platform fees from balance",
+      "Payout record created with 'pending' status",
+      "Stripe Connect transfer initiated to creator's connected account",
+      "Payout status updated based on Stripe response",
+      "Creator notified of payout completion",
+      "Payout history updated in creator dashboard"
+    ],
+    "alternativeFlows": [
+      {"condition": "Manual payout request", "steps": ["Creator initiates payout from dashboard", "System checks eligibility and minimum balance", "Process as single payout"]},
+      {"condition": "Partial payout due to reserves", "steps": ["Calculate reserve amount for potential refunds", "Release reserve after hold period"]}
+    ],
+    "errorPaths": [
+      {"condition": "Stripe Connect transfer fails", "steps": ["Mark payout as failed", "Notify creator", "Retry in next batch cycle"]},
+      {"condition": "Insufficient balance", "steps": ["Skip creator in batch", "Notify if balance below threshold"]}
+    ],
+    "retryPaths": ["Automatic retry 3 times with 24-hour intervals", "Manual retry via admin panel"],
+    "modules": ["payments"],
+    "apis": ["payments-api"],
+    "tables": ["payouts", "payments", "fees"],
+    "events": ["payout-initiated", "payout-completed"],
+    "agents": [],
+    "queues": ["payout-queue"],
+    "diagramIds": ["C-03", "C-06"]
+  },
+  {
+    "id": "crypto-verify",
+    "name": "Crypto Wallet Verification",
+    "category": "cross-cutting",
+    "description": "Cryptographic verification of Solana wallet ownership via message signing",
+    "actors": ["User", "CryptoService", "Solana", "Wallet"],
+    "preconditions": ["User is authenticated", "User has a Solana wallet address", "Wallet not already verified"],
+    "mainFlow": [
+      "User adds wallet address to their account",
+      "CryptoService generates a unique verification message containing user ID and nonce",
+      "User signs the message with their Solana wallet private key",
+      "User submits the signature back to the platform",
+      "CryptoService recovers the public key from the signature",
+      "Recovered key compared with claimed wallet address",
+      "If match, wallet marked as verified",
+      "CryptoTransaction record created for verification event"
+    ],
+    "alternativeFlows": [
+      {"condition": "Signature does not match", "steps": ["Return verification failure", "Increment failed attempts", "Allow retry"]}
+    ],
+    "errorPaths": [
+      {"condition": "Solana RPC unavailable", "steps": ["Cache verification attempt", "Retry with different RPC endpoint"]}
+    ],
+    "retryPaths": ["Retry with alternative RPC endpoint up to 3 times"],
+    "modules": ["crypto"],
+    "apis": ["crypto-api"],
+    "tables": ["wallets", "crypto_transactions"],
+    "events": ["crypto-wallet-verified"],
+    "agents": [],
+    "diagramIds": ["C-02", "J-01"]
+  },
+  {
+    "id": "message-send",
+    "name": "Real-Time Messaging",
+    "category": "real-time",
+    "description": "Fan sends a message to a creator with real-time delivery via Socket.IO",
+    "actors": ["Fan", "Creator", "MessageService", "Socket.IO Server", "NotificationService"],
+    "preconditions": ["Sender is authenticated", "Recipient exists and is active", "Conversation is not blocked"],
+    "mainFlow": [
+      "Fan sends message via Socket.IO or REST endpoint",
+      "MessageService validates message content and attachments",
+      "Message record created in database",
+      "Socket.IO server emits message event to recipient's connected clients",
+      "If recipient is offline, message delivered on next connection",
+      "Notification created for recipient",
+      "Read receipts tracked when message is viewed"
+    ],
+    "alternativeFlows": [
+      {"condition": "Message contains media attachment", "steps": ["Upload attachment to R2", "Insert attachment URL into message", "Generate thumbnail for images"]},
+      {"condition": "Broadcast to all subscribers", "steps": ["Creator uses broadcast modal", "Message sent to all active subscribers", "Rate-limited to prevent spam"]}
+    ],
+    "errorPaths": [
+      {"condition": "WebSocket connection lost", "steps": ["Message queued for delivery", "Delivered on reconnection", "Client shows pending state"]}
+    ],
+    "retryPaths": ["Socket.IO automatic reconnection with backoff", "Message delivery retry up to 5 times"],
+    "modules": ["messages"],
+    "apis": ["messages-api"],
+    "tables": ["messages", "conversations"],
+    "events": ["message-sent", "message-read"],
+    "agents": [],
+    "diagramIds": ["E-01", "E-02"]
+  },
+  {
+    "id": "admin-moderation",
+    "name": "Content Moderation",
+    "category": "admin",
+    "description": "Admin reviews reported content, takes moderation action, and resolves reports",
+    "actors": ["Admin", "Reporter", "ModerationService", "NotificationService", "ContentService"],
+    "preconditions": ["Reporter submitted a report", "Content exists and is accessible", "Admin has moderation permissions"],
+    "mainFlow": [
+      "User reports content or another user with reason and description",
+      "Report record created with 'open' status",
+      "Moderation queue updated with new report",
+      "AI moderation agent auto-screens content for violations",
+      "Admin reviews report details and auto-screening results",
+      "Admin takes action: warn, remove content, suspend user, or dismiss",
+      "If content removed, access revoked for all users",
+      "Report status updated to 'resolved' with resolution notes",
+      "Reporter notified of action taken",
+      "AdminAction record created for audit trail"
+    ],
+    "alternativeFlows": [
+      {"condition": "Auto-moderation detects violation", "steps": ["Content auto-flagged and hidden", "Priority added to admin queue", "Admin confirms or overrides auto-action"]},
+      {"condition": "No violation found", "steps": ["Report marked as 'dismissed'", "Reporter notified of dismissal", "No further action"]},
+      {"condition": "User appeals moderation action", "steps": ["Appeal submitted via support ticket", "Admin reviews appeal", "Action upheld or reversed"]}
+    ],
+    "errorPaths": [
+      {"condition": "AI moderation service unavailable", "steps": ["Flag content for manual review only", "Queue auto-screening for later"]}
+    ],
+    "retryPaths": [],
+    "modules": ["admin"],
+    "apis": ["admin-api"],
+    "tables": ["reports", "admin_actions", "content"],
+    "events": ["admin-action"],
+    "agents": ["moderation-agent"],
+    "diagramIds": ["G-02", "G-04"]
+  },
+  {
+    "id": "referral-bonus",
+    "name": "Referral Bonus",
+    "category": "payments",
+    "description": "Referral bonus awarded when a new user signs up using a referral code and makes a purchase",
+    "actors": ["Referrer", "Referee", "ReferralService", "FeeService", "PayoutService"],
+    "preconditions": ["Referrer has generated a referral code", "Referee used valid referral code at registration", "Referee made qualifying purchase"],
+    "mainFlow": [
+      "Referee registers using referrer's referral code",
+      "Referral code validated and linked to referee account",
+      "Referee makes first qualifying purchase (subscription, tip, or PPV)",
+      "Payment processing triggers referral bonus calculation",
+      "ReferralService calculates bonus amount based on percentage of purchase",
+      "ReferralBonus record created with 'pending' status",
+      "Bonus amount added to referrer's bonus balance",
+      "Bonus becomes payable after refund period expires",
+      "Referrer notified about bonus award"
+    ],
+    "alternativeFlows": [
+      {"condition": "Purchase refunded", "steps": ["Reverse referral bonus if within refund period", "Deduct from referrer balance"]},
+      {"condition": "Referral code expired", "steps": ["Reject code usage at registration", "No bonus awarded"]}
+    ],
+    "errorPaths": [
+      {"condition": "Bonus calculation error", "steps": ["Log error", "Flag for manual review", "Admin corrects balance"]}
+    ],
+    "retryPaths": [],
+    "modules": ["payments"],
+    "apis": ["payments-api", "referrals-api"],
+    "tables": ["referral_bonuses", "payments", "users"],
+    "events": ["referral-bonus-awarded"],
+    "agents": [],
+    "diagramIds": ["C-07", "C-08"]
+  },
+  {
+    "id": "contest-lifecycle",
+    "name": "Contest Lifecycle",
+    "category": "content",
+    "description": "Full contest lifecycle from creation through winner selection and prize distribution",
+    "actors": ["Creator", "Fan", "ContestService", "NotificationService"],
+    "preconditions": ["Creator is authenticated and verified", "Creator has sufficient balance for prize (if applicable)"],
+    "mainFlow": [
+      "Creator creates contest with title, description, dates, prize, and entry fee",
+      "Contest status set to 'draft' for preview",
+      "Creator publishes contest, status changes to 'active'",
+      "Fans browse and submit entries before deadline",
+      "Entries approved by creator or auto-approved",
+      "Contest end date reached, status changes to 'judging'",
+      "Winner selected by vote count, creator decision, or random selection",
+      "ContestWinner record created with place and prize",
+      "Prize distributed to winner(s)",
+      "All participants notified of results",
+      "Contest status updated to 'completed'"
+    ],
+    "alternativeFlows": [
+      {"condition": "Not enough entries", "steps": ["Creator extends deadline", "Contest cancelled with refunds if no minimum met"]},
+      {"condition": "Entry fee contest", "steps": ["Entry fees collected in escrow", "Fees distributed as prize pool", "Platform fee deducted from pool"]}
+    ],
+    "errorPaths": [
+      {"condition": "Winner selection tie", "steps": ["Tiebreaker rules applied", "Creator casts deciding vote", "Split prize equally"]}
+    ],
+    "retryPaths": [],
+    "modules": ["contests", "payments"],
+    "apis": ["contests-api", "payments-api"],
+    "tables": ["contests", "contest_entries", "contest_winners", "payments"],
+    "events": ["contest-created", "contest-ended", "contest-winner-selected"],
+    "agents": [],
+    "diagramIds": []
+  },
+  {
+    "id": "enclave-application",
+    "name": "Enclave Application",
+    "category": "content",
+    "description": "Fan applies for exclusive enclave membership with review and approval process",
+    "actors": ["Fan", "Admin", "EnclaveService", "NotificationService"],
+    "preconditions": ["Fan is authenticated", "Fan has completed profile", "Fan meets basic eligibility criteria"],
+    "mainFlow": [
+      "Fan navigates to enclave page and reads about benefits",
+      "Fan submits enclave application with required information",
+      "Application record created with 'pending' status",
+      "Admin review queue updated with new application",
+      "Admin reviews application details",
+      "Admin approves or rejects application with notes",
+      "If approved, fan granted enclave membership and access",
+      "Notification sent to fan with result"
+    ],
+    "alternativeFlows": [
+      {"condition": "Application rejected", "steps": ["Fan notified with reason", "Fan may re-apply after cooldown period", "Appeal option provided"]},
+      {"condition": "Automatic approval tier", "steps": ["Fan meets auto-approval criteria", "Application auto-approved", "Access granted immediately"]}
+    ],
+    "errorPaths": [
+      {"condition": "Document verification fails", "steps": ["Flag for manual review", "Request additional documentation"]}
+    ],
+    "retryPaths": [],
+    "modules": ["admin"],
+    "apis": ["enclave-api", "admin-api"],
+    "tables": ["users", "enclave_applications"],
+    "events": ["enclave-application-submitted"],
+    "agents": [],
+    "diagramIds": []
+  },
+  {
+    "id": "password-reset",
+    "name": "Password Reset",
+    "category": "auth",
+    "description": "User requests password reset via email link with token verification",
+    "actors": ["User", "AuthService", "Nodemailer", "Supabase"],
+    "preconditions": ["User has registered account with verified email"],
+    "mainFlow": [
+      "User requests password reset with email address",
+      "AuthService validates email exists in system",
+      "Reset token generated with 1-hour expiration",
+      "Password reset email sent via Nodemailer with token link",
+      "User clicks link and enters new password",
+      "AuthService validates token and expiration",
+      "Password hash updated in database",
+      "All active sessions invalidated except current",
+      "Confirmation sent to user email"
+    ],
+    "alternativeFlows": [
+      {"condition": "Email not found", "steps": ["Return generic success message", "Do not reveal whether email exists"]},
+      {"condition": "Token expired", "steps": ["Return token expired error", "Allow user to request new reset link"]}
+    ],
+    "errorPaths": [
+      {"condition": "Email delivery fails", "steps": ["Log error", "Queue email retry", "Notify user to try again"]}
+    ],
+    "retryPaths": ["Email retry 3 times with backoff", "Token regeneration allowed after expiry"],
+    "modules": ["auth"],
+    "apis": ["auth-api"],
+    "tables": ["users", "sessions"],
+    "events": [],
+    "agents": [],
+    "diagramIds": ["B-05", "B-06"]
+  },
+  {
+    "id": "support-ticket",
+    "name": "Support Ticket Lifecycle",
+    "category": "admin",
+    "description": "User submits support ticket, admin responds and resolves the issue",
+    "actors": ["User", "Admin", "SupportService", "NotificationService", "SupportAgent (AI)"],
+    "preconditions": ["User is authenticated", "Ticket category is valid"],
+    "mainFlow": [
+      "User submits support ticket with category, subject, and description",
+      "Ticket created with 'open' status",
+      "AI support agent auto-classifies and assigns priority",
+      "If auto-solution available, suggested response sent immediately",
+      "Ticket added to admin support queue",
+      "Admin reviews ticket and responds",
+      "User receives response notification",
+      "User confirms resolution or asks follow-up",
+      "Ticket marked 'resolved' when issue is closed",
+      "Satisfaction survey sent to user"
+    ],
+    "alternativeFlows": [
+      {"condition": "AI auto-resolution successful", "steps": ["User receives auto-response", "Ticket auto-closed if user confirms", "User can reopen anytime"]},
+      {"condition": "High priority issue", "steps": ["Tagged as urgent", "Direct notification to admin team", "SLA timer started"]}
+    ],
+    "errorPaths": [
+      {"condition": "Cannot resolve issue", "steps": ["Escalate to senior admin", "Ticket priority increased"]}
+    ],
+    "retryPaths": [],
+    "modules": ["admin", "support"],
+    "apis": ["support-api", "admin-api"],
+    "tables": ["support_tickets", "support_messages"],
+    "events": [],
+    "agents": ["support-agent"],
+    "diagramIds": []
+  },
+  {
+    "id": "broadcast-delivery",
+    "name": "Creator Broadcast",
+    "category": "real-time",
+    "description": "Creator sends broadcast message to all active subscribers via Socket.IO",
+    "actors": ["Creator", "MessageService", "Socket.IO Server", "NotificationService"],
+    "preconditions": ["Creator is authenticated", "Creator has active subscribers", "Creator has not exceeded broadcast rate limit"],
+    "mainFlow": [
+      "Creator composes broadcast message with optional media",
+      "MessageService validates broadcast content",
+      "Broadcast message recorded in database",
+      "List of active subscribers retrieved",
+      "Socket.IO emits broadcast event to all connected subscriber clients",
+      "Offline subscribers receive notification",
+      "Broadcast delivered to subscriber's message inbox as system message",
+      "Delivery metrics tracked for creator analytics"
+    ],
+    "alternativeFlows": [
+      {"condition": "Tier-specific broadcast", "steps": ["Creator selects target tier", "Only subscribers of that tier receive broadcast"]},
+      {"condition": "Scheduled broadcast", "steps": ["Creator schedules broadcast for later", "System triggers delivery at scheduled time"]}
+    ],
+    "errorPaths": [
+      {"condition": "Rate limit exceeded", "steps": ["Block broadcast", "Notify creator of cooldown period", "Log rate limit violation"]}
+    ],
+    "retryPaths": ["Undelivered messages queued for next subscriber connection"],
+    "modules": ["messages", "subscriptions"],
+    "apis": ["messages-api"],
+    "tables": ["messages", "subscriptions", "conversations"],
+    "events": ["message-sent"],
+    "agents": [],
+    "diagramIds": ["E-03", "E-04"]
+  },
+  {
+    "id": "verification-docs",
+    "name": "Verification Document Upload",
+    "category": "admin",
+    "description": "Creator submits identity documents for verification with admin review",
+    "actors": ["Creator", "Admin", "VerificationService", "NotificationService", "Cloudflare R2"],
+    "preconditions": ["Creator is authenticated", "Creator has not submitted same document type", "Documents meet format and size requirements"],
+    "mainFlow": [
+      "Creator navigates to verification section in settings",
+      "Creator uploads identity document (ID, passport, or license)",
+      "Document encrypted and stored in protected R2 bucket",
+      "VerificationDoc record created with 'pending' status",
+      "Admin verification queue updated",
+      "Admin reviews document for authenticity and completeness",
+      "Admin approves or rejects verification with notes",
+      "If approved, creator marked as verified",
+      "Creator notified of verification result",
+      "Rejected submissions allow re-upload with correction guidance"
+    ],
+    "alternativeFlows": [
+      {"condition": "Multiple documents required", "steps": ["Creator uploads multiple documents", "All documents must be approved for verification"]},
+      {"condition": "Document rejected", "steps": ["Admin provides rejection reason", "Creator uploads corrected document", "Re-review initiated"]}
+    ],
+    "errorPaths": [
+      {"condition": "Document storage fails", "steps": ["Retry upload", "Notify creator of upload failure"]}
+    ],
+    "retryPaths": ["Upload retry 3 times", "Re-submission allowed after rejection"],
+    "modules": ["admin", "creator"],
+    "apis": ["admin-api", "creator-api"],
+    "tables": ["verification_docs", "creators"],
+    "events": ["verification-doc-uploaded", "verification-approved", "verification-rejected"],
+    "agents": [],
+    "diagramIds": ["G-02"]
+  }
+]

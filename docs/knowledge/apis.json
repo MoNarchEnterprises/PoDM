@@ -1,0 +1,58 @@
+[
+  {
+    "id": "supabase",
+    "name": "Supabase",
+    "type": "database",
+    "purpose": "PostgreSQL database hosting, authentication service, real-time subscriptions, storage buckets",
+    "endpoints": ["/auth/v1/*", "/rest/v1/*", "/realtime/v1/*", "/storage/v1/*"],
+    "module": "all"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "type": "payment",
+    "purpose": "Payment processing, subscription billing, Stripe Connect for creator payouts, webhook event handling",
+    "endpoints": ["/v1/payment_intents", "/v1/subscriptions", "/v1/checkout/sessions", "/v1/transfers", "/v1/webhook_endpoints"],
+    "module": "payments"
+  },
+  {
+    "id": "solana",
+    "name": "Solana",
+    "type": "blockchain",
+    "purpose": "Crypto wallet verification via message signing, SOL transaction recording, on-chain identity verification",
+    "endpoints": ["https://api.mainnet-beta.solana.com", "https://api.devnet.solana.com"],
+    "module": "crypto"
+  },
+  {
+    "id": "cloudflare-r2",
+    "name": "Cloudflare R2",
+    "type": "storage",
+    "purpose": "Object storage for user-uploaded content (images, videos, audio), signed URL generation, S3-compatible API",
+    "endpoints": ["S3-compatible API endpoint", "custom domain URL"],
+    "module": "content"
+  },
+  {
+    "id": "openai",
+    "name": "OpenAI",
+    "type": "ai",
+    "purpose": "AI caption generation for uploaded content, content classification, recommendation engine, analytics insights",
+    "endpoints": ["/v1/completions", "/v1/chat/completions", "/v1/embeddings", "/v1/moderations"],
+    "module": "ai"
+  },
+  {
+    "id": "socket-io",
+    "name": "Socket.IO",
+    "type": "real-time",
+    "purpose": "WebSocket-based real-time messaging between fans and creators, broadcast to subscribers, notification delivery",
+    "endpoints": ["/socket.io/*"],
+    "module": "messages"
+  },
+  {
+    "id": "nodemailer",
+    "name": "Nodemailer",
+    "type": "email",
+    "purpose": "Transactional email delivery for verification, password reset, notifications, marketing communications",
+    "endpoints": ["SMTP configuration"],
+    "module": "notifications"
+  }
+]

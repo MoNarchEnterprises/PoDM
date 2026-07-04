@@ -1,0 +1,189 @@
+[
+  {
+    "id": "health-api",
+    "domain": "Health",
+    "path": "/api/health",
+    "methods": "GET",
+    "auth": false,
+    "roles": [],
+    "module": "system",
+    "controller": "health.controller",
+    "description": "Health check endpoint — system status, database connectivity, uptime monitoring"
+  },
+  {
+    "id": "auth-api",
+    "domain": "Auth",
+    "path": "/api/auth",
+    "methods": "POST GET",
+    "auth": false,
+    "roles": [],
+    "module": "auth",
+    "controller": "auth.controller",
+    "description": "Authentication endpoints — register, login, verify email, refresh tokens, logout, MFA management"
+  },
+  {
+    "id": "users-api",
+    "domain": "Users",
+    "path": "/api/users",
+    "methods": "GET PUT PATCH DELETE",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "users",
+    "controller": "users.controller",
+    "description": "User profile management — get/update profile, preferences, avatar upload, account deletion"
+  },
+  {
+    "id": "creator-api",
+    "domain": "Creator",
+    "path": "/api/creator",
+    "methods": "GET POST PUT PATCH DELETE",
+    "auth": true,
+    "roles": ["creator"],
+    "module": "creator",
+    "controller": "creator.controller",
+    "description": "Creator management — onboarding, profile, tiers CRUD, analytics, earnings, wallet settings, referral codes"
+  },
+  {
+    "id": "content-api",
+    "domain": "Content",
+    "path": "/api/content",
+    "methods": "GET POST PUT DELETE",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "content",
+    "controller": "content.controller",
+    "description": "Content management — create, read, update, delete content, access control, watermark status, signed URLs"
+  },
+  {
+    "id": "subscriptions-api",
+    "domain": "Subscriptions",
+    "path": "/api/subscriptions",
+    "methods": "GET POST PUT DELETE",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "subscriptions",
+    "controller": "subscriptions.controller",
+    "description": "Subscription management — subscribe, cancel, upgrade, downgrade tier, status checks, history"
+  },
+  {
+    "id": "messages-api",
+    "domain": "Messages",
+    "path": "/api/messages",
+    "methods": "GET POST PUT DELETE",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "messages",
+    "controller": "messages.controller",
+    "description": "Messaging endpoints — conversations list, messages, send message, mark read, real-time WebSocket integration"
+  },
+  {
+    "id": "crypto-api",
+    "domain": "Crypto",
+    "path": "/api/crypto",
+    "methods": "GET POST",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "crypto",
+    "controller": "crypto.controller",
+    "description": "Crypto operations — wallet verification via Solana signature, transaction history, balance checks"
+  },
+  {
+    "id": "payments-api",
+    "domain": "Payments",
+    "path": "/api/payments",
+    "methods": "GET POST",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "payments",
+    "controller": "payments.controller",
+    "description": "Payment processing — tips, PPV purchases, Stripe webhook receiving, payment history, refunds"
+  },
+  {
+    "id": "admin-api",
+    "domain": "Admin",
+    "path": "/api/admin",
+    "methods": "GET POST PUT PATCH DELETE",
+    "auth": true,
+    "roles": ["admin"],
+    "module": "admin",
+    "controller": "admin.controller",
+    "description": "Admin panel — dashboard stats, user management, content moderation, verification review, reports, audit log"
+  },
+  {
+    "id": "analytics-api",
+    "domain": "Analytics",
+    "path": "/api/analytics",
+    "methods": "GET",
+    "auth": true,
+    "roles": ["creator", "admin"],
+    "module": "analytics",
+    "controller": "analytics.controller",
+    "description": "Analytics endpoints — platform-wide metrics, creator-specific stats, engagement data, revenue reports"
+  },
+  {
+    "id": "support-api",
+    "domain": "Support",
+    "path": "/api/support",
+    "methods": "GET POST PUT",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "support",
+    "controller": "support.controller",
+    "description": "Support ticket system — create ticket, respond, status tracking, admin ticket queue management"
+  },
+  {
+    "id": "ai-api",
+    "domain": "AI",
+    "path": "/api/ai",
+    "methods": "GET POST",
+    "auth": true,
+    "roles": ["creator"],
+    "module": "ai",
+    "controller": "ai.controller",
+    "description": "AI service endpoints — caption generation, content recommendations, analytics insights, content classification"
+  },
+  {
+    "id": "notifications-api",
+    "domain": "Notifications",
+    "path": "/api/notifications",
+    "methods": "GET PUT PATCH",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "notifications",
+    "controller": "notifications.controller",
+    "description": "Notification management — list notifications, mark read, preferences, push token registration"
+  },
+  {
+    "id": "contests-api",
+    "domain": "Contests",
+    "path": "/api/contests",
+    "methods": "GET POST PUT DELETE",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "contests",
+    "controller": "contests.controller",
+    "description": "Contest management — create contest, submit entries, vote, leaderboard, winner selection"
+  },
+  {
+    "id": "enclave-api",
+    "domain": "Enclave",
+    "path": "/api/enclave",
+    "methods": "GET POST",
+    "auth": true,
+    "roles": ["fan", "admin"],
+    "module": "enclave",
+    "controller": "enclave.controller",
+    "description": "Exclusive enclave access — application submission, status checks, membership management, benefits"
+  },
+  {
+    "id": "referrals-api",
+    "domain": "Referrals",
+    "path": "/api/referrals",
+    "methods": "GET POST",
+    "auth": true,
+    "roles": ["fan", "creator", "admin"],
+    "module": "payments",
+    "controller": "referrals.controller",
+    "description": "Referral system — generate referral codes, track referrals, bonus history, earnings from referrals"
+  }
+]

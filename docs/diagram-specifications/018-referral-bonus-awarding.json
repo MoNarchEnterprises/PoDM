@@ -1,0 +1,154 @@
+{
+  "id": "C-07",
+  "title": "Referral Bonus Awarding Flow",
+  "category": "C",
+  "diagramType": "flowchart",
+  "purpose": "Full referral lifecycle from code generation through signup validation, bonus awarding, milestone checks, highlighting the missing payout mechanism, unprotected routes, and PII exposure",
+  "audience": "Developers, product managers, security reviewers",
+  "description": "Four-stage referral system: (1) Code Generation — referral.model.ts generates two codes per user: {USERNAME}-CASH (fixed $50 bonus per referred spender) and {USERNAME}-PERCENT (1% of referred user's spending). uses_count column tracks redemptions. (2) Signup Validation — new user submits referral code during signup, auth.service.ts validates code exists and is active via referral.model.ts:trackReferralUse which increments uses_count. (3) Bonus Awarding (async) — when referred user makes a payment, awardReferralBonus calculates cash (fixedAmount) or percent (paymentAmount * percentRate / 100) bonus. (4) Milestone Check — checks if referrer reached $750 total earnings, 30-day window since first referral, and $25 speed bonus if first referral within 7 days. Critical gaps: no actual payout mechanism (bonuses calculated and logged but never disbursed), 2 unprotected referral routes (missing protect middleware), and PII in codes (username embedded directly in referral code string).",
+  "actors": [
+    {"id": "referrer", "label": "Referrer (Existing User)", "type": "actor", "description": "User who generates and shares referral codes"},
+    {"id": "referred", "label": "Referred User (New User)", "type": "actor", "description": "New user who submits a referral code during signup"}
+  ],
+  "systems": [
+    {"id": "backend", "label": "Backend API (Express)", "type": "api", "description": "Handles code generation, validation, and bonus awarding endpoints"}
+  ],
+  "modules": [
+    {"id": "referralModel", "label": "Referral Model", "type": "service", "description": "Database access for referral_codes and referral_redemptions tables; generate, validate, track, award logic"},
+    {"id": "authService", "label": "Auth Service", "type": "service", "description": "Signup flow integration — validates referral code and calls trackReferralUse during registration"}
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [
+    {"id": "db", "label": "Supabase PostgreSQL", "type": "database", "description": "referrals table (user_id, referral_code, bonus_type, bonus_value, uses_count, total_bonus_earned, is_active); referral_applications table for milestone tracking"}
+  ],
+  "entryPoints": [
+    {"id": "codeGenEntry", "label": "POST /api/v1/referral/generate", "description": "Authenticated user requests referral code generation"},
+    {"id": "signupEntry", "label": "Signup with Referral Code", "description": "New user submits referral code during registration"},
+    {"id": "milestoneEntry", "label": "Milestone Check Trigger", "description": "Called when creator hits $750 earnings threshold"}
+  ],
+  "exitPoints": [
+    {"id": "codesGenerated", "label": "Codes Generated", "description": "Cash and Percent codes created in DB"},
+    {"id": "referralTracked", "label": "Referral Use Tracked", "description": "uses_count incremented, referral application linked"},
+    {"id": "bonusAwarded", "label": "Bonus Awarded (tracked only)", "description": "Bonus calculated and stored in DB — not disbursed"},
+    {"id": "milestoneChecked", "label": "Milestone Checked", "description": "Earnings, window, and speed bonus evaluated"}
+  ],
+  "preconditions": [
+    "Referrer is authenticated and has not already generated codes",
+    "Referred user is in the process of signup (before profile creation)",
+    "Creator has Cleared transactions totaling >= $750 (for milestone check)"
+  ],
+  "postconditions": [
+    "Referral codes stored in DB with CASH and PERCENT types",
+    "uses_count incremented on each referral use",
+    "Bonus recorded in referral_applications (not disbursed to actual wallet/account)",
+    "Milestone bonus (if applicable) recorded but not paid out"
+  ],
+  "nodes": [
+    {"id": "n_gen_code", "label": "Generate Referral Codes", "type": "process", "description": "Referral model generates CASH ($50 fixed) and PERCENT (1% rev share) codes"},
+    {"id": "n_cash_type", "label": "Cash Type: fixed $50 bonus per referred spender", "type": "process", "description": "CASH code type — referrer gets fixed $50 when referred user spends money"},
+    {"id": "n_percent_type", "label": "Percent Type: 1% of referred spending", "type": "process", "description": "PERCENT code type — referrer gets 1% of referred user's total spending"},
+    {"id": "n_uses_count", "label": "uses_count tracks redemptions", "type": "process", "description": "Column on referrals table that increments each time the code is used"},
+    {"id": "n_new_user_signup", "label": "New User Submits Referral Code", "type": "process", "description": "Referred user enters referral code during signup form"},
+    {"id": "n_validate_code", "label": "Validate Code Exists and Active", "type": "validation", "description": "Auth service queries referrals table to check code is active and valid"},
+    {"id": "n_invalid_code", "label": "Code Invalid or Inactive", "type": "process", "description": "Referral code not found or is_active=false — return error to user"},
+    {"id": "n_track_use", "label": "trackReferralUse(code) — increment uses_count", "type": "process", "description": "On successful signup, increment uses_count for the referral code"},
+    {"id": "n_referred_payment", "label": "Referred User Makes a Payment", "type": "event", "description": "Payment event triggers asynchronous bonus awarding"},
+    {"id": "n_award_bonus", "label": "awardReferralBonus(referralCode, referredUserId, paymentAmount)", "type": "process", "description": "Calculate and record bonus for the referrer based on referred user's payment"},
+    {"id": "n_cash_bonus", "label": "Cash Bonus: bonus = fixedAmount", "type": "process", "description": "For CASH type codes: award the fixed bonus amount configured on the code"},
+    {"id": "n_percent_bonus", "label": "Percent Bonus: bonus = paymentAmount * percentRate / 100", "type": "process", "description": "For PERCENT type codes: calculate variable bonus based on payment amount"},
+    {"id": "n_milestone_earnings", "label": "Milestone: Earnings >= $750?", "type": "decision", "description": "Check if referrer's total earnings have reached the $750 milestone threshold"},
+    {"id": "n_milestone_window", "label": "Milestone: Within 30-day window since first referral?", "type": "decision", "description": "Check if first referral application was created less than 30 days ago"},
+    {"id": "n_milestone_speed", "label": "Milestone: Speed bonus ($25) if first referral within 7 days?", "type": "decision", "description": "If within 14 days: $50 base + $25 speed ($75 total). If 15-30 days: $50 base only."},
+    {"id": "n_no_payout", "label": "⚠️ No Actual Payout Mechanism", "type": "process", "description": "Bonuses are calculated and logged in DB but never actually disbursed to referrer"},
+    {"id": "n_unprotected_routes", "label": "⚠️ 2 Unprotected Referral Routes", "type": "process", "description": "/check-milestone/:userId and /validate/:code have no auth middleware (protect missing)"},
+    {"id": "n_pii_in_code", "label": "⚠️ PII in Codes: username embedded", "type": "process", "description": "Referral code format is {USERNAME}-CASH or {USERNAME}-PERCENT — exposes username"}
+  ],
+  "connections": [
+    {"from": "n_gen_code", "to": "n_cash_type", "relationship": "creates", "label": "generates CASH code"},
+    {"from": "n_gen_code", "to": "n_percent_type", "relationship": "creates", "label": "generates PERCENT code"},
+    {"from": "n_gen_code", "to": "n_uses_count", "relationship": "updates", "label": "tracks usage"},
+    {"from": "n_new_user_signup", "to": "n_validate_code", "relationship": "calls", "label": "validate during signup"},
+    {"from": "n_validate_code", "to": "n_invalid_code", "relationship": "triggers", "label": "code not found or inactive"},
+    {"from": "n_validate_code", "to": "n_track_use", "relationship": "triggers", "label": "code valid, track use"},
+    {"from": "n_referred_payment", "to": "n_award_bonus", "relationship": "triggers", "label": "payment event triggers awarding"},
+    {"from": "n_award_bonus", "to": "n_cash_bonus", "relationship": "triggers", "label": "CASH type"},
+    {"from": "n_award_bonus", "to": "n_percent_bonus", "relationship": "triggers", "label": "PERCENT type"},
+    {"from": "n_cash_bonus", "to": "n_milestone_earnings", "relationship": "calls", "label": "check milestone"},
+    {"from": "n_percent_bonus", "to": "n_milestone_earnings", "relationship": "calls", "label": "check milestone"},
+    {"from": "n_milestone_earnings", "to": "n_milestone_window", "relationship": "triggers", "label": "earnings >= $750"},
+    {"from": "n_milestone_earnings", "to": "n_no_payout", "relationship": "triggers", "label": "earnings < $750, no bonus"},
+    {"from": "n_milestone_window", "to": "n_milestone_speed", "relationship": "triggers", "label": "within 30-day window"},
+    {"from": "n_milestone_window", "to": "n_no_payout", "relationship": "triggers", "label": "outside 30-day window, expired"},
+    {"from": "n_milestone_speed", "to": "n_no_payout", "relationship": "triggers", "label": "bonuses tracked but not paid"}
+  ],
+  "decisions": [
+    {"condition": "Referral code exists and is_active = true?", "truePath": "Track referral use, proceed with signup", "falsePath": "Return error — code invalid or expired"},
+    {"condition": "Referrer total earnings >= $750?", "truePath": "Check 30-day window for milestone eligibility", "falsePath": "No milestone bonus applicable yet"},
+    {"condition": "First referral < 30 days ago?", "truePath": "Check speed bonus eligibility (14 vs 30 days)", "falsePath": "Milestone window expired — no bonus"},
+    {"condition": "First referral within 14 days?", "truePath": "$50 base + $25 speed bonus ($75 total)", "falsePath": "$50 base only (15-30 days)"}
+  ],
+  "loops": [],
+  "errorPaths": [
+    {"trigger": "Referral code invalid or inactive during signup", "destination": "Return error to signup form", "recovery": "User can leave referral code blank and continue signup"},
+    {"trigger": "Referral bonus award DB failure", "destination": "Logged and swallowed", "recovery": "Non-fatal — signup/payment not rolled back"},
+    {"trigger": "Unprotected routes called by unauthorized users", "destination": "Milestone data exposed", "recovery": "No authentication — any user can check any user's milestone status"}
+  ],
+  "validationRules": [
+    {"rule": "Code format: {USERNAME}-CASH or {USERNAME}-PERCENT", "location": "referral.model.ts", "type": "format"},
+    {"rule": "One code set per user (rejects if codes already exist)", "location": "referral.model.ts", "type": "uniqueness"},
+    {"rule": "Code must be uppercased for lookup", "location": "referral.model.ts", "type": "normalization"},
+    {"rule": "Referral must have is_active = true to be usable", "location": "referral.model.ts", "type": "state"}
+  ],
+  "businessRules": [
+    {"rule": "CASH type: fixed $50 bonus per referred spender", "source": "referral.model.ts"},
+    {"rule": "PERCENT type: 1% of referred user's spending", "source": "referral.model.ts"},
+    {"rule": "Milestone baseline: $750 earnings threshold", "source": "Flowchart C-07"},
+    {"rule": "Speed bonus: $25 if first referral within 7 days (14 days = $50 base, 15-30 days = $50 base only)", "source": "10-internal-workflows.md §26"},
+    {"rule": "No actual payout mechanism — bonuses tracked in DB only, never disbursed", "source": "Flowchart C-07 annotations"}
+  ],
+  "securityConsiderations": [
+    "2 unprotected routes: /check-milestone/:userId and /validate/:code have no auth middleware — internal endpoints exposed",
+    "PII exposure: Username embedded directly in referral code string — anyone seeing code knows referrer's username",
+    "No rate limiting on public validation endpoint — potential for enumeration attacks",
+    "Milestone bonus has no actual payout — internal ledger only, but tracked as debt",
+    "RLS enforced at DB level but unprotected routes could leak user earnings data"
+  ],
+  "performanceConsiderations": [
+    "Referral operations are lightweight DB queries",
+    "Bonus awarding is async (triggered by payment) — does not block request path",
+    "Milestone check queries past transactions — could be slow for high-volume creators"
+  ],
+  "annotations": [
+    {"type": "critical", "text": "No actual payout mechanism — referral bonuses are calculated and logged in DB but never disbursed to referrer's wallet or bank account"},
+    {"type": "critical", "text": "2 unprotected referral routes (/check-milestone/:userId and /validate/:code) — missing protect middleware, exposing internal endpoints"},
+    {"type": "warning", "text": "PII exposure: referral code format is {USERNAME}-CASH or {USERNAME}-PERCENT — username embedded directly in the code string"},
+    {"type": "info", "text": "Four-stage lifecycle: Code Generation → Signup Validation → Bonus Awarding → Milestone Check"}
+  ],
+  "swimlanes": [
+    {"lane": "Code Generation", "nodes": ["n_gen_code", "n_cash_type", "n_percent_type", "n_uses_count"]},
+    {"lane": "Signup Validation", "nodes": ["n_new_user_signup", "n_validate_code", "n_invalid_code", "n_track_use"]},
+    {"lane": "Bonus Awarding", "nodes": ["n_referred_payment", "n_award_bonus", "n_cash_bonus", "n_percent_bonus"]},
+    {"lane": "Milestone Check", "nodes": ["n_milestone_earnings", "n_milestone_window", "n_milestone_speed", "n_no_payout"]},
+    {"lane": "Cross-cutting Issues", "nodes": ["n_unprotected_routes", "n_pii_in_code"]}
+  ],
+  "subgraphs": [
+    {"id": "code_generation", "label": "Stage 1: Code Generation", "nodes": ["n_gen_code", "n_cash_type", "n_percent_type", "n_uses_count"]},
+    {"id": "signup_validation", "label": "Stage 2: Signup Validation", "nodes": ["n_new_user_signup", "n_validate_code", "n_invalid_code", "n_track_use"]},
+    {"id": "bonus_awarding", "label": "Stage 3: Bonus Awarding (Async)", "nodes": ["n_referred_payment", "n_award_bonus", "n_cash_bonus", "n_percent_bonus"]},
+    {"id": "milestone_check", "label": "Stage 4: Milestone Check", "nodes": ["n_milestone_earnings", "n_milestone_window", "n_milestone_speed"]}
+  ],
+  "legend": [
+    {"symbol": "Process", "color": "#bbdefb", "meaning": "Stage step"},
+    {"symbol": "Decision", "color": "#fff9c4", "meaning": "Milestone condition"},
+    {"symbol": "Critical Issue", "color": "#ffcdd2", "meaning": "Security or functional gap"},
+    {"symbol": "Stage Group", "color": "#e8eaf6", "meaning": "Process phase"}
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

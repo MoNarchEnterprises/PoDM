@@ -1,0 +1,164 @@
+{
+  "id": "B-01",
+  "title": "Auth Sequence (Login + Authenticated Request)",
+  "category": "B — Authentication & Authorization",
+  "diagramType": "Sequence",
+  "purpose": "Login flow (email/password → Supabase Auth → JWT → frontend storage) + authenticated request flow (Bearer token → protect middleware → Supabase getUser → profile fetch → reshape → controller) + unauthenticated request rejection.",
+  "audience": "Engineers debugging auth flows, security reviewers",
+  "description": "Complete authentication sequence covering three paths: (1) Login flow where frontend submits credentials, auth middleware calls supabase.auth.signInWithPassword, receives user+session, fetches profile from DB, reshapes for frontend, returns { user, token }. (2) Authenticated request flow where protect middleware extracts Bearer token, calls supabase.auth.getUser for remote JWT verification, fetches full profile, applies impersonation check, attaches req.user, and passes to controller. (3) Unauthenticated request rejection returning 401 'Not authorized, no token provided'. Two Supabase API calls per authenticated request (JWT verify + user lookup) with no caching.",
+  "actors": [
+    {
+      "id": "frontend-user",
+      "label": "Frontend (React SPA)",
+      "description": "React application making auth requests. Stores JWT in localStorage/sessionStorage. Uses apiClient.ts interceptor to attach Bearer token to all requests."
+    }
+  ],
+  "systems": [],
+  "modules": [
+    { "id": "auth-middleware", "label": "Auth Middleware (auth.middleware.ts)", "description": "Express middleware that validates JWT via Supabase Auth API, fetches user profile, applies role guards, and checks impersonation header." },
+    { "id": "auth-controller", "label": "Controller (auth.controller.ts / other)", "description": "Request handler that receives req.user from middleware and delegates to service layer." },
+    { "id": "supabase-auth-api", "label": "Supabase Auth API", "description": "External JWT authentication service. Provides signInWithPassword, getUser, and user management via admin API." },
+    { "id": "supabase-db", "label": "Supabase DB (profiles table)", "description": "PostgreSQL profiles table storing user data. Queried via findUserById/get_user_details RPC after JWT validation." }
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "profiles-table", "label": "Profiles Table (Supabase DB)", "description": "PostgreSQL table with columns: id, username, email, role, status, profile (JSONB), creator_data (JSONB), preferences (JSONB), etc. Queried via findUserById after JWT validation." }
+  ],
+  "entryPoints": [
+    { "id": "login-endpoint", "label": "POST /api/v1/auth/login", "description": "Login request from frontend with { email, password } in request body." },
+    { "id": "authenticated-request", "label": "GET /api/v1/users/me (authenticated)", "description": "Authenticated request with Authorization: Bearer <token> header." },
+    { "id": "unauthenticated-request", "label": "GET /api/v1/users/me (no token)", "description": "Request without Authorization header—tests middleware rejection." }
+  ],
+  "exitPoints": [
+    { "id": "login-success-response", "label": "{ success, data: { user, token } }", "description": "Successful login response with reshaped user profile and JWT access token." },
+    { "id": "authenticated-response", "label": "Controller processes request with req.user", "description": "Authenticated request proceeds to controller with user object attached." },
+    { "id": "401-rejection", "label": "401 'Not authorized, no token provided'", "description": "Rejected unauthenticated request." }
+  ],
+  "preconditions": [
+    "User has valid credentials (email + password) in Supabase Auth",
+    "User profile exists in profiles table linked by auth user ID",
+    "Frontend has Supabase client configured with anon key"
+  ],
+  "postconditions": [
+    "Login: JWT token returned and stored in localStorage/sessionStorage via useAuth.tsx",
+    "Authenticated request: req.user attached with full reshaped profile for downstream use",
+    "Unauthenticated request: 401 returned, no side effects"
+  ],
+  "nodes": [
+    { "id": "F", "label": "Frontend", "type": "actor", "description": "React SPA making HTTP requests via apiClient.ts" },
+    { "id": "A", "label": "Auth Middleware", "type": "authentication", "description": "Express middleware chain: protect, optionalProtect, role guards" },
+    { "id": "C", "label": "Controller", "type": "process", "description": "Request handler receiving req.user and delegating to service" },
+    { "id": "S", "label": "Supabase Auth API", "type": "authentication", "description": "External JWT auth service for sign-in and token validation" },
+    { "id": "D", "label": "Supabase DB (profiles)", "type": "database", "description": "PostgreSQL profiles table for user data" },
+    { "id": "F_login", "label": "Login Request", "type": "process", "description": "POST /api/v1/auth/login { email, password }" },
+    { "id": "A_signIn", "label": "supabase.auth.signInWithPassword()", "type": "authentication", "description": "Authenticate credentials with Supabase Auth" },
+    { "id": "A_fetchProfile", "label": "findUserById(authUser.id)", "type": "process", "description": "Fetch full user profile from profiles table" },
+    { "id": "A_reshape", "label": "reshapeUserForApp(profile)", "type": "process", "description": "Transform snake_case DB row to camelCase frontend User/Creator interface" },
+    { "id": "F_authReq", "label": "Authenticated Request", "type": "process", "description": "GET /api/v1/users/me with Authorization: Bearer <token>" },
+    { "id": "A_protect", "label": "protect middleware", "type": "authentication", "description": "Extract Bearer token, validate, fetch profile, check impersonation" },
+    { "id": "A_getUser", "label": "supabase.auth.getUser(token)", "type": "authentication", "description": "Remote JWT validation via Supabase Auth API" },
+    { "id": "A_checkImpersonation", "label": "Check X-Impersonating-User-Id header", "type": "authentication", "description": "If admin + impersonation header: fetch target user, swap req.user" },
+    { "id": "F_noToken", "label": "Unauthenticated Request (no token)", "type": "process", "description": "Request without Authorization header" },
+    { "id": "A_reject", "label": "401 Rejection", "type": "process", "description": "Return 401 Not authorized, no token provided" }
+  ],
+  "connections": [
+    { "from": "F_login", "to": "A_signIn", "relationship": "calls", "label": "POST /api/v1/auth/login {email, password}" },
+    { "from": "A_signIn", "to": "S", "relationship": "calls", "label": "supabase.auth.signInWithPassword(email, password)" },
+    { "from": "S", "to": "A_signIn", "relationship": "returns", "label": "{ user, session }" },
+    { "from": "A_signIn", "to": "A_fetchProfile", "relationship": "calls", "label": "findUserById(authUser.id)" },
+    { "from": "A_fetchProfile", "to": "D", "relationship": "reads", "label": "get_user_details RPC" },
+    { "from": "D", "to": "A_fetchProfile", "relationship": "returns", "label": "userProfile" },
+    { "from": "A_fetchProfile", "to": "A_reshape", "relationship": "calls", "label": "reshapeUserForApp(profile)" },
+    { "from": "A_reshape", "to": "F_login", "relationship": "returns", "label": "{ success, data: { user, token } }" },
+    { "from": "F_authReq", "to": "A_protect", "relationship": "calls", "label": "GET /api/v1/users/me (Authorization: Bearer <token>)" },
+    { "from": "A_protect", "to": "A_getUser", "relationship": "calls", "label": "supabase.auth.getUser(token)" },
+    { "from": "A_getUser", "to": "S", "relationship": "calls", "label": "remote JWT validation" },
+    { "from": "S", "to": "A_getUser", "relationship": "returns", "label": "authUser" },
+    { "from": "A_getUser", "to": "A_fetchProfile", "relationship": "calls", "label": "findUserById(authUser.id)" },
+    { "from": "D", "to": "A_fetchProfile", "relationship": "returns", "label": "userProfile" },
+    { "from": "A_fetchProfile", "to": "A_reshape", "relationship": "calls", "label": "reshapeUserForApp(userProfile)" },
+    { "from": "A_reshape", "to": "A_checkImpersonation", "relationship": "calls", "label": "check X-Impersonating-User-Id header" },
+    { "from": "A_checkImpersonation", "to": "C", "relationship": "returns", "label": "req.user attached, proceed to controller" },
+    { "from": "F_noToken", "to": "A_protect", "relationship": "calls", "label": "GET /api/v1/users/me (no token)" },
+    { "from": "A_protect", "to": "F_noToken", "relationship": "returns", "label": "401 'Not authorized, no token provided'" }
+  ],
+  "decisions": [
+    {
+      "condition": "JWT token present and valid?",
+      "truePath": "Fetch profile → reshape → check impersonation → attach req.user → proceed",
+      "falsePath": "Return 401 'Not authorized'"
+    },
+    {
+      "condition": "X-Impersonating-User-Id header present AND user is admin?",
+      "truePath": "Fetch target user profile, set req.originalUser=admin, req.user=targetUser",
+      "falsePath": "Continue as normal authenticated request"
+    }
+  ],
+  "loops": [],
+  "errorPaths": [
+    {
+      "trigger": "Supabase.getUser() returns invalid/expired token",
+      "destination": "401 'Not authorized' returned, frontend apiClient interceptor clears token from storage",
+      "recovery": "User must re-authenticate via login page"
+    },
+    {
+      "trigger": "findUserById returns null (orphan user)",
+      "destination": "404 'User profile not found' or 401 depending on route",
+      "recovery": "User cannot access the platform—no recovery path exists"
+    },
+    {
+      "trigger": "Supabase Auth API unreachable",
+      "destination": "500 internal server error",
+      "recovery": "Retry on next request once Supabase is reachable"
+    }
+  ],
+  "validationRules": [
+    "Email and password required for login—controller validates presence",
+    "Token must be present and non-empty in Authorization header",
+    "JWT must be valid (not expired, correct signature) per Supabase Auth API"
+  ],
+  "businessRules": [
+    "Every authenticated request makes 2 Supabase API calls: getUser + findUserById",
+    "No caching of auth state—each request re-validates token remotely",
+    "autoRefreshToken: false on server-side Supabase client—no automatic token refresh"
+  ],
+  "securityConsiderations": [
+    "JWT stored in localStorage—vulnerable to XSS",
+    "Two unprotected referral routes bypass this entire auth flow",
+    "No rate limiting on login endpoint—brute force possible",
+    "No token blacklist/revocation—logout is client-side only",
+    "Auth debug log (auth.middleware.ts:20-23) writes PII to debug.log"
+  ],
+  "performanceConsiderations": [
+    "2 Supabase API calls per authenticated request (~100-300ms each)",
+    "Remote JWT verification via Supabase Auth—no local JWT decode caching"
+  ],
+  "annotations": [
+    {
+      "node": "A_getUser",
+      "text": "No local JWT decode—every request makes remote API call to validate token"
+    },
+    {
+      "node": "A_reshape",
+      "text": "reshapeUserForApp called at 23 sites—most-called internal function"
+    },
+    {
+      "node": "A_protect",
+      "text": "Also checks impersonation header—see B-02 Impersonation Flow for details"
+    }
+  ],
+  "swimlanes": [],
+  "subgraphs": [],
+  "legend": [
+    { "symbol": "Solid arrow →", "meaning": "Request / API call" },
+    { "symbol": "Dashed arrow ⇢", "meaning": "Response / return" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "box",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

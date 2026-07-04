@@ -1,0 +1,159 @@
+{
+  "id": "G-01",
+  "title": "Admin Dashboard Data Flow",
+  "category": "G — Admin & Operations",
+  "diagramType": "Flowchart",
+  "purpose": "Show how the admin dashboard aggregates platform-wide metrics from 5 parallel Promise.all queries with no caching layer",
+  "audience": "Backend developers, admin frontend developers, platform maintainers, performance engineers",
+  "description": "When an admin navigates to the dashboard, the frontend calls GET /api/v1/admin/dashboard which passes through protectAndAdmin middleware (JWT validation + admin role check). The admin controller calls admin.service.getDashboardStats(), which executes 5 parallel queries via Promise.all(): UserModel.countAllUsers (total user count), UserModel.countActiveCreators (active creators count), TransactionModel.sumPlatformFeeForPeriod(30) (platform revenue last 30 days), SupportTicketModel.countOpenTickets (open and pending ticket count), and UserModel.getNewUsersOverTime(6) (monthly user signup trend for last 6 months). All 5 queries run concurrently. The results are assembled into a response object with keyMetrics and userGrowth that the frontend renders as 5 cards/charts. Issues: no caching (runs 5 queries every page load), no error isolation (Promise.all rejects entirely if one query fails), and sumPlatformFeeForPeriod scans transactions table with no index on created_at.",
+  "actors": [
+    { "id": "admin", "label": "Admin", "description": "Platform administrator viewing the dashboard" }
+  ],
+  "systems": [
+    { "id": "backend-api", "label": "Backend API (Express)", "description": "REST API handling admin dashboard endpoint with 5 parallel queries" },
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Database powering all 5 dashboard queries (profiles, transactions, support_tickets)" }
+  ],
+  "modules": [
+    { "id": "mod-admin-controller", "label": "admin.controller.ts", "description": "Request handler: getDashboardStats calls admin.service.getDashboardStats()" },
+    { "id": "mod-admin-service", "label": "admin.service.ts", "description": "Business logic: getDashboardStats() runs 5 parallel Promise.all queries and assembles response" },
+    { "id": "mod-user-model", "label": "UserModel", "description": "Model functions: countAllUsers(), countActiveCreators(), getNewUsersOverTime(6)" },
+    { "id": "mod-transaction-model", "label": "TransactionModel", "description": "Model function: sumPlatformFeeForPeriod(30) — sums platform_fee for last 30 days" },
+    { "id": "mod-ticket-model", "label": "SupportTicketModel", "description": "Model function: countOpenTickets() — COUNT of tickets with status 'Open' or 'Pending'" },
+    { "id": "mod-frontend-panel", "label": "AdminDashboardPanel.tsx", "description": "Frontend component rendering 5 dashboard cards/charts from response data" }
+  ],
+  "services": [
+    { "id": "svc-admin", "label": "AdminService", "description": "getDashboardStats orchestrates 5 parallel queries, assembles response" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-profiles", "label": "profiles table", "description": "Queried for totalUsers, activeCreators, and newUsersOverTime (COUNT + GROUP BY date_trunc)" },
+    { "id": "ds-transactions", "label": "transactions table", "description": "Queried for sumPlatformFeeForPeriod(30) — COALESCE(SUM(platform_fee), 0) with date filter" },
+    { "id": "ds-tickets", "label": "support_tickets table", "description": "Queried for countOpenTickets — COUNT WHERE status IN ('Open', 'Pending')" }
+  ],
+  "entryPoints": [
+    { "id": "ep-dashboard-load", "label": "GET /api/v1/admin/dashboard", "description": "Admin navigates to dashboard — triggers full aggregation" }
+  ],
+  "exitPoints": [
+    { "id": "ex-response", "label": "Dashboard response rendered", "description": "Frontend renders 5 cards/charts from { totalUsers, activeCreators, platformFees30d, openTickets, newUsersOverTime }" }
+  ],
+  "preconditions": [
+    "Admin has valid JWT and admin role",
+    "Database has sufficient data to return meaningful metrics",
+    "All 5 queries can run without connection issues"
+  ],
+  "postconditions": [
+    "Dashboard response returned to frontend with all 5 metric groups",
+    "If any of the 5 queries fails, entire Promise.all rejects — dashboard shows error",
+    "No cache created — next dashboard load runs all 5 queries again"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "Admin Navigates to Dashboard", "type": "start", "description": "Admin clicks Dashboard in admin panel navigation." },
+    { "id": "n2", "label": "GET /api/v1/admin/dashboard", "type": "api", "description": "Frontend sends GET request to admin dashboard endpoint." },
+    { "id": "n3", "label": "protectAndAdmin Middleware", "type": "authentication", "description": "JWT validation + admin role check. Returns 401/403 if not authenticated or not admin." },
+    { "id": "n4", "label": "Admin Controller — getDashboardStats()", "type": "process", "description": "Admin controller calls admin.service.getDashboardStats()." },
+    { "id": "n5", "label": "Admin Service — getDashboardStats()", "type": "process", "description": "Entry point for dashboard data aggregation. Orchestrates 5 parallel queries." },
+    { "id": "n6", "label": "Promise.all() — 5 Parallel Queries", "type": "process", "description": "Execute all 5 queries concurrently. If any rejects, entire Promise.all rejects." },
+    { "id": "n7", "label": "Q1: UserModel.countAllUsers()", "type": "database", "description": "SELECT COUNT(*) FROM profiles. Total platform user count." },
+    { "id": "n8", "label": "Q2: UserModel.countActiveCreators()", "type": "database", "description": "SELECT COUNT(*) FROM profiles WHERE role='creator' AND status='active'. Active content creators." },
+    { "id": "n9", "label": "Q3: TransactionModel.sumPlatformFeeForPeriod(30)", "type": "database", "description": "SELECT COALESCE(SUM(platform_fee), 0) FROM transactions WHERE created_at > NOW() - INTERVAL '30 days'. Platform revenue from fees." },
+    { "id": "n10", "label": "Q4: SupportTicketModel.countOpenTickets()", "type": "database", "description": "SELECT COUNT(*) FROM support_tickets WHERE status IN ('Open', 'Pending'). Support queue depth." },
+    { "id": "n11", "label": "Q5: UserModel.getNewUsersOverTime(6)", "type": "database", "description": "SELECT DATE_TRUNC('day', created_at), COUNT(*) FROM profiles WHERE created_at > NOW() - INTERVAL '6 months' GROUP BY 1 ORDER BY 1. User growth trend data." },
+    { "id": "n12", "label": "Aggregate Results", "type": "process", "description": "Assemble 5 query results into response object: { totalUsers, activeCreators, platformFees30d, openTickets, newUsersOverTime }." },
+    { "id": "n13", "label": "Return Dashboard Response", "type": "api", "description": "JSON response returned to frontend admin dashboard panel." },
+    { "id": "n14", "label": "Frontend: AdminDashboardPanel.tsx — Renders 5 Cards/Charts", "type": "process", "description": "Frontend renders dashboard UI: total users card, active creators card, platform revenue card, open tickets card, new users line chart." },
+    { "id": "n15", "label": "Promise.all Rejection — Error Handling", "type": "errorPaths", "description": "If any one of the 5 queries fails, Promise.all rejects immediately. No partial results delivered." },
+    { "id": "n16", "label": "Return Error Response", "type": "end", "description": "Dashboard shows error state. No data displayed. Admin must refresh to retry." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "calls", "label": "Navigate to dashboard admin" },
+    { "from": "n2", "to": "n3", "relationship": "calls", "label": "GET request with JWT" },
+    { "from": "n3", "to": "n4", "relationship": "calls", "label": "Authenticated and authorized" },
+    { "from": "n4", "to": "n5", "relationship": "calls", "label": "getDashboardStats()" },
+    { "from": "n5", "to": "n6", "relationship": "calls", "label": "Kick off Promise.all()" },
+    { "from": "n6", "to": "n7", "relationship": "calls", "label": "Parallel query 1" },
+    { "from": "n6", "to": "n8", "relationship": "calls", "label": "Parallel query 2" },
+    { "from": "n6", "to": "n9", "relationship": "calls", "label": "Parallel query 3" },
+    { "from": "n6", "to": "n10", "relationship": "calls", "label": "Parallel query 4" },
+    { "from": "n6", "to": "n11", "relationship": "calls", "label": "Parallel query 5" },
+    { "from": "n7", "to": "n12", "relationship": "returns", "label": "total user count" },
+    { "from": "n8", "to": "n12", "relationship": "returns", "label": "active creator count" },
+    { "from": "n9", "to": "n12", "relationship": "returns", "label": "platform fee sum (30 days)" },
+    { "from": "n10", "to": "n12", "relationship": "returns", "label": "open ticket count" },
+    { "from": "n11", "to": "n12", "relationship": "returns", "label": "new users over time array" },
+    { "from": "n12", "to": "n13", "relationship": "triggers", "label": "Assembled response" },
+    { "from": "n13", "to": "n14", "relationship": "sends", "label": "JSON response" },
+    { "from": "n6", "to": "n15", "relationship": "returns", "label": "Any query rejects" },
+    { "from": "n15", "to": "n16", "relationship": "returns", "label": "Error response" }
+  ],
+  "decisions": [
+    { "condition": "Do all 5 parallel queries resolve successfully?", "truePath": "Aggregate results into response object and return to frontend", "falsePath": "Promise.all rejects — return error to frontend with no partial data" }
+  ],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "Any single query fails (timeout, connection error, etc.)", "destination": "Entire Promise.all rejects; dashboard returns error with no data", "recovery": "Admin refreshes page to retry all 5 queries; no partial success possible" },
+    { "trigger": "sumPlatformFeeForPeriod scans full transactions table", "destination": "Slow query on large transactions table due to missing index on created_at", "recovery": "Add composite index on (created_at, platform_fee IS NOT NULL)" },
+    { "trigger": "getNewUsersOverTime times out on large profiles table", "destination": "Dashboard load fails; 6-month aggregation over potentially millions of rows", "recovery": "Admin retries; consider pre-aggregating user growth data" },
+    { "trigger": "Database connection pool exhausted", "destination": "All 5 queries fail simultaneously due to connection contention", "recovery": "Admin retries when pool recovers; reduce parallel query count" }
+  ],
+  "validationRules": [
+    "protectAndAdmin middleware required for dashboard endpoint",
+    "Dashboard endpoint is read-only — no data modification",
+    "Response must include all 5 metric groups (frontend expects specific shape)"
+  ],
+  "businessRules": [
+    "No caching — every page load runs 5 queries against potentially large tables",
+    "No error isolation — Promise.all fails entirely if any single query fails",
+    "sumPlatformFeeForPeriod scans transactions table with date range filter — no index on created_at",
+    "Dashboard metrics are point-in-time — no historical trend beyond newUsersOverTime",
+    "No scheduled pre-aggregation — all aggregations computed live"
+  ],
+  "securityConsiderations": [
+    "protectAndAdmin enforces admin role on all dashboard data",
+    "Dashboard exposes platform-wide financial data (platform fees, user counts, ticket counts)",
+    "No admin audit trail — no record of who viewed dashboard or when",
+    "No CSRF protection — relies solely on JWT",
+    "Query data includes potentially sensitive business metrics (platform revenue)"
+  ],
+  "performanceConsiderations": [
+    "5 parallel queries per page load — significant DB load for high-traffic admin usage",
+    "No caching layer — every refresh re-runs all queries",
+    "COUNT(*) on full profiles table (Q1) — can be slow for large user bases",
+    "SUM(platform_fee) with date range (Q3) — no index on created_at leads to full scan",
+    "GROUP BY DATE_TRUNC + ORDER BY (Q5) — heavy aggregation query",
+    "Promise.all creates thundering herd on database — all 5 queries hit simultaneously"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "🟡 No Caching", "description": "Every dashboard page load runs 5 queries against potentially large tables. No caching anywhere." },
+    { "id": "a2", "label": "🟡 No Error Isolation", "description": "If one query fails, entire Promise.all rejects and dashboard shows error. No partial data displayed." },
+    { "id": "a3", "label": "🟡 Missing Index", "description": "sumPlatformFeeForPeriod scans transactions table with no index on created_at + platform_fee IS NOT NULL." },
+    { "id": "a4", "label": "No audit trail", "description": "No record of which admin viewed the dashboard or when." }
+  ],
+  "swimlanes": [
+    { "id": "sl-admin", "label": "Admin", "nodes": ["n1"] },
+    { "id": "sl-frontend", "label": "Frontend", "nodes": ["n2", "n14"] },
+    { "id": "sl-middleware", "label": "Middleware", "nodes": ["n3"] },
+    { "id": "sl-controller", "label": "Controller", "nodes": ["n4"] },
+    { "id": "sl-service", "label": "Admin Service", "nodes": ["n5", "n6", "n12"] },
+    { "id": "sl-db", "label": "Database (5 Parallel Queries)", "nodes": ["n7", "n8", "n9", "n10", "n11"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-request", "label": "Request Pipeline", "nodes": ["n1", "n2", "n3", "n4", "n5"] },
+    { "id": "sg-parallel-queries", "label": "5 Parallel Promise.all Queries", "nodes": ["n6", "n7", "n8", "n9", "n10", "n11"] },
+    { "id": "sg-response", "label": "Response Pipeline", "nodes": ["n12", "n13", "n14"] }
+  ],
+  "legend": [
+    { "symbol": "Actor", "meaning": "Admin user" },
+    { "symbol": "API", "meaning": "API endpoint" },
+    { "symbol": "Middleware", "meaning": "Auth/role check" },
+    { "symbol": "Parallel Queries", "meaning": "Concurrent DB queries via Promise.all" },
+    { "symbol": "Database", "meaning": "Data store query" },
+    { "symbol": "Error Path", "meaning": "Failure mode" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

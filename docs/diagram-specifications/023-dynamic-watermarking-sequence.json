@@ -1,0 +1,149 @@
+{
+  "id": "D-04",
+  "title": "Dynamic Watermarking Sequence",
+  "category": "D",
+  "diagramType": "sequence",
+  "purpose": "On-the-fly dynamic watermarking for photo content using sharp to composite a tiled @username SVG watermark, with temporary R2 upload and 60-second signed URL delivery",
+  "audience": "Developers, QA engineers, security reviewers",
+  "description": "On-view watermarking pipeline: fan requests watermarked content via GET /api/v1/content/:id/watermarked. Content service first runs access control check (D-02 decision tree). If fan is creator, skip watermark and serve original. If photo + not creator, proceed with watermark: download original from R2 private via StorageService.downloadFromPrivate, build SVG overlay with @{fan.username} text (white, 25% opacity, tiled diagonally across image), composite via sharp(buffer).composite([{ input: svgBuffer, tile: true }]), convert result to WebP (quality 90), upload watermarked buffer to temp/wm-{fan.id}-{timestamp}.webp in R2 private (cache-control: max-age=300), generate 60-second signed URL via getPrivateSignedUrl, return signed URL or 302 redirect to the watermarked image. Security degradation: if ANY watermarking step fails, the original unwatermarked file is served instead.",
+  "actors": [
+    {"id": "fan", "label": "Fan (Content Viewer)", "type": "actor", "description": "Authenticated user requesting to view photo content"}
+  ],
+  "systems": [
+    {"id": "frontend", "label": "Frontend", "type": "api", "description": "React SPA requesting watermarked content URL"}
+  ],
+  "modules": [
+    {"id": "contentService", "label": "Content Service", "type": "service", "description": "createWatermarkedImage function and access control logic"},
+    {"id": "storageService", "label": "Storage Service", "type": "service", "description": "downloadFromPrivate, uploadToPrivate, getPrivateSignedUrl"}
+  ],
+  "services": [],
+  "externalSystems": [
+    {"id": "r2", "label": "Cloudflare R2", "type": "external_system", "description": "S3-compatible object storage for original and watermarked files"}
+  ],
+  "dataStores": [],
+  "entryPoints": [
+    {"id": "watermarkEntry", "label": "GET /api/v1/content/:id/watermarked", "description": "Fan requests watermarked content view"}
+  ],
+  "exitPoints": [
+    {"id": "watermarkSuccess", "label": "Watermarked Image Served", "description": "60-second signed URL returned, image has @username watermark"},
+    {"id": "creatorBypass", "label": "Original Image Served (Creator)", "description": "Creator viewing own content — no watermark"},
+    {"id": "accessDenied", "label": "403 Access Denied", "description": "Fan does not meet access control requirements"},
+    {"id": "securityDegradation", "label": "Original Served (Watermark Failed)", "description": "Watermark process failed — original unwatermarked file served as fallback"}
+  ],
+  "preconditions": [
+    "Fan is authenticated with valid JWT",
+    "Content exists, is published, and fan passes access control checks",
+    "Content type is image (only images are watermarked)",
+    "R2 private bucket is accessible for read and write"
+  ],
+  "postconditions": [
+    "Watermarked image uploaded to temp/wm-{fanId}-{timestamp}.webp in R2",
+    "60-second signed URL returned to fan",
+    "Temp file persists in R2 with no automated cleanup (no TTL mechanism)",
+    "If watermarking fails, original unwatermarked file URL returned"
+  ],
+  "nodes": [
+    {"id": "n_fan_request", "label": "GET /api/v1/content/:id/watermarked", "type": "process", "description": "Fan requests watermarked content view URL"},
+    {"id": "n_access_check", "label": "Access Control Check (D-02)", "type": "decision", "description": "Run full 9-decision access pipeline — ownership, subscription, tier, PPV checks"},
+    {"id": "n_access_denied", "label": "403 Access Denied", "type": "process", "description": "Fan fails access control — subscription/tier/PPV requirements not met"},
+    {"id": "n_creator_check", "label": "Is Fan the Creator?", "type": "decision", "description": "If fan.id === content.creator_id, skip watermark entirely"},
+    {"id": "n_serve_original", "label": "Serve Original (no watermark)", "type": "process", "description": "Creator gets original full-resolution file with no watermark"},
+    {"id": "n_download_original", "label": "downloadFromPrivate(originalKey)", "type": "process", "description": "Download original image file from R2 private bucket via s3.GetObjectCommand"},
+    {"id": "n_download_fail", "label": "Download Failed Fallback", "type": "process", "description": "R2 download fails — serve original unwatermarked URL as security degradation"},
+    {"id": "n_build_svg", "label": "Build SVG Watermark Overlay", "type": "process", "description": "Construct SVG text element with @{fan.username}, white color, 25% opacity, tiled diagonally"},
+    {"id": "n_composite", "label": "sharp.composite SVG over Image", "type": "process", "description": "sharp(fileBuffer).composite([{ input: svgBuffer, tile: true }]) to overlay watermark"},
+    {"id": "n_convert_webp", "label": "Convert to WebP (quality 90)", "type": "process", "description": "sharp output to WebP format at quality 90 for bandwidth optimization"},
+    {"id": "n_composite_fail", "label": "Watermark Composite Failed", "type": "process", "description": "sharp error during composite — return original file (security degradation)"},
+    {"id": "n_upload_temp", "label": "Upload to R2 temp/wm-{fanId}-{timestamp}.webp", "type": "process", "description": "Upload watermarked buffer to R2 private temp/ prefix with cache-control: max-age=300"},
+    {"id": "n_upload_fail", "label": "Temp Upload Failed", "type": "process", "description": "R2 upload of watermarked file fails — serve original as fallback"},
+    {"id": "n_generate_signed_url", "label": "getPrivateSignedUrl(tempKey, 60)", "type": "process", "description": "Generate 60-second signed URL for watermarked temp file via s3.getSignedUrl"},
+    {"id": "n_return_url", "label": "Return Signed URL to Frontend", "type": "process", "description": "Return { signedUrl, contentType } or 302 redirect to watermarked image"}
+  ],
+  "connections": [
+    {"from": "n_fan_request", "to": "n_access_check", "relationship": "calls", "label": "verify permissions"},
+    {"from": "n_access_check", "to": "n_access_denied", "relationship": "triggers", "label": "access denied"},
+    {"from": "n_access_check", "to": "n_creator_check", "relationship": "triggers", "label": "access granted"},
+    {"from": "n_creator_check", "to": "n_serve_original", "relationship": "triggers", "label": "fan is creator — skip watermark"},
+    {"from": "n_creator_check", "to": "n_download_original", "relationship": "triggers", "label": "not creator — watermark"},
+    {"from": "n_download_original", "to": "n_download_fail", "relationship": "triggers", "label": "download error"},
+    {"from": "n_download_fail", "to": "n_serve_original", "relationship": "triggers", "label": "fallback to original"},
+    {"from": "n_download_original", "to": "n_build_svg", "relationship": "calls", "label": "file buffer downloaded"},
+    {"from": "n_build_svg", "to": "n_composite", "relationship": "calls", "label": "SVG + original buffer"},
+    {"from": "n_composite", "to": "n_composite_fail", "relationship": "triggers", "label": "sharp error"},
+    {"from": "n_composite_fail", "to": "n_serve_original", "relationship": "triggers", "label": "fallback to original"},
+    {"from": "n_composite", "to": "n_convert_webp", "relationship": "calls", "label": "composited buffer"},
+    {"from": "n_convert_webp", "to": "n_upload_temp", "relationship": "calls", "label": "WebP buffer ready"},
+    {"from": "n_upload_temp", "to": "n_upload_fail", "relationship": "triggers", "label": "upload error"},
+    {"from": "n_upload_fail", "to": "n_serve_original", "relationship": "triggers", "label": "fallback to original"},
+    {"from": "n_upload_temp", "to": "n_generate_signed_url", "relationship": "calls", "label": "watermarked file in R2"},
+    {"from": "n_generate_signed_url", "to": "n_return_url", "relationship": "returns", "label": "60-second signed URL"}
+  ],
+  "decisions": [
+    {"condition": "Fan passes access control (subscription/tier/PPV)?", "truePath": "Proceed to creator check", "falsePath": "Return 403 Access Denied"},
+    {"condition": "Is fan the content creator?", "truePath": "Skip watermark — serve original file", "falsePath": "Proceed with watermark pipeline"},
+    {"condition": "R2 download succeeds?", "truePath": "Build SVG and composite", "falsePath": "Serve original unwatermarked file (security degradation)"},
+    {"condition": "Sharp composite succeeds?", "truePath": "Convert to WebP and upload", "falsePath": "Serve original (security degradation)"},
+    {"condition": "Temp upload to R2 succeeds?", "truePath": "Generate signed URL", "falsePath": "Serve original (security degradation)"}
+  ],
+  "loops": [],
+  "errorPaths": [
+    {"trigger": "R2 download fails", "destination": "Serve original unwatermarked URL", "recovery": "Non-retriable — fallback degrades security but preserves access"},
+    {"trigger": "Sharp composite throws error", "destination": "Serve original URL", "recovery": "Non-retriable — fallback degrades security"},
+    {"trigger": "Temp upload to R2 fails", "destination": "Serve original URL", "recovery": "Non-retriable — fallback degrades security"},
+    {"trigger": "Signed URL generation fails", "destination": "Serve original URL", "recovery": "Non-retriable — fallback degrades security"}
+  ],
+  "validationRules": [
+    {"rule": "Only image MIME types (startsWith 'image/') are watermarked", "location": "content.service.ts", "type": "mime"},
+    {"rule": "Fan must pass full access control before watermark is generated", "location": "content.service.ts", "type": "prerequisite"},
+    {"rule": "Watermarked file path: temp/wm-{fanId}-{timestamp}.webp", "location": "content.service.ts", "type": "naming"},
+    {"rule": "Signed URL expiry: 60 seconds (vs 3600 for regular content)", "location": "content.service.ts", "type": "expiry"}
+  ],
+  "businessRules": [
+    {"rule": "Watermark text: @{fan.username} in white, 25% opacity, tiled diagonally", "source": "content.service.ts"},
+    {"rule": "Output format: WebP quality 90", "source": "content.service.ts"},
+    {"rule": "Temp file cache-control: max-age=300 (5 minutes)", "source": "content.service.ts"},
+    {"rule": "Security degradation: ALL watermark failures silently serve original unwatermarked file", "source": "Flowchart D-04 annotations"},
+    {"rule": "Temp files in temp/ prefix are NEVER cleaned up — no TTL mechanism", "source": "Flowchart D-04 annotations"}
+  ],
+  "securityConsiderations": [
+    "CRITICAL: Security degradation fallback — if ANY watermark step fails, original unwatermarked file is served. An attacker could trigger watermark failure intentionally to bypass protection.",
+    "Temp files accumulate in R2 temp/ prefix indefinitely — no garbage collection or TTL",
+    "60-second signed URL is short-lived but a determined attacker could still capture the unwatermarked image during that window",
+    "Watermark is SVG text overlay — can be cropped, edited out, or removed by skilled user",
+    "CSS blur on locked content is cosmetic only — server never serves full content without access check (mitigated)"
+  ],
+  "performanceConsiderations": [
+    "Watermarking adds significant latency: R2 download + sharp composite + R2 upload + signed URL generation",
+    "Each watermark request generates a unique temp file per fan — no cache reuse between fans",
+    "60-second signed URL vs 3600-second for regular content — 60x more frequent URL generation for watermarked content",
+    "Sharp image processing is CPU and memory intensive for high-resolution images"
+  ],
+  "annotations": [
+    {"type": "critical", "text": "Security degradation: if ANY watermarking step fails (sharp error, R2 download failure, upload failure), the original unwatermarked file is served instead"},
+    {"type": "warning", "text": "Temp files in temp/ prefix are never cleaned up — no TTL mechanism exists. Indefinite accumulation."},
+    {"type": "warning", "text": "60-second signed URL for watermarked vs 3600-second for regular content — no documented reason for the discrepancy"},
+    {"type": "info", "text": "Watermark: @{username} SVG text, white 25% opacity, tiled diagonally across image, output as WebP q90"}
+  ],
+  "swimlanes": [
+    {"lane": "Frontend", "nodes": ["n_fan_request", "n_return_url"]},
+    {"lane": "Content Service", "nodes": ["n_access_check", "n_access_denied", "n_creator_check", "n_serve_original", "n_build_svg", "n_composite", "n_convert_webp", "n_composite_fail"]},
+    {"lane": "Storage Service / R2", "nodes": ["n_download_original", "n_download_fail", "n_upload_temp", "n_upload_fail", "n_generate_signed_url"]}
+  ],
+  "subgraphs": [
+    {"id": "watermark_pipeline", "label": "Watermark Generation Pipeline", "nodes": ["n_build_svg", "n_composite", "n_convert_webp", "n_upload_temp", "n_generate_signed_url"]},
+    {"id": "fallback_path", "label": "Fallback Path (Security Degradation)", "nodes": ["n_download_fail", "n_composite_fail", "n_upload_fail", "n_serve_original"]}
+  ],
+  "legend": [
+    {"symbol": "Process", "color": "#bbdefb", "meaning": "Watermark step"},
+    {"symbol": "Decision", "color": "#fff9c4", "meaning": "Branch"},
+    {"symbol": "Security Degradation", "color": "#ffcdd2", "meaning": "Fallback serving unprotected file"},
+    {"symbol": "External System", "color": "#f3e5f5", "meaning": "Cloudflare R2"}
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "sequenceDiagram",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

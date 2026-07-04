@@ -1,0 +1,122 @@
+{
+  "id": "D-07",
+  "title": "Content Signed URL Generation Sequence",
+  "category": "C",
+  "diagramType": "sequence",
+  "purpose": "Generate signed URLs for content files by iterating over the content.files array, skipping public URLs, and generating 3600-second S3 signed URLs for private files",
+  "audience": "Developers, QA engineers, security reviewers",
+  "description": "Caller (typically Content Service) invokes generateSignedUrlsForContent(content) from content.utils.ts. Function iterates over content.files[] array. For each file, if URL starts with 'http' (already public), skip and return as-is. If private, call storage.service.ts getPrivateSignedUrl(path, 3600). Storage service calls s3.getSignedUrl('getObject', { Bucket, Key, Expires: 3600 }) against Cloudflare R2. Signed URL (valid 3600s = 1 hour) and contentType returned. All signed URLs collected into array and returned to caller. Notable: watermarked images use 60s expiry (D-04) while content files use 3600s — no documented reason for discrepancy.",
+  "actors": [],
+  "systems": [],
+  "modules": [
+    {"id": "contentUtils", "label": "Content Utils (content.utils.ts)", "type": "module", "description": "generateSignedUrlsForContent — iterates files, calls storage for private URLs"},
+    {"id": "storageService", "label": "Storage Service (storage.service.ts)", "type": "service", "description": "getPrivateSignedUrl — wraps S3 getSignedUrl call"},
+    {"id": "callerService", "label": "Caller (Content Service)", "type": "service", "description": "Initiates signed URL generation for content response"}
+  ],
+  "services": [],
+  "externalSystems": [
+    {"id": "r2", "label": "Cloudflare R2", "type": "external_system", "description": "S3-compatible object storage — getSignedUrl generates pre-signed GET URLs"}
+  ],
+  "dataStores": [],
+  "entryPoints": [
+    {"id": "signedUrlEntry", "label": "generateSignedUrlsForContent(content)", "description": "Called when content needs its file URLs resolved (view, edit, share)"}
+  ],
+  "exitPoints": [
+    {"id": "signedUrlReturn", "label": "Return { files: [{ signedUrl, contentType }] }", "description": "Array of signed URLs returned to caller, one per content file"}
+  ],
+  "preconditions": [
+    "Content record exists with populated content.files[] array",
+    "R2 private bucket is accessible with s3:GetObject permission",
+    "Storage service is initialized with valid R2 credentials"
+  ],
+  "postconditions": [
+    "Each private file has a signed URL valid for 3600 seconds",
+    "Public files (already http) are returned as-is with no signed URL generation",
+    "Signed URLs are per-request — no caching; each page load regenerates URLs"
+  ],
+  "nodes": [
+    {"id": "n_caller_invoke", "label": "generateSignedUrlsForContent(content)", "type": "process", "description": "Caller invokes utility with content object containing files[]"},
+    {"id": "n_iterate_files", "label": "For each file in content.files[]", "type": "process", "description": "Iterate over content.files array — one iteration per file"},
+    {"id": "n_check_public", "label": "URL starts with 'http'?", "type": "decision", "description": "Check if file URL already starts with 'http' — indicates public file"},
+    {"id": "n_skip_url", "label": "Skip — Return URL As-Is", "type": "process", "description": "Public file — no signed URL needed, return existing URL"},
+    {"id": "n_private_file", "label": "getPrivateSignedUrl(path, 3600)", "type": "process", "description": "Private file — call storage service with path and 3600s expiry"},
+    {"id": "n_s3_get_signed_url", "label": "s3.getSignedUrl('getObject', params)", "type": "process", "description": "S3 SDK call: { Bucket, Key, Expires: 3600 }"},
+    {"id": "n_return_signed", "label": "Return { signedUrl, contentType }", "type": "process", "description": "Storage service returns signed URL + content type"},
+    {"id": "n_collect_result", "label": "Collect signed URLs into array", "type": "process", "description": "Each iteration adds result to growing array"},
+    {"id": "n_return_all", "label": "Return { files: [{ signedUrl, contentType }, ...] }", "type": "process", "description": "All URLs collected and returned to caller"}
+  ],
+  "connections": [
+    {"from": "n_caller_invoke", "to": "n_iterate_files", "relationship": "initiates", "label": "content.files[]"},
+    {"from": "n_iterate_files", "to": "n_check_public", "relationship": "for_each", "label": "current file URL"},
+    {"from": "n_check_public", "to": "n_skip_url", "relationship": "triggers", "label": "starts with 'http'"},
+    {"from": "n_check_public", "to": "n_private_file", "relationship": "triggers", "label": "private file"},
+    {"from": "n_skip_url", "to": "n_collect_result", "relationship": "returns", "label": "public URL"},
+    {"from": "n_private_file", "to": "n_s3_get_signed_url", "relationship": "calls", "label": "S3 SDK"},
+    {"from": "n_s3_get_signed_url", "to": "n_return_signed", "relationship": "returns", "label": "signed URL"},
+    {"from": "n_return_signed", "to": "n_collect_result", "relationship": "adds", "label": "signed entry"},
+    {"from": "n_collect_result", "to": "n_iterate_files", "relationship": "continue", "label": "next file"},
+    {"from": "n_iterate_files", "to": "n_return_all", "relationship": "complete", "label": "all files processed"}
+  ],
+  "decisions": [
+    {"condition": "URL starts with 'http' (already public)?", "truePath": "Skip — return URL as-is", "falsePath": "Generate signed URL via S3 getSignedUrl"}
+  ],
+  "loops": [
+    {"type": "foreach", "description": "For each file in content.files[]: check public/private, generate or skip, collect result"}
+  ],
+  "errorPaths": [
+    {"trigger": "R2 credentials missing or invalid", "destination": "S3 getSignedUrl throws", "recovery": "Error propagated to caller — content may fail to load"},
+    {"trigger": "File key does not exist in R2", "destination": "S3 returns error (signed URL generation itself may succeed but URL leads to 404)", "recovery": "None — caller must handle 404 when accessing URL"}
+  ],
+  "validationRules": [
+    {"rule": "Public URLs detected by startsWith('http') — not a robust check (http:// could be private mislabeled)", "location": "content.utils.ts", "type": "url_check"},
+    {"rule": "Expiry: 3600 seconds for content files vs 60 seconds for watermarked images", "location": "content.utils.ts", "type": "expiry"},
+    {"rule": "Path format: {creatorId}/{contentId}/{fileId}.{ext} for private files", "location": "storage.service.ts", "type": "path"}
+  ],
+  "businessRules": [
+    {"rule": "Signed URLs expire in 3600 seconds (1 hour) for regular content", "source": "content.utils.ts"},
+    {"rule": "Signed URLs expire in 60 seconds for watermarked content", "source": "content.service.ts (D-04)"},
+    {"rule": "No caching — every page load regenerates signed URLs for all files", "source": "Flowchart D-08 annotations"},
+    {"rule": "Public URLs detected via fragile startsWith('http') check", "source": "content.utils.ts"}
+  ],
+  "securityConsiderations": [
+    "3600-second signed URLs are long-lived — within 1 hour, a shared URL can be accessed by anyone who possesses it",
+    "No CDN cache layer — signed URLs generated per-request; every page load triggers n S3 calls for n files",
+    "Public URL detection via startsWith('http') is fragile — a private URL that happens to contain 'http' in its path would be mislabeled",
+    "No URL revocation mechanism — once generated, the signed URL is valid for the full 3600 seconds regardless of context changes (e.g., content made private)"
+  ],
+  "performanceConsiderations": [
+    "Every page load triggers n S3 getSignedUrl calls for n content files — no caching layer",
+    "S3 getSignedUrl is an SDK call with no network I/O (synchronous, local signing), but still has overhead per call",
+    "10 files = 10 getSignedUrl calls per page load — scales linearly with content file count",
+    "3600s URLs are regenerated frequently — watermarked content with 60s URLs regenerates 60x more often"
+  ],
+  "annotations": [
+    {"type": "critical", "text": "60-second vs 3600-second discrepancy: watermarked images use 60s (D-04), content files use 3600s. No documented reason for the difference."},
+    {"type": "warning", "text": "Signed URLs generated per-request — no caching layer; every page load triggers n S3 calls for n files"},
+    {"type": "warning", "text": "Public URL detection via startsWith('http') is fragile — a private URL with 'http' in path would be mislabeled as public"},
+    {"type": "info", "text": "S3 getSignedUrl is synchronous local signing — no network I/O per call"}
+  ],
+  "swimlanes": [
+    {"lane": "Caller (e.g., Content Service)", "nodes": ["n_caller_invoke", "n_return_all"]},
+    {"lane": "Content Utils (content.utils.ts)", "nodes": ["n_iterate_files", "n_check_public", "n_skip_url", "n_collect_result"]},
+    {"lane": "Storage Service (storage.service.ts)", "nodes": ["n_private_file", "n_return_signed"]},
+    {"lane": "Cloudflare R2 (S3 SDK)", "nodes": ["n_s3_get_signed_url"]}
+  ],
+  "subgraphs": [
+    {"id": "private_file_flow", "label": "Private File Signed URL Flow", "nodes": ["n_private_file", "n_s3_get_signed_url", "n_return_signed"]},
+    {"id": "iteration_loop", "label": "File Iteration Loop", "nodes": ["n_iterate_files", "n_check_public", "n_skip_url", "n_private_file", "n_s3_get_signed_url", "n_return_signed", "n_collect_result"]}
+  ],
+  "legend": [
+    {"symbol": "Process", "color": "#bbdefb", "meaning": "URL generation step"},
+    {"symbol": "Decision", "color": "#fff9c4", "meaning": "Public vs private check"},
+    {"symbol": "External System", "color": "#f3e5f5", "meaning": "Cloudflare R2 / S3 SDK"},
+    {"symbol": "Discrepancy", "color": "#ffcdd2", "meaning": "60s vs 3600s expiry mismatch"}
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "sequenceDiagram",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

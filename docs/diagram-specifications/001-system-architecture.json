@@ -1,0 +1,340 @@
+{
+  "id": "A-01",
+  "title": "System Architecture — C4 Container Diagram",
+  "category": "A — System Architecture & Context",
+  "diagramType": "C4 Container",
+  "purpose": "Full system context: frontend (React), backend (Express), PostgreSQL (Supabase), Socket.IO, and all 8 external integrations (Supabase Auth, Stripe, R2, OpenAI/OpenRouter, Ethereum RPC, BaseScan, Nodemailer, Netlify/Render).",
+  "audience": "Engineers, architects, new hires onboarding",
+  "description": "C4 context diagram showing the PoDM platform's high-level containers — React SPA (Vite 7, Tailwind CSS), Express API (Express 5, TypeScript), PostgreSQL database (Supabase), and Socket.IO server — connected to external systems: Stripe (payments), Cloudflare R2 (file storage), Supabase Auth (JWT auth), OpenAI/OpenRouter (AI captions), PoDMPaymentProtocol smart contract on Base/Monad/MegaETH, SMTP via Nodemailer, and Ethereum RPC/BaseScan for on-chain verification. Three human actors interact: Fan (subscribes, views, tips), Creator (publishes, manages, earns), Admin (moderates, manages, views analytics).",
+  "actors": [
+    {
+      "id": "fan",
+      "label": "Fan",
+      "description": "Subscribes to creators, views content, sends tips. Interacts exclusively through the React SPA via HTTPS."
+    },
+    {
+      "id": "creator",
+      "label": "Creator",
+      "description": "Publishes content, manages subscriptions, earns revenue. Interacts through the React SPA. Uses MetaMask/Web3 wallet for crypto transactions."
+    },
+    {
+      "id": "admin",
+      "label": "Admin",
+      "description": "Moderates content, manages users, views analytics. Interacts through the React SPA."
+    }
+  ],
+  "systems": [
+    {
+      "id": "podm-platform",
+      "label": "PoDM Platform",
+      "description": "The entire bounded system containing the React SPA, Express API, PostgreSQL database, and Socket.IO server."
+    }
+  ],
+  "modules": [
+    {
+      "id": "react-spa",
+      "label": "React SPA",
+      "description": "Single-page application for fans, creators, and admins. Built with React 18, Vite 7, Tailwind CSS. Handles routing, state management, and UI rendering."
+    },
+    {
+      "id": "express-api",
+      "label": "Express API",
+      "description": "REST API handling all business logic. Built with Express 5, TypeScript, Node.js on Render. All data operations flow through this layer."
+    },
+    {
+      "id": "postgres-db",
+      "label": "PostgreSQL Database",
+      "description": "Supabase PostgreSQL instance storing users, content, transactions, subscriptions, messages, analytics, and platform settings. Accessed via supabase-js client."
+    },
+    {
+      "id": "socketio-server",
+      "label": "Socket.IO Server",
+      "description": "WebSocket server colocated with Express on port 5000. Provides real-time bidirectional messaging for conversation rooms, typing indicators, and broadcast events."
+    }
+  ],
+  "services": [
+    {
+      "id": "api-client",
+      "label": "apiClient.ts",
+      "description": "Axios-based HTTP client with request/response interceptors for auth token injection, impersonation header attachment, and 401 auto-logout handling."
+    },
+    {
+      "id": "auth-middleware",
+      "label": "Auth Middleware (auth.middleware.ts)",
+      "description": "Express middleware that validates JWT via supabase.auth.getUser(), fetches user profile, applies role guards, and handles impersonation header swapping."
+    }
+  ],
+  "externalSystems": [
+    {
+      "id": "stripe",
+      "label": "Stripe",
+      "description": "Payment processing for subscriptions, SetupIntents, and payment method management. Frontend uses Stripe Elements for card UI. Backend Stripe endpoints are partially dead (tipping/PPV endpoints 404)."
+    },
+    {
+      "id": "cloudflare-r2",
+      "label": "Cloudflare R2",
+      "description": "S3-compatible object storage for content files (images, video, audio), thumbnails, watermarked images, avatars, banners, and verification documents. Two buckets: podm-private (signed URL access) and podm-public."
+    },
+    {
+      "id": "supabase-auth",
+      "label": "Supabase Auth",
+      "description": "JWT authentication and user management service. Handles password hashing, token generation, email/password sign-in, and password reset emails. Server-side client configured with autoRefreshToken: false, persistSession: false."
+    },
+    {
+      "id": "openai-openrouter",
+      "label": "OpenAI / OpenRouter",
+      "description": "AI caption generation for uploaded images/videos. OpenRouter used when API key starts with 'sk-or-v1' (model: google/gemma-3-27b-it:free), otherwise default OpenAI endpoint. Returns caption in ~1-5 seconds."
+    },
+    {
+      "id": "smart-contract",
+      "label": "Smart Contract (PoDMPaymentProtocol)",
+      "description": "Solidity contract deployed on Base (mainnet/sepolia), Monad, and MegaETH. Implements paySubscription, payTip, payPPV functions. Emits events parsed by backend for transaction verification."
+    },
+    {
+      "id": "smtp-nodemailer",
+      "label": "SMTP (Nodemailer)",
+      "description": "Transactional email service configured with SMTP_HOST/PORT/USER/PASS env vars. Currently wired but has zero callers—no email notifications are sent in production."
+    },
+    {
+      "id": "ethereum-rpc-basescan",
+      "label": "Ethereum RPC / BaseScan",
+      "description": "On-chain transaction verification via JSON-RPC calls to eth_getTransactionReceipt. Network selection by creator's payout preference (base, monad, megaeth). Verifies receipt status, contract address match, topics[2] recipient parse, and data field amount comparison."
+    },
+    {
+      "id": "netlify-render",
+      "label": "Netlify / Render",
+      "description": "Hosting providers: Netlify serves the frontend SPA (podm.app), Render hosts the backend Express API (podm.onrender.com). Cloudflare Pages provides PR preview deployments."
+    }
+  ],
+  "dataStores": [
+    {
+      "id": "supabase-postgresql",
+      "label": "Supabase PostgreSQL",
+      "description": "Primary database storing 12+ tables: profiles, content, subscriptions, transactions, messages, conversations, galleries, analytics_events, monthly_analytics_summary, platform_settings, support_tickets, reports, contests, contest_entries, referral_codes, referral_redemptions, enclave_applications. Also holds 12 enum types."
+    },
+    {
+      "id": "r2-private",
+      "label": "Cloudflare R2 Private Bucket",
+      "description": "Stores all uploaded content files (originals, thumbnails, watermarked temps). Access restricted to signed URLs with configurable expiry (3600s for thumbnails, 60s for view URLs)."
+    },
+    {
+      "id": "r2-public",
+      "label": "Cloudflare R2 Public Bucket",
+      "description": "Stores publicly accessible assets: user avatars, creator banners. No signed URL required."
+    }
+  ],
+  "entryPoints": [
+    {
+      "id": "https-ingress",
+      "label": "HTTPS Ingress",
+      "description": "All external traffic arrives via HTTPS on port 443. Frontend served by Netlify, backend by Render. DNS routes podm.app to Netlify and podm.onrender.com to Render."
+    },
+    {
+      "id": "websocket-connect",
+      "label": "WebSocket Connection (Socket.IO)",
+      "description": "Client establishes Socket.IO connection to the Express server on port 5000. JWT authentication validated during handshake. Room-based messaging for conversations."
+    }
+  ],
+  "exitPoints": [
+    {
+      "id": "json-response",
+      "label": "JSON API Response",
+      "description": "All API endpoints return JSON with standardized format: { success: boolean, data?: any, message?: string }. Errors return { success: false, error: { message, statusCode } }."
+    },
+    {
+      "id": "s3-upload-stream",
+      "label": "S3 Upload Stream",
+      "description": "Content files uploaded to Cloudflare R2 via AWS S3 SDK PutObjectCommand. 3 retries with exponential backoff (500ms, 1000ms, 2000ms) on failure."
+    }
+  ],
+  "preconditions": [
+    "All external services (Supabase, Stripe, R2, RPC endpoints) are reachable and configured with valid API keys",
+    "Smart contract is deployed on at least one supported chain (Base, Monad, MegaETH)",
+    "PostgreSQL database has all required tables and enums created via migrations",
+    "Frontend is built and deployed to Netlify (production) or running via Vite dev server (local)"
+  ],
+  "postconditions": [
+    "Authenticated users receive JWT tokens stored in localStorage/sessionStorage",
+    "Content files are durably stored in R2 with database records referencing their paths",
+    "Transactions are recorded in PostgreSQL with on-chain verification where applicable",
+    "Real-time messages are delivered via Socket.IO rooms and persisted to database"
+  ],
+  "nodes": [
+    {
+      "id": "fan-actor",
+      "label": "Fan",
+      "type": "actor",
+      "description": "Human user who browses, subscribes, views content, sends tips, and participates in contests. Unauthenticated users have limited access (public profiles, login/signup)."
+    },
+    {
+      "id": "creator-actor",
+      "label": "Creator",
+      "type": "actor",
+      "description": "Human user who publishes content, manages subscription tiers, views analytics, requests payouts. Requires creator role assigned at signup."
+    },
+    {
+      "id": "admin-actor",
+      "label": "Admin",
+      "type": "actor",
+      "description": "Human user who moderates content, manages users, views platform analytics, accesses verification documents, impersonates users. Requires admin role."
+    },
+    {
+      "id": "react-spa-node",
+      "label": "React SPA (Vite 7, Tailwind)",
+      "type": "service",
+      "description": "Frontend application serving fans, creators, and admins. Uses React Router for client-side routing, AuthProvider for auth state, and apiClient for API calls. Stripe Elements for payment UI. MetaMask/Web3 for wallet transactions."
+    },
+    {
+      "id": "express-api-node",
+      "label": "Express API (Express 5, TypeScript)",
+      "type": "api",
+      "description": "REST API on port 5000. Handles CORS, JSON body parsing (1100MB limit), multer file uploads, auth middleware validation, controller routing, service business logic, and model database access."
+    },
+    {
+      "id": "postgres-node",
+      "label": "PostgreSQL (Supabase)",
+      "type": "database",
+      "description": "Primary data store with 12+ tables, 12 enums. Accessed via supabase-js client through model layer. Handles all persistent data: user profiles, content, subscriptions, transactions, messages, analytics."
+    },
+    {
+      "id": "socketio-node",
+      "label": "Socket.IO Server",
+      "type": "api",
+      "description": "WebSocket server colocated with Express. Handles authenticated connections, room management (conversation rooms), event emission (new_message, message_deleted, conversation_read)."
+    },
+    {
+      "id": "stripe-ext",
+      "label": "Stripe",
+      "type": "external_system",
+      "description": "External payment processor. Receives SetupIntents for payment method setup. Frontend integrates via Stripe Elements. Tipping/PPV/Subscription payment endpoints on backend are partially dead."
+    },
+    {
+      "id": "r2-ext",
+      "label": "Cloudflare R2",
+      "type": "external_system",
+      "description": "S3-compatible object storage. Stores original content, thumbnails, watermarked images, avatars, banners, verification docs. Private bucket requires signed URLs for access."
+    },
+    {
+      "id": "supabase-auth-ext",
+      "label": "Supabase Auth",
+      "type": "authentication",
+      "description": "External JWT auth service. Validates tokens via supabase.auth.getUser(). Handles signup, login, password reset emails. Service role key used for admin operations (deleteUser, updateUserById)."
+    },
+    {
+      "id": "openai-ext",
+      "label": "OpenAI / OpenRouter",
+      "type": "ai_agent",
+      "description": "AI caption generation service. API key routing: sk-or-v1 prefix → OpenRouter, otherwise → OpenAI. Model: gemma-3-27b-it:free. Returns single witty caption with emojis and hashtags."
+    },
+    {
+      "id": "contract-ext",
+      "label": "PoDMPaymentProtocol (Smart Contract)",
+      "type": "external_system",
+      "description": "Solidity contract on Base/Monad/MegaETH. Functions: paySubscription, payTip, payPPV. Emits PaymentSent events containing sender, recipient, amount, contentId. Backend parses event topics for verification."
+    },
+    {
+      "id": "email-ext",
+      "label": "SMTP (Nodemailer)",
+      "type": "notification",
+      "description": "Email sending service using nodemailer. Configured with SMTP env vars. Currently wired but zero callers—transactional emails are not sent."
+    },
+    {
+      "id": "rpc-ext",
+      "label": "Ethereum RPC / BaseScan",
+      "type": "external_system",
+      "description": "On-chain verification via JSON-RPC. Endpoints: mainnet.base.org, sepolia.base.org, monad-mainnet.g.allthatnode.com, mainnet.megaeth.systems. Verifies receipt status, contract match, recipient, and amount."
+    },
+    {
+      "id": "vite-proxy",
+      "label": "Vite Dev Proxy",
+      "type": "service",
+      "description": "Development-only proxy that routes /api/* requests from frontend dev server (localhost:5173) to backend (localhost:5000). Configured in vite.config.ts."
+    }
+  ],
+  "connections": [
+    { "from": "fan-actor", "to": "react-spa-node", "relationship": "calls", "label": "HTTPS" },
+    { "from": "creator-actor", "to": "react-spa-node", "relationship": "calls", "label": "HTTPS" },
+    { "from": "admin-actor", "to": "react-spa-node", "relationship": "calls", "label": "HTTPS" },
+    { "from": "react-spa-node", "to": "express-api-node", "relationship": "calls", "label": "REST/JSON via apiClient.ts" },
+    { "from": "react-spa-node", "to": "socketio-node", "relationship": "calls", "label": "Socket.IO WebSocket" },
+    { "from": "react-spa-node", "to": "stripe-ext", "relationship": "calls", "label": "Stripe Elements for card UI" },
+    { "from": "react-spa-node", "to": "contract-ext", "relationship": "calls", "label": "MetaMask/Web3 wallet transaction" },
+    { "from": "express-api-node", "to": "postgres-node", "relationship": "queries", "label": "SQL via supabase-js" },
+    { "from": "express-api-node", "to": "supabase-auth-ext", "relationship": "calls", "label": "JWT verify via HTTPS" },
+    { "from": "express-api-node", "to": "stripe-ext", "relationship": "calls", "label": "Payment operations via HTTPS" },
+    { "from": "express-api-node", "to": "r2-ext", "relationship": "calls", "label": "S3 API for file operations" },
+    { "from": "express-api-node", "to": "openai-ext", "relationship": "calls", "label": "Caption generation via HTTPS" },
+    { "from": "express-api-node", "to": "email-ext", "relationship": "calls", "label": "SMTP for transactional email" },
+    { "from": "express-api-node", "to": "contract-ext", "relationship": "calls", "label": "Submit transactions via Ethereum RPC" },
+    { "from": "express-api-node", "to": "rpc-ext", "relationship": "calls", "label": "Verify transactions via HTTPS/RPC" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [],
+  "validationRules": [
+    "File uploads validate MIME type (jpeg/png/webp/mp4/mov/mp3/m4a/wav/ogg/webm)",
+    "File uploads enforce size limit (1GB per file, 10 files max via multer)",
+    "JWT tokens validated on every authenticated request via supabase.auth.getUser()",
+    "Content access gated by subscription status, tier level, and PPV purchase",
+    "CORS policy restricts origins to podm.app, *.pages.dev, localhost:5173"
+  ],
+  "businessRules": [
+    "Platform fee = 12.5% DEFAULT_COMMISSION_RATE from lib/constants.ts",
+    "Enclave members receive reduced 10% platform fee (not yet implemented)",
+    "Content auto-flagged after 3 user reports",
+    "Subscription has no renewal logic—static after creation",
+    "Referral codes use format {USERNAME}-CASH or {USERNAME}-PERCENT"
+  ],
+  "securityConsiderations": [
+    "JWT stored in localStorage—XSS vulnerable",
+    "JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY exposed in frontend .env",
+    "Sandbox bypass: transactions with hash starting 0x0000 skip all on-chain verification",
+    "No token revocation or blacklist mechanism exists",
+    "Auth debug log writes PII (user IDs, emails) to server/debug.log",
+    "No rate limiting on login/signup routes",
+    "2 unprotected referral routes: /check-milestone/:userId and /validate/:code",
+    "Watermarking failure degrades security—original unwatermarked image served"
+  ],
+  "performanceConsiderations": [
+    "Every authenticated request triggers 2 Supabase API calls (JWT verify + user lookup)",
+    "No caching layer (Redis/memcached) for any data",
+    "Mass message iterates subscriber list synchronously (N+1 pattern)",
+    "Creator dashboard aggregates 5+ parallel queries per page load",
+    "Admin dashboard runs 5 parallel queries with no caching",
+    "AI caption generation adds 1-5 seconds synchronous HTTP wait",
+    "Signed URLs regenerated per request—no caching"
+  ],
+  "annotations": [
+    {
+      "node": "stripe-ext",
+      "text": "Stripe tipping/PPV endpoints are dead—frontend calls to /payments/tip and /payments/unlock-post return 404"
+    },
+    {
+      "node": "email-ext",
+      "text": "Nodemailer is wired but has zero callers—no transactional emails sent"
+    },
+    {
+      "node": "express-api-node",
+      "text": "No queue/broker—all workflows execute synchronously or as unawaited promises"
+    },
+    {
+      "node": "r2-ext",
+      "text": "Watermarked temp files accumulate in R2 temp/ path—no garbage collection"
+    }
+  ],
+  "swimlanes": [],
+  "subgraphs": [],
+  "legend": [
+    { "symbol": "Person (actor)", "meaning": "Human role interacting with the system" },
+    { "symbol": "Container (service/api)", "meaning": "Application container (React SPA, Express API, Socket.IO)" },
+    { "symbol": "Database", "meaning": "PostgreSQL or R2 storage" },
+    { "symbol": "External System", "meaning": "Third-party service or external dependency" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "box",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

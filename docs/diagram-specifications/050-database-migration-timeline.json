@@ -1,0 +1,120 @@
+﻿{
+  "id": "050",
+  "title": "Database Migration Timeline",
+  "category": "I",
+  "diagramType": "Gantt",
+  "purpose": "Show the chronological sequence of SQL migrations run against Supabase PostgreSQL, grouped by feature area, with post-launch patches distinguished from original migrations.",
+  "audience": "Database administrators, backend developers, DevOps engineers, project managers",
+  "description": "Gantt chart presenting the chronological sequence of over 15 SQL migrations grouped by feature area: Foundation (create_profiles_and_auth, create_content_table), Payments (create_transactions, create_subscriptions, add_platform_fee_fields), Messaging (create_messages_conversations, add_voice_message_support), Analytics (create_analytics_events, create_analytics_summary), Admin and Settings (create_platform_settings, create_support_tickets), Content (create_content_related, update_content_schema — critical post-launch patch), Engagement (create_contests, update_contests_schema — critical post-launch patch, create_referrals), Premium (create_enclave_table). The two critical-path patches (update_content_schema, update_contests_schema) are flagged as post-launch fixes, indicating schema instability in core domains.",
+  "actors": [],
+  "systems": [],
+  "modules": [],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [],
+  "exitPoints": [],
+  "preconditions": [
+    "Supabase PostgreSQL database has been provisioned",
+    "Migration scripts are versioned and stored in migrations/ directory"
+  ],
+  "postconditions": [
+    "All 17 migration scripts have been applied sequentially",
+    "Database schema reflects all feature areas with proper tables, indexes, and constraints"
+  ],
+  "nodes": [
+    { "id": "m1", "label": "create_profiles_and_auth.sql", "type": "process", "description": "Foundation: profiles table with auth integration and Supabase Auth triggers" },
+    { "id": "m2", "label": "create_content_table.sql", "type": "process", "description": "Foundation: content table with creator_id FK, file metadata, visibility, status" },
+    { "id": "m3", "label": "create_transactions.sql", "type": "process", "description": "Payments: transactions table with type, amount, fee, status, blockchain fields" },
+    { "id": "m4", "label": "create_subscriptions.sql", "type": "process", "description": "Payments: subscriptions table with fan_id, creator_id, tier, Stripe integration" },
+    { "id": "m5", "label": "add_platform_fee_fields.sql", "type": "process", "description": "Payments: platform_fee and creator_payout columns on transactions" },
+    { "id": "m6", "label": "create_messages_conversations.sql", "type": "process", "description": "Messaging: conversations and messages tables with Socket.IO support" },
+    { "id": "m7", "label": "add_voice_message_support.sql", "type": "process", "description": "Messaging: voice_url and content JSONB columns on messages table" },
+    { "id": "m8", "label": "create_analytics_events.sql", "type": "process", "description": "Analytics: analytics_events table for tracking page views, post views, gallery adds" },
+    { "id": "m9", "label": "create_analytics_summary.sql", "type": "process", "description": "Analytics: monthly_analytics_summary table with pre-aggregated monthly stats" },
+    { "id": "m10", "label": "create_platform_settings.sql", "type": "process", "description": "Admin: platform_settings table for platform-wide configuration" },
+    { "id": "m11", "label": "create_support_tickets.sql", "type": "process", "description": "Admin: support_tickets table with conversation JSONB, status tracking" },
+    { "id": "m12", "label": "create_content_related.sql", "type": "process", "description": "Content: additional content-related tables (reports, galleries)" },
+    { "id": "m13", "label": "update_content_schema.sql", "type": "process", "description": "CRITICAL: Post-launch content schema patch" },
+    { "id": "m14", "label": "create_contests.sql", "type": "process", "description": "Engagement: contests table with winner selection, entry requirements" },
+    { "id": "m15", "label": "update_contests_schema.sql", "type": "process", "description": "CRITICAL: Post-launch contests schema patch" },
+    { "id": "m16", "label": "create_referrals.sql", "type": "process", "description": "Engagement: referral_codes and referral_redemptions tables" },
+    { "id": "m17", "label": "create_enclave_table.sql", "type": "process", "description": "Premium: enclave_applications table with application status tracking" }
+  ],
+  "connections": [
+    { "from": "m1", "to": "m2", "relationship": "precedes", "label": "Foundation first" },
+    { "from": "m2", "to": "m3", "relationship": "precedes", "label": "Foundation -> Payments" },
+    { "from": "m3", "to": "m4", "relationship": "precedes", "label": "Transactions before Subscriptions" },
+    { "from": "m4", "to": "m5", "relationship": "precedes", "label": "Subscriptions before platform fees" },
+    { "from": "m5", "to": "m6", "relationship": "precedes", "label": "Payments -> Messaging" },
+    { "from": "m6", "to": "m7", "relationship": "precedes", "label": "Messages before voice support" },
+    { "from": "m7", "to": "m8", "relationship": "precedes", "label": "Messaging -> Analytics" },
+    { "from": "m8", "to": "m9", "relationship": "precedes", "label": "Events before summary" },
+    { "from": "m9", "to": "m10", "relationship": "precedes", "label": "Analytics -> Admin" },
+    { "from": "m10", "to": "m11", "relationship": "precedes", "label": "Settings before Tickets" },
+    { "from": "m11", "to": "m12", "relationship": "precedes", "label": "Admin -> Content extensions" },
+    { "from": "m12", "to": "m13", "relationship": "precedes", "label": "Content before schema patch" },
+    { "from": "m13", "to": "m14", "relationship": "precedes", "label": "Content patch -> Engagement" },
+    { "from": "m14", "to": "m15", "relationship": "precedes", "label": "Contests before schema patch" },
+    { "from": "m15", "to": "m16", "relationship": "precedes", "label": "Contest patch -> Referrals" },
+    { "from": "m16", "to": "m17", "relationship": "precedes", "label": "Engagement -> Premium" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "Migration fails mid-sequence", "destination": "Unknown state", "recovery": "Manual rollback and fix before re-running" }
+  ],
+  "validationRules": [
+    "Migrations must be applied in chronological order",
+    "Each migration must be idempotent or tracked in migration history",
+    "Post-launch patches (update_content_schema, update_contests_schema) require careful back-compat"
+  ],
+  "businessRules": [],
+  "securityConsiderations": [
+    "Platform settings table stores sensitive configuration values",
+    "Profile and auth tables contain PII — migration changes must preserve data privacy",
+    "Blockchain tx hash in transactions table is application-enforced unique"
+  ],
+  "performanceConsiderations": [
+    "Index creation should be done as separate migrations to avoid table locks",
+    "Large table migrations (transactions, analytics_events) may require batching"
+  ],
+  "annotations": [
+    "update_content_schema.sql and update_contests_schema.sql are post-launch critical patches",
+    "add_voice_message_support.sql is the smallest migration",
+    "Foundation + Payments + Messaging make up the first half of the migration timeline",
+    "Premium/Enclave is the last feature area migrated"
+  ],
+  "swimlanes": [
+    { "id": "lane_foundation", "label": "Foundation", "nodes": ["m1", "m2"] },
+    { "id": "lane_payments", "label": "Payments", "nodes": ["m3", "m4", "m5"] },
+    { "id": "lane_messaging", "label": "Messaging", "nodes": ["m6", "m7"] },
+    { "id": "lane_analytics", "label": "Analytics", "nodes": ["m8", "m9"] },
+    { "id": "lane_admin", "label": "Admin and Settings", "nodes": ["m10", "m11"] },
+    { "id": "lane_content", "label": "Content", "nodes": ["m12", "m13"] },
+    { "id": "lane_engagement", "label": "Engagement", "nodes": ["m14", "m15", "m16"] },
+    { "id": "lane_premium", "label": "Premium", "nodes": ["m17"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_foundation", "label": "Foundation", "nodes": ["m1", "m2"] },
+    { "id": "sg_payments", "label": "Payments", "nodes": ["m3", "m4", "m5"] },
+    { "id": "sg_messaging", "label": "Messaging", "nodes": ["m6", "m7"] },
+    { "id": "sg_analytics", "label": "Analytics", "nodes": ["m8", "m9"] },
+    { "id": "sg_admin", "label": "Admin and Settings", "nodes": ["m10", "m11"] },
+    { "id": "sg_content", "label": "Content", "nodes": ["m12", "m13"] },
+    { "id": "sg_engagement", "label": "Engagement", "nodes": ["m14", "m15", "m16"] },
+    { "id": "sg_premium", "label": "Premium", "nodes": ["m17"] }
+  ],
+  "legend": [
+    { "symbol": "Non-critical task bar", "meaning": "Original migration" },
+    { "symbol": "Critical (red) task bar", "meaning": "Post-launch patch" },
+    { "symbol": "Section header", "meaning": "Feature area grouping" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "gantt",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

@@ -1,0 +1,44 @@
+sequenceDiagram
+    participant Fan as "Fan (Content Viewer)"
+    participant Frontend as "Frontend"
+    participant ContentSvc as "Content Service"
+    participant StorageSvc as "Storage Service / R2"
+
+    Fan->>Frontend: GET /api/v1/content/:id/watermarked
+    Frontend->>ContentSvc: verify permissions
+    ContentSvc->>ContentSvc: Access Control Check (D-02)
+    alt Fan passes access control?
+        ContentSvc->>ContentSvc: Is Fan the Creator?
+        alt fan is creator — skip watermark
+            ContentSvc->>ContentSvc: Serve Original (no watermark)
+        else not creator — watermark
+            ContentSvc->>StorageSvc: downloadFromPrivate(originalKey)
+            alt R2 download succeeds?
+                StorageSvc-->>ContentSvc: file buffer downloaded
+                ContentSvc->>ContentSvc: Build SVG Watermark Overlay (@username)
+                ContentSvc->>ContentSvc: sharp.composite SVG over Image
+                alt Sharp composite succeeds?
+                    ContentSvc->>ContentSvc: Convert to WebP (quality 90)
+                    ContentSvc->>StorageSvc: Upload to R2 temp/wm-{fanId}-{timestamp}.webp
+                    alt Temp upload to R2 succeeds?
+                        StorageSvc->>StorageSvc: getPrivateSignedUrl(tempKey, 60)
+                        StorageSvc-->>Frontend: 60-second signed URL
+                        Frontend-->>Fan: watermarked image URL
+                    else
+                        StorageSvc-->>ContentSvc: upload error
+                        ContentSvc->>ContentSvc: Serve Original (security degradation)
+                    end
+                else
+                    ContentSvc->>ContentSvc: Serve Original (security degradation)
+                end
+            else
+                StorageSvc-->>ContentSvc: download error
+                ContentSvc->>ContentSvc: Serve Original (security degradation)
+            end
+        end
+        ContentSvc-->>Frontend: serve result
+        Frontend-->>Fan: image URL
+    else
+        ContentSvc-->>Frontend: 403 Access Denied
+        Frontend-->>Fan: access denied
+    end

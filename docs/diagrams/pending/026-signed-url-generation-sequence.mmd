@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant Caller as "Caller (Content Service)"
+    participant ContentUtils as "Content Utils"
+    participant StorageSvc as "Storage Service"
+    participant R2 as "Cloudflare R2 (S3 SDK)"
+
+    Caller->>ContentUtils: generateSignedUrlsForContent(content)
+    loop For each file in content.files[]
+        ContentUtils->>ContentUtils: current file URL
+        alt URL starts with 'http'?
+            ContentUtils->>ContentUtils: Skip — Return URL As-Is
+        else
+            ContentUtils->>StorageSvc: getPrivateSignedUrl(path, 3600)
+            StorageSvc->>R2: s3.getSignedUrl('getObject', params)
+            R2-->>StorageSvc: signed URL
+            StorageSvc-->>ContentUtils: return { signedUrl, contentType }
+        end
+        ContentUtils->>ContentUtils: Collect result into array
+    end
+    ContentUtils-->>Caller: return { files: [{ signedUrl, contentType }, ...] }

@@ -1,0 +1,124 @@
+﻿{
+  "id": "052",
+  "title": "Error Handling Layer Architecture",
+  "category": "J",
+  "diagramType": "Flowchart",
+  "purpose": "Show the 5-layer error handling pipeline from backend async route handler wrapping through AppError classes, error handler middleware, Axios response interceptor, and the missing React ErrorBoundary.",
+  "audience": "Backend and frontend developers, QA engineers, architects",
+  "description": "Five-layer error handling pipeline: Layer 1 (asyncHandler wrapper in utils/asyncHandler.ts) catches unhandled promise rejections in route handlers and passes to next(err). Layer 2 (AppError classes in utils/apiError.ts) with subtypes: NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError — two identical AppError classes exist in different locations (duplication). Layer 3 (Error Handler Middleware in middleware/error.middleware.ts) is the global catch-all via app.use(err, req, res, next), prunes stack trace in production, returns structured JSON { success: false, error: { message, statusCode } }, and converts unknown errors to generic Internal server error. Layer 4 (Axios Response Interceptor in apiClient.ts) catches HTTP errors on frontend, auto-clears auth token on 401 and redirects to login, shows toast notification for other errors, no retry logic except where 5xx configured. Layer 5 (React ErrorBoundary) is MISSING — no ErrorBoundary component exists, uncaught React errors crash the UI.",
+  "actors": [],
+  "systems": [],
+  "modules": [],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [
+    { "id": "route_handler", "label": "Route Handler", "type": "start", "description": "Express route handler that may throw errors" }
+  ],
+  "exitPoints": [
+    { "id": "http_json_response", "label": "HTTP JSON Response", "type": "end", "description": "Structured error response sent to client" },
+    { "id": "toast_notification", "label": "Toast Notification (frontend)", "type": "end", "description": "User sees error toast for non-401 errors" },
+    { "id": "login_redirect", "label": "Redirect to Login (401)", "type": "end", "description": "User redirected to login on auth token expiry" },
+    { "id": "ui_crash", "label": "UI Crash (missing ErrorBoundary)", "type": "end", "description": "Uncaught React error crashes the entire UI" }
+  ],
+  "preconditions": [
+    "Express server is running with error middleware registered",
+    "Frontend apiClient has Axios interceptors configured",
+    "Route handlers use asyncHandler wrapper for async error catching"
+  ],
+  "postconditions": [
+    "All backend errors return structured JSON with success: false",
+    "Frontend shows appropriate error UI (toast or redirect)",
+    "Uncaught React errors still crash the UI (gap)"
+  ],
+  "nodes": [
+    { "id": "l1_async_handler", "label": "Layer 1: asyncHandler Wrapper", "type": "process", "description": "asyncHandler(fn) catches unhandled promise rejections in route handlers and passes to next(err)" },
+    { "id": "l2_app_error", "label": "Layer 2: AppError Classes", "type": "process", "description": "AppError with statusCode, message, isOperational. Subtypes: NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError" },
+    { "id": "l2_duplicate", "label": "WARNING: Two identical AppError classes in different locations", "type": "validation", "description": "Duplicate AppError classes exist — duplication bug" },
+    { "id": "l3_error_middleware", "label": "Layer 3: Error Handler Middleware", "type": "process", "description": "Global catch-all: app.use(err, req, res, next)" },
+    { "id": "l3_stack_prune", "label": "Prunes stack trace in production", "type": "process", "description": "When NODE_ENV === production, stack trace stripped from response" },
+    { "id": "l3_json_response", "label": "Returns: { success: false, error: { message, statusCode } }", "type": "process", "description": "Structured JSON error response format" },
+    { "id": "l3_unknown_fallback", "label": "Unknown errors become generic Internal server error", "type": "process", "description": "Non-AppError errors are converted to 500 Internal server error" },
+    { "id": "l4_axios_interceptor", "label": "Layer 4: Axios Response Interceptor", "type": "process", "description": "Catches HTTP errors on frontend via apiClient.ts" },
+    { "id": "l4_401", "label": "401: auto-clear auth token and redirect to login", "type": "process", "description": "On 401 response, clear localStorage token, redirect to /login" },
+    { "id": "l4_other", "label": "Other errors: display toast notification", "type": "process", "description": "Non-401 errors shown as toast messages" },
+    { "id": "l4_no_retry", "label": "No retry logic (except where 5xx configured)", "type": "process", "description": "Axios interceptor has no automatic retry for failed requests" },
+    { "id": "l5_missing", "label": "Layer 5: MISSING React ErrorBoundary", "type": "validation", "description": "CRITICAL GAP: No ErrorBoundary component exists — uncaught React errors crash the UI" },
+    { "id": "http_response", "label": "HTTP JSON Response", "type": "end", "description": "Structured JSON sent to client" },
+    { "id": "react_component", "label": "React Component", "type": "process", "description": "React UI component that may throw during render" },
+    { "id": "route_handler", "label": "Route Handler", "type": "process", "description": "Express route handler that may throw errors" }
+  ],
+  "connections": [
+    { "from": "route_handler", "to": "l1_async_handler", "relationship": "throw_error", "label": "Route handler throws error" },
+    { "from": "l1_async_handler", "to": "l3_error_middleware", "relationship": "next(err)", "label": "asyncHandler passes error to global middleware" },
+    { "from": "l1_async_handler", "to": "l2_app_error", "relationship": "uses", "label": "asyncHandler works with AppError typed errors" },
+    { "from": "l2_app_error", "to": "l2_duplicate", "relationship": "has_duplicate", "label": "Two identical AppError classes exist" },
+    { "from": "l3_error_middleware", "to": "l3_stack_prune", "relationship": "in_production", "label": "Stack trace pruned in production" },
+    { "from": "l3_error_middleware", "to": "l3_json_response", "relationship": "formats", "label": "Returns structured JSON" },
+    { "from": "l3_error_middleware", "to": "l3_unknown_fallback", "relationship": "unknown_error", "label": "Non-AppError becomes 500" },
+    { "from": "l3_json_response", "to": "http_response", "relationship": "sent_as", "label": "JSON response sent to client" },
+    { "from": "http_response", "to": "l4_axios_interceptor", "relationship": "intercepted", "label": "Frontend Axios interceptor catches HTTP error" },
+    { "from": "l4_axios_interceptor", "to": "l4_401", "relationship": "if_401", "label": "401 triggers token clear + redirect" },
+    { "from": "l4_axios_interceptor", "to": "l4_other", "relationship": "if_other", "label": "Other errors show toast" },
+    { "from": "l4_axios_interceptor", "to": "l4_no_retry", "relationship": "no_retry", "label": "No automatic retry mechanism" },
+    { "from": "react_component", "to": "l5_missing", "relationship": "uncaught_error", "label": "React component throws — no ErrorBoundary to catch it" }
+  ],
+  "decisions": [
+    { "id": "dec_is_app_error", "condition": "Error is AppError?", "truePath": "l3_json_response", "falsePath": "l3_unknown_fallback" },
+    { "id": "dec_is_401", "condition": "HTTP status is 401?", "truePath": "l4_401", "falsePath": "l4_other" },
+    { "id": "dec_is_production", "condition": "NODE_ENV === production?", "truePath": "l3_stack_prune", "falsePath": "l3_json_response" }
+  ],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "Uncaught error in async route handler", "destination": "l1_async_handler", "recovery": "asyncHandler catches and forwards to next(err)" },
+    { "trigger": "Non-AppError thrown", "destination": "l3_unknown_fallback", "recovery": "Becomes generic 500 Internal server error" },
+    { "trigger": "401 response from API", "destination": "l4_401", "recovery": "Token cleared, user redirected to login" },
+    { "trigger": "Uncaught React render error", "destination": "l5_missing", "recovery": "NONE — UI crashes, user must refresh" }
+  ],
+  "validationRules": [
+    "All async route handlers must be wrapped with asyncHandler",
+    "All operational errors should use AppError subtypes",
+    "Error middleware must be registered after all routes",
+    "Axios interceptor must handle 401 globally"
+  ],
+  "businessRules": [],
+  "securityConsiderations": [
+    "Stack trace pruned in production to prevent information leakage",
+    "Unknown errors become generic 500 — no internal details exposed",
+    "401 auto-clear prevents stale token usage",
+    "Missing ErrorBoundary means the entire UI is vulnerable to crashes"
+  ],
+  "performanceConsiderations": [],
+  "annotations": [
+    "CRITICAL GAP: Layer 5 — React ErrorBoundary is missing, uncaught errors crash the UI",
+    "WARNING: Two identical AppError classes exist in different locations (duplication)",
+    "No retry logic in Axios interceptor — 5xx errors may need retry"
+  ],
+  "swimlanes": [
+    { "id": "lane_backend", "label": "Backend Error Layers", "nodes": ["l1_async_handler", "l2_app_error", "l2_duplicate", "l3_error_middleware", "l3_stack_prune", "l3_json_response", "l3_unknown_fallback"] },
+    { "id": "lane_frontend", "label": "Frontend Error Layers", "nodes": ["l4_axios_interceptor", "l4_401", "l4_other", "l4_no_retry", "l5_missing"] },
+    { "id": "lane_components", "label": "Route / Response", "nodes": ["route_handler", "http_response", "react_component"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_l1", "label": "Layer 1: asyncHandler Wrapper", "nodes": ["l1_async_handler"] },
+    { "id": "sg_l2", "label": "Layer 2: AppError Classes", "nodes": ["l2_app_error", "l2_duplicate"] },
+    { "id": "sg_l3", "label": "Layer 3: Error Handler Middleware", "nodes": ["l3_error_middleware", "l3_stack_prune", "l3_json_response", "l3_unknown_fallback"] },
+    { "id": "sg_l4", "label": "Layer 4: Axios Response Interceptor", "nodes": ["l4_axios_interceptor", "l4_401", "l4_other", "l4_no_retry"] },
+    { "id": "sg_l5", "label": "Layer 5: React ErrorBoundary", "nodes": ["l5_missing"] }
+  ],
+  "legend": [
+    { "symbol": "Blue fill", "meaning": "Layer 1 — asyncHandler" },
+    { "symbol": "Green fill", "meaning": "Layer 2 — AppError" },
+    { "symbol": "Orange fill", "meaning": "Layer 3 — Error Middleware" },
+    { "symbol": "Purple fill", "meaning": "Layer 4 — Axios Interceptor" },
+    { "symbol": "Red fill", "meaning": "Layer 5 — Missing (gap)" },
+    { "symbol": "Yellow fill", "meaning": "Warning annotation" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

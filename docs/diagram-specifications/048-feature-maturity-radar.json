@@ -1,0 +1,120 @@
+﻿{
+  "id": "048",
+  "title": "Feature Maturity Radar",
+  "category": "H",
+  "diagramType": "Graph (flowchart)",
+  "purpose": "Visual classification of all 20 business capabilities into Mature (6), Functional (12), and Basic (2) tiers.",
+  "audience": "Product managers, engineering leads, CTO, investors",
+  "description": "Feature maturity assessment across three tiers. Mature (green, 6): Identity and Access Management, User Profiles CRUD, Content Feed, Real-Time Messaging, Admin Dashboard, Analytics. Functional (orange, 12): Content Gallery, Tipping, PPV, Content Upload, Subscriptions, Referral System, Support Tickets, Contests, Bulk Upload, AI Captions, Enclave, Platform Settings. Basic (red, 2): Payouts and Earnings (fully mocked), Notifications (DB-only, no push). The gap between Mature and Basic tiers reveals critical investment needs.",
+  "actors": [],
+  "systems": [],
+  "modules": [
+    { "id": "iam", "label": "Identity and Access Management", "type": "authentication", "description": "Mature: Register, authenticate, authorize across 3 roles." },
+    { "id": "profiles", "label": "User Profiles CRUD", "type": "process", "description": "Mature: Profile CRUD, avatar upload, onboarding, verification, settings." },
+    { "id": "feed", "label": "Content Feed browse search", "type": "process", "description": "Mature: Personalized feed from subscribed creators, paginated." },
+    { "id": "messaging", "label": "Real-Time Messaging basic text", "type": "process", "description": "Mature: One-to-one DMs with Socket.IO real-time delivery." },
+    { "id": "admin_dash", "label": "Admin Dashboard", "type": "process", "description": "Mature: Platform administration with dashboard, user management, moderation." },
+    { "id": "analytics", "label": "Analytics basic event tracking", "type": "process", "description": "Mature: Event tracking, basic aggregation." },
+    { "id": "gallery", "label": "Content Gallery", "type": "process", "description": "Functional: Fan bookmarking with JSONB storage, signed URL thumbnails." },
+    { "id": "tipping", "label": "Tipping crypto flow works if not mocked", "type": "process", "description": "Functional: Crypto tipping via sandbox bypass. Stripe endpoints dead 404." },
+    { "id": "ppv", "label": "PPV same as tipping", "type": "process", "description": "Functional: PPV uses same crypto verification as tipping." },
+    { "id": "upload", "label": "Content Upload with thumbnail gen", "type": "process", "description": "Functional: Multipart upload with sharp/ffmpeg. Sync thumbnail gen is slow." },
+    { "id": "subscriptions", "label": "Subscriptions basic crypto no renewal", "type": "process", "description": "Functional: Basic crypto sub flow, no renewal or expiry logic." },
+    { "id": "referral", "label": "Referral System without payout", "type": "process", "description": "Functional: Code generation, validation, stats. No actual payout." },
+    { "id": "support", "label": "Support Tickets with DM sync", "type": "process", "description": "Functional: Ticket CRUD with DM sync for replies." },
+    { "id": "contests", "label": "Contests with weighted selection", "type": "process", "description": "Functional: Weighted and standard winner selection. No audit trail." },
+    { "id": "bulk_upload", "label": "Bulk Upload", "type": "process", "description": "Functional: DropZone, DraftCards, sequential publish." },
+    { "id": "ai_captions", "label": "AI Captions", "type": "ai_agent", "description": "Functional: AI caption via OpenRouter/OpenAI. Sync HTTP wait 1-5s." },
+    { "id": "enclave", "label": "Enclave applications only", "type": "process", "description": "Functional: Enclave application system. No membership management." },
+    { "id": "platform_settings", "label": "Platform Settings", "type": "process", "description": "Functional: Platform-wide configuration CRUD." },
+    { "id": "payouts", "label": "Payouts and Earnings fully mocked", "type": "process", "description": "Basic: Fully mocked off-ramp, no real money received." },
+    { "id": "notifications", "label": "Notifications DB-only no push", "type": "process", "description": "Basic: DB-only notifications, no push or real-time delivery." }
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [],
+  "exitPoints": [],
+  "preconditions": [],
+  "postconditions": [],
+  "nodes": [
+    { "id": "n_iam", "label": "Identity and Access Management", "type": "authentication", "description": "Mature tier" },
+    { "id": "n_profiles", "label": "User Profiles", "type": "process", "description": "Mature tier" },
+    { "id": "n_feed", "label": "Content Feed", "type": "process", "description": "Mature tier" },
+    { "id": "n_messaging", "label": "Real-Time Messaging", "type": "process", "description": "Mature tier" },
+    { "id": "n_admin_dash", "label": "Admin Dashboard", "type": "process", "description": "Mature tier" },
+    { "id": "n_analytics", "label": "Analytics", "type": "process", "description": "Mature tier" },
+    { "id": "n_gallery", "label": "Content Gallery", "type": "process", "description": "Functional tier" },
+    { "id": "n_tipping", "label": "Tipping", "type": "process", "description": "Functional tier" },
+    { "id": "n_ppv", "label": "PPV", "type": "process", "description": "Functional tier" },
+    { "id": "n_upload", "label": "Content Upload", "type": "process", "description": "Functional tier" },
+    { "id": "n_subscriptions", "label": "Subscriptions", "type": "process", "description": "Functional tier" },
+    { "id": "n_referral", "label": "Referral System", "type": "process", "description": "Functional tier" },
+    { "id": "n_support", "label": "Support Tickets", "type": "process", "description": "Functional tier" },
+    { "id": "n_contests", "label": "Contests", "type": "process", "description": "Functional tier" },
+    { "id": "n_bulk_upload", "label": "Bulk Upload", "type": "process", "description": "Functional tier" },
+    { "id": "n_ai_captions", "label": "AI Captions", "type": "ai_agent", "description": "Functional tier" },
+    { "id": "n_enclave", "label": "Enclave", "type": "process", "description": "Functional tier" },
+    { "id": "n_platform_settings", "label": "Platform Settings", "type": "process", "description": "Functional tier" },
+    { "id": "n_payouts", "label": "Payouts and Earnings", "type": "process", "description": "Basic tier - fully mocked" },
+    { "id": "n_notifications", "label": "Notifications", "type": "process", "description": "Basic tier - DB-only, no push" }
+  ],
+  "connections": [
+    { "from": "n_iam", "to": "n_profiles", "relationship": "feeds_into", "label": "IAM foundation feeds User Profiles" },
+    { "from": "n_iam", "to": "n_feed", "relationship": "feeds_into", "label": "IAM feeds Content Feed" },
+    { "from": "n_iam", "to": "n_messaging", "relationship": "feeds_into", "label": "IAM feeds Messaging" },
+    { "from": "n_iam", "to": "n_admin_dash", "relationship": "feeds_into", "label": "IAM feeds Admin Dashboard" },
+    { "from": "n_iam", "to": "n_analytics", "relationship": "feeds_into", "label": "IAM feeds Analytics" },
+    { "from": "n_gallery", "to": "n_tipping", "relationship": "same_maturity", "label": "All Functional (12 capabilities)" },
+    { "from": "n_payouts", "to": "n_notifications", "relationship": "both_basic", "label": "Both Basic - critical investment" },
+    { "from": "n_iam", "to": "n_gallery", "relationship": "mature_to_functional", "label": "Mature supports Functional" },
+    { "from": "n_feed", "to": "n_contests", "relationship": "mature_to_functional", "label": "Feed supports Contests" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [],
+  "validationRules": [],
+  "businessRules": [
+    "Mature tier capabilities are production-ready with minimal issues",
+    "Functional tier capabilities work but have known limitations or missing features",
+    "Basic tier capabilities are non-functional or exist only as stubs/mocks",
+    "Investment priority: Basic to Functional to Mature"
+  ],
+  "securityConsiderations": [
+    "Tipping and PPV rely on sandbox bypass (0x0000) for crypto verification",
+    "Notifications have no push delivery - DB-only implementation"
+  ],
+  "performanceConsiderations": [
+    "Sync thumbnail generation in Upload impacts content publishing performance",
+    "Bulk Upload publishes sequentially per draft - slow for large batches"
+  ],
+  "annotations": [
+    "6 Mature capabilities: IAM, Profiles, Feed, Messaging, Admin Dashboard, Analytics",
+    "12 Functional capabilities: Gallery, Tipping, PPV, Upload, Subscriptions, Referral, Support, Contests, Bulk Upload, AI Captions, Enclave, Platform Settings",
+    "2 Basic capabilities: Payouts and Earnings (fully mocked), Notifications (DB-only, no push)",
+    "Payouts and Earnings is fully mocked - no real money flows",
+    "Notifications has no push delivery - DB-only with no real-time capability"
+  ],
+  "swimlanes": [
+    { "id": "lane_mature", "label": "Mature (6)", "nodes": ["n_iam", "n_profiles", "n_feed", "n_messaging", "n_admin_dash", "n_analytics"] },
+    { "id": "lane_functional", "label": "Functional (12)", "nodes": ["n_gallery", "n_tipping", "n_ppv", "n_upload", "n_subscriptions", "n_referral", "n_support", "n_contests", "n_bulk_upload", "n_ai_captions", "n_enclave", "n_platform_settings"] },
+    { "id": "lane_basic", "label": "Basic (2)", "nodes": ["n_payouts", "n_notifications"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_mature", "label": "Mature (6)", "nodes": ["n_iam", "n_profiles", "n_feed", "n_messaging", "n_admin_dash", "n_analytics"] },
+    { "id": "sg_functional", "label": "Functional (12)", "nodes": ["n_gallery", "n_tipping", "n_ppv", "n_upload", "n_subscriptions", "n_referral", "n_support", "n_contests", "n_bulk_upload", "n_ai_captions", "n_enclave", "n_platform_settings"] },
+    { "id": "sg_basic", "label": "Basic (2)", "nodes": ["n_payouts", "n_notifications"] }
+  ],
+  "legend": [
+    { "symbol": "Green fill", "meaning": "Mature - production ready" },
+    { "symbol": "Orange fill", "meaning": "Functional - works with limitations" },
+    { "symbol": "Red fill", "meaning": "Basic - mocked or stubbed" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "id": "F-01",
+  "title": "Database Entity Relationships (ER Diagram)",
+  "category": "F — Data & State",
+  "diagramType": "ER",
+  "purpose": "Document all 12+ PostgreSQL tables with columns, data types, foreign keys, indexes, relationships, and enums for the PoDM platform",
+  "audience": "Backend developers, database administrators, new engineers onboarding, data analysts",
+  "description": "Complete entity-relationship diagram covering all PostgreSQL tables in the PoDM platform. Core entities: profiles (users with roles fan/creator/admin), content (media posts with visibility levels), subscriptions (fan-to-creator with tier support), transactions (payment ledger for tips/subscriptions/PPV/payouts), messages and conversations (direct messaging), analytics_events (engagement tracking), galleries (saved content), support_tickets (customer support with JSONB conversation), contests and contest_entries (creator competitions), referrals and referral_redemptions (referral system), enclave_applications (premium membership), and platform_settings. The profiles table is the central hub connected to 14+ other entities through foreign key relationships.",
+  "actors": [],
+  "systems": [
+    { "id": "supabase", "label": "Supabase PostgreSQL", "description": "PostgreSQL database with Row-Level Security, managed by Supabase platform" }
+  ],
+  "modules": [
+    { "id": "mod-models", "label": "All Model Files (13+)", "description": "Model layer files providing typed database access for each entity: UserModel, ContentModel, SubscriptionModel, TransactionModel, MessageModel, ConversationModel, NotificationModel, AnalyticsModel, GalleryModel, SupportTicketModel, ContestModel, ReferralModel, SettingsModel" },
+    { "id": "mod-migrations", "label": "SQL Migrations (9 + 3 scripts)", "description": "Database migration files: 000_initial.sql, 001_profiles.sql, 002_content.sql, 003_payments.sql, 004_subscriptions.sql, 005_messaging.sql, 006_analytics.sql, 007_contests.sql, 008_referrals.sql, plus utility scripts for analytics functions" }
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-profiles", "label": "profiles", "description": "Core user table. uuid id PK, text username UK, text email UK, text role (fan|creator|admin), text status (active|suspended|banned|pending_verification), text display_name, text avatar_url, text banner_url, text bio, jsonb social_links, text crypto_wallet_address, text crypto_wallet_type, text crypto_wallet_payout_preference, timestamp created_at, timestamp updated_at" },
+    { "id": "ds-content", "label": "content", "description": "Media content table. uuid id PK, uuid creator_id FK→profiles, text title, text description, jsonb file_urls, text thumbnail_url, text media_type (photo|video|audio|text), text visibility (subscribers_only|pay_per_view|public), int price, int min_tier_level, boolean is_scheduled, timestamp publish_date, text status (active|deleted|flagged|removed), timestamp created_at, timestamp updated_at" },
+    { "id": "ds-subscriptions", "label": "subscriptions", "description": "Fan-to-creator subscription table. uuid id PK, uuid fan_id FK→profiles, uuid creator_id FK→profiles, text tier_id FK, text status (active|cancelled|expired|past_due), int amount_in_cents, timestamp current_period_start, timestamp current_period_end, timestamp created_at" },
+    { "id": "ds-transactions", "label": "transactions", "description": "Payment ledger table. uuid id PK, uuid fan_id FK→profiles, uuid creator_id FK→profiles, uuid content_id FK→content, text type (Tip|Subscription|PPV|Payout|Refund), text status (Pending|Completed|Failed|Refunded|Cleared), int amount_in_cents, int platform_fee, int creator_payout, text stripe_payment_intent_id, text blockchain_tx_hash, text payment_method (stripe|crypto), text payment_currency (USD|USDC), int chain_id, timestamp created_at" },
+    { "id": "ds-messages", "label": "messages", "description": "Direct message table. uuid id PK, uuid conversation_id FK→conversations, uuid sender_id FK→profiles, text content, text message_type (text|voice|ppv), boolean is_read, boolean is_deleted, timestamp created_at" },
+    { "id": "ds-conversations", "label": "conversations", "description": "Conversation grouping table. uuid id PK, jsonb participants (UUID array), timestamp last_message_at, timestamp created_at" },
+    { "id": "ds-analytics", "label": "analytics_events", "description": "Engagement tracking table. uuid id PK, uuid fan_id FK→profiles, uuid creator_id FK→profiles, uuid content_id FK→content, text event_type, timestamp created_at" },
+    { "id": "ds-galleries", "label": "galleries", "description": "Saved content table. uuid id PK, uuid fan_id FK→profiles, uuid content_id FK→content, timestamp saved_at" },
+    { "id": "ds-support-tickets", "label": "support_tickets", "description": "Support ticket table. uuid id PK, uuid user_id FK→profiles, text subject, text status (Open|Pending|Resolved), jsonb conversation, timestamp created_at, timestamp updated_at" },
+    { "id": "ds-contests", "label": "contests", "description": "Creator contest table. uuid id PK, uuid creator_id FK→profiles, text title, text description, timestamp start_date, timestamp end_date, jsonb entry_requirements, text entry_type, int entry_multiplier, int spend_threshold, int additional_entries, text status (draft|active|completed|canceled), uuid winner_id FK→profiles, timestamp created_at, timestamp updated_at" },
+    { "id": "ds-contest-entries", "label": "contest_entries", "description": "Contest entry table. uuid id PK, uuid contest_id FK→contests, uuid fan_id FK→profiles, timestamp created_at (unique constraint on contest_id + fan_id)" },
+    { "id": "ds-referrals", "label": "referral_codes", "description": "Referral code table. uuid id PK, uuid user_id FK→profiles, text referral_code UK, text bonus_type (cash|percent), int bonus_value, int uses_count, int total_bonus_earned, boolean is_active, timestamp created_at" },
+    { "id": "ds-referral-redemptions", "label": "referral_redemptions", "description": "Referral redemption tracking. uuid id PK, uuid referral_id FK→referral_codes, uuid applicant_user_id FK→profiles, int bonus_awarded, timestamp milestone_750_reached_at, int speed_bonus_amount, timestamp created_at" },
+    { "id": "ds-enclave", "label": "enclave_applications", "description": "Enclave premium membership applications. uuid id PK, text full_name, text email, text[] current_platform, int follower_count, text[] content_type, text why_join, text how_heard, text referral_code, text status (pending|accepted|rejected), uuid reviewed_by FK→profiles, timestamp reviewed_at, timestamp created_at" },
+    { "id": "ds-reports", "label": "reports", "description": "Content report table. uuid id PK, uuid content_id FK→content, uuid reporter_id FK→profiles, text reason, text status (pending|dismissed), timestamp created_at" },
+    { "id": "ds-settings", "label": "platform_settings", "description": "Platform configuration table. uuid id PK, text key UK, jsonb value, timestamp updated_at" }
+  ],
+  "entryPoints": [],
+  "exitPoints": [],
+  "preconditions": [
+    "Supabase PostgreSQL instance running with all migrations applied",
+    "RLS policies configured per table for access control",
+    "Database indexes created on foreign keys and frequently queried columns"
+  ],
+  "postconditions": [
+    "All entity relationships documented for developer reference",
+    "Foreign key constraints enforce referential integrity across all related tables",
+    "Unique constraints prevent duplicates on critical fields (email, username, tx_hash)"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "profiles", "type": "database", "description": "Central user entity. Links to 14+ other tables. Fields: id (PK), username (UK), email (UK), role (fan|creator|admin), status, display_name, avatar_url, banner_url, bio, social_links (JSONB), crypto_wallet_address, crypto_wallet_type, crypto_wallet_payout_preference, created_at, updated_at." },
+    { "id": "n2", "label": "content", "type": "database", "description": "Media content entity. Fields: id (PK), creator_id (FK→profiles), title, description, file_urls (JSONB), thumbnail_url, media_type, visibility, price, min_tier_level, is_scheduled, publish_date, status, created_at, updated_at." },
+    { "id": "n3", "label": "subscriptions", "type": "database", "description": "Fan-to-creator subscription entity. Fields: id (PK), fan_id (FK→profiles), creator_id (FK→profiles), tier_id, status, amount_in_cents, current_period_start, current_period_end, created_at." },
+    { "id": "n4", "label": "transactions", "type": "database", "description": "Payment ledger entity. Fields: id (PK), fan_id (FK→profiles), creator_id (FK→profiles), content_id (FK→content), type, status, amount_in_cents, platform_fee, creator_payout, stripe_payment_intent_id, blockchain_tx_hash (unique), payment_method, payment_currency, chain_id, created_at." },
+    { "id": "n5", "label": "messages", "type": "database", "description": "Direct message entity. Fields: id (PK), conversation_id (FK→conversations), sender_id (FK→profiles), content, message_type, is_read, is_deleted, created_at." },
+    { "id": "n6", "label": "conversations", "type": "database", "description": "Conversation grouping entity. Fields: id (PK), participants (JSONB UUID array), last_message_at, created_at." },
+    { "id": "n7", "label": "analytics_events", "type": "database", "description": "Engagement event entity. Fields: id (PK), fan_id (FK→profiles, nullable), creator_id (FK→profiles), content_id (FK→content, nullable), event_type, created_at. No TTL or archive — unbounded growth." },
+    { "id": "n8", "label": "galleries", "type": "database", "description": "Saved content bookmark entity. Fields: id (PK), fan_id (FK→profiles), content_id (FK→content), saved_at." },
+    { "id": "n9", "label": "support_tickets", "type": "database", "description": "Support ticket entity. Fields: id (PK), user_id (FK→profiles), subject, status (Open|Pending|Resolved), conversation (JSONB array), created_at, updated_at." },
+    { "id": "n10", "label": "contests", "type": "database", "description": "Contest entity. Fields: id (PK), creator_id (FK→profiles), title, description, start_date, end_date, entry_requirements (JSONB), entry_type, entry_multiplier, spend_threshold, additional_entries, status, winner_id (FK→profiles), created_at, updated_at." },
+    { "id": "n11", "label": "contest_entries", "type": "database", "description": "Contest entry entity. Fields: id (PK), contest_id (FK→contests), fan_id (FK→profiles), created_at. Unique constraint on (contest_id, fan_id)." },
+    { "id": "n12", "label": "referral_codes", "type": "database", "description": "Referral code entity. Fields: id (PK), user_id (FK→profiles), referral_code (UK), bonus_type, bonus_value, uses_count, total_bonus_earned, is_active, created_at." },
+    { "id": "n13", "label": "referral_redemptions", "type": "database", "description": "Referral redemption entity. Fields: id (PK), referral_id (FK→referral_codes), applicant_user_id (FK→profiles), bonus_awarded, milestone_750_reached_at, speed_bonus_amount, created_at." },
+    { "id": "n14", "label": "enclave_applications", "type": "database", "description": "Enclave premium membership application entity. Fields: id (PK), full_name, email, current_platform[], follower_count, content_type[], why_join, how_heard, referral_code, status, reviewed_by (FK→profiles), reviewed_at, created_at." },
+    { "id": "n15", "label": "reports", "type": "database", "description": "Content report entity. Fields: id (PK), content_id (FK→content), reporter_id (FK→profiles), reason, status (pending|dismissed), created_at." },
+    { "id": "n16", "label": "platform_settings", "type": "database", "description": "Key-value settings entity. Fields: id (PK), key (UK), value (JSONB), updated_at." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "creates", "label": "profiles (creator) ||--o{ content" },
+    { "from": "n1", "to": "n3", "relationship": "creates", "label": "profiles (fan) ||--o{ subscriptions (fan subscribes to)" },
+    { "from": "n1", "to": "n3", "relationship": "creates", "label": "profiles (creator) ||--o{ subscriptions (creator owns tier)" },
+    { "from": "n1", "to": "n4", "relationship": "creates", "label": "profiles (fan) ||--o{ transactions (fan pays)" },
+    { "from": "n1", "to": "n4", "relationship": "creates", "label": "profiles (creator) ||--o{ transactions (creator receives)" },
+    { "from": "n1", "to": "n5", "relationship": "creates", "label": "profiles ||--o{ messages (sends)" },
+    { "from": "n1", "to": "n6", "relationship": "creates", "label": "profiles ||--o{ conversations (participates in)" },
+    { "from": "n1", "to": "n8", "relationship": "creates", "label": "profiles (fan) ||--o{ galleries (saves content to)" },
+    { "from": "n1", "to": "n7", "relationship": "creates", "label": "profiles ||--o{ analytics_events (generates events)" },
+    { "from": "n1", "to": "n12", "relationship": "creates", "label": "profiles ||--o{ referral_codes (generates)" },
+    { "from": "n1", "to": "n13", "relationship": "creates", "label": "profiles ||--o{ referral_redemptions (uses code)" },
+    { "from": "n1", "to": "n14", "relationship": "creates", "label": "profiles ||--o{ enclave_applications (submits)" },
+    { "from": "n1", "to": "n9", "relationship": "creates", "label": "profiles ||--o{ support_tickets (creates)" },
+    { "from": "n1", "to": "n15", "relationship": "creates", "label": "profiles ||--o{ reports (reports)" },
+    { "from": "n1", "to": "n10", "relationship": "creates", "label": "profiles (creator) ||--o{ contests (creates)" },
+    { "from": "n1", "to": "n11", "relationship": "creates", "label": "profiles (fan) ||--o{ contest_entries (enters)" },
+    { "from": "n2", "to": "n8", "relationship": "creates", "label": "content ||--o{ galleries (saved in)" },
+    { "from": "n2", "to": "n7", "relationship": "creates", "label": "content ||--o{ analytics_events (viewed)" },
+    { "from": "n2", "to": "n4", "relationship": "creates", "label": "content ||--o{ transactions (PPV payment for)" },
+    { "from": "n2", "to": "n15", "relationship": "creates", "label": "content ||--o{ reports (reported)" },
+    { "from": "n2", "to": "n11", "relationship": "creates", "label": "content ||--o{ contest_entries (entered in)" },
+    { "from": "n3", "to": "n4", "relationship": "creates", "label": "subscriptions ||--o{ transactions (billed through)" },
+    { "from": "n6", "to": "n5", "relationship": "creates", "label": "conversations ||--o{ messages (contains)" },
+    { "from": "n12", "to": "n13", "relationship": "creates", "label": "referral_codes ||--o{ referral_redemptions (redeemed)" },
+    { "from": "n10", "to": "n11", "relationship": "creates", "label": "contests ||--o{ contest_entries (has entries)" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [],
+  "validationRules": [
+    "Email must be unique across all profiles (unique constraint on profiles.email)",
+    "Username must be unique across all profiles (unique constraint on profiles.username)",
+    "blockchain_tx_hash must be unique across all transactions (prevents replay attacks)",
+    "contest_id + fan_id unique constraint prevents duplicate contest entries",
+    "Status fields restricted to defined enum values via application-level validation (no CHECK constraints at DB level in current schema)",
+    "Role restricted to: fan, creator, admin",
+    "Content visibility restricted to: subscribers_only, pay_per_view, public",
+    "Transaction type restricted to: Tip, Subscription, PPV, Payout, Refund"
+  ],
+  "businessRules": [
+    "Profiles table is the central hub — 14+ foreign key references from other tables",
+    "Transactions are append-only — no updates, no hard deletes",
+    "Messages use soft-delete (is_deleted flag) rather than hard delete",
+    "Support ticket conversation stored as JSONB array rather than relational table",
+    "No TTL or archive policy on analytics_events — unbounded growth",
+    "No cascade delete on any relationship — data integrity by preservation",
+    "subscriptions.stripe_subscription_id repurposed to store blockchain txHash",
+    "profiles.crypto_wallet_address also stores Stripe payment method tokens (column misuse)"
+  ],
+  "securityConsiderations": [
+    "Supabase RLS policies should restrict row-level access per user role",
+    "No CHECK constraints on status fields — application-level enforcement only",
+    "Password hashes stored in Supabase Auth, not in profiles table",
+    "Verification document paths stored in profiles.verification_data JSONB — accessed via 60-second signed URLs",
+    "No TTL on analytics_events — indefinite storage of user behavior data (GDPR consideration)",
+    "No hard delete mechanism across any table — data persists indefinitely"
+  ],
+  "performanceConsiderations": [
+    "Missing indexes may cause slow queries on large tables (especially transactions.created_at, analytics_events.created_at)",
+    "analytics_events has no TTL or archive — queries will slow as table grows indefinitely",
+    "JSONB conversation array in support_tickets may become slow for long conversations",
+    "profiles table is heavily referenced — ensure all FK columns are indexed",
+    "COUNT(*) queries on large tables used for dashboard analytics (no pre-aggregation)"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "profiles is hub", "description": "14+ foreign key relationships from other tables to profiles. Central entity." },
+    { "id": "a2", "label": "JSONB conversation", "description": "support_tickets.conversation is JSONB array instead of relational support_messages table." },
+    { "id": "a3", "label": "No TTL on analytics", "description": "analytics_events has no data retention policy — unbounded growth." },
+    { "id": "a4", "label": "Column reuse", "description": "subscriptions.stripe_subscription_id stores txHash. profiles.crypto_wallet_address also stores Stripe pm_... tokens." },
+    { "id": "a5", "label": "No CHECK constraints", "description": "Status/type fields restricted only at application level, not DB level." }
+  ],
+  "swimlanes": [],
+  "subgraphs": [
+    { "id": "sg-core", "label": "Core Entities", "nodes": ["n1", "n2", "n3", "n4"] },
+    { "id": "sg-messaging", "label": "Messaging Entities", "nodes": ["n5", "n6"] },
+    { "id": "sg-engagement", "label": "Engagement Entities", "nodes": ["n7", "n8"] },
+    { "id": "sg-support", "label": "Support Entity", "nodes": ["n9"] },
+    { "id": "sg-contests", "label": "Contest Entities", "nodes": ["n10", "n11"] },
+    { "id": "sg-referrals", "label": "Referral Entities", "nodes": ["n12", "n13"] },
+    { "id": "sg-other", "label": "Other Entities", "nodes": ["n14", "n15", "n16"] }
+  ],
+  "legend": [
+    { "symbol": "Table", "meaning": "PostgreSQL table with columns and constraints" },
+    { "symbol": "FK", "meaning": "Foreign key relationship" },
+    { "symbol": "UK", "meaning": "Unique constraint" },
+    { "symbol": "PK", "meaning": "Primary key" },
+    { "symbol": "JSONB", "meaning": "Flexible JSON data type column" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "cylinder",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

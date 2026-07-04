@@ -1,0 +1,56 @@
+[
+  {
+    "id": "watermark-queue",
+    "name": "Watermark Queue",
+    "type": "background",
+    "producer": "UploadService",
+    "consumer": "WatermarkService",
+    "purpose": "Async watermark application to newly uploaded image and video content, processes items in FIFO order",
+    "retryPolicy": "3 retries with exponential backoff (1min, 5min, 15min); dead-letter after final failure"
+  },
+  {
+    "id": "payout-queue",
+    "name": "Payout Queue",
+    "type": "batch",
+    "producer": "PayoutService",
+    "consumer": "StripeService",
+    "purpose": "Batch processing of creator payout requests, scheduled daily processing, handles Stripe Connect transfer submission",
+    "retryPolicy": "3 retries with 1-hour intervals; manual intervention required after final failure"
+  },
+  {
+    "id": "email-queue",
+    "name": "Email Queue",
+    "type": "background",
+    "producer": "NotificationService",
+    "consumer": "Nodemailer",
+    "purpose": "Transactional email delivery for verification emails, password reset, notifications, marketing communications",
+    "retryPolicy": "5 retries with exponential backoff (1min, 5min, 15min, 1hr, 6hr); discard after final failure"
+  },
+  {
+    "id": "notification-queue",
+    "name": "Notification Queue",
+    "type": "realtime",
+    "producer": "NotificationService",
+    "consumer": "Socket.IO",
+    "purpose": "Real-time in-app notification delivery via WebSocket, push notification processing for mobile users",
+    "retryPolicy": "2 retries immediately; fallback to email queue if undelivered"
+  },
+  {
+    "id": "caption-queue",
+    "name": "Caption Queue",
+    "type": "background",
+    "producer": "ContentService",
+    "consumer": "AICaptionService",
+    "purpose": "AI-powered caption and description generation for newly uploaded content via OpenAI API",
+    "retryPolicy": "2 retries with 30-second delay; skip caption generation on failure"
+  },
+  {
+    "id": "cleanup-queue",
+    "name": "Cleanup Queue",
+    "type": "background",
+    "producer": "AdminService",
+    "consumer": "ContentService",
+    "purpose": "Scheduled cleanup of expired content, orphaned files in R2, stale session data, and soft-deleted records",
+    "retryPolicy": "2 retries with 1-hour delay; log failures for manual review"
+  }
+]

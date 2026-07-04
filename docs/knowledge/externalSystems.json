@@ -1,0 +1,82 @@
+[
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "type": "payment",
+    "purpose": "Payment processing, subscription billing, Stripe Connect for creator payouts, webhook event handling",
+    "integration": "api",
+    "module": "payments",
+    "endpoints": ["/v1/payment_intents", "/v1/subscriptions", "/v1/checkout/sessions", "/v1/transfers", "/v1/customers", "/v1/webhook_endpoints"],
+    "authMethod": "API key (secret key) + webhook signing secret"
+  },
+  {
+    "id": "supabase",
+    "name": "Supabase",
+    "type": "database",
+    "purpose": "PostgreSQL database hosting, authentication service, real-time subscriptions, storage buckets, Row Level Security",
+    "integration": "api",
+    "module": "all",
+    "endpoints": ["/auth/v1/*", "/rest/v1/*", "/realtime/v1/*", "/storage/v1/*"],
+    "authMethod": "JWT token (service role key for server, anon key for client with RLS)"
+  },
+  {
+    "id": "cloudflare-r2",
+    "name": "Cloudflare R2",
+    "type": "storage",
+    "purpose": "Object storage for user-uploaded content, signed URL generation, S3-compatible API for programmatic access",
+    "integration": "api",
+    "module": "content",
+    "endpoints": ["S3-compatible API endpoint", "custom domain URL for public access"],
+    "authMethod": "Access key ID + secret access key (S3-compatible)"
+  },
+  {
+    "id": "solana",
+    "name": "Solana",
+    "type": "blockchain",
+    "purpose": "Crypto wallet verification via message signing, SOL transaction recording, on-chain identity verification",
+    "integration": "api",
+    "module": "crypto",
+    "endpoints": ["https://api.mainnet-beta.solana.com", "https://api.devnet.solana.com", "https://api.testnet.solana.com"],
+    "authMethod": "RPC endpoint access (no auth for public RPC, API key for private RPC)"
+  },
+  {
+    "id": "openai",
+    "name": "OpenAI",
+    "type": "ai",
+    "purpose": "AI caption generation for uploaded content, content classification, recommendation engine, analytics insights",
+    "integration": "api",
+    "module": "ai",
+    "endpoints": ["/v1/chat/completions", "https://api.openai.com/v1/embeddings", "/v1/moderations"],
+    "authMethod": "API key (Bearer token in Authorization header)"
+  },
+  {
+    "id": "socket-io",
+    "name": "Socket.IO",
+    "type": "real-time",
+    "purpose": "WebSocket-based real-time messaging between fans and creators, broadcast to subscribers, notification delivery, presence tracking",
+    "integration": "sdk",
+    "module": "messages",
+    "endpoints": ["/socket.io/* (WebSocket upgrade)", "WebSocket protocol over HTTP"],
+    "authMethod": "JWT token passed during handshake/connection"
+  },
+  {
+    "id": "nodemailer",
+    "name": "Nodemailer",
+    "type": "email",
+    "purpose": "Transactional email delivery for email verification, password reset, notifications, marketing communications",
+    "integration": "sdk",
+    "module": "notifications",
+    "endpoints": ["SMTP server configuration"],
+    "authMethod": "SMTP username and password (or OAuth2)"
+  },
+  {
+    "id": "netlify",
+    "name": "Netlify",
+    "type": "hosting",
+    "purpose": "Frontend hosting and deployment, serverless functions, CDN, continuous deployment from GitHub",
+    "integration": "api",
+    "module": "frontend",
+    "endpoints": ["Netlify Deploy API", "Netlify Forms", "Netlify Functions"],
+    "authMethod": "Personal access token (for deploy API)"
+  }
+]

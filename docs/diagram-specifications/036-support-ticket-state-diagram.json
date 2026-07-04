@@ -1,0 +1,133 @@
+{
+  "id": "F-04",
+  "title": "Support Ticket State Diagram",
+  "category": "F — Data & State",
+  "diagramType": "State",
+  "purpose": "Document the support ticket lifecycle states and transitions: Open, Pending, Resolved — including implicit transitions in service methods",
+  "audience": "Backend developers, support team, QA engineers, product managers",
+  "description": "The support ticket system has three states: Open (initial state when user creates ticket or when user replies to a Pending ticket), Pending (when admin views or replies to an Open ticket — awaiting user response), and Resolved (terminal state when admin marks ticket as resolved — no re-open supported). Transitions are implicit in service methods: user creates ticket → Open; admin views/replies → Pending; user replies to Pending ticket → Open; admin resolves → Resolved (from either Open or Pending). State transitions are NOT enforced at the database level — there is no CHECK constraint on the status column. Gaps: no Closed state (only Resolved exists), no re-open from Resolved (terminal), and no DB-level constraint enforcement.",
+  "actors": [
+    { "id": "user", "label": "User (Fan/Creator)", "description": "Platform user who creates and interacts with support tickets" },
+    { "id": "admin", "label": "Admin", "description": "Platform administrator who views, replies to, and resolves support tickets" }
+  ],
+  "systems": [
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Database storing support_tickets table with status column (constrained only at application level)" }
+  ],
+  "modules": [
+    { "id": "mod-support-service", "label": "support.service.ts", "description": "Support ticket business logic handling status transitions via replyToTicket, appendUserMessageToActiveTicket, resolveTicket" },
+    { "id": "mod-support-controller", "label": "support.controller.ts", "description": "Request handling for create, reply, view, resolve operations" },
+    { "id": "mod-ticket-model", "label": "supportTicket.model.ts", "description": "Database access layer for support_tickets table CRUD operations" }
+  ],
+  "services": [
+    { "id": "svc-support", "label": "SupportService", "description": "Manages ticket status transitions: create → Open, reply → Pending/Open, view → Pending, resolve → Resolved" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-tickets", "label": "support_tickets table", "description": "Stores ticket records with user_id, subject, status (Open|Pending|Resolved), conversation JSONB array, created_at, updated_at" }
+  ],
+  "entryPoints": [
+    { "id": "ep-create", "label": "POST /api/v1/support/tickets", "description": "User creates a new support ticket with subject and description" },
+    { "id": "ep-admin-view", "label": "GET /api/v1/support/tickets/:id", "description": "Admin views ticket details — triggers Open→Pending transition" },
+    { "id": "ep-admin-reply", "label": "PUT /api/v1/support/tickets/:id/reply", "description": "Admin replies to ticket — triggers Open→Pending or stays Pending" },
+    { "id": "ep-user-reply", "label": "User sends DM to admin", "description": "User replies via DM to admin — detected by message service, triggers Pending→Open (via appendUserMessageToActiveTicket)" },
+    { "id": "ep-admin-resolve", "label": "PUT /api/v1/support/tickets/:id/resolve", "description": "Admin resolves ticket — triggers Open/→Resolved or Pending→Resolved" }
+  ],
+  "exitPoints": [
+    { "id": "ex-resolved", "label": "Ticket resolved", "description": "Terminal state — no further transitions possible" }
+  ],
+  "preconditions": [
+    "User is authenticated and has active profile",
+    "Admin has admin role and valid JWT",
+    "Support ticket exists for operations on existing tickets"
+  ],
+  "postconditions": [
+    "Ticket transitions through states based on user and admin actions",
+    "Resolved is terminal — no re-open mechanism exists",
+    "No Closed state — only Resolved exists as terminal state",
+    "State transitions are implicit in service methods, not enforced at DB level"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "[*] → Open", "type": "start", "description": "Initial state. User creates ticket via POST /api/v1/support/tickets with subject and description. Conversation JSONB initialized with first message." },
+    { "id": "n2", "label": "Open", "type": "process", "description": "Ticket is active, awaiting admin response. User can send additional messages (stay in Open). Admin can view (→Pending) or reply (→Pending) or resolve (→Resolved)." },
+    { "id": "n3", "label": "Open → Pending", "type": "process", "description": "Transition triggered when admin views or replies to an Open ticket. Status changes from Open to Pending, indicating admin has engaged and is awaiting user response." },
+    { "id": "n4", "label": "Pending", "type": "process", "description": "Admin has viewed/replied; awaiting user response. User can reply (→Open) via DM to admin. Admin can resolve (→Resolved)." },
+    { "id": "n5", "label": "Pending → Open", "type": "process", "description": "Transition triggered when user replies to a Pending ticket. User's DM to admin is detected by message service, which calls supportService.appendUserMessageToActiveTicket(). Status changes from Pending to Open." },
+    { "id": "n6", "label": "Open → Resolved", "type": "process", "description": "Admin resolves an Open ticket via PUT /api/v1/support/tickets/:id/resolve. Terminal transition." },
+    { "id": "n7", "label": "Pending → Resolved", "type": "process", "description": "Admin resolves a Pending ticket via PUT /api/v1/support/tickets/:id/resolve. Terminal transition." },
+    { "id": "n8", "label": "Resolved [Terminal]", "type": "end", "description": "Terminal state. No re-open supported. Ticket is closed permanently. No further transitions possible." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "triggers", "label": "User creates ticket" },
+    { "from": "n2", "to": "n3", "relationship": "triggers", "label": "Admin views or replies" },
+    { "from": "n3", "to": "n4", "relationship": "updates", "label": "Status: Open → Pending" },
+    { "from": "n4", "to": "n5", "relationship": "triggers", "label": "User replies via DM" },
+    { "from": "n5", "to": "n2", "relationship": "updates", "label": "Status: Pending → Open" },
+    { "from": "n2", "to": "n6", "relationship": "triggers", "label": "Admin resolves" },
+    { "from": "n6", "to": "n8", "relationship": "updates", "label": "Status: Open → Resolved" },
+    { "from": "n4", "to": "n7", "relationship": "triggers", "label": "Admin resolves" },
+    { "from": "n7", "to": "n8", "relationship": "updates", "label": "Status: Pending → Resolved" }
+  ],
+  "decisions": [],
+  "loops": [
+    { "condition": "Ticket can cycle Open→Pending→Open multiple times as admin and user exchange replies", "target": "n3" }
+  ],
+  "errorPaths": [
+    { "trigger": "No re-open from Resolved state", "destination": "Once resolved, no user or admin action can re-open the ticket", "recovery": "User must create a new support ticket; no escalation path exists" },
+    { "trigger": "No Closed state exists", "destination": "Only Resolved exists as terminal state — no distinction between resolved and closed", "recovery": "Not a failure but a simplification — could be extended with additional states" },
+    { "trigger": "State transitions not enforced at DB level", "destination": "No CHECK constraint on status column — application code could write invalid state values", "recovery": "Application-level validation in service methods is the only safeguard" }
+  ],
+  "validationRules": [
+    "User must be authenticated to create a ticket (protect middleware)",
+    "Admin role required for view, reply, and resolve operations (protectAndAdmin middleware)",
+    "Status must be one of: Open, Pending, Resolved (application-level enum)",
+    "Only Open and Pending tickets can receive replies",
+    "Resolved is terminal — no modifications allowed"
+  ],
+  "businessRules": [
+    "Open → Pending transition occurs when admin views ticket (even without replying)",
+    "Pending → Open transition occurs when user replies (via DM to admin)",
+    "No Closed state — only Resolved exists as terminal state",
+    "No re-open from Resolved — once resolved the ticket is permanently closed",
+    "State transitions are implicit in service methods and not enforced at DB level (no CHECK constraint)",
+    "No SLA tracking, escalation, reassignment, or priority fields exist"
+  ],
+  "securityConsiderations": [
+    "Admin role required for view, reply, and resolve — hides ticket details from non-admin users",
+    "Users can only create tickets (cannot view others' tickets)",
+    "No user-facing ticket history endpoint — users cannot view their own ticket history via API",
+    "Status transitions are application-enforced only — no DB-level constraint"
+  ],
+  "performanceConsiderations": [
+    "Only 3 states with simple transitions — minimal state management overhead",
+    "No complex state machines or workflows — lightweight lifecycle",
+    "JSONB conversation array may affect performance for tickets with many messages"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "⚠️ No Closed State", "description": "Only Resolved exists as terminal state. No distinction between resolved-and-closed vs just resolved." },
+    { "id": "a2", "label": "⚠️ No Re-Open from Resolved", "description": "Once resolved, ticket is terminal. No mechanism to re-open if issue persists." },
+    { "id": "a3", "label": "⚠️ No DB-Level CHECK Constraint", "description": "State transitions are implicit in service methods and not enforced at the database level." },
+    { "id": "a4", "label": "Auto-status on view", "description": "Open → Pending occurs just by admin viewing the ticket — not just on reply." }
+  ],
+  "swimlanes": [
+    { "id": "sl-states", "label": "States", "nodes": ["n2", "n4", "n8"] },
+    { "id": "sl-transitions", "label": "Transitions", "nodes": ["n1", "n3", "n5", "n6", "n7"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-open-flow", "label": "Open → Pending → Open Cycle", "nodes": ["n2", "n3", "n4", "n5"] },
+    { "id": "sg-resolve", "label": "Resolve Path", "nodes": ["n6", "n7", "n8"] }
+  ],
+  "legend": [
+    { "symbol": "State", "meaning": "Ticket lifecycle state" },
+    { "symbol": "Transition", "meaning": "State-changing action" },
+    { "symbol": "Start", "meaning": "Initial state entry" },
+    { "symbol": "Terminal", "meaning": "Final state — no further transitions" },
+    { "symbol": "Cycle", "meaning": "Repeating transition" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

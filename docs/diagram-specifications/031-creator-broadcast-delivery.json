@@ -1,0 +1,172 @@
+{
+  "id": "E-04",
+  "title": "Creator Broadcast Message Delivery",
+  "category": "E — Real-Time & Messaging",
+  "diagramType": "Sequence",
+  "purpose": "Show the flow of creator broadcast (mass message) delivery to all active subscribers, highlighting the N+1 query pattern and fire-and-forget nature",
+  "audience": "Backend developers, creator experience engineers, performance engineers",
+  "description": "A creator sends a mass message to all active subscribers via POST /api/v1/messages/mass-message. The message service fetches all active subscriptions for the creator, then iterates each subscriber to check notification preferences, call sendDirectMessage (inserts into messages table), and broadcast via Socket.IO to the subscriber's room. The flow exhibits an N+1 query pattern where one query fetches subscribers then N individual sendDirectMessage calls are made sequentially. There is no retry on individual message failure and no rate limiting on broadcast frequency.",
+  "actors": [
+    { "id": "creator", "label": "Creator", "description": "Content creator sending a mass broadcast message to all active subscribers" },
+    { "id": "subscribers", "label": "Subscribers (Fan Group)", "description": "Group of fans with active subscriptions who receive the broadcast message" }
+  ],
+  "systems": [
+    { "id": "backend-api", "label": "Backend API (Express)", "description": "REST API handling the mass message endpoint and orchestrating delivery" },
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Database storing subscriptions, subscriber preferences, and messages" },
+    { "id": "socket-server", "label": "Socket.IO Server", "description": "WebSocket server broadcasting new_message events to each subscriber's room" }
+  ],
+  "modules": [
+    { "id": "mod-message-controller", "label": "message.controller.ts", "description": "HTTP request handler for the mass-message endpoint" },
+    { "id": "mod-message-service", "label": "message.service.ts", "description": "Message service containing sendMassMessage and sendDirectMessage logic" },
+    { "id": "mod-subscription-model", "label": "SubscriptionModel", "description": "Model for querying active subscriptions by creator ID" },
+    { "id": "mod-broadcast-modal", "label": "BroadcastModal.tsx", "description": "Frontend component for creator to compose and send broadcast messages" }
+  ],
+  "services": [
+    { "id": "svc-message", "label": "MessageService", "description": "sendMassMessage: fetches subscribers, iterates, calls sendDirectMessage per subscriber; sendDirectMessage: creates message, emits Socket.IO event" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-subscriptions", "label": "subscriptions table", "description": "Stores subscription records with fan_id, creator_id, tier_id, status (active/canceled/expired/past_due)" },
+    { "id": "ds-profiles", "label": "profiles table (preferences)", "description": "Stores user notification preferences in JSONB 'preferences' column, including notifications.massMessages opt-out" },
+    { "id": "ds-messages", "label": "messages table", "description": "Stores individual DM records created per subscriber as part of the broadcast" }
+  ],
+  "entryPoints": [
+    { "id": "ep-mass-message", "label": "POST /api/v1/messages/mass-message", "description": "Creator sends broadcast with subject and body text" }
+  ],
+  "exitPoints": [
+    { "id": "ex-broadcast-result", "label": "Broadcast result response", "description": "Returns { success: true, deliveredCount: N, skippedCount: M } summary" },
+    { "id": "ex-subscriber-notified", "label": "Subscriber receives DM + Socket.IO event", "description": "Individual subscriber receives message in inbox and real-time notification if connected" }
+  ],
+  "preconditions": [
+    "Creator has valid JWT and creator role (protected by protectAndCreator middleware)",
+    "Creator has configured their profile and subscription tiers",
+    "Subscribers have active (status='active') subscriptions to the creator",
+    "Socket.IO server running for real-time delivery to connected subscribers"
+  ],
+  "postconditions": [
+    "Each active subscriber receives a DM from the creator in their inbox",
+    "Message records inserted into messages table per subscriber",
+    "Socket.IO new_message event emitted to each subscriber's room if connected",
+    "Response returned with deliveredCount and skippedCount",
+    "Subscribers who opted out of mass messages are skipped"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "Creator Submits Broadcast", "type": "start", "description": "Creator sends POST /api/v1/messages/mass-message with { subject, body } via BroadcastModal" },
+    { "id": "n2", "label": "Validate Creator Request", "type": "validation", "description": "Controller validates protectAndCreator middleware; message body required" },
+    { "id": "n3", "label": "MessageService.sendMassMessage()", "type": "process", "description": "Entry point for mass message delivery logic" },
+    { "id": "n4", "label": "SubscriptionModel.findActiveByCreator()", "type": "process", "description": "Query all subscription records for this creator with status = 'active'" },
+    { "id": "n5", "label": "SELECT FROM subscriptions WHERE creator_id AND active", "type": "database", "description": "SQL query fetching subscriber records including preference data" },
+    { "id": "n6", "label": "Return Subscriber List", "type": "database", "description": "Database returns array of active subscriber records with notification preferences" },
+    { "id": "n7", "label": "Check for Opt-Out", "type": "decision", "description": "Check each subscriber's preferences.notifications.massMessages flag — skip if disabled" },
+    { "id": "n8", "label": "Skip Subscriber (Opted Out)", "type": "process", "description": "Subscriber with massMessages=false in preferences is skipped; no message created" },
+    { "id": "n9", "label": "Personalize Message Template", "type": "process", "description": "Replace {{username}} template variable with subscriber's display name for personalized message" },
+    { "id": "n10", "label": "sendDirectMessage(creatorId, subscriberId, text)", "type": "process", "description": "Create individual DM: find or create conversation, build message object with personalized text" },
+    { "id": "n11", "label": "INSERT into messages table", "type": "database", "description": "Persist DM record with sender=creator, receiver=subscriber" },
+    { "id": "n12", "label": "Check DM Insert Success", "type": "decision", "description": "Verify message was successfully created; increment sentCount on success, log on failure" },
+    { "id": "n13", "label": "Emit new_message to Subscriber's Room", "type": "event", "description": "Socket.IO broadcasts new_message event to subscriber's room for real-time delivery" },
+    { "id": "n14", "label": "Subscriber Receives Message", "type": "notification", "description": "Subscriber gets real-time message notification via Socket.IO if connected" },
+    { "id": "n15", "label": "Check All Subscribers Processed", "type": "decision", "description": "Loop condition — have all active subscribers been processed?" },
+    { "id": "n16", "label": "Return Broadcast Result", "type": "end", "description": "Return { success: true, deliveredCount, skippedCount } to creator" },
+    { "id": "n17", "label": "Rate Limit Check", "type": "validation", "description": "[MISSING] No rate limiting on broadcast endpoint — creator can send unlimited broadcasts" },
+    { "id": "n18", "label": "Message Delivery Failure (No Retry)", "type": "errorPaths", "description": "If sendDirectMessage fails for one subscriber (DB error, etc.), the error is logged but no retry is attempted — fire-and-forget semantics" }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "calls", "label": "POST with subject, body" },
+    { "from": "n2", "to": "n3", "relationship": "calls", "label": "Validated creator request" },
+    { "from": "n3", "to": "n4", "relationship": "calls", "label": "Fetch active subscribers" },
+    { "from": "n4", "to": "n5", "relationship": "calls", "label": "SQL query" },
+    { "from": "n5", "to": "n6", "relationship": "returns", "label": "Subscriber records array" },
+    { "from": "n6", "to": "n7", "relationship": "calls", "label": "Iterate subscriber list" },
+    { "from": "n7", "to": "n8", "relationship": "returns", "label": "Opted out — skip" },
+    { "from": "n7", "to": "n9", "relationship": "calls", "label": "Opted in — personalize" },
+    { "from": "n9", "to": "n10", "relationship": "calls", "label": "Create individual DM" },
+    { "from": "n10", "to": "n11", "relationship": "writes", "label": "INSERT message record" },
+    { "from": "n11", "to": "n12", "relationship": "returns", "label": "Insert result" },
+    { "from": "n12", "to": "n13", "relationship": "triggers", "label": "Success — emit Socket.IO" },
+    { "from": "n13", "to": "n14", "relationship": "sends", "label": "new_message event" },
+    { "from": "n12", "to": "n18", "relationship": "returns", "label": "Failure — log error, no retry" },
+    { "from": "n14", "to": "n15", "relationship": "triggers", "label": "Check next subscriber" },
+    { "from": "n8", "to": "n15", "relationship": "calls", "label": "Continue loop" },
+    { "from": "n15", "to": "n16", "relationship": "returns", "label": "All subscribers processed" },
+    { "from": "n15", "to": "n7", "relationship": "triggers", "label": "More subscribers — continue loop" }
+  ],
+  "decisions": [
+    { "condition": "Does this subscriber have mass message notifications enabled in preferences?", "truePath": "Personalize template and create DM for this subscriber", "falsePath": "Skip this subscriber; increment skippedCount" },
+    { "condition": "Did the DM insert succeed?", "truePath": "Emit new_message via Socket.IO to subscriber's room; increment deliveredCount", "falsePath": "Log error; no retry; message not delivered to this subscriber" },
+    { "condition": "Are there more subscribers to process?", "truePath": "Continue loop to next subscriber", "falsePath": "Assemble and return broadcast result summary" },
+    { "condition": "Does the creator have a minTierId filter?", "truePath": "Filter subscriptions to those with tier price >= target tier price", "falsePath": "Include all active subscriptions" }
+  ],
+  "loops": [
+    { "condition": "For each active subscriber in the subscriber list", "target": "n7" }
+  ],
+  "errorPaths": [
+    { "trigger": "sendDirectMessage fails for individual subscriber (DB error)", "destination": "Error logged; subscriber skipped; loop continues to next", "recovery": "No retry — message lost for this subscriber; creator would need to re-broadcast" },
+    { "trigger": "Subscription query fails", "destination": "Error thrown to controller; entire broadcast fails", "recovery": "Creator retries broadcast" },
+    { "trigger": "Socket.IO emission fails for subscriber", "destination": "Message persisted in DB but subscriber not notified in real-time", "recovery": "Subscriber sees message on next page load via REST GET" },
+    { "trigger": "Creator not found or not verified", "destination": "403 Forbidden — broadcast blocked", "recovery": "Creator completes onboarding/verification" }
+  ],
+  "validationRules": [
+    "Creator must have protectAndCreator middleware (JWT + creator role)",
+    "Message body must be non-empty string",
+    "Subject and body required in request payload",
+    "Creator must have completed onboarding (creator_data must exist)",
+    "minTierId optional — if provided, must be a valid tier ID from creator's tiers"
+  ],
+  "businessRules": [
+    "N+1 query pattern: one query fetches all subscribers, then N individual sendDirectMessage calls",
+    "No batch insert — each subscriber gets individual INSERT + Socket.IO broadcast",
+    "No retry on individual message failure — fire-and-forget semantics",
+    "No rate limiting on broadcast — creator can send unlimited broadcasts",
+    "{{username}} template variable replaced with subscriber's display name per message",
+    "minTierId filter allows tier-gated broadcast (only subscribers at or above specified tier)"
+  ],
+  "securityConsiderations": [
+    "Broadcast restricted to creator role — protectAndCreator middleware",
+    "Creator can send unlimited messages — no rate limiting (spam risk)",
+    "Subscriber opt-out respected via preferences.notifications.massMessages flag",
+    "No message content moderation on broadcast",
+    "Message data includes personal subscriber information (display name in template)"
+  ],
+  "performanceConsiderations": [
+    "N+1 query pattern: 1 subscription query + N message insert + N Socket.IO broadcasts — scales linearly with subscriber count",
+    "Synchronous iteration — each subscriber processed sequentially before next starts",
+    "For creators with thousands of subscribers, this endpoint could time out (no background job queue)",
+    "No batching — each subscriber causes individual DB write and Socket.IO event",
+    "Memory usage grows with subscriber list size (all records loaded in memory)"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "🔴 N+1 Query Pattern", "description": "One query fetches subscribers, then N individual sendDirectMessage calls with individual DB writes and Socket.IO broadcasts." },
+    { "id": "a2", "label": "🟡 Fire-and-forget — No Retry", "description": "Individual message failures are logged but not retried. No delivery guarantee beyond best-effort." },
+    { "id": "a3", "label": "🟡 No Rate Limiting", "description": "Creator can send unlimited broadcasts in any time period. No throttle or cooldown." },
+    { "id": "a4", "label": "🟡 No Background Queue", "description": "All processing happens synchronously in the request-response cycle. For large subscriber bases, this blocks the HTTP response." }
+  ],
+  "swimlanes": [
+    { "id": "sl-creator", "label": "Creator", "nodes": ["n1"] },
+    { "id": "sl-controller", "label": "Message Controller", "nodes": ["n2"] },
+    { "id": "sl-service", "label": "Message Service", "nodes": ["n3", "n4", "n7", "n8", "n9", "n10", "n15", "n17"] },
+    { "id": "sl-db", "label": "Database", "nodes": ["n5", "n6", "n11"] },
+    { "id": "sl-socket", "label": "Socket.IO", "nodes": ["n13"] },
+    { "id": "sl-subscriber", "label": "Subscriber", "nodes": ["n14"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-setup", "label": "Broadcast Initiation", "nodes": ["n1", "n2", "n3", "n4", "n5", "n6"] },
+    { "id": "sg-per-subscriber", "label": "Per-Subscriber Delivery Loop", "nodes": ["n7", "n8", "n9", "n10", "n11", "n12", "n13", "n14", "n18"] },
+    { "id": "sg-complete", "label": "Broadcast Completion", "nodes": ["n15", "n16"] }
+  ],
+  "legend": [
+    { "symbol": "Actor", "meaning": "User role" },
+    { "symbol": "System", "meaning": "Backend component" },
+    { "symbol": "Database", "meaning": "Data persistence" },
+    { "symbol": "Event", "meaning": "Socket.IO event" },
+    { "symbol": "Decision", "meaning": "Branching point" },
+    { "symbol": "Loop", "meaning": "Iteration over subscriber list" },
+    { "symbol": "Error Path", "meaning": "Failure mode" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

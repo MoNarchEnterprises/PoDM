@@ -1,0 +1,206 @@
+{
+  "id": "043",
+  "title": "Frontend Component Tree",
+  "category": "H",
+  "diagramType": "Graph (flowchart)",
+  "purpose": "Full component hierarchy from root <App> through providers, role-based layouts, UI primitives, shared domain components, auth guards, and all feature modules for fans, creators, and admins.",
+  "audience": "Frontend developers, new team members, architects",
+  "description": "The React component tree shows all 40+ components organized into layers: root App with ToastProvider + BrowserRouter + AuthProvider, layout components (MainLayout, Header, Sidebar, Footer), UI primitives (Button, Input, Card, Modal, AudioPlayer), shared domain components (ContentCard, ContentLockOverlay, TipModal, UnlockModal, etc.), auth guards (withAuthGuard, ProtectedRoute, CreatorRouteGuard), fan features (FanFeed, FanGallery, FanSubscriptions, FanMessages), creator features (CreatorDashboard, CreatorContent, CreatorAnalytics, CreatorEarnings, CreatorMessages, BulkUploadPage, WalletSettings), admin features (AdminPanel with 8 sub-panels), and shared MessageBubble. The tree reveals that fan routes under /fan/* lack withAuthGuard protection, exposing UI to unauthenticated users.",
+  "actors": [
+    { "id": "unauthenticated_visitor", "label": "Unauthenticated Visitor", "type": "actor", "description": "User who has not logged in; sees public routes only (SplashPage, Enclave, creator profiles, content viewer)" },
+    { "id": "fan_user", "label": "Fan User", "type": "actor", "description": "Authenticated fan accessing /fan/* routes with feed, gallery, subscriptions, messages, settings" },
+    { "id": "creator_user", "label": "Creator User", "type": "actor", "description": "Authenticated creator accessing /hub/* routes with dashboard, content management, analytics, earnings, messages, bulk upload" },
+    { "id": "admin_user", "label": "Admin User", "type": "actor", "description": "Authenticated admin accessing /admin/* routes with dashboard, user management, content moderation, analytics, reports, support tickets, settings, enclave applications" }
+  ],
+  "systems": [
+    { "id": "react_router", "label": "React Router v7 (BrowserRouter)", "type": "service", "description": "Client-side routing with React.lazy() code splitting and <Suspense> fallbacks" },
+    { "id": "auth_provider", "label": "AuthProvider (useAuth context)", "type": "service", "description": "Authentication context providing user state, login/logout/signup functions, impersonation state" },
+    { "id": "toast_provider", "label": "ToastProvider", "type": "service", "description": "Global toast notification context for success/error/info messages" }
+  ],
+  "modules": [
+    { "id": "ui_primitives", "label": "UI Primitives", "type": "process", "description": "Button, Input, Card, Modal, AudioPlayer — base reusable components (5 files, 403 LOC)" },
+    { "id": "layout_components", "label": "Layout Components", "type": "process", "description": "MainLayout, Header, Footer, Container, AuthLayout — app shell (5 files, 350 LOC)" },
+    { "id": "shared_domain", "label": "Shared Domain Components", "type": "process", "description": "ContentCard, ContentLockOverlay, ContentLockManager, TipModal, UnlockModal, ReportModal, ConfirmModal, ConversationListItem, TierCard, SettingsCard, StatCard, StatusBadge, ToggleSwitch, VerificationBanner, ImpersonationBanner (15 files, 1499 LOC)" },
+    { "id": "auth_guards", "label": "Auth Guards", "type": "authentication", "description": "withAuthGuard HOC factory, ProtectedRoute admin guard, CreatorRouteGuard — enforce role-based access on route groups" },
+    { "id": "fan_features", "label": "Fan Features", "type": "process", "description": "FanFeed, FanGallery, FanSubscriptions, FanMessages, FanSettings, ContentViewerModal (6 files, 1304 LOC)" },
+    { "id": "creator_features", "label": "Creator Features", "type": "process", "description": "CreatorDashboard, CreatorContent, CreatorAnalytics, CreatorEarnings, CreatorMessages, CreatorSettings, BulkUploadPage, WalletSettings (14 files, 3870 LOC)" },
+    { "id": "admin_features", "label": "Admin Features", "type": "process", "description": "AdminPanel with DashboardPanel, UserManagementPanel, ContentModerationPanel, AnalyticsPanel, ReportsPanel, SupportTicketsPanel, SettingsPanel, EnclaveApplications (10 files, 2284 LOC)" },
+    { "id": "shared_messages", "label": "Shared MessageBubble", "type": "process", "description": "MessageBubble component used by both FanMessages and CreatorMessages for text, voice, PPV, and delete actions (1 file, 100 LOC)" }
+  ],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [
+    { "id": "entry_app", "label": "<App> Root Component", "type": "start", "description": "Entry point wrapping ToastProvider + BrowserRouter + AuthProvider; defines all 34 routes" }
+  ],
+  "exitPoints": [
+    { "id": "exit_splash", "label": "SplashPage (/)", "type": "end", "description": "Marketing landing page for unauthenticated visitors" },
+    { "id": "exit_404", "label": "Route Not Found", "type": "end", "description": "Fallback when no route matches the URL" }
+  ],
+  "preconditions": [
+    "React application is mounted in main.tsx with StrictMode",
+    "AuthProvider has initialized and checked for existing token in localStorage",
+    "BrowserRouter is wrapping the entire route tree"
+  ],
+  "postconditions": [
+    "Component tree renders with correct role-based layout",
+    "Auth guards either render the protected content or redirect to login",
+    "All lazy-loaded chunks are loaded via React.lazy() + Suspense"
+  ],
+  "nodes": [
+    { "id": "app", "label": "App", "type": "start", "description": "Root component with ToastProvider + Elements + BrowserRouter + AuthProvider" },
+    { "id": "main_layout", "label": "MainLayout", "type": "process", "description": "Authenticated app shell with Sidebar + Header + Footer" },
+    { "id": "header", "label": "Header", "type": "process", "description": "Top navigation bar with notifications bell, profile menu, logo" },
+    { "id": "sidebar", "label": "Sidebar", "type": "process", "description": "Navigation sidebar with role-specific nav items, VerificationBanner, ImpersonationBanner" },
+    { "id": "footer", "label": "Footer", "type": "process", "description": "Footer with Terms, Privacy, Support, Admin links" },
+    { "id": "button", "label": "Button", "type": "process", "description": "UI primitive with variants/sizes/loading states, ref-forwarding" },
+    { "id": "input", "label": "Input", "type": "process", "description": "UI primitive with label, icon, error state" },
+    { "id": "card", "label": "Card", "type": "process", "description": "UI primitive glassmorphism container" },
+    { "id": "modal", "label": "Modal", "type": "process", "description": "UI primitive with escape+backdrop-close, aria-modal" },
+    { "id": "audio_player", "label": "AudioPlayer", "type": "process", "description": "Custom audio player with seek bar" },
+    { "id": "content_card", "label": "ContentCard", "type": "process", "description": "Feed/gallery card with lock+tip+save actions" },
+    { "id": "content_lock_overlay", "label": "ContentLockOverlay", "type": "process", "description": "Blur/lock overlay UI for gated content" },
+    { "id": "content_lock_manager", "label": "ContentLockManager", "type": "process", "description": "Centralized lock state engine with getContentLockState() + useContentLock()" },
+    { "id": "tip_modal", "label": "TipModal", "type": "process", "description": "Stripe tip payment modal (2-step flow)" },
+    { "id": "unlock_modal", "label": "UnlockModal", "type": "process", "description": "PPV unlock modal (2-step Stripe flow)" },
+    { "id": "report_modal", "label": "ReportModal", "type": "process", "description": "Content/user reporting modal" },
+    { "id": "confirm_modal", "label": "ConfirmModal", "type": "process", "description": "Generic confirmation dialog" },
+    { "id": "conversation_list_item", "label": "ConversationListItem", "type": "process", "description": "Unified message list item for both fan and creator" },
+    { "id": "tier_card", "label": "TierCard", "type": "process", "description": "Subscription tier selector component" },
+    { "id": "settings_card", "label": "SettingsCard", "type": "process", "description": "Settings section card" },
+    { "id": "stat_card", "label": "StatCard", "type": "process", "description": "Dashboard metric card" },
+    { "id": "status_badge", "label": "StatusBadge", "type": "process", "description": "Colored status pill" },
+    { "id": "toggle_switch", "label": "ToggleSwitch", "type": "process", "description": "Settings toggle switch" },
+    { "id": "verification_banner", "label": "VerificationBanner", "type": "validation", "description": "Creator status alert banner shown in sidebar" },
+    { "id": "impersonation_banner", "label": "ImpersonationBanner", "type": "validation", "description": "Admin impersonation notice banner shown in sidebar" },
+    { "id": "with_auth_guard", "label": "withAuthGuard() HOC", "type": "authentication", "description": "Higher-order component factory that checks roles, onboarding, verification" },
+    { "id": "protected_route", "label": "ProtectedRoute", "type": "authentication", "description": "Admin route guard component" },
+    { "id": "creator_route_guard", "label": "CreatorRouteGuard", "type": "authentication", "description": "Creator route guard (pre-configured HOC)" },
+    { "id": "fan_feed", "label": "FanFeed", "type": "process", "description": "Personalized content feed with ContentCards and FanContestList" },
+    { "id": "fan_gallery", "label": "FanGallery", "type": "process", "description": "Fan's saved content gallery with ContentViewerModal" },
+    { "id": "fan_subscriptions", "label": "FanSubscriptions", "type": "process", "description": "Subscription management page" },
+    { "id": "fan_messages", "label": "FanMessages", "type": "process", "description": "Fan messaging interface with ConversationListItem + MessageBubble" },
+    { "id": "fan_settings", "label": "FanSettings", "type": "process", "description": "Fan settings page with SettingsCards + ToggleSwitch" },
+    { "id": "content_viewer_modal", "label": "ContentViewerModal", "type": "process", "description": "Content viewer with zoom/pan and secure URL loading" },
+    { "id": "creator_dashboard", "label": "CreatorDashboard", "type": "process", "description": "Creator dashboard with StatCards + ReferralCodes" },
+    { "id": "creator_content", "label": "CreatorContent", "type": "process", "description": "Content management with ContentModal + UploadModal" },
+    { "id": "creator_analytics", "label": "CreatorAnalytics", "type": "process", "description": "Analytics with Recharts (LineChart + PieChart)" },
+    { "id": "creator_earnings", "label": "CreatorEarnings", "type": "process", "description": "Earnings page with WithdrawModal" },
+    { "id": "creator_messages", "label": "CreatorMessages", "type": "process", "description": "Creator messaging with BroadcastModal + useVoiceRecorder" },
+    { "id": "creator_settings", "label": "CreatorSettings", "type": "process", "description": "Creator settings with WalletSettings + TierEditor" },
+    { "id": "bulk_upload_page", "label": "BulkUploadPage", "type": "process", "description": "Bulk upload with DropZone + DraftCards" },
+    { "id": "wallet_settings", "label": "WalletSettings", "type": "process", "description": "Crypto wallet UI for creator settings" },
+    { "id": "admin_panel", "label": "AdminPanel", "type": "process", "description": "Admin panel root with Outlet for nested routes" },
+    { "id": "dashboard_panel", "label": "DashboardPanel", "type": "process", "description": "Key metrics and charts" },
+    { "id": "user_management_panel", "label": "UserManagementPanel", "type": "process", "description": "User CRUD operations" },
+    { "id": "content_moderation_panel", "label": "ContentModerationPanel", "type": "process", "description": "Content flagging, approve, remove" },
+    { "id": "analytics_panel", "label": "AnalyticsPanel", "type": "process", "description": "Platform analytics" },
+    { "id": "reports_panel", "label": "ReportsPanel", "type": "process", "description": "Custom reports generation" },
+    { "id": "support_tickets_panel", "label": "SupportTicketsPanel", "type": "process", "description": "Support ticket management" },
+    { "id": "settings_panel", "label": "SettingsPanel", "type": "process", "description": "Platform settings" },
+    { "id": "enclave_applications", "label": "EnclaveApplications", "type": "process", "description": "Enclave membership application management" },
+    { "id": "message_bubble", "label": "MessageBubble", "type": "process", "description": "Shared message bubble for text/voice/PPV/delete" }
+  ],
+  "connections": [
+    { "from": "app", "to": "main_layout", "relationship": "renders", "label": "App renders MainLayout for authenticated routes" },
+    { "from": "app", "to": "with_auth_guard", "relationship": "renders", "label": "App applies withAuthGuard HOC to protected routes" },
+    { "from": "app", "to": "protected_route", "relationship": "renders", "label": "App applies ProtectedRoute for admin routes" },
+    { "from": "app", "to": "creator_route_guard", "relationship": "renders", "label": "App applies CreatorRouteGuard for creator routes" },
+    { "from": "main_layout", "to": "header", "relationship": "contains", "label": "MainLayout contains Header" },
+    { "from": "main_layout", "to": "sidebar", "relationship": "contains", "label": "MainLayout contains Sidebar" },
+    { "from": "sidebar", "to": "verification_banner", "relationship": "contains", "label": "Sidebar shows VerificationBanner for creators" },
+    { "from": "sidebar", "to": "impersonation_banner", "relationship": "contains", "label": "Sidebar shows ImpersonationBanner when admin is impersonating" },
+    { "from": "content_card", "to": "content_lock_overlay", "relationship": "renders", "label": "ContentCard shows ContentLockOverlay for locked content" },
+    { "from": "content_card", "to": "tip_modal", "relationship": "opens", "label": "ContentCard opens TipModal on tip action" },
+    { "from": "content_card", "to": "unlock_modal", "relationship": "opens", "label": "ContentCard opens UnlockModal on unlock action" },
+    { "from": "content_card", "to": "button", "relationship": "uses", "label": "ContentCard uses Button for actions" },
+    { "from": "tip_modal", "to": "button", "relationship": "uses", "label": "TipModal uses Button for confirm/cancel" },
+    { "from": "tip_modal", "to": "input", "relationship": "uses", "label": "TipModal uses Input for amount entry" },
+    { "from": "tip_modal", "to": "modal", "relationship": "uses", "label": "TipModal renders inside Modal" },
+    { "from": "unlock_modal", "to": "button", "relationship": "uses", "label": "UnlockModal uses Button" },
+    { "from": "unlock_modal", "to": "modal", "relationship": "uses", "label": "UnlockModal renders inside Modal" },
+    { "from": "content_lock_manager", "to": "content_card", "relationship": "provides_lock_state", "label": "ContentLockManager provides unlock status to ContentCard" },
+    { "from": "content_lock_manager", "to": "content_viewer_modal", "relationship": "provides_lock_state", "label": "ContentLockManager provides unlock status to ContentViewerModal" },
+    { "from": "fan_feed", "to": "content_card", "relationship": "renders", "label": "FanFeed renders ContentCards for each post" },
+    { "from": "fan_gallery", "to": "content_viewer_modal", "relationship": "opens", "label": "FanGallery opens ContentViewerModal on content click" },
+    { "from": "fan_messages", "to": "conversation_list_item", "relationship": "renders", "label": "FanMessages renders ConversationListItems" },
+    { "from": "fan_messages", "to": "message_bubble", "relationship": "renders", "label": "FanMessages renders MessageBubble for each message" },
+    { "from": "creator_messages", "to": "conversation_list_item", "relationship": "renders", "label": "CreatorMessages renders ConversationListItems" },
+    { "from": "creator_messages", "to": "message_bubble", "relationship": "renders", "label": "CreatorMessages renders MessageBubble for each message" },
+    { "from": "creator_settings", "to": "wallet_settings", "relationship": "contains", "label": "CreatorSettings contains WalletSettings sub-component" },
+    { "from": "creator_messages", "to": "bulk_upload_page", "relationship": "links_to", "label": "CreatorMessages links to BulkUploadPage for media attachment" },
+    { "from": "admin_panel", "to": "dashboard_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders DashboardPanel at /admin/" },
+    { "from": "admin_panel", "to": "user_management_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders UserManagementPanel at /admin/users" },
+    { "from": "admin_panel", "to": "content_moderation_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders ContentModerationPanel at /admin/content" },
+    { "from": "admin_panel", "to": "analytics_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders AnalyticsPanel at /admin/analytics" },
+    { "from": "admin_panel", "to": "reports_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders ReportsPanel at /admin/reports" },
+    { "from": "admin_panel", "to": "support_tickets_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders SupportTicketsPanel at /admin/support" },
+    { "from": "admin_panel", "to": "settings_panel", "relationship": "renders_via_outlet", "label": "AdminPanel renders SettingsPanel at /admin/settings" },
+    { "from": "admin_panel", "to": "enclave_applications", "relationship": "renders_via_outlet", "label": "AdminPanel renders EnclaveApplications at /admin/enclave" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "Lazy-loaded component fails to load", "destination": "React.Suspense fallback (<div>Loading...</div> or spinner)", "recovery": "User refreshes page to retry chunk load" },
+    { "trigger": "AuthProvider initialization fails", "destination": "Login redirect", "recovery": "User re-authenticates" }
+  ],
+  "validationRules": [
+    "Fan routes (/fan/*) lack withAuthGuard — any authenticated user can access fan UI regardless of role",
+    "Creator routes (/hub/*) are guarded by CreatorRouteGuard requiring creator role + onboarding + verification",
+    "Admin routes (/admin/*) are guarded by ProtectedRoute requiring admin role",
+    "Public routes (/, /enclave, /creator/:username, /content/:contentId) have no auth requirements"
+  ],
+  "businessRules": [
+    "Route structure enforces role-based access: public < auth < fan < creator < admin",
+    "ImpersonationBanner only shows when X-Impersonating-User-Id header is active",
+    "VerificationBanner only shows for creators whose verification is pending"
+  ],
+  "securityConsiderations": [
+    "Fan routes lack withAuthGuard — unauthenticated users can access /fan/* UI (UI leak, gap H-05)",
+    "Admin impersonation shows ImpersonationBanner but has no audit trail of impersonation actions",
+    "Lazy loading reduces initial bundle size but does not enforce access control"
+  ],
+  "performanceConsiderations": [
+    "14 of 34 routes are lazy-loaded via React.lazy() + Suspense for code splitting",
+    "ContentLockManager centralizes lock state to avoid redundant API calls across components",
+    "Recharts used in CreatorAnalytics may impact render performance with large datasets"
+  ],
+  "annotations": [
+    "No fan route guard: /fan/* routes lack withAuthGuard (security gap)",
+    "No React ErrorBoundary exists at the App level — uncaught errors crash UI (J-01 gap)",
+    "ImpersonationBanner provides visual indicator but no audit trail (security gap)"
+  ],
+  "swimlanes": [
+    { "id": "lane_public", "label": "Public (No Auth)", "nodes": ["app"] },
+    { "id": "lane_layout", "label": "Layout Shell", "nodes": ["main_layout", "header", "sidebar", "footer"] },
+    { "id": "lane_ui", "label": "UI Primitives", "nodes": ["button", "input", "card", "modal", "audio_player"] },
+    { "id": "lane_shared", "label": "Shared Domain", "nodes": ["content_card", "content_lock_overlay", "content_lock_manager", "tip_modal", "unlock_modal", "report_modal", "confirm_modal", "conversation_list_item", "tier_card", "settings_card", "stat_card", "status_badge", "toggle_switch", "verification_banner", "impersonation_banner", "message_bubble"] },
+    { "id": "lane_guards", "label": "Auth Guards", "nodes": ["with_auth_guard", "protected_route", "creator_route_guard"] },
+    { "id": "lane_fan", "label": "Fan Features", "nodes": ["fan_feed", "fan_gallery", "fan_subscriptions", "fan_messages", "fan_settings", "content_viewer_modal"] },
+    { "id": "lane_creator", "label": "Creator Features", "nodes": ["creator_dashboard", "creator_content", "creator_analytics", "creator_earnings", "creator_messages", "creator_settings", "bulk_upload_page", "wallet_settings"] },
+    { "id": "lane_admin", "label": "Admin Features", "nodes": ["admin_panel", "dashboard_panel", "user_management_panel", "content_moderation_panel", "analytics_panel", "reports_panel", "support_tickets_panel", "settings_panel", "enclave_applications"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_layout", "label": "Layout Components", "nodes": ["main_layout", "header", "sidebar", "footer"] },
+    { "id": "sg_ui_primitives", "label": "UI Primitives", "nodes": ["button", "input", "card", "modal", "audio_player"] },
+    { "id": "sg_shared", "label": "Shared Domain Components", "nodes": ["content_card", "content_lock_overlay", "content_lock_manager", "tip_modal", "unlock_modal", "report_modal", "confirm_modal", "conversation_list_item", "tier_card", "settings_card", "stat_card", "status_badge", "toggle_switch", "verification_banner", "impersonation_banner"] },
+    { "id": "sg_auth_guards", "label": "Auth Guards", "nodes": ["with_auth_guard", "protected_route", "creator_route_guard"] },
+    { "id": "sg_fan", "label": "Fan Features", "nodes": ["fan_feed", "fan_gallery", "fan_subscriptions", "fan_messages", "fan_settings", "content_viewer_modal"] },
+    { "id": "sg_creator", "label": "Creator Features", "nodes": ["creator_dashboard", "creator_content", "creator_analytics", "creator_earnings", "creator_messages", "creator_settings", "bulk_upload_page", "wallet_settings"] },
+    { "id": "sg_admin", "label": "Admin Features", "nodes": ["admin_panel", "dashboard_panel", "user_management_panel", "content_moderation_panel", "analytics_panel", "reports_panel", "support_tickets_panel", "settings_panel", "enclave_applications"] },
+    { "id": "sg_messages", "label": "Shared Message Component", "nodes": ["message_bubble"] }
+  ],
+  "legend": [
+    { "symbol": "Rounded rectangle", "meaning": "Process node (component)" },
+    { "symbol": "Diamond", "meaning": "Decision/guard node" },
+    { "symbol": "Solid arrow", "meaning": "Composes/renders relationship" },
+    { "symbol": "Dashed arrow", "meaning": "Provides data/logic (ContentLockManager)" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

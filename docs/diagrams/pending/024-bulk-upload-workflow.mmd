@@ -1,0 +1,39 @@
+sequenceDiagram
+    participant Creator as "Creator"
+    participant BulkUpload as "BulkUploadPage/React"
+    participant DraftCard as "DraftCard (per file)"
+    participant apiClient as "apiClient → Backend"
+
+    Creator->>BulkUpload: Open BulkUploadPage
+    BulkUpload->>BulkUpload: DropZone visible
+    Creator->>BulkUpload: Drop or Select Files
+    alt file type image/* or video/*?
+        BulkUpload->>BulkUpload: onDrop(acceptedFiles[])
+        BulkUpload->>BulkUpload: Create DraftCards
+        alt Creator clicks AI Caption?
+            DraftCard->>apiClient: POST /api/v1/ai/caption
+            apiClient-->>DraftCard: caption text
+            DraftCard->>DraftCard: Display in textarea
+        else
+            DraftCard->>DraftCard: Manual caption entry
+        end
+        alt Creator clicks Publish All?
+            BulkUpload->>DraftCard: begin sequential loop
+            loop For each DraftCard sequentially
+                DraftCard->>apiClient: POST /api/v1/content (multipart)
+                alt upload succeeds
+                    apiClient-->>DraftCard: content created
+                    DraftCard->>DraftCard: Status: Published
+                else upload fails
+                    apiClient-->>DraftCard: error
+                    DraftCard->>DraftCard: Status: Failed
+                end
+            end
+            BulkUpload->>BulkUpload: Show Final Status per Draft
+            BulkUpload-->>Creator: results displayed
+        else
+            BulkUpload-->>Creator: Continue drafting
+        end
+    else
+        BulkUpload-->>Creator: Rejected by DropZone
+    end

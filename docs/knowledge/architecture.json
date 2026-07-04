@@ -1,0 +1,27 @@
+{
+  "name": "PoDM Architecture",
+  "version": "1.0.0",
+  "description": "Proof of Decentralized Membership - Fan membership platform",
+  "patterns": ["layered-architecture", "event-driven", "microservices-adjacent"],
+  "layers": [
+    {"name": "Presentation", "technologies": ["React", "Tailwind CSS", "Vite"]},
+    {"name": "API Gateway", "technologies": ["Express", "Socket.IO"]},
+    {"name": "Business Logic", "technologies": ["Node.js", "Express"]},
+    {"name": "Data Access", "technologies": ["Supabase", "PostgreSQL"]},
+    {"name": "Infrastructure", "technologies": ["Cloudflare R2", "Stripe", "Solana", "Netlify"]}
+  ],
+  "principles": [
+    "Role-based access control",
+    "Content access control via subscriptions/tiers",
+    "Cryptographic verification for sensitive operations",
+    "Real-time messaging via WebSockets",
+    "Watermarking for content protection"
+  ],
+  "documents": {
+    "architectureRoot": "docs/architecture/",
+    "diagramSpecs": "docs/diagram-specifications/",
+    "flowcharts": "docs/flowcharts/",
+    "apiReference": "docs/api/",
+    "knowledge": "docs/knowledge/"
+  }
+}

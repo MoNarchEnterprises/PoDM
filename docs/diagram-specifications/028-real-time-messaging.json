@@ -1,0 +1,202 @@
+{
+  "id": "E-01",
+  "title": "Real-Time Messaging Sequence",
+  "category": "E — Real-Time & Messaging",
+  "diagramType": "Sequence",
+  "purpose": "Show the complete Socket.IO real-time messaging lifecycle from connection setup through message send, delete, and disconnect",
+  "audience": "Backend developers, frontend messaging UI developers, QA engineers",
+  "description": "The real-time messaging system uses Socket.IO with JWT authentication on handshake. Users connect, join conversation rooms (via conversation ID), send messages through REST POST which triggers Socket.IO broadcast to the room, delete messages with broadcast of deletion event, and disconnect. Messages are persisted in PostgreSQL and broadcast in real-time to all conversation participants.",
+  "actors": [
+    { "id": "creator", "label": "Creator (Frontend)", "description": "Creator user sending and receiving messages via the frontend messaging UI" },
+    { "id": "fan", "label": "Fan (Frontend)", "description": "Fan user participating in conversation with creator" }
+  ],
+  "systems": [
+    { "id": "socket-server", "label": "Socket.IO Server", "description": "WebSocket server handling real-time bidirectional events between clients" },
+    { "id": "backend-api", "label": "Backend API (Express)", "description": "REST API handling message CRUD operations and triggering Socket.IO broadcasts" },
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Primary database storing messages, conversations, and user data" }
+  ],
+  "modules": [
+    { "id": "config-socket", "label": "config/socket.ts", "description": "Socket.IO server initialization with CORS, JWT auth middleware, connection/disconnection handlers, and room management" },
+    { "id": "message-service", "label": "message.service.ts", "description": "Message business logic: send, delete, mark read, conversation management, Socket.IO event emission after DB operations" },
+    { "id": "message-controller", "label": "message.controller.ts", "description": "HTTP request handling for message endpoints: send, delete, list conversations, mark read, voice messages, mass broadcast" },
+    { "id": "fan-messages", "label": "FanMessages.tsx", "description": "Frontend component for fan message UI with Socket.IO listeners for new_message, message_deleted, conversation_read events" },
+    { "id": "creator-messages", "label": "CreatorMessages.tsx", "description": "Frontend component for creator message UI with Socket.IO listeners and send capabilities" }
+  ],
+  "services": [
+    { "id": "svc-message", "label": "MessageService", "description": "Handles message CRUD, conversation lookup/creation, Socket.IO event dispatching, support ticket sync integration" },
+    { "id": "svc-auth", "label": "AuthService (Supabase)", "description": "JWT validation via supabase.auth.getUser() on every Socket.IO connection and REST API request" },
+    { "id": "svc-storage", "label": "StorageService", "description": "R2 signed URL generation for voice messages and content attachments in messages" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-messages", "label": "messages table", "description": "Stores message records with conversation_id, sender_id, receiver_id, text, content JSONB, voice_message_url, is_read, is_deleted" },
+    { "id": "ds-conversations", "label": "conversations table", "description": "Stores conversation records with participants UUID array, last_message_at timestamp" },
+    { "id": "ds-r2", "label": "Cloudflare R2 (voice messages)", "description": "Private bucket storing voice message audio files at voice-messages/{sender_id}/voice-{timestamp}.webm" }
+  ],
+  "entryPoints": [
+    { "id": "ep-connect", "label": "socket.connect() with JWT", "description": "Client initiates Socket.IO connection with JWT in auth handshake" },
+    { "id": "ep-send-message", "label": "POST /api/v1/messages", "description": "Client sends message via REST API endpoint" },
+    { "id": "ep-delete-message", "label": "DELETE /api/v1/messages/{messageId}", "description": "Client deletes owned message via REST API" }
+  ],
+  "exitPoints": [
+    { "id": "ex-connected", "label": "connected acknowledgment", "description": "Server confirms WebSocket connection established" },
+    { "id": "ex-new-message", "label": "new_message event broadcast", "description": "Real-time message delivered to conversation room participants" },
+    { "id": "ex-message-deleted", "label": "message_deleted event broadcast", "description": "Deletion notification sent to conversation room" },
+    { "id": "ex-disconnect", "label": "socket.disconnect()", "description": "Client disconnects from Socket.IO server" }
+  ],
+  "preconditions": [
+    "User is registered and authenticated with valid Supabase JWT",
+    "Conversation between participants exists or can be created implicitly",
+    "Socket.IO server is running and accepting connections on configured port",
+    "Both sender and receiver have active status in profiles table"
+  ],
+  "postconditions": [
+    "Message is persisted in messages table with sender, receiver, and conversation references",
+    "All conversation room participants receive real-time new_message event",
+    "Deleted message has is_deleted flag set (soft-delete in DB, hard-delete broadcast to room)",
+    "Conversation last_message_at timestamp updated on send"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "Socket.IO Connection Init", "type": "start", "description": "Creator/Fan initiates Socket.IO connection with JWT token in handshake auth" },
+    { "id": "n2", "label": "JWT Token Verification", "type": "authentication", "description": "Socket.IO middleware validates JWT via supabase.auth.getUser() — rejects with auth error if invalid or expired" },
+    { "id": "n3", "label": "Check Token Validity", "type": "decision", "description": "Evaluate if JWT token is valid, not expired, and corresponds to an existing Supabase auth user" },
+    { "id": "n4", "label": "Connection Rejected", "type": "end", "description": "Socket.IO connection rejected with authentication error — client must re-authenticate" },
+    { "id": "n5", "label": "Socket Connected", "type": "process", "description": "Client receives 'connected' acknowledgment from server; socket.data.userId set to authenticated user ID" },
+    { "id": "n6", "label": "emit join_conversation", "type": "process", "description": "Client emits join_conversation event with conversationId to join the room for real-time messaging" },
+    { "id": "n7", "label": "socket.join(conversation-{id})", "type": "process", "description": "Server adds socket to the conversation room; all subsequent events for this conversation will reach this client" },
+    { "id": "n8", "label": "Check Conversation Participants", "type": "validation", "description": "Server verifies the requesting user is a participant of the conversation before allowing room join" },
+    { "id": "n9", "label": "POST /api/v1/messages", "type": "api", "description": "Sender sends message via REST API with receiverId and text/content to backend endpoint" },
+    { "id": "n10", "label": "Validate Message Request", "type": "validation", "description": "Controller validates receiver_id required, text/content required, sender status must be active" },
+    { "id": "n11", "label": "Find or Create Conversation", "type": "process", "description": "Look up existing conversation by participants array; create new conversation if none exists (implicit creation on first message)" },
+    { "id": "n12", "label": "Verify Conversation Participation", "type": "authentication", "description": "Validate sender is a participant of the conversation; reject with 403 if not" },
+    { "id": "n13", "label": "INSERT into messages table", "type": "database", "description": "Persist message record with conversation_id, sender_id, receiver_id, text, content JSONB, is_read=false" },
+    { "id": "n14", "label": "Check DB Insert Success", "type": "decision", "description": "Verify the message record was successfully created in PostgreSQL" },
+    { "id": "n15", "label": "Generate Signed URLs for Content", "type": "process", "description": "If message has content attachments, generate 1-hour signed URLs for thumbnail/images via StorageService" },
+    { "id": "n16", "label": "Emit new_message to Room", "type": "event", "description": "Socket.IO server emits new_message event with full message object to conversation-{id} room" },
+    { "id": "n17", "label": "Broadcast new_message", "type": "notification", "description": "Creator receives new_message event; Fan receives new_message event; message appears in real-time in UI" },
+    { "id": "n18", "label": "DELETE /api/v1/messages/{messageId}", "type": "api", "description": "Sender requests deletion of owned message via REST API" },
+    { "id": "n19", "label": "Verify Message Ownership", "type": "authentication", "description": "Check that requesting user's ID matches message sender_id — reject with 403 if not owner" },
+    { "id": "n20", "label": "UPDATE messages SET is_deleted", "type": "database", "description": "Soft-delete message by setting is_deleted flag to true; preserves record for audit but hides from UI" },
+    { "id": "n21", "label": "Emit message_deleted to Room", "type": "event", "description": "Socket.IO server emits message_deleted event with messageId to conversation room" },
+    { "id": "n22", "label": "Broadcast message_deleted", "type": "notification", "description": "All conversation participants receive deletion event and remove message from UI" },
+    { "id": "n23", "label": "emit leave_conversation", "type": "process", "description": "Client emits leave_conversation event with conversationId when navigating away from conversation" },
+    { "id": "n24", "label": "socket.leave(room)", "type": "process", "description": "Server removes socket from conversation room; client stops receiving events for this conversation" },
+    { "id": "n25", "label": "socket.disconnect()", "type": "end", "description": "Client disconnects from Socket.IO server; server cleans up socket references" },
+    { "id": "n26", "label": "Check if Receiver is Admin", "type": "decision", "description": "After message send, check if receiver has admin role — if so, trigger support ticket sync" },
+    { "id": "n27", "label": "Append to Active Support Ticket", "type": "process", "description": "If receiver is admin, call support.service.appendUserMessageToActiveTicket() to sync message to ticket conversation JSONB" },
+    { "id": "n28", "label": "Handle Socket.IO Auth Error", "type": "errorPaths", "description": "If JWT verification fails on connection, Socket.IO emits auth error and connection is terminated" }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "triggers", "label": "JWT token sent in handshake auth" },
+    { "from": "n2", "to": "n3", "relationship": "calls", "label": "Validate token via supabase.auth.getUser()" },
+    { "from": "n3", "to": "n4", "relationship": "returns", "label": "invalid/expired token" },
+    { "from": "n3", "to": "n5", "relationship": "returns", "label": "valid token, userId attached" },
+    { "from": "n5", "to": "n6", "relationship": "triggers", "label": "User joins conversation UI" },
+    { "from": "n6", "to": "n7", "relationship": "publishes", "label": "emit('join_conversation', conversationId)" },
+    { "from": "n7", "to": "n8", "relationship": "validates", "label": "Check participant list" },
+    { "from": "n9", "to": "n10", "relationship": "calls", "label": "POST /api/v1/messages body" },
+    { "from": "n10", "to": "n11", "relationship": "calls", "label": "Valid request proceeds" },
+    { "from": "n11", "to": "n12", "relationship": "validates", "label": "Verify user is participant" },
+    { "from": "n12", "to": "n13", "relationship": "writes", "label": "INSERT new message record" },
+    { "from": "n13", "to": "n14", "relationship": "returns", "label": "Created message record" },
+    { "from": "n14", "to": "n15", "relationship": "calls", "label": "DB insert succeeded" },
+    { "from": "n15", "to": "n16", "relationship": "triggers", "label": "Emit to conversation room" },
+    { "from": "n16", "to": "n17", "relationship": "sends", "label": "new_message payload to room" },
+    { "from": "n18", "to": "n19", "relationship": "calls", "label": "DELETE request with messageId" },
+    { "from": "n19", "to": "n20", "relationship": "writes", "label": "Ownership verified" },
+    { "from": "n20", "to": "n21", "relationship": "triggers", "label": "Soft delete completed" },
+    { "from": "n21", "to": "n22", "relationship": "sends", "label": "message_deleted with messageId" },
+    { "from": "n23", "to": "n24", "relationship": "publishes", "label": "emit('leave_conversation')" },
+    { "from": "n24", "to": "n25", "relationship": "triggers", "label": "User navigates away or closes app" },
+    { "from": "n13", "to": "n26", "relationship": "triggers", "label": "Check receiver role after insert" },
+    { "from": "n26", "to": "n27", "relationship": "calls", "label": "Receiver is admin" },
+    { "from": "n14", "to": "n16", "relationship": "returns", "label": "DB insert failed — skip broadcast, return error" }
+  ],
+  "decisions": [
+    { "condition": "Is JWT token valid and not expired?", "truePath": "Proceed to connection acceptance; attach socket.data.userId", "falsePath": "Reject connection with auth error; client must re-authenticate" },
+    { "condition": "Did message DB insert succeed?", "truePath": "Generate signed URLs (if content attachments) and emit new_message to room", "falsePath": "Return 500 error to sender; do not broadcast" },
+    { "condition": "Is the receiver an admin user?", "truePath": "Call support.service.appendUserMessageToActiveTicket() to sync message to active support ticket", "falsePath": "No additional sync — message delivery complete" },
+    { "condition": "Does the requesting user own the message (sender_id match)?", "truePath": "Proceed with soft-delete (SET is_deleted = true)", "falsePath": "Return 403 Forbidden — only message sender can delete" }
+  ],
+  "loops": [
+    { "condition": "Client reconnects after network interruption", "target": "n1" }
+  ],
+  "errorPaths": [
+    { "trigger": "JWT verification fails on connection", "destination": "Socket.IO connection rejected with auth error", "recovery": "Client refreshes token and reconnects" },
+    { "trigger": "Message DB insert fails", "destination": "500 error returned to sender; no broadcast", "recovery": "Sender retries message send" },
+    { "trigger": "Conversation lookup fails", "destination": "404 error returned", "recovery": "Verify conversation ID and participation" },
+    { "trigger": "R2 signed URL generation fails for content attachments", "destination": "Placeholder URL used; message still sent", "recovery": "Content attachment shown as placeholder; URL can be regenerated" },
+    { "trigger": "Socket.IO event emission fails (receiver disconnected)", "destination": "Message persisted but not delivered in real-time", "recovery": "Receiver fetches messages via REST GET on next page load — no offline queue" },
+    { "trigger": "Support ticket append fails during message to admin", "destination": "Message sent but not synced to ticket", "recovery": "Error logged; admin can manually append to ticket" }
+  ],
+  "validationRules": [
+    "receiver_id must be a valid UUID of an existing active user",
+    "text must be non-empty string OR content.contentId must be provided",
+    "Sender must have status = 'active' in profiles table",
+    "Voice message file must be under 10MB and audio MIME type",
+    "Message sender must be participant of the conversation",
+    "Only message sender can delete (sender_id match)",
+    "Mass message restricted to creator role (protectAndCreator middleware)"
+  ],
+  "businessRules": [
+    "Conversations are implicitly created on first message between two users",
+    "Conversation list is role-enriched: creators see fan totalSpent and isNewSubscriber; fans see creator profile",
+    "No E2EE — messages stored in plaintext in PostgreSQL",
+    "No offline message delivery — disconnected recipients must REST fetch",
+    "No typing indicators (typing/stop_typing events not implemented)",
+    "message_updated event registered on frontend but never emitted from backend (dead event)",
+    "Voice messages get 7-day signed URLs"
+  ],
+  "securityConsiderations": [
+    "JWT validated on every Socket.IO connection via supabase.auth.getUser() — remote API call",
+    "Messages stored in plaintext in PostgreSQL — no E2EE; platform can read all messages",
+    "JWT stored in localStorage — XSS-vulnerable",
+    "Voice message URLs valid for 7 days — extended window for URL leakage",
+    "No rate limiting on message endpoints — vulnerable to message spam/abuse",
+    "Offline message loss — no delivery guarantee",
+    "PPV content previews use CSS blur-md only — easily bypassed via browser inspector"
+  ],
+  "performanceConsiderations": [
+    "Conversation list query has N+1 user lookups per conversation",
+    "No React Query/SWR on frontend — useState + useEffect re-fetches on mount",
+    "No caching layer for conversation or message data",
+    "Mass message iterates subscriber list synchronously (N+1 pattern)",
+    "Content attachment processing (signed URLs) per message adds latency",
+    "Socket.IO broadcast overhead per message scales with room size"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "No offline delivery", "description": "If recipient Socket.IO disconnected, messages not queued — must REST fetch" },
+    { "id": "a2", "label": "Dead event: message_updated", "description": "Frontend listeners registered but server never emits this event" },
+    { "id": "a3", "label": "Missing typing indicators", "description": "No typing/stop_typing events implemented — users cannot see if other is typing" },
+    { "id": "a4", "label": "No cross-tab sync", "description": "Active sessions in other tabs not notified of messages read state" }
+  ],
+  "swimlanes": [
+    { "id": "sl-creator", "label": "Creator", "nodes": ["n1", "n5", "n6", "n9", "n17", "n18", "n23", "n25"] },
+    { "id": "sl-fan", "label": "Fan", "nodes": ["n1", "n5", "n6", "n17", "n23", "n25"] },
+    { "id": "sl-socket", "label": "Socket.IO Server", "nodes": ["n2", "n3", "n4", "n7", "n8", "n16", "n21", "n24", "n28"] },
+    { "id": "sl-backend", "label": "Backend API", "nodes": ["n10", "n11", "n12", "n15", "n19", "n26", "n27"] },
+    { "id": "sl-db", "label": "Database", "nodes": ["n13", "n14", "n20"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-connection", "label": "Connection Setup", "nodes": ["n1", "n2", "n3", "n4", "n5"] },
+    { "id": "sg-join", "label": "Join Conversation Room", "nodes": ["n6", "n7", "n8"] },
+    { "id": "sg-send", "label": "Send Message", "nodes": ["n9", "n10", "n11", "n12", "n13", "n14", "n15", "n16", "n17", "n26", "n27"] },
+    { "id": "sg-delete", "label": "Delete Message", "nodes": ["n18", "n19", "n20", "n21", "n22"] },
+    { "id": "sg-leave", "label": "Leave Room", "nodes": ["n23", "n24", "n25"] }
+  ],
+  "legend": [
+    { "symbol": "Actor", "meaning": "User role participating in the messaging flow" },
+    { "symbol": "System", "meaning": "Backend system component" },
+    { "symbol": "Database", "meaning": "Data persistence layer" },
+    { "symbol": "Decision", "meaning": "Branching point in the flow" },
+    { "symbol": "Event", "meaning": "Socket.IO event emission" },
+    { "symbol": "Error Path", "meaning": "Failure mode and recovery" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

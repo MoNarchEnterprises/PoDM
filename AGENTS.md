@@ -84,12 +84,20 @@ When the user requests a durable behavior change, record it here or in the relev
 |---|---|---|
 | `PoDM_project/` | [PoDM_project/AGENTS.md](PoDM_project/AGENTS.md) | Backend — Express API, business logic, database, payments, storage, real-time, auth, smart contracts |
 | `podm-frontend/` | [podm-frontend/AGENTS.md](podm-frontend/AGENTS.md) | Frontend — React UI, features, routing, styling, E2E tests |
+| `architecture-portal/` | [architecture-portal/AGENTS.md](architecture-portal/AGENTS.md) | Architecture Intelligence Platform — interactive docs browser, knowledge graph, Mermaid diagrams, React Flow graphs, AI assistant |
 
 ### Non-code directories (indexed here, no child AGENTS.md)
 
 | Path | Contents |
 |---|---|
-| `docs/` | Project documentation — future-features specs, marketing collateral, maintenance guides |
+| `docs/` | Project documentation — future-features specs, marketing collateral, maintenance guides, **architecture knowledge base** |
+| `docs/architecture/` | 00-session-notes, 01-documentation-plan, 01-repository-inventory, 02-dependency-map, 03-architecture-kb, 04-business-capabilities, 05-user-journeys, 06-frontend-architecture, 07-cross-cutting-concerns, 08-crypto-deep-dive, 08-diagram-index, 09-testing-monitoring, 09-quality-report, 10-internal-workflows, 11-data-flow, 12-maintenance |
+| `docs/diagrams/` | 11 Mermaid diagrams: C4 system context, ER diagram, auth seq, payment flow, request lifecycle, real-time messaging, impersonation, component tree, deployment/CI, service deps + README |
+| `docs/diagram-specifications/` | 59 JSON diagram specification files (001–059): structured machine-readable specs for all architecture diagrams across 8+ categories — system, auth, payments, content, real-time, data, admin, frontend, infrastructure, crypto, testing, monitoring |
+| `docs/flowcharts/` | 4 Mermaid prompt files + 49 generated Mermaid diagrams (`001`–`049` covering categories A–K): architecture context, auth token lifecycle, route auth matrix, orphan cleanup, password reset, crypto verification, subscription state, tipping/PPV, payout, fee calc, referral bonus, smart contract, content access control, upload pipeline, watermarking, AI captions, content lifecycle state, bulk upload, signed URLs, WebSocket events, ticket↔DM sync, broadcast, notifications, data flow pipeline, analytics, support ticket state, contest lifecycle, contest winner, admin dashboard, moderation, panel structure, verification docs, capability dependencies, fan journey, creator journey, role boundaries, feature maturity, Docker, migration timeline, build/deploy, error handling, security boundaries, sensitive data flow, risk matrix, crypto heatmap, test coverage, E2E coverage, monitoring gaps |
+| `docs/knowledge/` | 15 knowledge graph JSON files — architecture, modules, services, entities, routes, pages, components, workflows, diagrams, relationships, externalSystems, events, queues, agents |
+| `docs/api/` | API route reference (74 endpoints across 15 route files) |
+| `docs/references/` | Reference materials |
 | `.github/workflows/` | CI/CD pipeline — GitHub Actions (build + test backend, lint + build frontend) |
 | `.agent/` | AI agent workflow specifications |
 | `.idx/` | Google Project IDX workspace config |
@@ -100,7 +108,7 @@ The root AGENTS.md owns project-wide rules that apply across all subtrees:
 
 - DOX framework and hierarchy enforcement
 - Docker Compose orchestration (root `docker-compose.yml`)
-- Deployment config (`netlify.toml`)
+- Netlify deployment config (`netlify.toml`)
 - Root-level tools and assets (CSV data, Instagram scripts, Stripe debug output, database reference docs)
 - Planning documents (MVP Checklist, PoDM Planning Document, GEMINI.md)
 - Root `package.json` (minimal — shared deps like puppeteer, csv-parser)

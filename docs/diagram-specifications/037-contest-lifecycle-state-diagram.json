@@ -1,0 +1,139 @@
+{
+  "id": "F-05",
+  "title": "Contest Lifecycle State Diagram",
+  "category": "F — Data & State",
+  "diagramType": "State",
+  "purpose": "Document the contest lifecycle states and transitions from draft through active, completed, or canceled, highlighting the auto-complete gap",
+  "audience": "Backend developers, creator experience engineers, QA engineers, product managers",
+  "description": "The contest lifecycle has four states: draft (initial state when creator creates contest with start_date and end_date in the future — not visible to fans), active (creator publishes the contest — fans can view and enter during the entry period between start_date and end_date), completed (creator manually finalizes by selecting a winner — no further entries accepted), and canceled (creator can cancel from draft or active states; no mechanism to refund entry fees in current implementation). A notable gap is the absence of auto-complete: when end_date passes, the contest stays active and the creator must manually finalize. Additionally, canceling during the active period has no refund mechanism for entry fees.",
+  "actors": [
+    { "id": "creator", "label": "Creator", "description": "Content creator who creates, publishes, finalizes, or cancels contests" },
+    { "id": "fan", "label": "Fan", "description": "Fan who views and enters active contests" }
+  ],
+  "systems": [
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Database storing contests and contest_entries tables with status transitions" }
+  ],
+  "modules": [
+    { "id": "mod-contest-service", "label": "contest.service.ts", "description": "Contest lifecycle logic: create, publish, finalize (winner selection), cancel, enter" },
+    { "id": "mod-contest-model", "label": "contest.model.ts", "description": "Database access for contests and contest_entries tables" },
+    { "id": "mod-contest-controller", "label": "contest.controller.ts", "description": "Request handling for contest CRUD and entry operations" }
+  ],
+  "services": [
+    { "id": "svc-contest", "label": "ContestService", "description": "Manages contest lifecycle: draft→active→completed, draft→canceled, active→canceled" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-contests", "label": "contests table", "description": "Stores contest records with creator_id, title, description, start_date, end_date, entry_requirements (JSONB), entry_type, entry_multiplier, spend_threshold, additional_entries, status (draft|active|completed|canceled), winner_id" },
+    { "id": "ds-entries", "label": "contest_entries table", "description": "Stores entry records with contest_id, fan_id, created_at (unique on contest_id + fan_id)" }
+  ],
+  "entryPoints": [
+    { "id": "ep-create", "label": "POST /api/v1/contests", "description": "Creator creates contest with title, start_date, end_date, entry requirements, prize description (protectAndCreator)" },
+    { "id": "ep-publish", "label": "PUT /api/v1/contests/:id/publish", "description": "Creator publishes draft contest — makes it visible to fans for entries (protectAndCreator)" },
+    { "id": "ep-finalize", "label": "POST /api/v1/contests/:id/finalize", "description": "Creator finalizes contest by selecting winner — triggers winner selection algorithm (protectAndCreator)" },
+    { "id": "ep-cancel", "label": "Creator cancels contest", "description": "Creator can cancel from draft or active state (via status update)" },
+    { "id": "ep-enter", "label": "POST /api/v1/contests/:id/enter", "description": "Fan enters an active contest (protect)" }
+  ],
+  "exitPoints": [
+    { "id": "ex-completed", "label": "Contest completed with winner", "description": "Winner selected, contest finalized — terminal state" },
+    { "id": "ex-canceled", "label": "Contest canceled", "description": "Contest cancelled — no entries accepted, no refund mechanism" }
+  ],
+  "preconditions": [
+    "Creator has completed onboarding and has creator role",
+    "For entry: fan has active subscription to the creator (if entry_requirements specify)",
+    "For publish: contest is in draft state with valid start_date > now and end_date > start_date"
+  ],
+  "postconditions": [
+    "Contest transitions to new state based on creator action",
+    "Completed contest has winner_id set; no further entries accepted",
+    "Canceled contest does not accept entries but has no entry fee refund mechanism"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "[*] → draft", "type": "start", "description": "Initial state. Creator creates contest via POST /api/v1/contests with title, start_date, end_date, and entry requirements. Contest is not visible to fans." },
+    { "id": "n2", "label": "draft", "type": "process", "description": "Contest in draft mode. Not visible to fans. Creator can edit, publish (→active), or cancel (→canceled)." },
+    { "id": "n3", "label": "draft → active", "type": "process", "description": "Creator publishes contest via PUT /api/v1/contests/:id/publish. Status changes from draft to active. Contest becomes visible to fans." },
+    { "id": "n4", "label": "active", "type": "process", "description": "Contest is active. Fans can view and enter during the entry period (start_date to end_date). Creator can finalize (→completed) or cancel (→canceled). Note: if end_date passes, contest stays active — no auto-transition to completed." },
+    { "id": "n5", "label": "active → completed", "type": "process", "description": "Creator finalizes contest by selecting winner via POST /api/v1/contests/:id/finalize. Status changes from active to completed. Winner announcement triggered." },
+    { "id": "n6", "label": "completed", "type": "end", "description": "Terminal state. No further entries accepted. Winner announced in contest UI. No re-open supported." },
+    { "id": "n7", "label": "draft → canceled", "type": "process", "description": "Creator cancels contest while in draft state. Status changes from draft to canceled. No entries were accepted (was not visible)." },
+    { "id": "n8", "label": "active → canceled", "type": "process", "description": "Creator cancels contest during active entry period. Status changes from active to canceled. No refund mechanism for any entries that were submitted." },
+    { "id": "n9", "label": "canceled", "type": "end", "description": "Terminal state. Contest cancelled. No entries accepted. No mechanism to refund entry fees in current implementation." },
+    { "id": "n10", "label": "active → active (end_date passes)", "type": "process", "description": "When end_date passes, contest remains active. No auto-transition to completed. Creator must manually finalize via UI." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "triggers", "label": "Creator creates contest — status: draft" },
+    { "from": "n2", "to": "n3", "relationship": "triggers", "label": "Creator publishes contest" },
+    { "from": "n3", "to": "n4", "relationship": "updates", "label": "Status: draft → active" },
+    { "from": "n4", "to": "n5", "relationship": "triggers", "label": "Creator finalizes with winner selection" },
+    { "from": "n5", "to": "n6", "relationship": "updates", "label": "Status: active → completed" },
+    { "from": "n2", "to": "n7", "relationship": "triggers", "label": "Creator cancels before publishing" },
+    { "from": "n7", "to": "n9", "relationship": "updates", "label": "Status: draft → canceled" },
+    { "from": "n4", "to": "n8", "relationship": "triggers", "label": "Creator cancels during entry period" },
+    { "from": "n8", "to": "n9", "relationship": "updates", "label": "Status: active → canceled" },
+    { "from": "n4", "to": "n10", "relationship": "triggers", "label": "end_date passes without creator action" },
+    { "from": "n10", "to": "n4", "relationship": "returns", "label": "No state change — stays active" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "end_date passes — no auto-complete", "destination": "Contest stays active; creator must manually finalize", "recovery": "Creator receives no notification; fans cannot see winner until manual action" },
+    { "trigger": "Cancel during active — no entry refund", "destination": "Contest canceled but entries already submitted have no refund mechanism", "recovery": "No refund mechanism exists; creator may need to manually handle refunds off-platform" },
+    { "trigger": "Winner selection uses Math.random() — not cryptographically secure", "destination": "Winner selection may be predictable or manipulable", "recovery": "Not addressed in current implementation — should use cryptographically secure random" },
+    { "trigger": "No audit trail for winner selection", "destination": "No record of random seed, algorithm inputs, or selected winner's probability", "recovery": "Cannot verify fairness of winner selection after the fact" }
+  ],
+  "validationRules": [
+    "Creator must have protectAndCreator middleware for create, publish, finalize, cancel",
+    "Contest must have title, start_date, end_date",
+    "end_date must be > start_date",
+    "For entry: contest must be in active state and end_date not passed",
+    "For publish: contest must be in draft state",
+    "For finalize: contest must be in active state and not already completed",
+    "Unique constraint on (contest_id, fan_id) prevents double entry"
+  ],
+  "businessRules": [
+    "No auto-complete when end_date passes — creator must manually finalize",
+    "No refund mechanism for entry fees when contest is canceled during active period",
+    "Winner selection is not cryptographically secure (uses Math.random())",
+    "No audit trail for winner selection randomness",
+    "Canceled state is terminal — no re-activation route"
+  ],
+  "securityConsiderations": [
+    "Fan entry requires subscription check (entry_requirements.tier_id or all_subscribers)",
+    "Winner selection not cryptographically secure — potential manipulation risk",
+    "No audit trail for winner selection — cannot verify fairness",
+    "Canceled contest entries contain user data that persists in DB"
+  ],
+  "performanceConsiderations": [
+    "Winner selection queries transactions table for weighted_spend algorithm — may be slow for entrants with many transactions",
+    "Standard algorithm (random) is O(1) — very fast",
+    "Weighted_spend algorithm is O(n) where n = total tickets (entrants × tickets per entrant) — potentially large array in memory"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "⚠️ No Auto-Complete", "description": "When end_date passes, contest stays active. Creator must manually finalize. No automatic transition or notification." },
+    { "id": "a2", "label": "⚠️ No Cancel Refund", "description": "If canceled during active period, there is no mechanism to refund entry fees." },
+    { "id": "a3", "label": "No crypto-safe random", "description": "Winner selection uses Math.random() instead of crypto.getRandomValues() or similar." },
+    { "id": "a4", "label": "No audit trail", "description": "Winner selection randomness has no audit trail — seed and inputs not recorded." }
+  ],
+  "swimlanes": [
+    { "id": "sl-states", "label": "States", "nodes": ["n2", "n4", "n6", "n9"] },
+    { "id": "sl-transitions", "label": "Transitions", "nodes": ["n1", "n3", "n5", "n7", "n8", "n10"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-main-path", "label": "Standard Path: draft → active → completed", "nodes": ["n1", "n2", "n3", "n4", "n5", "n6"] },
+    { "id": "sg-cancel-path", "label": "Cancel Path", "nodes": ["n7", "n8", "n9"] },
+    { "id": "sg-gap", "label": "Auto-Complete Gap", "nodes": ["n10"] }
+  ],
+  "legend": [
+    { "symbol": "State", "meaning": "Contest lifecycle state" },
+    { "symbol": "Transition", "meaning": "State-changing action" },
+    { "symbol": "Start", "meaning": "Initial state entry" },
+    { "symbol": "Terminal", "meaning": "Final state" },
+    { "symbol": "Gap", "meaning": "Missing feature" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

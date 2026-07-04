@@ -1,0 +1,67 @@
+[
+  {
+    "id": "caption-agent",
+    "name": "Caption Agent",
+    "purpose": "Automatically generates descriptive captions, titles, and tags for uploaded content using OpenAI vision and text models",
+    "capabilities": ["image caption generation", "video description generation", "content tag suggestion", "title recommendation", "alt text generation"],
+    "module": "content",
+    "model": "gpt-4o-mini",
+    "prompts": [
+      {"name": "image-caption", "purpose": "Generate a concise and engaging caption for an image based on its visual content and context"},
+      {"name": "video-description", "purpose": "Generate a comprehensive description for video content based on title and metadata"},
+      {"name": "tag-suggestion", "purpose": "Suggest relevant tags and categories for content discoverability"},
+      {"name": "title-recommendation", "purpose": "Generate SEO-optimized and engaging title suggestions for content"}
+    ]
+  },
+  {
+    "id": "moderation-agent",
+    "name": "Moderation Agent",
+    "purpose": "Automatically screens uploaded content and user reports for policy violations, flags inappropriate material for admin review",
+    "capabilities": ["image content screening", "text moderation", "NSFW detection", "hate speech detection", "spam detection", "policy violation classification"],
+    "module": "admin",
+    "model": "gpt-4o-mini",
+    "prompts": [
+      {"name": "content-screening", "purpose": "Analyze content against platform policies and flag violations with severity levels"},
+      {"name": "text-moderation", "purpose": "Screen text content for harassment, hate speech, spam, and other policy violations"},
+      {"name": "report-classification", "purpose": "Classify user reports by category and priority for efficient admin triage"}
+    ]
+  },
+  {
+    "id": "support-agent",
+    "name": "Support Agent",
+    "purpose": "Triage and auto-respond to support tickets, classify issues by category and priority, suggest solutions from knowledge base",
+    "capabilities": ["ticket classification", "priority assignment", "auto-response generation", "knowledge base lookup", "sentiment analysis"],
+    "module": "admin",
+    "model": "gpt-4o-mini",
+    "prompts": [
+      {"name": "ticket-classification", "purpose": "Classify support tickets by category, subcategory, and determine priority level"},
+      {"name": "auto-response", "purpose": "Generate helpful auto-response for common support issues with relevant resources"},
+      {"name": "sentiment-analysis", "purpose": "Analyze ticket sentiment to identify urgent or frustrated users for priority handling"}
+    ]
+  },
+  {
+    "id": "recommendation-agent",
+    "name": "Recommendation Agent",
+    "purpose": "Generates personalized content recommendations for fans based on their subscription history, viewing patterns, and preferences",
+    "capabilities": ["content recommendation", "creator discovery", "personalized feed curation", "trending content detection"],
+    "module": "ai",
+    "model": "gpt-4o-mini",
+    "prompts": [
+      {"name": "content-recommendation", "purpose": "Generate personalized content recommendations based on user viewing history and subscriptions"},
+      {"name": "creator-discovery", "purpose": "Suggest new creators to follow based on user interests and similar creator analysis"}
+    ]
+  },
+  {
+    "id": "analytics-agent",
+    "name": "Analytics Agent",
+    "purpose": "Generates actionable insights and reports from platform data, identifies trends, and provides natural language summaries",
+    "capabilities": ["insight generation", "trend detection", "report summarization", "anomaly detection", "growth opportunity identification"],
+    "module": "ai",
+    "model": "gpt-4o-mini",
+    "prompts": [
+      {"name": "dashboard-insights", "purpose": "Generate natural language insights from dashboard analytics data for creators and admins"},
+      {"name": "trend-detection", "purpose": "Identify emerging trends in content engagement, subscription patterns, and revenue streams"},
+      {"name": "anomaly-alert", "purpose": "Detect and describe unusual patterns or anomalies in platform metrics"}
+    ]
+  }
+]

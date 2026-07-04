@@ -1,0 +1,137 @@
+{
+  "id": "G-03",
+  "title": "Admin Panel Structure & Data Sources",
+  "category": "G — Admin & Operations",
+  "diagramType": "Graph (Flowchart)",
+  "purpose": "Map all 8 admin panels to their backend routes, services, models, database tables, and access modes (read-only vs read-write)",
+  "audience": "Backend developers, admin frontend developers, new engineers onboarding, platform maintainers",
+  "description": "The admin panel consists of 8 distinct panels, all protected by the protectAndAdmin middleware (JWT + admin role). Dashboard (read-only) — GET /admin/dashboard backed by admin.getDashboardStats() querying profiles, transactions, and support_tickets. Users (read-only) — GET /admin/users and /admin/users/:id backed by admin.getAllUsers() and admin.getUserDetails() querying profiles, transactions, and subscriptions. Analytics (read-only) — GET /admin/analytics backed by admin.getAnalytics() querying transactions and analytics_events. Content Moderation (read-write) — GET /admin/content/flagged, POST /admin/content/:id/approve, POST /admin/content/:id/remove backed by admin.getFlaggedContent(), admin.approveContent(), admin.removeContent() querying content and reports. Support Tickets (read-write) — GET /admin/support/tickets, POST /admin/support/tickets/:id/reply, POST /admin/support/tickets/:id/resolve backed by admin.getAllTickets(), admin.replyToTicket(), admin.resolveTicket() querying support_tickets. Reports (read-only) — GET /admin/reports backed by admin.getCustomReport() querying multiple tables via custom query builder. Settings (read-write) — GET /admin/settings and PUT /admin/settings backed by admin.getSettings() and admin.updateSettings() querying platform_settings. Verification Docs (read-only) — GET /admin/users/:id/verification-docs backed by admin.getVerificationDocs() and storage.getPrivateSignedUrl() sourcing from R2 private bucket via profiles.verification_data JSONB.",
+  "actors": [
+    { "id": "admin", "label": "Admin", "description": "Platform administrator interfacing with all 8 admin panels" }
+  ],
+  "systems": [
+    { "id": "backend-api", "label": "Backend API (Express)", "description": "REST API serving all 8 admin panels with protectAndAdmin middleware" },
+    { "id": "supabase-db", "label": "Supabase PostgreSQL", "description": "Database storing all admin panel data across multiple tables" },
+    { "id": "cloudflare-r2", "label": "Cloudflare R2", "description": "Object storage for verification document files (ID/selfie images)" }
+  ],
+  "modules": [
+    { "id": "mod-admin-routes", "label": "admin.routes.ts", "description": "Route definitions for all 16 admin endpoints across 8 panels, all protected by router-level protectAndAdmin" },
+    { "id": "mod-admin-controller", "label": "admin.controller.ts", "description": "16 handler functions: getDashboardStats, getAllUsers, updateUserStatus, getFlaggedContent, updateContentStatus, getPlatformAnalytics, generateReport, getSavedReports, getSupportTickets, updateSupportTicket, getAdminUsers, getSettings, updateSettings, setCreatorCommission, getCreatorVerificationDocs, messageUser" },
+    { "id": "mod-admin-service", "label": "admin.service.ts", "description": "Business logic for admin operations: dashboard aggregation, user management, content moderation, verification docs, settings" },
+    { "id": "mod-storage-service", "label": "storage.service.ts", "description": "R2 signed URL generation for verification document access" },
+    { "id": "mod-frontend-panels", "label": "Admin Frontend Panels (8)", "description": "React components: AdminPanel.tsx (layout + routing), DashboardPanel.tsx, UsersPanel.tsx, AnalyticsPanel.tsx, ContentModerationPanel.tsx, SupportTicketsPanel.tsx, ReportsPanel.tsx, SettingsPanel.tsx, VerificationDetailPanel.tsx" }
+  ],
+  "services": [
+    { "id": "svc-admin", "label": "AdminService", "description": "Handles all admin business logic: dashboard stats, user queries, content moderation, verification docs, settings" },
+    { "id": "svc-storage", "label": "StorageService", "description": "R2 getPrivateSignedUrl for verification document temporary URLs" }
+  ],
+  "externalSystems": [],
+  "dataStores": [
+    { "id": "ds-profiles", "label": "profiles table", "description": "Used by Dashboard (user counts), Users (user details), Analytics (user dimensions)" },
+    { "id": "ds-transactions", "label": "transactions table", "description": "Used by Dashboard (fee sum), Users (spending history), Analytics (revenue data)" },
+    { "id": "ds-content", "label": "content table", "description": "Used by Moderation (flagged content)" },
+    { "id": "ds-reports", "label": "reports table", "description": "Used by Moderation (report count, dismissal)" },
+    { "id": "ds-subscriptions", "label": "subscriptions table", "description": "Used by Users (fan subscription details)" },
+    { "id": "ds-tickets", "label": "support_tickets table", "description": "Used by Support Tickets (all ticket operations)" },
+    { "id": "ds-events", "label": "analytics_events table", "description": "Used by Analytics (platform-wide event data)" },
+    { "id": "ds-settings", "label": "platform_settings table", "description": "Used by Settings (key-value platform configuration)" },
+    { "id": "ds-r2", "label": "Cloudflare R2 (private bucket)", "description": "Used by Verification Docs (ID/selfie image files referenced by profiles.verification_data)" }
+  ],
+  "entryPoints": [
+    { "id": "ep-all-panels", "label": "All 8 admin panel routes", "description": "Each panel has dedicated GET/POST/PUT endpoints under /api/v1/admin/" }
+  ],
+  "exitPoints": [
+    { "id": "ex-panel-data", "label": "Panel-specific data returned", "description": "Each backend endpoint returns JSON data specific to the admin panel" }
+  ],
+  "preconditions": [
+    "Admin role required for all panels (protectAndAdmin middleware at router level)",
+    "Database tables populated with data for meaningful panel display"
+  ],
+  "postconditions": [
+    "Read-only panels: data retrieved and displayed",
+    "Read-write panels: data modifications persisted to database",
+    "No admin audit trail — admin actions not logged"
+  ],
+  "nodes": [
+    { "id": "n1", "label": "protectAndAdmin Middleware", "type": "authentication", "description": "Required for all 8 admin panels. Validates JWT and checks admin role. Applied at router level in admin.routes.ts." },
+    { "id": "n2", "label": "Dashboard Panel", "type": "process", "description": "Read-only. GET /admin/dashboard. Service: admin.getDashboardStats(). Tables: profiles, transactions, support_tickets. 5 parallel queries." },
+    { "id": "n3", "label": "Users Panel", "type": "process", "description": "Read-only. GET /admin/users, GET /admin/users/:id. Service: admin.getAllUsers(), admin.getUserDetails(). Tables: profiles, transactions, subscriptions." },
+    { "id": "n4", "label": "Analytics Panel", "type": "process", "description": "Read-only. GET /admin/analytics. Service: admin.getAnalytics(). Tables: transactions, analytics_events." },
+    { "id": "n5", "label": "Content Moderation Panel", "type": "process", "description": "Read-Write. GET /admin/content/flagged, POST /admin/content/:id/approve, POST /admin/content/:id/remove. Service: admin.getFlaggedContent(), admin.updateContentStatus(). Tables: content, reports." },
+    { "id": "n6", "label": "Support Tickets Panel", "type": "process", "description": "Read-Write. GET /admin/support/tickets, POST /admin/support/tickets/:id/reply, POST /admin/support/tickets/:id/resolve. Service: admin.getAllTickets(), admin.replyToTicket(), admin.resolveTicket(). Tables: support_tickets." },
+    { "id": "n7", "label": "Custom Reports Panel", "type": "process", "description": "Read-only. GET /admin/reports. Service: admin.getCustomReport(). Tables: multiple — custom query builder with date range, metric type, and filters." },
+    { "id": "n8", "label": "Platform Settings Panel", "type": "process", "description": "Read-Write. GET /admin/settings, PUT /admin/settings. Service: admin.getSettings(), admin.updateSettings(). Tables: platform_settings (key-value store)." },
+    { "id": "n9", "label": "Verification Docs Panel", "type": "process", "description": "Read-only. GET /admin/users/:id/verification-docs. Service: admin.getVerificationDocs(), storage.getPrivateSignedUrl(). Source: R2 private bucket via profiles.verification_data JSONB file paths." }
+  ],
+  "connections": [
+    { "from": "n1", "to": "n2", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n3", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n4", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n5", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n6", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n7", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n8", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" },
+    { "from": "n1", "to": "n9", "relationship": "calls", "label": "All admin routes guarded by protectAndAdmin" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "protectAndAdmin fails (invalid JWT or non-admin role)", "destination": "401/403 returned — no admin panel access", "recovery": "Admin re-authenticates with valid admin credentials" },
+    { "trigger": "Dashboard Promise.all fails (one query errors)", "destination": "Entire dashboard fails — no partial data", "recovery": "Admin refreshes page" },
+    { "trigger": "R2 signed URL generation fails for verification docs", "destination": "Verification documents not accessible — placeholder returned", "recovery": "Admin retries; if persistent, check R2 permissions" },
+    { "trigger": "No admin audit trail", "destination": "Admin actions (approve, remove, status changes, settings updates) are not logged", "recovery": "Feature gap — no accountability mechanism" }
+  ],
+  "validationRules": [
+    "protectAndAdmin middleware required for all 16 admin endpoints",
+    "Route-level middleware applied in admin.routes.ts — all sub-routes inherit",
+    "Each panel endpoint validates required params specific to its operation"
+  ],
+  "businessRules": [
+    "5 of 8 panels are read-only: Dashboard, Users, Analytics, Reports, Verification Docs",
+    "3 of 8 panels are read-write: Content Moderation, Support Tickets, Settings",
+    "All panels require protectAndAdmin middleware — no public admin endpoints",
+    "No admin audit trail exists — no admin_action_log table",
+    "Verification Docs panel sources from R2 via 60-second signed URLs (not DB directly)"
+  ],
+  "securityConsiderations": [
+    "protectAndAdmin enforced at router level — all sub-routes protected",
+    "No CSRF protection — admin endpoints rely solely on JWT",
+    "No admin audit trail — actions not logged, no accountability",
+    "Verification docs contain PII (government ID, selfie) via temporary URLs",
+    "Settings panel controls platform-wide configuration — high-impact modifications",
+    "User messaging endpoint bypasses normal chat — admins can email any user"
+  ],
+  "performanceConsiderations": [
+    "Dashboard runs 5 parallel COUNT/SUM queries — heaviest panel",
+    "No caching on any panel — each page load queries database",
+    "Custom Reports panel may be CPU-intensive for large datasets",
+    "User list panel may return many rows — pagination needed"
+  ],
+  "annotations": [
+    { "id": "a1", "label": "🔴 No Admin Audit Trail", "description": "No admin_action_log table recording admin operations. No accountability for admin actions." },
+    { "id": "a2", "label": "Read-only vs Read-Write split", "description": "5 panels read-only (Dashboard, Users, Analytics, Reports, Verification), 3 read-write (Moderation, Tickets, Settings)." },
+    { "id": "a3", "label": "Verification Docs from R2", "description": "Only panel that sources data from external object storage (R2) rather than directly from DB." },
+    { "id": "a4", "label": "All panels behind protectAndAdmin", "description": "Single middleware protects all 8 panels — consistent security boundary." }
+  ],
+  "swimlanes": [
+    { "id": "sl-middleware", "label": "Common Middleware", "nodes": ["n1"] },
+    { "id": "sl-panels", "label": "Admin Panels", "nodes": ["n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9"] }
+  ],
+  "subgraphs": [
+    { "id": "sg-read-only", "label": "Read-Only Panels (5)", "nodes": ["n2", "n3", "n4", "n7", "n9"] },
+    { "id": "sg-read-write", "label": "Read-Write Panels (3)", "nodes": ["n5", "n6", "n8"] }
+  ],
+  "legend": [
+    { "symbol": "Middleware", "meaning": "Authentication and authorization gate" },
+    { "symbol": "Panel", "meaning": "Admin panel with associated endpoints" },
+    { "symbol": "Read-Only", "meaning": "Panel is view-only — no data modification" },
+    { "symbol": "Read-Write", "meaning": "Panel supports create/update operations" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "rect",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}

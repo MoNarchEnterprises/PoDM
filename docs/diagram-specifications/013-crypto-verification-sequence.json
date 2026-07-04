@@ -1,0 +1,204 @@
+{
+  "id": "C-02",
+  "title": "Crypto Verification Sequence (11-Step)",
+  "category": "C",
+  "diagramType": "sequence",
+  "purpose": "Detailed 11-step verifyAndRecordBasePayment flow showing every validation gate, RPC call, event parsing step, fee calculation, and DB recording with the sandbox bypass vulnerability",
+  "audience": "Developers, security auditors, QA engineers",
+  "description": "The core crypto payment verification pipeline: Crypto Payment Controller calls verifyAndRecordBasePayment with paymentInfo. The service performs dedup check (409 if hash exists), hash format validation (regex /^0x[A-Fa-f0-9]{64}$/), fetches creator's crypto_wallet from profiles, selects RPC network based on creator's payout preference (Base/Monad/MegaETH), calls eth_getTransactionReceipt via axios, validates receipt status=0x1, contract address match (receipt.to or log.address), parses events (topics[2] recipient check, data[0:32] amount with 1-cent tolerance), calculates platformFee=12.5% and creatorPayout, inserts transaction with status Cleared. The 0x0000 sandbox bypass skips all on-chain steps, creating verified transactions without blockchain proof.",
+  "actors": [
+    {"id": "fan", "label": "Fan (Payer)", "type": "actor", "description": "User who initiated the crypto payment via wallet"}
+  ],
+  "systems": [
+    {"id": "cpc", "label": "Crypto Payment Controller", "type": "api", "description": "Express controller handling POST /api/v1/payments/crypto/verify"},
+    {"id": "cps", "label": "Crypto Payment Service", "type": "service", "description": "Service implementing the 11-step verification pipeline"}
+  ],
+  "modules": [],
+  "services": [
+    {"id": "txModel", "label": "Transaction Model", "type": "service", "description": "Database access layer for transactions table"}
+  ],
+  "externalSystems": [
+    {"id": "erc", "label": "Ethereum JSON-RPC (Base/Monad/MegaETH)", "type": "external_system", "description": "Blockchain RPC endpoint for on-chain transaction receipt lookup"}
+  ],
+  "dataStores": [
+    {"id": "db", "label": "Supabase PostgreSQL", "type": "database", "description": "Stores profiles (crypto_wallet_address), transactions, and blockchain_tx_hash unique index"}
+  ],
+  "entryPoints": [
+    {"id": "verifyEntry", "label": "POST /api/v1/payments/crypto/verify", "description": "Accepts { txHash, creatorId, amountInCents, transactionType, relatedId }"}
+  ],
+  "exitPoints": [
+    {"id": "verifySuccess", "label": "Success with Transaction Record", "description": "Returns { transactionId, status: 'Cleared', txHash, amount }"},
+    {"id": "verifyDedupFail", "label": "409 Conflict — Duplicate Hash", "description": "blockchain_tx_hash already exists in transactions table"},
+    {"id": "verifyFormatFail", "label": "400 Invalid Hash Format", "description": "txHash does not match /^0x[A-Fa-f0-9]{64}$/"},
+    {"id": "verifyWalletFail", "label": "400 Creator Wallet Required", "description": "Creator has no crypto_wallet_address configured"},
+    {"id": "verifyRpcFail", "label": "503 Verification Service Offline", "description": "RPC node unreachable after 3 retry attempts"},
+    {"id": "verifyPendingFail", "label": "404 Transaction Pending", "description": "Receipt null — transaction not yet mined"},
+    {"id": "verifyOnChainFail", "label": "400 On-Chain Verification Failed", "description": "Status !== 0x1, wrong contract, recipient mismatch, or amount mismatch"},
+    {"id": "sandboxBypass", "label": "Sandbox Bypass Path", "description": "txHash starts with 0x0000 — skips all on-chain verification"}
+  ],
+  "preconditions": [
+    "Fan is authenticated with valid JWT",
+    "Fan has initiated a crypto transaction through their wallet",
+    "Creator has crypto_wallet_address and crypto_wallet_payout_preference configured",
+    "Smart contract is deployed on the target network",
+    "RPC endpoints are accessible"
+  ],
+  "postconditions": [
+    "Transaction record created in transactions table with status 'Cleared'",
+    "blockchain_tx_hash recorded and unique constraint prevents replay",
+    "platform_fee and creator_payout calculated and stored",
+    "Subscription updated or content unlocked based on transactionType"
+  ],
+  "nodes": [
+    {"id": "n_controller_call", "label": "Controller receives POST /verify", "type": "process", "description": "Crypto Payment Controller extracts txHash, creatorId, amountInCents, transactionType from request body"},
+    {"id": "n_verify_service_call", "label": "Call verifyAndRecordBasePayment", "type": "process", "description": "Controller delegates to cryptoPayment.service.ts verifyAndRecordBasePayment with paymentInfo object"},
+    {"id": "n_dedup_check", "label": "Dedup Check: txHash exists?", "type": "decision", "description": "Query transactions table for existing blockchain_tx_hash"},
+    {"id": "n_dedup_fail", "label": "Return 409 Conflict", "type": "process", "description": "Hash already processed, return existing record with 409"},
+    {"id": "n_format_check", "label": "Hash Format Validation", "type": "validation", "description": "Regex /^0x([A-Fa-f0-9]{64})$/ — reject malformed hashes"},
+    {"id": "n_format_fail", "label": "Return 400 Invalid Format", "type": "process", "description": "Hash does not match expected format"},
+    {"id": "n_fetch_wallet", "label": "Fetch Creator Wallet", "type": "process", "description": "Query profiles table for creator's crypto_wallet_address and payout_preference"},
+    {"id": "n_wallet_missing", "label": "Return 400 Wallet Required", "type": "process", "description": "Creator has not configured a crypto wallet address"},
+    {"id": "n_sandbox_check", "label": "Sandbox Bypass Check", "type": "decision", "description": "Check if txHash starts with '0x0000' — development bypass prefix"},
+    {"id": "n_sandbox_skip", "label": "Skip On-Chain Verification", "type": "process", "description": "DEV ONLY: Skip all blockchain checks, proceed directly to fee calc and DB insert"},
+    {"id": "n_network_select", "label": "Network Selection", "type": "process", "description": "Select RPC URL, USDC address, and chain ID based on creator's payoutPreference (base/monad/megaeth)"},
+    {"id": "n_rpc_call", "label": "eth_getTransactionReceipt", "type": "process", "description": "Send axios POST to RPC endpoint with JSON-RPC payload for eth_getTransactionReceipt"},
+    {"id": "n_receipt_null_check", "label": "Receipt Null Check", "type": "decision", "description": "Check if RPC returned null receipt (transaction still pending)"},
+    {"id": "n_receipt_pending", "label": "Return 404 Pending", "type": "process", "description": "Transaction not yet mined, return pending status"},
+    {"id": "n_status_check", "label": "Receipt Status Check", "type": "decision", "description": "Verify receipt.status === '0x1' (success)"},
+    {"id": "n_status_fail", "label": "Return 400 Tx Failed", "type": "process", "description": "Transaction failed on-chain (status !== 0x1)"},
+    {"id": "n_contract_check", "label": "Contract Address Match", "type": "decision", "description": "Check receipt.to === contractAddress OR any log.address === contractAddress"},
+    {"id": "n_contract_fail", "label": "Return 400 Wrong Contract", "type": "process", "description": "Transaction interacted with a different contract"},
+    {"id": "n_event_parsing", "label": "Parse Event Topics and Data", "type": "process", "description": "Extract topics[2] last 20 bytes as recipient address; parse data[0:32] as uint256 amount"},
+    {"id": "n_recipient_check", "label": "Recipient Verification", "type": "decision", "description": "Check topics[2] extracted address matches creator's configured wallet address"},
+    {"id": "n_recipient_fail", "label": "Return 400 Recipient Mismatch", "type": "process", "description": "Transaction recipient does not match creator's wallet"},
+    {"id": "n_amount_check", "label": "Amount Verification", "type": "decision", "description": "Compare on-chain amount/10000 with expected amountInCents (±1 cent tolerance)"},
+    {"id": "n_amount_fail", "label": "Return 400 Amount Mismatch", "type": "process", "description": "On-chain amount does not match expected payment amount"},
+    {"id": "n_fee_calc", "label": "Calculate Platform Fee & Creator Payout", "type": "process", "description": "platformFee = Math.round(amount * 12.5 / 100); creatorPayout = amount - platformFee"},
+    {"id": "n_db_insert", "label": "INSERT Transaction Record", "type": "process", "description": "Create transaction with status='Cleared', payment_method='crypto', payment_currency='USDC', chain_id, blockchain_tx_hash"},
+    {"id": "n_return_success", "label": "Return Success with Transaction", "type": "process", "description": "Return { transactionId, status: 'Cleared', txHash, amount, platformFee, creatorPayout }"},
+    {"id": "n_rpc_retry", "label": "Retry RPC Call", "type": "background_job", "description": "Retry eth_getTransactionReceipt with exponential backoff (500ms, 1000ms, 2000ms) up to 3 attempts"},
+    {"id": "n_rpc_fail", "label": "Return 503 Service Offline", "type": "process", "description": "All 3 RPC retry attempts exhausted"}
+  ],
+  "connections": [
+    {"from": "n_controller_call", "to": "n_verify_service_call", "relationship": "calls", "label": "verifyAndRecordBasePayment(paymentInfo)"},
+    {"from": "n_verify_service_call", "to": "n_dedup_check", "relationship": "calls", "label": "Step 1: Check txHash uniqueness"},
+    {"from": "n_dedup_check", "to": "n_dedup_fail", "relationship": "triggers", "label": "duplicate found"},
+    {"from": "n_dedup_fail", "to": "n_controller_call", "relationship": "returns", "label": "409 response"},
+    {"from": "n_dedup_check", "to": "n_format_check", "relationship": "triggers", "label": "hash unique"},
+    {"from": "n_format_check", "to": "n_format_fail", "relationship": "triggers", "label": "invalid format"},
+    {"from": "n_format_fail", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_format_check", "to": "n_fetch_wallet", "relationship": "triggers", "label": "valid format"},
+    {"from": "n_fetch_wallet", "to": "n_wallet_missing", "relationship": "triggers", "label": "no wallet configured"},
+    {"from": "n_wallet_missing", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_fetch_wallet", "to": "n_sandbox_check", "relationship": "triggers", "label": "wallet found"},
+    {"from": "n_sandbox_check", "to": "n_sandbox_skip", "relationship": "triggers", "label": "starts with 0x0000"},
+    {"from": "n_sandbox_skip", "to": "n_fee_calc", "relationship": "triggers", "label": "skip on-chain checks"},
+    {"from": "n_sandbox_check", "to": "n_network_select", "relationship": "triggers", "label": "normal hash — proceed on-chain"},
+    {"from": "n_network_select", "to": "n_rpc_call", "relationship": "calls", "label": "RPC URL + contract address selected"},
+    {"from": "n_rpc_call", "to": "n_receipt_null_check", "relationship": "returns", "label": "receipt or null"},
+    {"from": "n_receipt_null_check", "to": "n_receipt_pending", "relationship": "triggers", "label": "receipt is null"},
+    {"from": "n_receipt_pending", "to": "n_controller_call", "relationship": "returns", "label": "404 response"},
+    {"from": "n_receipt_null_check", "to": "n_status_check", "relationship": "triggers", "label": "receipt exists"},
+    {"from": "n_status_check", "to": "n_status_fail", "relationship": "triggers", "label": "status !== 0x1"},
+    {"from": "n_status_fail", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_status_check", "to": "n_contract_check", "relationship": "triggers", "label": "status === 0x1"},
+    {"from": "n_contract_check", "to": "n_contract_fail", "relationship": "triggers", "label": "no contract match"},
+    {"from": "n_contract_fail", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_contract_check", "to": "n_event_parsing", "relationship": "triggers", "label": "contract verified"},
+    {"from": "n_event_parsing", "to": "n_recipient_check", "relationship": "calls", "label": "topics[2] decoded"},
+    {"from": "n_recipient_check", "to": "n_recipient_fail", "relationship": "triggers", "label": "address mismatch"},
+    {"from": "n_recipient_fail", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_recipient_check", "to": "n_amount_check", "relationship": "triggers", "label": "recipient matches"},
+    {"from": "n_amount_check", "to": "n_amount_fail", "relationship": "triggers", "label": "tolerance exceeded"},
+    {"from": "n_amount_fail", "to": "n_controller_call", "relationship": "returns", "label": "400 response"},
+    {"from": "n_amount_check", "to": "n_fee_calc", "relationship": "triggers", "label": "amount matches"},
+    {"from": "n_fee_calc", "to": "n_db_insert", "relationship": "calls", "label": "12.5% platform fee"},
+    {"from": "n_db_insert", "to": "n_return_success", "relationship": "returns", "label": "transaction recorded"},
+    {"from": "n_rpc_call", "to": "n_rpc_retry", "relationship": "triggers", "label": "connection error or timeout"},
+    {"from": "n_rpc_retry", "to": "n_rpc_call", "relationship": "triggers", "label": "attempt < 3, backoff"},
+    {"from": "n_rpc_retry", "to": "n_rpc_fail", "relationship": "triggers", "label": "all 3 attempts exhausted"},
+    {"from": "n_rpc_fail", "to": "n_controller_call", "relationship": "returns", "label": "503 response"}
+  ],
+  "decisions": [
+    {"condition": "blockchain_tx_hash already exists in transactions table?", "truePath": "Return 409 Conflict with existing record", "falsePath": "Proceed to hash format validation"},
+    {"condition": "txHash matches /^0x([A-Fa-f0-9]{64})$/ ?", "truePath": "Valid format, proceed to wallet fetch", "falsePath": "Return 400 Invalid transaction hash format"},
+    {"condition": "txHash.startsWith('0x0000') ?", "truePath": "Skip all on-chain verification (sandbox bypass)", "falsePath": "Proceed with full on-chain verification"},
+    {"condition": "RPC returns null receipt?", "truePath": "Return 404 — transaction still pending", "falsePath": "Proceed to status check"},
+    {"condition": "receipt.status === '0x1' ?", "truePath": "Transaction succeeded, proceed to contract check", "falsePath": "Return 400 — transaction failed on-chain"},
+    {"condition": "receipt.to === contractAddress OR any log.address === contractAddress?", "truePath": "Contract interaction verified", "falsePath": "Return 400 — wrong contract"},
+    {"condition": "topics[2] last 20 bytes match creator's wallet address?", "truePath": "Recipient verified", "falsePath": "Return 400 — recipient mismatch"},
+    {"condition": "|onChainAmount/10000 - expectedAmount| <= 1 cent?", "truePath": "Amount verified", "falsePath": "Return 400 — amount mismatch"}
+  ],
+  "loops": [
+    {"condition": "RPC call fails (network error, timeout, 5xx)", "target": "Retry eth_getTransactionReceipt up to 3 times. Between attempts: wait 500ms × 2^(attempt-1)"}
+  ],
+  "errorPaths": [
+    {"trigger": "RPC connection error on attempt 1-2", "destination": "Retry with exponential backoff (500ms, 1000ms)", "recovery": "Automatic retry; max 3 attempts"},
+    {"trigger": "All 3 RPC retries exhausted", "destination": "Return 503 Verification service offline", "recovery": "Fan must retry later when service restores"},
+    {"trigger": "Transaction still pending (receipt null)", "destination": "Return 404 with pending message", "recovery": "Fan waits for block confirmation and retries"},
+    {"trigger": "Transaction failed on-chain (status != 0x1)", "destination": "Return 400 with failure reason", "recovery": "Fan must initiate new transaction"},
+    {"trigger": "Wrong contract address", "destination": "Return 400", "recovery": "Fan must use correct PoDMPaymentProtocol contract address"},
+    {"trigger": "Recipient wallet mismatch", "destination": "Return 400", "recovery": "Fan must send payment to creator's configured wallet"},
+    {"trigger": "Amount mismatch beyond 1 cent tolerance", "destination": "Return 400", "recovery": "Fan must send exact expected amount"},
+    {"trigger": "Database insert failure", "destination": "Return 500", "recovery": "Fan retries; no funds lost since on-chain has already validated"}
+  ],
+  "validationRules": [
+    {"rule": "txHash must match /^0x([A-Fa-f0-9]{64})$/", "location": "cryptoPayment.service.ts", "type": "regex"},
+    {"rule": "blockchain_tx_hash unique constraint (application-enforced)", "location": "cryptoPayment.service.ts", "type": "uniqueness"},
+    {"rule": "Creator crypto_wallet_address must not be null or empty", "location": "cryptoPayment.service.ts", "type": "prerequisite"},
+    {"rule": "On-chain amount tolerance of 1 cent (amount/10000 vs expectedAmount)", "location": "cryptoPayment.service.ts", "type": "precision"},
+    {"rule": "platformFee = Math.round(amount * DEFAULT_COMMISSION_RATE / 100)", "location": "cryptoPayment.service.ts", "type": "calculation"},
+    {"rule": "EVENT_TOPICS are placeholder values — real keccak256 hashes not computed", "location": "cryptoPayment.service.ts", "type": "security_gap"}
+  ],
+  "businessRules": [
+    {"rule": "Platform commission = 12.5% (DEFAULT_COMMISSION_RATE from lib/constants.ts)", "source": "lib/constants.ts"},
+    {"rule": "Creator payout = amount - platformFee", "source": "cryptoPayment.service.ts"},
+    {"rule": "Sandbox bypass (0x0000 prefix) intended for development only — must be gated behind NODE_ENV check", "source": "08-crypto-deep-dive.md §9.1"},
+    {"rule": "3 supported networks: Base (8453/84532), Monad (10143), MegaETH (9999)", "source": "08-crypto-deep-dive.md §6"},
+    {"rule": "Payment types: Subscription, Tip, PPV Post, PPV Message", "source": "cryptoPayment.service.ts"}
+  ],
+  "securityConsiderations": [
+    "CRITICAL: Sandbox bypass allows any authenticated user to create verified transactions with fake 0x0000-prefixed hashes, bypassing all on-chain verification",
+    "EVENT_TOPICS are placeholder values (not real keccak256 hashes) — log parsing uses to-address match instead of topic0 filtering, which is weaker",
+    "Hardcoded fallback contract addresses would verify against non-existent contracts if env var is not set",
+    "No RPC API keys — public RPC endpoints are rate-limited and shared",
+    "No rate limiting on /verify endpoint — potential for RPC spam and abuse",
+    "Frontend uses raw fetch() for crypto endpoints, bypassing apiClient auth interceptors"
+  ],
+  "performanceConsiderations": [
+    "Blockchain RPC call adds 2-10 seconds latency per verification",
+    "No caching — each verification hits the blockchain and database",
+    "RPC retries with exponential backoff extend latency to ~3.5 seconds worst case",
+    "DB insert is append-only and lightweight"
+  ],
+  "annotations": [
+    {"type": "critical", "text": "Sandbox bypass: Any txHash starting with 0x0000 skips all on-chain verification (steps 5-9). In production, any authenticated user can create fake verified transactions."},
+    {"type": "warning", "text": "Event topic hashes (EVENT_TOPICS) are placeholder strings, not real keccak256 hashes — actual verification relies on to-address matching"},
+    {"type": "warning", "text": "Contract addresses are hardcoded placeholders — must be set via CONTRACT_ADDRESS env var for production"},
+    {"type": "info", "text": "Three networks supported: Base (8453), Monad (10143), MegaETH (9999) based on creator's payoutPreference"}
+  ],
+  "swimlanes": [
+    {"lane": "Crypto Payment Controller", "nodes": ["n_controller_call"]},
+    {"lane": "Crypto Payment Service", "nodes": ["n_verify_service_call", "n_dedup_check", "n_dedup_fail", "n_format_check", "n_format_fail", "n_fetch_wallet", "n_wallet_missing", "n_sandbox_check", "n_sandbox_skip", "n_network_select", "n_receipt_null_check", "n_receipt_pending", "n_status_check", "n_status_fail", "n_contract_check", "n_contract_fail", "n_event_parsing", "n_recipient_check", "n_recipient_fail", "n_amount_check", "n_amount_fail", "n_fee_calc", "n_db_insert", "n_return_success", "n_rpc_retry", "n_rpc_fail"]},
+    {"lane": "Ethereum JSON-RPC", "nodes": ["n_rpc_call"]},
+    {"lane": "Supabase DB", "nodes": ["n_db_insert"]}
+  ],
+  "subgraphs": [
+    {"id": "sandbox_path", "label": "Sandbox Bypass Path (DEV ONLY)", "nodes": ["n_sandbox_check", "n_sandbox_skip"]},
+    {"id": "onchain_verification", "label": "On-Chain Verification Steps", "nodes": ["n_network_select", "n_rpc_call", "n_receipt_null_check", "n_status_check", "n_contract_check", "n_event_parsing", "n_recipient_check", "n_amount_check"]},
+    {"id": "pre_validation", "label": "Pre-Validation Steps", "nodes": ["n_dedup_check", "n_format_check", "n_fetch_wallet", "n_sandbox_check"]}
+  ],
+  "legend": [
+    {"symbol": "Process", "color": "#bbdefb", "meaning": "Verification step"},
+    {"symbol": "Decision", "color": "#fff9c4", "meaning": "Validation gate with true/false paths"},
+    {"symbol": "Database", "color": "#ffccbc", "meaning": "Supabase PostgreSQL interaction"},
+    {"symbol": "External System", "color": "#f3e5f5", "meaning": "Blockchain RPC endpoint"}
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "sequenceDiagram",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

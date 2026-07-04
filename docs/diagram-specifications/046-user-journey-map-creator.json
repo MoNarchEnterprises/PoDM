@@ -1,0 +1,217 @@
+{
+  "id": "046",
+  "title": "User Journey Map (Creator)",
+  "category": "H",
+  "diagramType": "Journey",
+  "purpose": "Mermaid Journey diagram showing a creator's experience through 7 key milestones from signup through contest management, with emotional scoring and friction annotations.",
+  "audience": "Product managers, UX designers, creator growth team, QA engineers",
+  "description": "The creator user journey spans 7 milestones: Signup + verification (score 2), First content upload (score 3), Subscriber notification (score 3), Earnings dashboard (score 4), Payout request (score 2), Message fans (score 4), Run contest (score 4). Critical friction: Payout off-ramp is fully mocked with no real money received. Medium friction: Verification is manual with no status updates, synchronous thumbnail generation slows upload (1GB memory buffer per file), no real-time push for subscriber notifications, broadcast has N+1 query pattern, contest winner uses Math.random() with no verifiable fairness. The journey reveals that the creator's core financial incentive (payout) has the worst experience, undermining the platform's value proposition.",
+  "actors": [
+    { "id": "creator", "label": "Creator", "type": "actor", "description": "Content creator who publishes media, manages subscriptions, earns revenue, and engages with fans" }
+  ],
+  "systems": [
+    { "id": "frontend_spa", "label": "React SPA (Frontend)", "type": "api", "description": "React application with creator hub routes (/hub/*), content upload, analytics, earnings" },
+    { "id": "backend_api", "label": "Express API (Backend)", "type": "api", "description": "Express.js REST API with creator-specific endpoints" },
+    { "id": "supabase_auth", "label": "Supabase Auth", "type": "authentication", "description": "Authentication provider for JWT management and user creation" },
+    { "id": "r2_storage", "label": "Cloudflare R2", "type": "storage", "description": "Object storage for content files, thumbnails, verification documents" }
+  ],
+  "modules": [],
+  "services": [
+    { "id": "auth_service", "label": "Auth Service", "type": "service", "description": "Signup, login, JWT management" },
+    { "id": "user_service", "label": "User Service", "type": "service", "description": "Profile management, onboarding, verification document submission" },
+    { "id": "content_service", "label": "Content Service", "type": "service", "description": "Content CRUD, file processing (sharp/ffmpeg), R2 upload, subscriber notification" },
+    { "id": "notification_service", "label": "Notification Service", "type": "service", "description": "Create in-app notifications for subscribers on new content" },
+    { "id": "creator_service", "label": "Creator Service", "type": "service", "description": "Dashboard aggregation, earnings data, payout processing" },
+    { "id": "crypto_payment_service", "label": "Crypto Payment Service", "type": "service", "description": "Off-ramp processing (mocked), earnings calculation" },
+    { "id": "message_service", "label": "Message Service", "type": "service", "description": "Direct messaging, broadcast to subscribers, Socket.IO delivery" },
+    { "id": "contest_service", "label": "Contest Service", "type": "service", "description": "Contest lifecycle, winner selection (Math.random())" },
+    { "id": "ai_service", "label": "AI Service", "type": "ai_agent", "description": "AI caption generation via OpenRouter/OpenAI" }
+  ],
+  "externalSystems": [
+    { "id": "openai_api", "label": "OpenRouter / OpenAI API", "type": "external_system", "description": "Third-party AI API for caption generation — base64 images sent without user consent" }
+  ],
+  "dataStores": [
+    { "id": "db_supabase", "label": "Supabase PostgreSQL", "type": "database", "description": "Primary database for profiles, content, subscriptions, transactions" },
+    { "id": "r2_content", "label": "Cloudflare R2 (Content Storage)", "type": "storage", "description": "Private bucket for content files, thumbnails, voice messages" }
+  ],
+  "entryPoints": [
+    { "id": "entry_signup", "label": "Creator Signup + Verification", "type": "start", "description": "Creator selects creator role during signup, completes onboarding and verification" }
+  ],
+  "exitPoints": [
+    { "id": "exit_contest", "label": "Run Contest Milestone", "type": "end", "description": "Creator creates, publishes, and finalizes a contest" }
+  ],
+  "preconditions": [
+    "Creator has valid email and password for signup",
+    "Platform is accessible with working frontend and backend",
+    "Creator has valid government ID for verification"
+  ],
+  "postconditions": [
+    "Creator is onboarded with subscription tiers, verified identity, and active status",
+    "Creator has published content with notifications sent to subscribers",
+    "Creator has viewed earnings, requested payout (mocked), messaged fans, and run a contest"
+  ],
+  "nodes": [
+    { "id": "c1_signup", "label": "Signup + verification — Select role → upload docs → wait", "type": "process", "description": "Creator signs up, selects creator role, completes onboarding (bio, tiers, banner), and submits identity verification. Score: 2. Manual admin review." },
+    { "id": "c1a_select_role", "label": "Select creator role during signup", "type": "process", "description": "User selects 'creator' role in signup form — determines redirect to onboarding flow" },
+    { "id": "c1b_onboarding", "label": "Complete onboarding (bio, tiers, banner)", "type": "process", "description": "POST /api/v1/users/me/onboarding — bio, subscription tiers, banner image. Backend syncs tiers with Stripe." },
+    { "id": "c1c_verification_upload", "label": "Upload verification docs (ID, selfie, signature)", "type": "process", "description": "POST /api/v1/users/me/verification — government ID photo, selfie, electronic signature uploaded to R2 private bucket" },
+    { "id": "c1d_admin_review", "label": "Admin reviews and approves/rejects", "type": "process", "description": "Admin reviews verification documents via signed URLs, approves (status=active) or rejects (status=previous)" },
+    { "id": "c1e_no_status_updates", "label": "No status update notifications during review", "type": "process", "description": "Creator sees only 'awaiting review' — no real-time updates when admin acts" },
+    { "id": "c2_upload", "label": "First content upload — Drag file → caption → publish", "type": "process", "description": "Creator uploads media files with title, type, visibility, optional AI caption. Score: 3. Sync thumbnail gen slows upload." },
+    { "id": "c2a_select_files", "label": "Select media files (up to 10)", "type": "process", "description": "Creator drags or selects image/video/audio files via file picker" },
+    { "id": "c2b_add_metadata", "label": "Add title, type, visibility, AI caption", "type": "process", "description": "Creator enters title, selects content type, sets visibility (subscribers_only/PPV), optionally generates AI caption" },
+    { "id": "c2c_multipart_upload", "label": "POST /api/v1/content multipart upload", "type": "process", "description": "Frontend sends multipart form with files + metadata to backend (uploadContent middleware, 1GB limit, 10 file limit)" },
+    { "id": "c2d_backend_processing", "label": "Backend file processing (sharp/ffmpeg)", "type": "process", "description": "Images: sharp resize + watermark + WebP conversion. Video: ffmpeg thumbnail (1s, 400px). All files uploaded to R2." },
+    { "id": "c2e_thumbnail_slow", "label": "Sync thumbnail generation slows upload (1GB buffer)", "type": "process", "description": "Sharp/ffmpeg processing is synchronous in-process — large files block the event loop, 1GB memory buffer per file" },
+    { "id": "c2f_db_record_created", "label": "Content record created in database", "type": "process", "description": "Content model creates record with file metadata array, visibility, status" },
+    { "id": "c2g_upload_failure", "label": "Upload failure (file too large, unsupported format)", "type": "process", "description": "Multer rejects >1GB files (413), sharp/ffmpeg rejects unsupported formats (500)" },
+    { "id": "c3_notify", "label": "Subscriber notification — Content published → notified", "type": "process", "description": "If subscribers_only: subscribers notified via DB notification. Score: 3. No real-time push (fan sees on next page load)." },
+    { "id": "c3a_check_visibility", "label": "Check if content is subscribers_only", "type": "process", "description": "Content service checks visibility field after content creation" },
+    { "id": "c3b_fetch_subscribers", "label": "Fetch all active subscribers", "type": "process", "description": "Notification service fetches all subscriptions with status=active for this creator" },
+    { "id": "c3c_filter_preferences", "label": "Filter by notification preferences", "type": "process", "description": "Check each subscriber's preferences.notifications.newContent flag" },
+    { "id": "c3d_batch_create_notifications", "label": "Batch create notification records in DB", "type": "process", "description": "Create notification records for eligible subscribers — no Socket.IO broadcast, user sees on next page load" },
+    { "id": "c3e_no_realtime_push", "label": "No real-time push to subscribers", "type": "process", "description": "Notifications are DB-only — no socket event or push notification sent" },
+    { "id": "c4_earnings", "label": "Earnings dashboard — View earnings → see balance", "type": "process", "description": "Creator visits /hub/earnings to view total earned, pending, available balance. Score: 4. Earnings data is accurate." },
+    { "id": "c4a_request_dashboard", "label": "GET /api/v1/creator/dashboard", "type": "process", "description": "Frontend requests dashboard — backend aggregates subscriber count, new content, views, recent earnings, PPV revenue" },
+    { "id": "c4b_view_earnings", "label": "View earnings breakdown", "type": "process", "description": "GET /api/v1/creator/earnings — backend returns earnings data with subscription/tip/PPV breakdowns" },
+    { "id": "c5_payout", "label": "Payout request — Enter amount → submit → off-ramp", "type": "process", "description": "Creator requests payout for available balance. Score: 2. Off-ramp is fully mocked — no real money received." },
+    { "id": "c5a_enter_amount", "label": "Enter payout amount", "type": "process", "description": "Creator enters amount to withdraw from available balance" },
+    { "id": "c5b_submit_payout", "label": "POST /api/v1/creator/payouts", "type": "process", "description": "Frontend sends payout request — creator service checks balance, creates negative transaction" },
+    { "id": "c5c_mocked_offramp", "label": "Off-ramp returns fake transfer ID", "type": "process", "description": "processDebitCardOffRamp — creates transaction record but returns mock response: { transferId: 'mock_cb_...', estimatedArrival: 'In 5-10 minutes' }" },
+    { "id": "c5d_payout_no_money", "label": "No real money received — fully simulated", "type": "process", "description": "No actual Stripe/Coinbase integration called — creator sees confirmation but never receives funds" },
+    { "id": "c5e_balance_race", "label": "No balance locking — race condition possible", "type": "process", "description": "Multiple concurrent payout requests could exceed available balance (no DB lock)" },
+    { "id": "c6_messaging", "label": "Message fans — View conversations → DM → broadcast", "type": "process", "description": "Creator manages DMs and sends broadcast to all subscribers. Score: 4. Broadcast has N+1 query pattern." },
+    { "id": "c6a_view_conversations", "label": "View fan conversations", "type": "process", "description": "GET /api/v1/messages/conversations — list conversations with last message preview and unread count" },
+    { "id": "c6b_send_dm", "label": "Send direct message to fan", "type": "process", "description": "POST /api/v1/messages — message delivered via Socket.IO in real-time" },
+    { "id": "c6c_broadcast", "label": "Send broadcast to all subscribers", "type": "process", "description": "POST /api/v1/messages/mass-message — backend iterates all active subscribers (N+1 problem)" },
+    { "id": "c6d_n_plus_one", "label": "N+1 query pattern in broadcast", "type": "process", "description": "For each subscriber: find or create conversation, insert message, emit socket event — no batch operation" },
+    { "id": "c7_contest", "label": "Run contest — Create → set prize → select winner → announce", "type": "process", "description": "Creator creates, publishes, and finalizes a contest. Score: 4. Math.random() winner selection with no audit trail." },
+    { "id": "c7a_create_contest", "label": "Create contest as draft", "type": "process", "description": "POST /api/v1/contests — creator sets title, description, start/end dates, prize, entry requirements" },
+    { "id": "c7b_publish_contest", "label": "Publish contest (draft -> active)", "type": "process", "description": "PUT /api/v1/contests/:id/publish — contest becomes visible in feed, fans can enter" },
+    { "id": "c7c_finalize_winner", "label": "Finalize and select winner", "type": "process", "description": "POST /api/v1/contests/:id/finalize — backend selects winner using Math.random()" },
+    { "id": "c7d_math_random", "label": "Math.random() winner selection — no audit trail", "type": "process", "description": "Winner selection uses Math.random() with no verifiable randomness, no on-chain commit-reveal, no audit trail" },
+    { "id": "c7e_announce_winner", "label": "Winner announced", "type": "process", "description": "Winner recorded on contest record, notification sent to winner" }
+  ],
+  "connections": [
+    { "from": "c1_signup", "to": "c1a_select_role", "relationship": "begins_with", "label": "Creator selects role during signup" },
+    { "from": "c1a_select_role", "to": "c1b_onboarding", "relationship": "triggers", "label": "Creator redirected to onboarding after signup" },
+    { "from": "c1b_onboarding", "to": "c1c_verification_upload", "relationship": "triggers", "label": "Creator proceeds to verification" },
+    { "from": "c1c_verification_upload", "to": "c1d_admin_review", "relationship": "submits_for_review", "label": "Documents submitted for admin review" },
+    { "from": "c1c_verification_upload", "to": "c1e_no_status_updates", "relationship": "no_updates", "label": "No status update notifications during review" },
+    { "from": "c1d_admin_review", "to": "c2_upload", "relationship": "approved", "label": "Verification approved, creator can upload content" },
+    { "from": "c2_upload", "to": "c2a_select_files", "relationship": "begins_with", "label": "Creator selects files to upload" },
+    { "from": "c2a_select_files", "to": "c2b_add_metadata", "relationship": "then", "label": "Creator adds title, type, visibility" },
+    { "from": "c2b_add_metadata", "to": "c2c_multipart_upload", "relationship": "triggers", "label": "Form submitted via multipart POST" },
+    { "from": "c2c_multipart_upload", "to": "c2d_backend_processing", "relationship": "triggers", "label": "Backend processes files" },
+    { "from": "c2d_backend_processing", "to": "c2e_thumbnail_slow", "relationship": "includes", "label": "Sync thumbnail gen is performance bottleneck" },
+    { "from": "c2d_backend_processing", "to": "c2f_db_record_created", "relationship": "then", "label": "Content record created after successful processing" },
+    { "from": "c2c_multipart_upload", "to": "c2g_upload_failure", "relationship": "fails_with", "label": "Upload rejected due to size or format" },
+    { "from": "c2f_db_record_created", "to": "c3_notify", "relationship": "triggers", "label": "Content published, notification flow starts" },
+    { "from": "c3_notify", "to": "c3a_check_visibility", "relationship": "begins_with", "label": "Check if subscribers should be notified" },
+    { "from": "c3a_check_visibility", "to": "c3b_fetch_subscribers", "relationship": "if_subscribers_only", "label": "Fetch all active subscribers" },
+    { "from": "c3b_fetch_subscribers", "to": "c3c_filter_preferences", "relationship": "then", "label": "Filter by notification preferences" },
+    { "from": "c3c_filter_preferences", "to": "c3d_batch_create_notifications", "relationship": "then", "label": "Create notification records" },
+    { "from": "c3d_batch_create_notifications", "to": "c3e_no_realtime_push", "relationship": "reveals_gap", "label": "No real-time push — DB-only" },
+    { "from": "c3e_no_realtime_push", "to": "c4_earnings", "relationship": "leads_to", "label": "Creator views earnings" },
+    { "from": "c4_earnings", "to": "c4a_request_dashboard", "relationship": "begins_with", "label": "Request dashboard data" },
+    { "from": "c4a_request_dashboard", "to": "c4b_view_earnings", "relationship": "displays", "label": "Earnings breakdown displayed" },
+    { "from": "c4b_view_earnings", "to": "c5_payout", "relationship": "leads_to", "label": "Creator requests payout" },
+    { "from": "c5_payout", "to": "c5a_enter_amount", "relationship": "begins_with", "label": "Enter payout amount" },
+    { "from": "c5a_enter_amount", "to": "c5b_submit_payout", "relationship": "triggers", "label": "Payout request submitted" },
+    { "from": "c5b_submit_payout", "to": "c5c_mocked_offramp", "relationship": "processes", "label": "Off-ramp processing started" },
+    { "from": "c5c_mocked_offramp", "to": "c5d_payout_no_money", "relationship": "returns_mock", "label": "Returns fake transfer ID — no real money" },
+    { "from": "c5b_submit_payout", "to": "c5e_balance_race", "relationship": "risk", "label": "No balance lock — concurrent payout risk" },
+    { "from": "c5d_payout_no_money", "to": "c6_messaging", "relationship": "leads_to", "label": "Creator messages fans" },
+    { "from": "c6_messaging", "to": "c6a_view_conversations", "relationship": "begins_with", "label": "View conversations" },
+    { "from": "c6a_view_conversations", "to": "c6b_send_dm", "relationship": "option", "label": "Send direct message" },
+    { "from": "c6a_view_conversations", "to": "c6c_broadcast", "relationship": "option", "label": "Send broadcast message" },
+    { "from": "c6c_broadcast", "to": "c6d_n_plus_one", "relationship": "reveals_gap", "label": "Broadcast has N+1 query pattern" },
+    { "from": "c6b_send_dm", "to": "c7_contest", "relationship": "leads_to", "label": "Creator runs contest" },
+    { "from": "c7_contest", "to": "c7a_create_contest", "relationship": "begins_with", "label": "Create contest as draft" },
+    { "from": "c7a_create_contest", "to": "c7b_publish_contest", "relationship": "then", "label": "Publish contest" },
+    { "from": "c7b_publish_contest", "to": "c7c_finalize_winner", "relationship": "after_end_date", "label": "Finalize and select winner" },
+    { "from": "c7c_finalize_winner", "to": "c7d_math_random", "relationship": "uses", "label": "Math.random() used for selection" },
+    { "from": "c7d_math_random", "to": "c7e_announce_winner", "relationship": "then", "label": "Winner announced" }
+  ],
+  "decisions": [
+    { "id": "dec_admin_approves", "condition": "Admin approves verification?", "truePath": "c2_upload", "falsePath": "c1c_verification_upload" },
+    { "id": "dec_visibility", "condition": "Content visibility is subscribers_only?", "truePath": "c3b_fetch_subscribers", "falsePath": "c4_earnings" },
+    { "id": "dec_dm_or_broadcast", "condition": "Creator sends DM or broadcast?", "truePath": "c6b_send_dm", "falsePath": "c6c_broadcast" },
+    { "id": "dec_file_valid", "condition": "File size > 1GB or unsupported format?", "truePath": "c2g_upload_failure", "falsePath": "c2d_backend_processing" }
+  ],
+  "loops": [
+    { "condition": "Creator publishes multiple content items", "target": "c2_upload" },
+    { "condition": "Creator sends multiple DMs", "target": "c6b_send_dm" }
+  ],
+  "errorPaths": [
+    { "trigger": "Stripe sync fails during onboarding", "destination": "c1b_onboarding", "recovery": "Show 'Failed to create subscription tiers — try again'" },
+    { "trigger": "R2 upload fails during content publish", "destination": "c2_upload", "recovery": "Content record may be created but files missing (orphaned — no rollback)" },
+    { "trigger": "Sharp/ffmpeg processing fails", "destination": "c2_upload", "recovery": "Show 'File processing failed — unsupported format'" },
+    { "trigger": "Notification to subscribers fails", "destination": "c2_upload", "recovery": "Non-fatal — content still published, notification failure logged" },
+    { "trigger": "AI caption API error/timeout", "destination": "c2b_add_metadata", "recovery": "Show error with retry option, fallback to manual caption" }
+  ],
+  "validationRules": [
+    "Creator must complete onboarding before publishing content",
+    "Verification requires both ID photo and selfie photo",
+    "Content file count max 10, individual file size max 1GB",
+    "Supported MIME types: jpeg, png, webp, mp4, mov, mp3, m4a, wav, ogg",
+    "Contest start_date must be before end_date",
+    "Payout amount cannot exceed available balance"
+  ],
+  "businessRules": [
+    "Platform commission is 12.5% DEFAULT_COMMISSION_RATE on all transactions",
+    "Enclave creators get 10% commission (not yet implemented)",
+    "Per-creator commission_rate override (not yet implemented)",
+    "Verification status must be 'active' for full platform access",
+    "Subscription tiers are synced with Stripe during onboarding"
+  ],
+  "securityConsiderations": [
+    "Payout has no balance lock — concurrent requests could exceed available balance",
+    "AI caption sends base64 image to OpenAI/OpenRouter without explicit user consent",
+    "Verification documents stored in R2 accessed via 60-second signed URLs — temporary exposure window",
+    "Math.random() for contest winner is not cryptographically secure — no audit trail"
+  ],
+  "performanceConsiderations": [
+    "Sync thumbnail generation (sharp/ffmpeg) blocks the event loop — 1GB memory buffer per file",
+    "Broadcast message has N+1 query pattern — one query per subscriber",
+    "Dashboard aggregates 5 data sources per page load — no caching",
+    "AI caption API call takes 1-5 seconds synchronous HTTP wait"
+  ],
+  "annotations": [
+    "Payout: score 2 — off-ramp is fully mocked, no real money received",
+    "Signup: score 2 — verification process is manual with no status updates",
+    "Upload: score 3 — synchronous thumbnail generation slows upload, 1GB memory buffer per file",
+    "Notify: score 3 — no real-time push to subscribers (DB-only)",
+    "Messaging: score 4 — broadcast has N+1 query pattern",
+    "Contest: score 4 — Math.random() winner selection with no verifiable fairness"
+  ],
+  "swimlanes": [
+    { "id": "lane_creator", "label": "Creator Actions", "nodes": ["c1_signup", "c1a_select_role", "c1b_onboarding", "c1c_verification_upload", "c2_upload", "c2a_select_files", "c2b_add_metadata", "c4_earnings", "c4a_request_dashboard", "c4b_view_earnings", "c5_payout", "c5a_enter_amount", "c6_messaging", "c6a_view_conversations", "c6b_send_dm", "c6c_broadcast", "c7_contest", "c7a_create_contest", "c7b_publish_contest", "c7c_finalize_winner", "c7e_announce_winner"] },
+    { "id": "lane_backend", "label": "Backend Processing", "nodes": ["c2c_multipart_upload", "c2d_backend_processing", "c2e_thumbnail_slow", "c2f_db_record_created", "c3_notify", "c3a_check_visibility", "c3b_fetch_subscribers", "c3c_filter_preferences", "c3d_batch_create_notifications", "c5b_submit_payout", "c5c_mocked_offramp", "c6d_n_plus_one", "c7d_math_random"] },
+    { "id": "lane_admin", "label": "Admin Processing", "nodes": ["c1d_admin_review"] },
+    { "id": "lane_gaps", "label": "Known Gaps", "nodes": ["c1e_no_status_updates", "c2g_upload_failure", "c3e_no_realtime_push", "c5d_payout_no_money", "c5e_balance_race"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_signup", "label": "Signup + Verification", "nodes": ["c1_signup", "c1a_select_role", "c1b_onboarding", "c1c_verification_upload", "c1d_admin_review", "c1e_no_status_updates"] },
+    { "id": "sg_upload", "label": "First Content Upload", "nodes": ["c2_upload", "c2a_select_files", "c2b_add_metadata", "c2c_multipart_upload", "c2d_backend_processing", "c2e_thumbnail_slow", "c2f_db_record_created", "c2g_upload_failure"] },
+    { "id": "sg_notify", "label": "Subscriber Notification", "nodes": ["c3_notify", "c3a_check_visibility", "c3b_fetch_subscribers", "c3c_filter_preferences", "c3d_batch_create_notifications", "c3e_no_realtime_push"] },
+    { "id": "sg_earnings", "label": "Earnings Dashboard", "nodes": ["c4_earnings", "c4a_request_dashboard", "c4b_view_earnings"] },
+    { "id": "sg_payout", "label": "Payout Request", "nodes": ["c5_payout", "c5a_enter_amount", "c5b_submit_payout", "c5c_mocked_offramp", "c5d_payout_no_money", "c5e_balance_race"] },
+    { "id": "sg_messaging", "label": "Message Fans", "nodes": ["c6_messaging", "c6a_view_conversations", "c6b_send_dm", "c6c_broadcast", "c6d_n_plus_one"] },
+    { "id": "sg_contest", "label": "Run Contest", "nodes": ["c7_contest", "c7a_create_contest", "c7b_publish_contest", "c7c_finalize_winner", "c7d_math_random", "c7e_announce_winner"] }
+  ],
+  "legend": [
+    { "symbol": "Score 2", "meaning": "Poor experience (Signup, Payout — manual/broken)" },
+    { "symbol": "Score 3", "meaning": "Average experience (Upload, Notify — functional but slow)" },
+    { "symbol": "Score 4", "meaning": "Good experience (Earnings, Messaging, Contest)" },
+    { "symbol": "Red circle", "meaning": "Critical friction point" },
+    { "symbol": "Yellow circle", "meaning": "Medium friction point" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "journey",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

@@ -1,0 +1,137 @@
+﻿{
+  "id": "051",
+  "title": "Build and Deploy Pipeline (Frontend)",
+  "category": "I",
+  "diagramType": "Flowchart",
+  "purpose": "Trace the frontend build pipeline from TypeScript source through type checking, bundling by Vite, and deployment to production (Netlify) and preview (Cloudflare Pages) environments.",
+  "audience": "Frontend developers, DevOps engineers, CI/CD maintainers",
+  "description": "Frontend build pipeline: TypeScript source in podm-frontend/src/ -> TypeScript checking (tsc) -> Vite build with PostCSS + autoprefixer and Rollup bundler (code splitting with React.lazy()) -> content hashing for cache busting -> output to podm-frontend/dist/ -> deployed to Netlify (production with SPA redirect rules, security headers via netlify.toml) or Cloudflare Pages (preview branches). Build environment includes VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL, VITE_STRIPE_PUBLISHABLE_KEY. Critical warnings: JWT_SECRET exposed in frontend .env (server secret exposed to client bundle), no E2E tests run before deployment.",
+  "actors": [
+    { "id": "dev_push", "label": "Developer (git push / PR)", "type": "actor", "description": "Developer pushes code or opens PR triggering CI/CD pipeline" }
+  ],
+  "systems": [
+    { "id": "github_actions", "label": "GitHub Actions CI", "type": "process", "description": "CI pipeline with parallel jobs: backend test (Jest) + frontend lint (ESLint) + build (Vite)" },
+    { "id": "netlify", "label": "Netlify Deploy (Production)", "type": "external_system", "description": "Production hosting with netlify.toml config: build command, publish dir, SPA redirect, security headers" },
+    { "id": "cloudflare_pages", "label": "Cloudflare Pages (Preview Branches)", "type": "external_system", "description": "Preview deployment for feature branches, same build process as production" }
+  ],
+  "modules": [],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [
+    { "id": "entry_source", "label": "TypeScript + React source in podm-frontend/src/", "type": "start", "description": "Source code entry point for the build pipeline" }
+  ],
+  "exitPoints": [
+    { "id": "exit_netlify", "label": "Netlify Production URL", "type": "end", "description": "Production deployment at podm.app (or custom domain)" },
+    { "id": "exit_cloudflare", "label": "Cloudflare Pages Preview URL", "type": "end", "description": "Preview deployment for each feature branch" }
+  ],
+  "preconditions": [
+    "Source code has been committed and pushed to GitHub",
+    "CI/CD workflow (.github/workflows/) is configured",
+    "Netlify and Cloudflare Pages projects are linked to the repository",
+    "Environment variables are configured in Netlify/Cloudflare dashboards"
+  ],
+  "postconditions": [
+    "Production site is updated on Netlify with security headers and SPA redirects",
+    "Preview branch is deployed to Cloudflare Pages",
+    "dist/ folder contains optimized HTML, JS, CSS, and assets with content hashes"
+  ],
+  "nodes": [
+    { "id": "src", "label": "Source: TypeScript + React in podm-frontend/src/", "type": "process", "description": "All .tsx/.ts/.css source files organized in components, features, pages, hooks, lib" },
+    { "id": "tsc", "label": "Type Checking: tsc", "type": "process", "description": "TypeScript compiler checks for type errors (noEmit: true)" },
+    { "id": "build", "label": "Build: vite build", "type": "process", "description": "Vite bundles the application with tree-shaking and code splitting" },
+    { "id": "css", "label": "PostCSS + autoprefixer", "type": "process", "description": "PostCSS processes Tailwind CSS with autoprefixer for browser compatibility" },
+    { "id": "js", "label": "Rollup bundler (code splitting with React.lazy())", "type": "process", "description": "Rollup creates optimized bundles with dynamic imports for lazy-loaded routes" },
+    { "id": "assets", "label": "Content hashing for cache busting", "type": "process", "description": "File names include content hash for long-term caching" },
+    { "id": "dist", "label": "Output: podm-frontend/dist/ (HTML, JS, CSS, assets)", "type": "process", "description": "Build output directory ready for deployment" },
+    { "id": "netlify_deploy", "label": "Netlify Deploy (production)", "type": "process", "description": "Deploy to Netlify production environment" },
+    { "id": "cloud_deploy", "label": "Cloudflare Pages (preview branches)", "type": "process", "description": "Deploy to Cloudflare Pages preview environment" },
+    { "id": "n1", "label": "Build: cd podm-frontend && npm run build", "type": "process", "description": "Netlify build command" },
+    { "id": "n2", "label": "Publish dir: podm-frontend/dist/", "type": "process", "description": "Netlify publish directory configuration" },
+    { "id": "n3", "label": "SPA redirect: /* to /index.html", "type": "process", "description": "Netlify SPA redirect rule for client-side routing" },
+    { "id": "n4", "label": "Security headers via netlify.toml (CSP, HSTS, X-Frame-Options)", "type": "authentication", "description": "HTTP security headers configured in netlify.toml" },
+    { "id": "c1", "label": "Same build process as production", "type": "process", "description": "Cloudflare Pages uses identical build settings" },
+    { "id": "c2", "label": "Deploys preview branches", "type": "process", "description": "Each git branch gets a unique preview URL" },
+    { "id": "e1", "label": "Env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY", "type": "process", "description": "Build environment variables for Supabase connection" },
+    { "id": "e2", "label": "Env: VITE_API_URL, VITE_STRIPE_PUBLISHABLE_KEY", "type": "process", "description": "Build environment variables for API and Stripe" },
+    { "id": "e3", "label": "WARNING: JWT_SECRET in frontend .env (server secret exposed to client)", "type": "validation", "description": "Critical: JWT_SECRET in frontend environment exposes server signing secret to client bundle" },
+    { "id": "w1", "label": "WARNING: No E2E tests run before deployment", "type": "validation", "description": "No Playwright E2E tests execute in the CI pipeline before production deploy" }
+  ],
+  "connections": [
+    { "from": "src", "to": "tsc", "relationship": "type_checked", "label": "Source passed through TypeScript checker" },
+    { "from": "tsc", "to": "build", "relationship": "triggers", "label": "Type check passes, Vite build starts" },
+    { "from": "build", "to": "css", "relationship": "processes", "label": "CSS processed by PostCSS" },
+    { "from": "build", "to": "js", "relationship": "bundles", "label": "JS bundled by Rollup" },
+    { "from": "build", "to": "assets", "relationship": "hashes", "label": "Asset filenames content-hashed" },
+    { "from": "css", "to": "dist", "relationship": "outputs_to", "label": "Processed CSS output to dist/" },
+    { "from": "js", "to": "dist", "relationship": "outputs_to", "label": "Bundled JS output to dist/" },
+    { "from": "assets", "to": "dist", "relationship": "outputs_to", "label": "Hashed assets output to dist/" },
+    { "from": "dist", "to": "netlify_deploy", "relationship": "deployed_to", "label": "dist/ deployed to Netlify production" },
+    { "from": "dist", "to": "cloud_deploy", "relationship": "deployed_to", "label": "dist/ deployed to Cloudflare preview" },
+    { "from": "netlify_deploy", "to": "n1", "relationship": "configured_as", "label": "Netlify build command" },
+    { "from": "netlify_deploy", "to": "n2", "relationship": "configured_as", "label": "Netlify publish directory" },
+    { "from": "netlify_deploy", "to": "n3", "relationship": "configured_as", "label": "Netlify SPA redirect rule" },
+    { "from": "netlify_deploy", "to": "n4", "relationship": "configured_as", "label": "Netlify security headers" },
+    { "from": "cloud_deploy", "to": "c1", "relationship": "uses", "label": "Same build as production" },
+    { "from": "cloud_deploy", "to": "c2", "relationship": "deploys", "label": "Preview per branch" },
+    { "from": "src", "to": "e1", "relationship": "reads", "label": "Source uses VITE_SUPABASE_* env vars" },
+    { "from": "src", "to": "e2", "relationship": "reads", "label": "Source uses VITE_API_URL and VITE_STRIPE_*" },
+    { "from": "src", "to": "e3", "relationship": "exposes", "label": "JWT_SECRET leaked to client bundle" },
+    { "from": "dist", "to": "w1", "relationship": "no_e2e", "label": "No E2E tests before deploy" }
+  ],
+  "decisions": [
+    { "id": "dec_main_branch", "condition": "Push to main branch?", "truePath": "netlify_deploy", "falsePath": "cloud_deploy" }
+  ],
+  "loops": [],
+  "errorPaths": [
+    { "trigger": "TypeScript type check fails", "destination": "src", "recovery": "Pipeline fails with type errors, developer fixes and re-pushes" },
+    { "trigger": "Vite build fails", "destination": "build", "recovery": "Pipeline fails with build error, developer fixes and re-pushes" },
+    { "trigger": "Netlify deploy fails", "destination": "dist", "recovery": "Rollback to previous successful deployment" }
+  ],
+  "validationRules": [
+    "TypeScript strict mode enforced by tsc",
+    "Vite build must complete with zero errors",
+    "Netlify deploy requires netlify.toml configuration",
+    "All VITE_ prefixed vars are available at build time"
+  ],
+  "businessRules": [],
+  "securityConsiderations": [
+    "CRITICAL: JWT_SECRET exposed in frontend .env — server-side signing secret leaked to client bundle",
+    "Content Security Policy (CSP) and HSTS headers set via netlify.toml",
+    "X-Frame-Options prevents clickjacking",
+    "No E2E tests before deployment — security regressions may reach production"
+  ],
+  "performanceConsiderations": [
+    "Code splitting via React.lazy() reduces initial bundle size",
+    "Content hashing enables long-term caching of static assets",
+    "PostCSS + autoprefixer adds vendor prefixes for browser compatibility"
+  ],
+  "annotations": [
+    "WARNING: JWT_SECRET in frontend .env (server secret exposed to client bundle)",
+    "WARNING: No E2E tests run before deployment",
+    "Production deploys to Netlify, preview branches to Cloudflare Pages"
+  ],
+  "swimlanes": [
+    { "id": "lane_source", "label": "Source / Build", "nodes": ["src", "tsc", "build", "css", "js", "assets", "dist"] },
+    { "id": "lane_deploy", "label": "Deployment", "nodes": ["netlify_deploy", "cloud_deploy", "n1", "n2", "n3", "n4", "c1", "c2"] },
+    { "id": "lane_env", "label": "Environment", "nodes": ["e1", "e2", "e3"] },
+    { "id": "lane_warnings", "label": "Warnings", "nodes": ["w1"] }
+  ],
+  "subgraphs": [],
+  "legend": [
+    { "symbol": "Blue fill", "meaning": "Source or build step" },
+    { "symbol": "Green fill", "meaning": "Build output" },
+    { "symbol": "Purple fill", "meaning": "Netlify deploy configuration" },
+    { "symbol": "Orange fill", "meaning": "Cloudflare deploy configuration" },
+    { "symbol": "Red fill", "meaning": "Security warning" },
+    { "symbol": "Yellow fill", "meaning": "Operational warning" },
+    { "symbol": "Dashed arrow", "meaning": "Environment variable or warning annotation" }
+  ],
+  "layoutHints": {
+    "direction": "LR",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": true
+  }
+}

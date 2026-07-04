@@ -1,0 +1,127 @@
+﻿{
+  "id": "054",
+  "title": "Sensitive Data Flow Map",
+  "category": "J",
+  "diagramType": "Graph (flowchart)",
+  "purpose": "Trace five categories of sensitive data (PII, secrets, auth tokens, payment data, AI data) across entry points, storage locations, and transmission channels, highlighting security and privacy risks.",
+  "audience": "Security engineers, compliance team, data protection officers, backend developers",
+  "description": "Five categories of sensitive data are traced. PII: entered via signup form (email, username), verification upload (ID, selfie), support tickets; stored in profiles table, support_tickets JSONB; transmitted via 60s signed URLs via R2, email via SMTP (unused), auth debug log to disk (27K+ lines via appendFileSync). Secrets/Credentials: entered via environment variables and .env files; stored in 3 .env copies (root, backend, frontend) and Render/Netlify env config; transmitted in frontend bundle if VITE_-prefixed. CRITICAL: JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY in frontend .env expose server secrets to client. Auth Data: JWT entered via Supabase Auth response, stored in localStorage/sessionStorage, transmitted as Bearer header on every request. XSS vulnerable. Payment Data: crypto wallet address, tx hashes, USDC amounts stored in transactions table and subscriptions table; transmitted via Ethereum RPC. No raw card data stored (Stripe Elements tokenizes on frontend). AI Data: image uploads for captions stored as content descriptions; transmitted as base64 to OpenRouter/OpenAI without user consent.",
+  "actors": [],
+  "systems": [],
+  "modules": [],
+  "services": [],
+  "externalSystems": [],
+  "dataStores": [],
+  "entryPoints": [],
+  "exitPoints": [],
+  "preconditions": [
+    "Platform is operational with users, payments, and AI features active",
+    "Sensitive data flows are functioning across all five categories"
+  ],
+  "postconditions": [
+    "All sensitive data entry, storage, and transmission paths are documented",
+    "Critical leaks (JWT_SECRET in frontend, PII in debug log, no AI consent) are identified"
+  ],
+  "nodes": [
+    { "id": "pii_entry", "label": "PII Entry: signup form (email, username, name), verification upload (ID, selfie), support tickets", "type": "process", "description": "Points where PII enters the system" },
+    { "id": "pii_store", "label": "PII Storage: profiles table (email, username, verification JSONB with file paths), support_tickets.conversation JSONB", "type": "database", "description": "Where PII is persisted in the database" },
+    { "id": "pii_tx", "label": "PII Transmission: 60s signed URLs via R2, email via SMTP (unused), auth debug log to disk", "type": "process", "description": "How PII moves through the system" },
+    { "id": "pii_debug", "label": "WARNING: auth.middleware.ts writes PII via appendFileSync(debug.log) - 27K+ lines", "type": "validation", "description": "Synchronous file logging of PII to disk — security and performance risk" },
+    { "id": "sec_entry", "label": "Secrets Entry: Environment variables, .env files", "type": "process", "description": "Points where secrets enter the system" },
+    { "id": "sec_store", "label": "Secrets Storage: 3 .env copies (root, backend, frontend), Render/Netlify environment config", "type": "storage", "description": "Where secrets are persisted — proliferation across multiple files" },
+    { "id": "sec_tx", "label": "Secrets Transmission: accessible in frontend bundle if VITE_-prefixed", "type": "process", "description": "How secrets reach the client" },
+    { "id": "sec_jwt", "label": "WARNING: JWT_SECRET in frontend .env (server secret exposed to client bundle)", "type": "validation", "description": "Server-side JWT signing secret exposed to client bundle" },
+    { "id": "sec_supa", "label": "WARNING: SUPABASE_SERVICE_ROLE_KEY in frontend .env (full DB access key in client code)", "type": "validation", "description": "Database admin key exposed to client bundle" },
+    { "id": "auth_entry", "label": "Auth Token Entry: Supabase Auth response (JWT)", "type": "process", "description": "JWT enters system from Supabase Auth after successful login/signup" },
+    { "id": "auth_store", "label": "Auth Token Storage: localStorage or sessionStorage", "type": "storage", "description": "JWT persisted in browser storage" },
+    { "id": "auth_tx", "label": "Auth Token Transmission: Bearer header on every request", "type": "process", "description": "JWT sent with every authenticated API request" },
+    { "id": "auth_xss", "label": "WARNING: localStorage XSS vector — any XSS vulnerability leaks all JWTs", "type": "validation", "description": "XSS attack can exfiltrate JWT from localStorage" },
+    { "id": "pay_entry", "label": "Payment Data Entry: crypto wallet address (profiles.crypto_wallet), transaction hashes, USDC amounts", "type": "process", "description": "Payment information entry points" },
+    { "id": "pay_store", "label": "Payment Data Storage: transactions table, subscriptions table (txHash in stripe_subscription_id)", "type": "database", "description": "Where payment data is persisted" },
+    { "id": "pay_tx", "label": "Payment Data Transmission: Ethereum RPC (txHash, contract address)", "type": "process", "description": "How payment data is transmitted" },
+    { "id": "pay_safe", "label": "OK: No raw card data stored (Stripe Elements tokenizes on frontend)", "type": "validation", "description": "PCI compliance — raw card data never touches backend" },
+    { "id": "ai_entry", "label": "AI Data Entry: image upload for caption generation", "type": "process", "description": "User media enters AI processing pipeline" },
+    { "id": "ai_store", "label": "AI Data Storage: content.description (caption result)", "type": "database", "description": "AI-generated captions stored in content records" },
+    { "id": "ai_tx", "label": "AI Data Transmission: Base64-encoded image sent to OpenRouter/OpenAI", "type": "process", "description": "Media sent to third-party AI API" },
+    { "id": "ai_warn", "label": "WARNING: No user consent — media sent to third-party AI API without explicit disclosure", "type": "validation", "description": "Privacy gap — no consent mechanism for AI processing" }
+  ],
+  "connections": [
+    { "from": "pii_entry", "to": "pii_store", "relationship": "stored_in", "label": "PII captured from forms stored in database" },
+    { "from": "pii_store", "to": "pii_tx", "relationship": "transmitted_via", "label": "PII transmitted via signed URLs and debug logs" },
+    { "from": "pii_debug", "to": "pii_store", "relationship": "leaks_from", "label": "Debug log writes PII from auth middleware" },
+    { "from": "sec_entry", "to": "sec_store", "relationship": "stored_in", "label": "Secrets from env vars stored in .env files" },
+    { "from": "sec_store", "to": "sec_tx", "relationship": "transmitted_via", "label": "VITE_ prefixed secrets transmitted to frontend" },
+    { "from": "sec_jwt", "to": "sec_tx", "relationship": "leaks_via", "label": "JWT_SECRET leaked through frontend bundle" },
+    { "from": "sec_supa", "to": "sec_tx", "relationship": "leaks_via", "label": "SUPABASE_SERVICE_ROLE_KEY leaked through frontend bundle" },
+    { "from": "auth_entry", "to": "auth_store", "relationship": "stored_in", "label": "JWT from Supabase stored in localStorage" },
+    { "from": "auth_store", "to": "auth_tx", "relationship": "transmitted_via", "label": "JWT sent as Bearer header" },
+    { "from": "auth_xss", "to": "auth_store", "relationship": "threatens", "label": "XSS can steal JWT from localStorage" },
+    { "from": "pay_entry", "to": "pay_store", "relationship": "stored_in", "label": "Payment data stored in transactions/subscriptions tables" },
+    { "from": "pay_store", "to": "pay_tx", "relationship": "transmitted_via", "label": "Tx hashes sent to Ethereum RPC for verification" },
+    { "from": "pay_safe", "to": "pay_store", "relationship": "notes", "label": "No raw card data stored — PCI compliant" },
+    { "from": "ai_entry", "to": "ai_store", "relationship": "stored_in", "label": "AI captions stored in content records" },
+    { "from": "ai_store", "to": "ai_tx", "relationship": "transmitted_via", "label": "Base64 images sent to AI API" },
+    { "from": "ai_warn", "to": "ai_tx", "relationship": "warns", "label": "No user consent for AI processing" }
+  ],
+  "decisions": [],
+  "loops": [],
+  "errorPaths": [],
+  "validationRules": [
+    "PII must not be written to disk-based debug logs",
+    "JWT_SECRET must never be in frontend .env files",
+    "SUPABASE_SERVICE_ROLE_KEY must never be in frontend .env files",
+    "User consent must be obtained before sending media to third-party AI APIs",
+    "Raw card data must never be stored server-side (Stripe Elements compliance)"
+  ],
+  "businessRules": [],
+  "securityConsiderations": [
+    "CRITICAL: JWT_SECRET in frontend .env exposes server signing key to all users",
+    "CRITICAL: SUPABASE_SERVICE_ROLE_KEY in frontend .env gives full DB access to client",
+    "CRITICAL: auth.middleware.ts writes PII to debug.log via synchronous appendFileSync (27K+ lines)",
+    "HIGH: localStorage JWT storage is XSS-vulnerable",
+    "HIGH: AI caption sends user media to third-party API without consent",
+    "OK: Payment card data is tokenized by Stripe Elements — no raw card data on backend"
+  ],
+  "performanceConsiderations": [
+    "auth.middleware.ts appendFileSync is synchronous IO — blocks event loop",
+    "Debug log at 27K+ lines indicates production debug overhead"
+  ],
+  "annotations": [
+    "WARNING: auth.middleware.ts writes PII via appendFileSync(debug.log) - 27K+ lines",
+    "WARNING: JWT_SECRET in frontend .env (server secret exposed to client bundle)",
+    "WARNING: SUPABASE_SERVICE_ROLE_KEY in frontend .env (full DB access key in client code)",
+    "WARNING: localStorage XSS vector — any XSS vulnerability leaks all JWTs",
+    "WARNING: No user consent — media sent to third-party AI API without explicit disclosure",
+    "OK: No raw card data stored (Stripe Elements tokenizes on frontend)"
+  ],
+  "swimlanes": [
+    { "id": "lane_pii", "label": "PII (Personally Identifiable Information)", "nodes": ["pii_entry", "pii_store", "pii_tx", "pii_debug"] },
+    { "id": "lane_secrets", "label": "Secrets / Credentials", "nodes": ["sec_entry", "sec_store", "sec_tx", "sec_jwt", "sec_supa"] },
+    { "id": "lane_auth", "label": "Auth Data (Tokens)", "nodes": ["auth_entry", "auth_store", "auth_tx", "auth_xss"] },
+    { "id": "lane_pay", "label": "Payment Data", "nodes": ["pay_entry", "pay_store", "pay_tx", "pay_safe"] },
+    { "id": "lane_ai", "label": "AI Data (Prompts/Responses)", "nodes": ["ai_entry", "ai_store", "ai_tx", "ai_warn"] }
+  ],
+  "subgraphs": [
+    { "id": "sg_pii", "label": "PII (Personally Identifiable Information)", "nodes": ["pii_entry", "pii_store", "pii_tx", "pii_debug"] },
+    { "id": "sg_secrets", "label": "Secrets / Credentials", "nodes": ["sec_entry", "sec_store", "sec_tx", "sec_jwt", "sec_supa"] },
+    { "id": "sg_auth", "label": "Auth Data (Tokens)", "nodes": ["auth_entry", "auth_store", "auth_tx", "auth_xss"] },
+    { "id": "sg_pay", "label": "Payment Data", "nodes": ["pay_entry", "pay_store", "pay_tx", "pay_safe"] },
+    { "id": "sg_ai", "label": "AI Data (Prompts/Responses)", "nodes": ["ai_entry", "ai_store", "ai_tx", "ai_warn"] }
+  ],
+  "legend": [
+    { "symbol": "Red/Orange fill", "meaning": "PII data flow" },
+    { "symbol": "Deep red fill", "meaning": "Secrets data flow" },
+    { "symbol": "Yellow fill", "meaning": "Auth token data flow" },
+    { "symbol": "Green fill", "meaning": "Payment data flow" },
+    { "symbol": "Purple fill", "meaning": "AI data flow" },
+    { "symbol": "Yellow warning icon", "meaning": "Security warning" },
+    { "symbol": "Green check icon", "meaning": "Compliant practice" }
+  ],
+  "layoutHints": {
+    "direction": "TB",
+    "preferredShape": "flowchart",
+    "groupRelatedNodes": true,
+    "minimizeEdgeCrossing": true,
+    "emphasizeDecisionNodes": false
+  }
+}
