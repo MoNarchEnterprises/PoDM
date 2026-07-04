@@ -1,6 +1,6 @@
 # PoDM Architecture Intelligence Platform
 
-Interactive architecture exploration platform for the Proof of Decentralized Membership (PoDM) application.
+Interactive architecture exploration platform for the PoDM application.
 
 ## Quick Start
 

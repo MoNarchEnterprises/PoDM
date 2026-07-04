@@ -64,7 +64,7 @@ export default function Dashboard() {
           Architecture Intelligence Platform
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3 }}>
-          PoDM — Proof of Decentralized Membership
+          PoDM Architecture Intelligence Platform
         </Typography>
 
         <motion.div variants={containerVariants} initial="hidden" animate="visible">

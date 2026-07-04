@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   contextWindow: 4096,
   maxTokens: 2048,
   keepAlive: '5m',
-  systemPrompt: `You are an expert architecture assistant for the PoDM (Proof of Decentralized Membership) platform.
+  systemPrompt: `You are an expert architecture assistant for the PoDM platform.
 Answer questions using ONLY the provided documentation context. Do not analyze application source code.
 Provide concise, accurate answers about architecture, modules, services, workflows, diagrams, and dependencies.`,
   streaming: true,
