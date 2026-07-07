@@ -52,7 +52,7 @@ const SplashPage = () => {
                                     </span>
                                 </h1>
                                 <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                                    The only platform where follower counts don't exist. No algorithms, no public metrics, just a private link for your top fans to support you. Your numbers are nobody's business but yours.
+                                    Your Audience is Waiting...
                                 </p>
                                 <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                                     <button

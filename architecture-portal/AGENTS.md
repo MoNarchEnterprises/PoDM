@@ -35,12 +35,20 @@ Interactive architecture exploration portal for the PoDM application. Enables de
 - Types: PascalCase interfaces/types in `src/types/`
 - Store: camelCase with `Store` suffix, default export from zustand `create()`
 
+## Data Serving (Critical)
+
+The portal fetches all data from `docs/` at runtime via `fetch('/docs/...')`. Vite only serves files under `public/` at the root URL, so `docs/` must be copied into `public/docs/` before dev or build.
+
+`scripts/copy-docs.mjs` copies `../docs/` → `public/docs/` and runs automatically before `vite` and `vite build` via package.json scripts. `public/docs/` is gitignored.
+
+If data appears missing, run `node scripts/copy-docs.mjs` manually or check that `public/docs/` exists.
+
 ## Work Guidance
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start Vite dev server (port 5173) |
-| `npm run build` | TypeScript check + Vite production build to `dist/` |
+| `npm run dev` | Copy docs + start Vite dev server (port 5173) |
+| `npm run build` | Copy docs + TypeScript check + Vite production build to `dist/` |
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | ESLint check |
 
@@ -48,6 +56,8 @@ Interactive architecture exploration portal for the PoDM application. Enables de
 
 - `npm run build` must pass with zero errors before committing
 - Build output goes to `architecture-portal/dist/` (128+ files)
+- After `npm run dev`, verify `public/docs/knowledge/modules.json` exists
+- Check browser DevTools Network tab for 404s on `/docs/` requests
 
 ## Child DOX Index
 
@@ -55,7 +65,7 @@ No child directories with AGENTS.md exist under this subtree.
 
 ## Knowledge Source Integration
 
-The portal loads its content from `docs/` at runtime:
+The portal loads its content from `docs/` at runtime (copied to `public/docs/`):
 - `docs/knowledge/` — 15 normalized JSON files (the canonical knowledge graph)
 - `docs/architecture/` — Architecture markdown documents
 - `docs/flowcharts/` — Mermaid flowchart markdown files

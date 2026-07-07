@@ -293,7 +293,7 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
                         className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
                     >
                         <Download className="w-4 h-4" />
-                        <span>{isExportingFans ? 'Exporting Fans...' : 'Export Fan Data'}</span>
+                        <span>{isExportingFans ? 'Exporting Audience...' : 'Export Audience Data'}</span>
                     </Button>
                     <Button 
                         onClick={handleExport} 

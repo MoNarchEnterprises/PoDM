@@ -1,57 +1,128 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
-interface WalletConfig {
-    walletAddress: string | null;
-    walletType: 'none' | 'embedded' | 'custom';
-    payoutPreference: 'debit_card' | 'on_chain';
+const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
+const BASE_SEPOLIA_CHAIN_ID_NUM = 84532;
+
+const USDC_ADDRESSES: Record<number, string> = {
+    84532: '0x036eFd9011037348926609f2A377B6729024D914',
+    8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913',
+};
+
+const ERC20_BALANCE_OF_ABI = '0x70a08231';
+
+function getRpcUrl(): string {
+    return import.meta.env.VITE_BASE_TESTNET_RPC_URL || 'https://sepolia.base.org';
+}
+
+function getUsdcAddress(): string {
+    const chainId = Number(window.ethereum?.chainId) || BASE_SEPOLIA_CHAIN_ID_NUM;
+    return USDC_ADDRESSES[chainId] || USDC_ADDRESSES[BASE_SEPOLIA_CHAIN_ID_NUM];
 }
 
 export const useCryptoWallet = () => {
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const [balance, setBalance] = useState<number>(0); // USDC balance
+    const [balance, setBalance] = useState<number>(0);
+    const [chainId, setChainId] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    /**
-     * Connects an embedded Privy/Web3Auth wallet or custom browser extension wallet (MetaMask, Phantom)
-     */
+    const fetchUsdcBalance = useCallback(async (address: string): Promise<number> => {
+        try {
+            const eth = window.ethereum;
+            if (!eth) return 0;
+
+            const usdcAddress = getUsdcAddress();
+            const data = ERC20_BALANCE_OF_ABI + address.slice(2).toLowerCase().padStart(64, '0');
+
+            const result = await eth.request({
+                method: 'eth_call',
+                params: [{
+                    to: usdcAddress,
+                    data,
+                }, 'latest'],
+            });
+
+            const hexBalance = result as string;
+            const rawBalance = BigInt(hexBalance);
+            return Number(rawBalance) / 1e6;
+        } catch {
+            return 0;
+        }
+    }, []);
+
+    const switchToBaseSepolia = useCallback(async (eth: any): Promise<void> => {
+        try {
+            await eth.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+            });
+        } catch (switchError: any) {
+            if (switchError.code === 4902) {
+                await eth.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: BASE_SEPOLIA_CHAIN_ID,
+                        chainName: 'Base Sepolia Testnet',
+                        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                        rpcUrls: [getRpcUrl()],
+                        blockExplorerUrls: ['https://sepolia.basescan.org'],
+                    }],
+                });
+            } else {
+                throw new Error('Please switch your wallet to Base Sepolia to continue.');
+            }
+        }
+    }, []);
+
     const connectWallet = useCallback(async (type: 'embedded' | 'custom') => {
         setIsLoading(true);
         setError(null);
         try {
-            // Simulated connection delay
-            await new Promise((resolve) => setTimeout(resolve, 800));
-            
-            let mockAddress = '';
             if (type === 'embedded') {
-                mockAddress = '0x84f2A18DbcF34E8f75b7b64C094B1B3De5F78453'; // System embedded Address on Base
-            } else {
-                mockAddress = '0x5C3Cb6a26E543aB6d71bB1D50fE32724D3De5F78'; // Custom creator address
+                setError('Embedded (Privy) wallet not yet available. Please use a browser extension wallet.');
+                setIsLoading(false);
+                return;
             }
-            
-            setWalletAddress(mockAddress);
+
+            const eth = window.ethereum;
+            if (!eth) {
+                setError('No wallet detected. Please install MetaMask or Coinbase Wallet.');
+                setIsLoading(false);
+                return;
+            }
+
+            const accounts = await eth.request({ method: 'eth_requestAccounts' });
+            if (!accounts || accounts.length === 0) {
+                throw new Error('No accounts returned from wallet.');
+            }
+
+            await switchToBaseSepolia(eth);
+
+            const hexChainId = await eth.request({ method: 'eth_chainId' });
+            const currentChainId = Number(hexChainId);
+
+            setWalletAddress(accounts[0]);
+            setChainId(currentChainId);
             setIsConnected(true);
-            setBalance(1250.00); // Set mock balance for initial demonstration
+
+            const usdcBalance = await fetchUsdcBalance(accounts[0]);
+            setBalance(usdcBalance);
         } catch (err: any) {
             setError(err.message || 'Failed to connect wallet.');
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [fetchUsdcBalance, switchToBaseSepolia]);
 
-    /**
-     * Disconnects the connected wallet session
-     */
     const disconnectWallet = useCallback(async () => {
         setIsConnected(false);
         setWalletAddress(null);
         setBalance(0);
+        setChainId(0);
+        setError(null);
     }, []);
 
-    /**
-     * Submits a transaction hash to the backend for validation on the blockchain
-     */
     const verifyTransactionOnBackend = useCallback(async (params: {
         txHash: string;
         creatorId: string;
@@ -66,7 +137,6 @@ export const useCryptoWallet = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Note: Auth token is usually attached by apiClient or fetch interceptors
                 },
                 body: JSON.stringify(params),
             });
@@ -84,15 +154,43 @@ export const useCryptoWallet = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const eth = window.ethereum;
+        if (!eth) return;
+
+        const handleAccountsChanged = (accounts: string[]) => {
+            if (accounts.length === 0) {
+                disconnectWallet();
+            } else {
+                setWalletAddress(accounts[0]);
+                fetchUsdcBalance(accounts[0]).then(setBalance);
+            }
+        };
+
+        const handleChainChanged = () => {
+            window.location.reload();
+        };
+
+        eth.on('accountsChanged', handleAccountsChanged);
+        eth.on('chainChanged', handleChainChanged);
+
+        return () => {
+            eth.removeListener('accountsChanged', handleAccountsChanged);
+            eth.removeListener('chainChanged', handleChainChanged);
+        };
+    }, [disconnectWallet, fetchUsdcBalance]);
+
     return {
         isConnected,
         walletAddress,
         balance,
+        chainId,
         isLoading,
         error,
         connectWallet,
         disconnectWallet,
-        verifyTransactionOnBackend
+        verifyTransactionOnBackend,
     };
 };
+
 export default useCryptoWallet;

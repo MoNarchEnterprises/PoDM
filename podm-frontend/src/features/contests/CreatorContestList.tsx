@@ -28,7 +28,7 @@ const CreatorContestList = () => {
     }, []);
 
     const handlePublish = async (id: string) => {
-        if (confirm('Are you sure you want to publish this contest? It will be visible to fans immediately.')) {
+        if (confirm('Are you sure you want to publish this contest? It will be visible to your audience immediately.')) {
             await apiClient.publishContest(id);
             fetchContests();
         }
@@ -62,7 +62,7 @@ const CreatorContestList = () => {
                 <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
                     <Trophy className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No contests yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">Create your first contest to engage your fans.</p>
+                    <p className="mt-1 text-sm text-gray-500">Create your first contest to engage your audience.</p>
                 </div>
             ) : (
                 <div className="grid gap-4">

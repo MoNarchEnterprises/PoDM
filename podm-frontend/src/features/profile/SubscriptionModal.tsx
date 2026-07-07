@@ -13,47 +13,14 @@ interface SubscriptionModalProps {
     onSubscriptionComplete: (result: any) => void;
 }
 
-interface NetworkParams {
-    chainId: string;
-    chainName: string;
-    nativeCurrency: { name: string; symbol: string; decimals: number };
-    rpcUrls: string[];
-    blockExplorerUrls: string[];
-}
-
-const NETWORKS: Record<string, NetworkParams> = {
-    base: {
-        chainId: '0x14a34', // 84532 (Base Sepolia)
-        chainName: 'Base Sepolia Testnet',
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        rpcUrls: ['https://sepolia.base.org'],
-        blockExplorerUrls: ['https://sepolia.basescan.org']
-    },
-    monad: {
-        chainId: '0x279f', // 10143 (Monad Testnet)
-        chainName: 'Monad Testnet',
-        nativeCurrency: { name: 'Monad', symbol: 'MONAD', decimals: 18 },
-        rpcUrls: ['https://rpc.testnet.monad.xyz'],
-        blockExplorerUrls: ['https://testnet.monadexplorer.com']
-    },
-    megaeth: {
-        chainId: '0x270f', // 9999 (MegaETH Testnet)
-        chainName: 'MegaETH Testnet',
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        rpcUrls: ['https://rpc.testnet.megaeth.systems'],
-        blockExplorerUrls: ['https://testnet.megaeth.systems']
-    }
-};
+const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
+const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
 
 const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscriptionComplete }: SubscriptionModalProps) => {
-    const { isConnected, walletAddress, balance, isLoading: walletLoading, connectWallet } = useCryptoWallet();
+    const { isConnected, walletAddress, balance, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'connect' | 'approve'>('connect');
-
-    // Retrieve creator's preferred payout network (Base is the default)
-    const preferredNetwork = creator.profile.crypto_wallet_payout_preference || 'base';
-    const activeNetwork = NETWORKS[preferredNetwork] || NETWORKS.base;
 
     React.useEffect(() => {
         if (isConnected) {
@@ -77,40 +44,67 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
         setError(null);
 
         try {
-            // Trigger transient browser wallet network switch popup for custom extensions (MetaMask, Phantom, etc.)
-            const eth = (window as any).ethereum;
-            if (eth && walletAddress && !walletAddress.startsWith('0x84f2')) { // Skip simulation wallet
-                try {
-                    await eth.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: activeNetwork.chainId }],
-                    });
-                } catch (switchError: any) {
-                    if (switchError.code === 4902) {
-                        try {
-                            await eth.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [activeNetwork],
-                            });
-                        } catch (addError: any) {
-                            throw new Error(`Failed to add ${activeNetwork.chainName} to your wallet.`);
-                        }
-                    } else {
-                        throw new Error(`Failed to switch network to ${activeNetwork.chainName}.`);
-                    }
-                }
+            const eth = window.ethereum;
+            if (!eth || !walletAddress) {
+                throw new Error('Wallet not connected.');
             }
 
-            // Simulate the smart contract splitter transaction execution
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await eth.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+            }).catch(async (switchError: any) => {
+                if (switchError.code === 4902) {
+                    await eth.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: BASE_SEPOLIA_CHAIN_ID,
+                            chainName: 'Base Sepolia Testnet',
+                            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                            rpcUrls: [BASE_SEPOLIA_RPC],
+                            blockExplorerUrls: ['https://sepolia.basescan.org'],
+                        }],
+                    });
+                } else {
+                    throw new Error('Failed to switch network to Base Sepolia.');
+                }
+            });
 
-            // Generate a real-looking mock transaction hash for the ledger
-            const mockTxHash = '0x0000_sub_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const amountWei = BigInt(Math.round(selectedTier.price * 1e6));
+            const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
+            if (!contractAddress) {
+                throw new Error('Contract address not configured. Please set VITE_BASE_TESTNET_CONTRACT_ADDRESS.');
+            }
+
+            const creatorWallet = creator.profile.crypto_wallet_address;
+            if (!creatorWallet) {
+                throw new Error('Creator has not configured their payout wallet.');
+            }
+
+            const approveData = '0x' +
+                'e73e7d6e' +
+                creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
+                amountWei.toString(16).padStart(64, '0') +
+                '0'.repeat(64) +
+                '0000000000000000000000000000000000000000000000000000000000000060' +
+                '0000000000000000000000000000000000000000000000000000000000000000';
+
+            const txHash = await eth.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                    from: walletAddress,
+                    to: contractAddress,
+                    data: approveData,
+                }],
+            });
+
+            if (!txHash || typeof txHash !== 'string') {
+                throw new Error('Transaction was rejected or failed.');
+            }
 
             await onSubscriptionComplete({
                 creatorId: creator.id,
                 tierId: selectedTier.id,
-                paymentMethodId: mockTxHash,
+                paymentMethodId: txHash,
             });
             onClose();
         } catch (err: any) {
@@ -118,12 +112,6 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const networkHeaderNames: Record<string, string> = {
-        base: 'Base Network (USDC)',
-        monad: 'Monad L1 (USDC)',
-        megaeth: 'MegaETH L2 (USDC)'
     };
 
     return (
@@ -134,12 +122,11 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                     USDC Autopilot Subscription
                 </h2>
                 <p className="text-xs text-purple-300 mt-1 uppercase tracking-widest font-semibold">
-                    Powered by {networkHeaderNames[preferredNetwork] || 'Base Network (USDC)'}
+                    Powered by Base Network (USDC)
                 </p>
             </header>
 
             <main className="p-6 space-y-6 bg-slate-900 text-gray-200">
-                {/* Product Summary */}
                 <div className="p-4 bg-slate-800/80 rounded-xl border border-slate-700">
                     <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Subscribing to</p>
                     <div className="flex justify-between items-baseline mt-1">
@@ -150,7 +137,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                     </div>
                     <div className="mt-3 flex items-center text-xs text-green-400 bg-green-500/10 p-2 rounded-lg">
                         <Zap className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                        Autopilot Enabled: split payout handled directly on-chain on {activeNetwork.chainName}
+                        Autopilot Enabled: split payout handled directly on-chain on Base Sepolia
                     </div>
                 </div>
 
@@ -160,23 +147,11 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                             <Wallet className="w-12 h-12 mx-auto text-purple-400 animate-bounce" />
                             <h3 className="text-md font-bold text-white">Connect Crypto Wallet</h3>
                             <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                                You need to connect a Web3 wallet containing USDC on the {activeNetwork.chainName} to configure the monthly subscription.
+                                You need to connect a Web3 wallet containing USDC on Base Sepolia to configure the monthly subscription.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-3">
-                            <button
-                                onClick={() => handleConnect('embedded')}
-                                disabled={walletLoading}
-                                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-bold rounded-xl flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 border border-purple-500/40 shadow-lg shadow-purple-900/30"
-                            >
-                                <span className="flex flex-col text-left">
-                                    <span className="text-sm">Embedded Account (Privy)</span>
-                                    <span className="text-3xs text-purple-300 font-normal">Quick login with Google / Email</span>
-                                </span>
-                                <span className="bg-purple-900/50 py-1 px-2.5 rounded-lg text-xs font-bold text-purple-200">Recommended</span>
-                            </button>
-
                             <button
                                 onClick={() => handleConnect('custom')}
                                 disabled={walletLoading}
@@ -186,7 +161,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                                     <span className="text-sm">Browser Extension Wallet</span>
                                     <span className="text-3xs text-gray-400 font-normal">MetaMask, Coinbase Wallet, Phantom</span>
                                 </span>
-                                <span className="border border-slate-600 py-1 px-2 rounded-lg text-xs text-gray-300">Custom</span>
+                                <span className="border border-slate-600 py-1 px-2 rounded-lg text-xs text-gray-300">Connect</span>
                             </button>
                         </div>
                     </div>
@@ -204,27 +179,26 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                             </div>
                         </div>
 
-                        {/* Safety Disclaimer */}
                         <div className="p-3 bg-slate-800 rounded-xl space-y-1.5 text-xs text-gray-400 border border-slate-700">
                             <div className="flex items-center text-white font-semibold">
                                 <ShieldCheck className="w-4 h-4 mr-1 text-green-400" />
                                 100% Chargeback Proof Protocol
                             </div>
                             <p className="leading-relaxed">
-                                Denominated in USDC. Confirming will request your wallet to switch to **{activeNetwork.chainName}** to sign the one-time subscription pull permission. PoDM Platform commission is dynamically calculated.
+                                Denominated in USDC. Confirming will request your wallet to switch to **Base Sepolia** to sign the one-time subscription pull permission. PoDM Platform commission is dynamically calculated.
                             </p>
                         </div>
 
                         <div className="flex items-center space-x-2 text-2xs text-purple-300 bg-purple-500/10 p-2.5 rounded-lg border border-purple-500/20">
                             <AlertCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                            <span>Gas is paid in native {activeNetwork.nativeCurrency.symbol}. Switch prompt will handle network parameters automatically.</span>
+                            <span>Gas is paid in native ETH on Base Sepolia. Switch prompt will handle network parameters automatically.</span>
                         </div>
                     </div>
                 )}
 
-                {error && (
+                {(error || walletError) && (
                     <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400 text-center">
-                        {error}
+                        {error || walletError}
                     </div>
                 )}
             </main>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Box, Typography, Paper, Chip, Grid, Skeleton, Breadcrumbs,
+  Box, Typography, Paper, Chip, Grid2 as Grid, Skeleton, Breadcrumbs,
   Button, Stepper, Step, StepLabel, Accordion, AccordionSummary,
   AccordionDetails, List, ListItem, ListItemText,
 } from '@mui/material';

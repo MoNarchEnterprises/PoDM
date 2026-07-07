@@ -66,6 +66,29 @@ export const countAllNewSubscribersInPeriod = async (startDate: Date): Promise<n
     );
 };
 
+export const findSubscriptionsDueForRenewal = async (): Promise<Subscription[] | null> => {
+    return handleList<Subscription>(
+        supabase.from('subscriptions')
+            .select('*')
+            .eq('status', 'active')
+            .lte('next_billing_date', new Date().toISOString())
+            .not('fan_wallet_address', 'is', null),
+        'find subscriptions due for renewal'
+    );
+};
+
+export const findSubscriptionByFanAndCreator = async (fanId: string, creatorId: string): Promise<Subscription | null> => {
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions')
+            .select('*')
+            .eq('fan_id', fanId)
+            .eq('creator_id', creatorId)
+            .eq('status', 'active')
+            .single(),
+        'find subscription by fan and creator', fanId, creatorId
+    );
+};
+
 export const countTotalActiveSubscribersAtDate = async (creatorId: string, date: Date): Promise<number> => {
     return handleCount(
         supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('creator_id', creatorId).lte('created_at', date.toISOString()).or(`end_date.is.null,end_date.gt.${date.toISOString()}`),

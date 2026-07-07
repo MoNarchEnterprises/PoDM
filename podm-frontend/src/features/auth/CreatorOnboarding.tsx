@@ -102,7 +102,7 @@ const CreatorOnboardingPage = () => {
                 <OnboardingStep>
                     <h2 className="text-xl font-semibold text-center mb-4">Step 1: Welcome to the Platform</h2>
                     <p className="text-center text-gray-600 dark:text-gray-300">
-                        We're thrilled to have you join our community! This short setup process will help you get your profile ready for your fans. 
+                        We're thrilled to have you join our community! This short setup process will help you get your profile ready for your audience. 
                         You'll set up your public profile, create subscription tiers, and learn about our verification process.
                     </p>
                 </OnboardingStep>
@@ -118,7 +118,7 @@ const CreatorOnboardingPage = () => {
                         </div>
                         <div>
                             <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Profile Bio</label>
-                            <textarea id="bio" rows={4} value={formData.profile.bio} onChange={handleProfileChange} placeholder="Tell your fans a little about yourself and your content..." className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                            <textarea id="bio" rows={4} value={formData.profile.bio} onChange={handleProfileChange} placeholder="Tell your audience a little about yourself and your content..." className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                         </div>
                     </div>
                 </OnboardingStep>

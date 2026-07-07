@@ -32,7 +32,7 @@ router.post('/verify', protect, verifyCryptoPayment);
 
 /**
  * @route   POST /api/v1/payments/crypto/withdraw
- * @desc    Request a fiat off-ramp cash-out to a linked debit card (US only)
+ * @desc    Request a payout to the creator's configured wallet (on-chain USDC on Base)
  * @access  Private (Creators only)
  */
 router.post('/withdraw', protect, requestWithdrawal);

@@ -11,21 +11,17 @@ export const WalletSettings: React.FC = () => {
         disconnectWallet
     } = useCryptoWallet();
 
-    // Local configuration states
     const [walletType, setWalletType] = useState<'embedded' | 'custom'>('embedded');
-    const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain'>('debit_card');
+    const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain' | 'base'>('debit_card');
     const [customAddress, setCustomAddress] = useState<string>('');
-    const [payoutNetwork, setPayoutNetwork] = useState<'base' | 'monad' | 'megaeth'>('base'); // Default is Base
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    // Withdrawal Drawer / Dialog state
     const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
     const [withdrawAmount, setWithdrawAmount] = useState<string>('');
     const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
     const [withdrawalStatus, setWithdrawalStatus] = useState<any>(null);
 
-    // Load initial wallet settings on mount
     useEffect(() => {
         const loadConfigs = async () => {
             try {
@@ -38,7 +34,6 @@ export const WalletSettings: React.FC = () => {
                         if (result.data.walletType === 'custom') {
                             setCustomAddress(result.data.walletAddress || '');
                         }
-                        setPayoutNetwork(result.data.payoutNetwork || 'base');
                     }
                 }
             } catch (err) {
@@ -48,7 +43,6 @@ export const WalletSettings: React.FC = () => {
         loadConfigs();
     }, []);
 
-    // Auto-connect embedded wallet on render for mock demonstration
     useEffect(() => {
         if (!isConnected && walletType === 'embedded') {
             connectWallet('embedded');
@@ -65,7 +59,6 @@ export const WalletSettings: React.FC = () => {
                 walletAddress: walletType === 'embedded' ? walletAddress : customAddress,
                 walletType,
                 payoutPreference: walletType === 'embedded' ? 'debit_card' : payoutPreference,
-                payoutNetwork
             };
 
             const response = await fetch('/api/v1/payments/crypto/wallet', {
@@ -96,7 +89,7 @@ export const WalletSettings: React.FC = () => {
 
         try {
             const amountInCents = Math.round(parseFloat(withdrawAmount) * 100);
-            
+
             const response = await fetch('/api/v1/payments/crypto/withdraw', {
                 method: 'POST',
                 headers: {
@@ -119,16 +112,9 @@ export const WalletSettings: React.FC = () => {
         }
     };
 
-    const networkNames: Record<string, string> = {
-        base: 'Base Network (USDC) Active',
-        monad: 'Monad Network (USDC) Active',
-        megaeth: 'MegaETH Network (USDC) Active'
-    };
-
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 font-sans p-6 md:p-12">
             <div className="max-w-4xl mx-auto space-y-8">
-                {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     <div>
                         <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
@@ -138,20 +124,16 @@ export const WalletSettings: React.FC = () => {
                             Configure how you receive earnings from subscriptions and tips.
                         </p>
                     </div>
-                    {/* Network Badge */}
                     <div className="self-start px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-950/20 text-purple-300 text-xs font-semibold flex items-center gap-2">
                         <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                        {networkNames[payoutNetwork] || 'Base Network (USDC) Active'}
+                        Base Network (USDC)
                     </div>
                 </div>
 
-                {/* Main Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* Left Column: Balance & Quick Cash-out */}
+
                     <div className="lg:col-span-1 space-y-6">
                         <div className="relative rounded-2xl overflow-hidden border border-purple-500/20 bg-gray-900/60 backdrop-blur-xl p-6 shadow-2xl">
-                            {/* Colorful Gradient Glow */}
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full filter blur-3xl pointer-events-none"></div>
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-600/10 rounded-full filter blur-3xl pointer-events-none"></div>
 
@@ -180,7 +162,6 @@ export const WalletSettings: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Quick Overview Stats */}
                         <div className="rounded-xl border border-gray-900 bg-gray-900/30 p-4 space-y-3">
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400">Monthly Revenue (USDC)</span>
@@ -188,19 +169,16 @@ export const WalletSettings: React.FC = () => {
                             </div>
                             <div className="flex justify-between text-xs border-t border-gray-900 pt-3">
                                 <span className="text-gray-400">Platform Commission</span>
-                                <span className="font-bold text-purple-400">10% (The Enclave)</span>
+                                <span className="font-bold text-purple-400">Per-creator rate</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Column: Payout Configurations */}
                     <div className="lg:col-span-2 space-y-6">
                         <form onSubmit={handleSaveSettings} className="rounded-2xl border border-gray-800/80 bg-gray-900/40 p-6 md:p-8 shadow-2xl space-y-6">
                             <h3 className="text-xl font-bold text-white">Payout Method Settings</h3>
 
-                            {/* Wallet Selection Options */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Option 1: Embedded System Wallet */}
                                 <div
                                     onClick={() => {
                                         setWalletType('embedded');
@@ -224,7 +202,6 @@ export const WalletSettings: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Option 2: Custom Payout Address */}
                                 <div
                                     onClick={() => {
                                         setWalletType('custom');
@@ -249,52 +226,6 @@ export const WalletSettings: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Ecosystem payout network selector */}
-                            <div className="space-y-3 p-4 rounded-xl bg-gray-950/60 border border-gray-800/80">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
-                                    Ecosystem Payout Network
-                                </label>
-                                <p className="text-2xs text-gray-400 leading-relaxed">
-                                    Choose the blockchain network where you want to receive USDC. Every payment you receive creates visible on-chain activity on your chosen network, helping PoDM qualify for ecosystem builder grants!
-                                </p>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'base' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
-                                        <input
-                                            type="radio"
-                                            name="payoutNetwork"
-                                            value="base"
-                                            checked={payoutNetwork === 'base'}
-                                            onChange={() => setPayoutNetwork('base')}
-                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
-                                        />
-                                        <span className="font-semibold text-white">Base L2 (Default)</span>
-                                    </label>
-                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'monad' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
-                                        <input
-                                            type="radio"
-                                            name="payoutNetwork"
-                                            value="monad"
-                                            checked={payoutNetwork === 'monad'}
-                                            onChange={() => setPayoutNetwork('monad')}
-                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
-                                        />
-                                        <span className="font-semibold text-white">Monad L1 (Testnet)</span>
-                                    </label>
-                                    <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-xl border text-xs transition-colors ${payoutNetwork === 'megaeth' ? 'border-purple-500 bg-purple-950/10' : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'}`}>
-                                        <input
-                                            type="radio"
-                                            name="payoutNetwork"
-                                            value="megaeth"
-                                            checked={payoutNetwork === 'megaeth'}
-                                            onChange={() => setPayoutNetwork('megaeth')}
-                                            className="text-purple-500 focus:ring-0 bg-gray-950 border-gray-800"
-                                        />
-                                        <span className="font-semibold text-white">MegaETH L2 (Testnet)</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Conditional Panels */}
                             {walletType === 'embedded' ? (
                                 <div className="p-4 rounded-xl bg-gray-950/60 border border-gray-900 space-y-3">
                                     <p className="text-xs font-semibold text-purple-400">Embedded Payout Profile</p>
@@ -316,7 +247,7 @@ export const WalletSettings: React.FC = () => {
                             ) : (
                                 <div className="space-y-4 p-4 rounded-xl bg-gray-950/60 border border-gray-900">
                                     <p className="text-xs font-semibold text-pink-400">Custom Wallet Details</p>
-                                    
+
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Wallet Address (ERC-20)</label>
                                         <input
@@ -328,10 +259,9 @@ export const WalletSettings: React.FC = () => {
                                         />
                                     </div>
 
-                                    {/* Preference options */}
                                     <div className="space-y-2 pt-2">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Payout Schedule</label>
-                                        <div className="flex items-center gap-4 text-xs">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Payout Preference</label>
+                                        <div className="flex flex-col gap-2 text-xs">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
@@ -339,7 +269,16 @@ export const WalletSettings: React.FC = () => {
                                                     onChange={() => setPayoutPreference('on_chain')}
                                                     className="text-pink-500 focus:ring-0 bg-gray-900 border-gray-800"
                                                 />
-                                                Real-time direct payout (Gas-less)
+                                                Real-time on-chain payout (Base USDC)
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    checked={payoutPreference === 'base'}
+                                                    onChange={() => setPayoutPreference('base')}
+                                                    className="text-pink-500 focus:ring-0 bg-gray-900 border-gray-800"
+                                                />
+                                                Base Network (USDC)
                                             </label>
                                         </div>
                                     </div>
@@ -350,14 +289,12 @@ export const WalletSettings: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Status Message */}
                             {saveMessage && (
                                 <div className={`p-3 rounded-lg text-xs font-semibold ${saveMessage.includes('successfully') ? 'bg-green-950/20 border border-green-500/20 text-green-400' : 'bg-red-950/20 border border-red-500/20 text-red-400'}`}>
                                     {saveMessage}
                                 </div>
                             )}
 
-                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={isSaving}
@@ -370,19 +307,16 @@ export const WalletSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Withdrawal Modal Dialog Drawer */}
             {showWithdrawModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
                     <div className="relative w-full max-w-md rounded-2xl border border-purple-500/20 bg-gray-900 p-6 md:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
-                        
-                        {/* Title */}
+
                         <div>
                             <h3 className="text-xl font-extrabold text-white">Withdraw settled USDC</h3>
                             <p className="text-gray-400 text-xs mt-1">Convert your USDC instantly and cash out to bank.</p>
                         </div>
 
                         {withdrawalStatus && !withdrawalStatus.error ? (
-                            // Success Screen
                             <div className="space-y-6 text-center py-4">
                                 <div className="w-12 h-12 rounded-full bg-green-950/20 border border-green-500/20 text-green-400 flex items-center justify-center mx-auto text-xl font-bold">
                                     ✓
@@ -407,7 +341,6 @@ export const WalletSettings: React.FC = () => {
                                 </button>
                             </div>
                         ) : (
-                            // Input / Form screen
                             <form onSubmit={handleWithdraw} className="space-y-6">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Amount to Withdraw</label>
@@ -449,7 +382,6 @@ export const WalletSettings: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Action Buttons */}
                                 <div className="flex gap-4">
                                     <button
                                         type="button"

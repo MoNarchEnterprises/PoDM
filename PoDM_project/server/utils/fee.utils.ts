@@ -1,52 +1,24 @@
 import supabase from '../config/supabaseClient';
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 
 /**
- * Calculate platform fee percentage based on creator's monthly earnings
- * @param creatorId - Creator's user ID
- * @param isEnclaveMember - Whether creator is an Enclave member
- * @returns Platform fee percentage (e.g., 15 for 15%)
+ * Get platform fee percentage for a creator.
+ * Uses the creator's per-profile commission_rate if set,
+ * otherwise falls back to the DEFAULT_COMMISSION_RATE.
  */
-export const calculatePlatformFeePercentage = async (
-    creatorId: string,
-    isEnclaveMember: boolean = false
-): Promise<number> => {
-    // Enclave members always get 10% fee
-    if (isEnclaveMember) {
-        return 10;
-    }
-
-    // Get creator's earnings for the current month
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const { data, error } = await supabase
-        .from('transactions')
-        .select('amount, platform_fee')
-        .eq('creator_id', creatorId)
-        .gte('created_at', startOfMonth.toISOString());
+export const getCommissionRateForCreator = async (creatorId: string): Promise<number> => {
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('commission_rate')
+        .eq('id', creatorId)
+        .single();
 
     if (error) {
-        console.error('Error fetching creator earnings:', error);
-        // Default to highest tier if error
-        return 15;
+        console.error('[FeeUtils] Failed to fetch commission_rate:', error.message);
+        return DEFAULT_COMMISSION_RATE;
     }
 
-    // Calculate total earnings this month (amount - platform_fee)
-    const totalEarnings = data.reduce((sum, t) => {
-        return sum + (t.amount - t.platform_fee);
-    }, 0);
-
-    // Convert from cents to dollars
-    const earningsInDollars = totalEarnings / 100;
-
-    // Determine tier based on monthly earnings
-    if (earningsInDollars <= 5000) {
-        return 15; // Tier 1: 0-$5,000/month
-    } else if (earningsInDollars <= 10000) {
-        return 12.5; // Tier 2: $5,001-$10,000/month
-    } else {
-        return 10; // Tier 3: $10,001+/month
-    }
+    return profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
 };
 
 /**

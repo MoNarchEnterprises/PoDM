@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Box, Grid, Typography, TextField, Skeleton, InputAdornment,
+  Box, Grid2 as Grid, Typography, TextField, Skeleton, InputAdornment,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { useKnowledgeGraph } from '../../hooks/useKnowledgeGraph';

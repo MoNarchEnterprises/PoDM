@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  Box, Grid, Typography, Paper, Skeleton,
+  Box, Grid2 as Grid, Typography, Paper, Skeleton,
 } from '@mui/material';
 import {
   Widgets, Settings, AltRoute, Storage, Web, Code,

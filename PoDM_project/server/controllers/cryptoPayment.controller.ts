@@ -23,7 +23,7 @@ export const updateWalletConfig = asyncHandler(async (req: Request, res: Respons
         throw new AppError('Invalid wallet type specified.', 400);
     }
 
-    if (!['debit_card', 'on_chain'].includes(payoutPreference)) {
+    if (!['debit_card', 'on_chain', 'base'].includes(payoutPreference)) {
         throw new AppError('Invalid payout preference specified.', 400);
     }
 

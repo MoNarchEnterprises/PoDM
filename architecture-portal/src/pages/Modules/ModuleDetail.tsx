@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Box, Typography, Paper, Grid, Chip, Table, TableHead,
+  Box, Typography, Paper, Grid2 as Grid, Chip, Table, TableHead,
   TableRow, TableCell, TableBody, Skeleton, Breadcrumbs,
   Button,
 } from '@mui/material';
@@ -138,7 +138,7 @@ export default function ModuleDetail() {
             Source Files
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {mod.sourceFiles.map((f) => (
+            {(mod.sourceFiles ?? []).map((f) => (
               <Chip
                 key={f}
                 label={f}

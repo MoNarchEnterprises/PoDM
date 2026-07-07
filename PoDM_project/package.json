@@ -23,6 +23,7 @@
     "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
+    "ethers": "^6.17.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "fluent-ffmpeg": "^2.1.3",

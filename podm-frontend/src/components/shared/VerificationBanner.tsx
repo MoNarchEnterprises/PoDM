@@ -14,13 +14,13 @@ const VerificationBanner = ({ status }: VerificationBannerProps) => {
             icon: Clock,
             color: 'blue',
             title: 'Your verification is under review.',
-            text: 'You can set up your profile and upload content, but you cannot message fans or receive payments until approved (usually within 48 hours).'
+            text: 'You can set up your profile and upload content, but you cannot message your audience or receive payments until approved (usually within 48 hours).'
         },
         'suspended': {
             icon: Shield,
             color: 'yellow',
             title: 'Your account is currently suspended.',
-            text: 'Please contact support to resolve any issues. You cannot currently receive payments or message fans.'
+            text: 'Please contact support to resolve any issues. You cannot currently receive payments or message your audience.'
         },
         'banned': {
             icon: Shield,

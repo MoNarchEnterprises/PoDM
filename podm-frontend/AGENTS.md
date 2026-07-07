@@ -28,6 +28,7 @@ Client-facing user interface for fans, creators, and administrators on the PoDM 
 - **Routing**: React Router v7 (lazy-loaded routes in `App.tsx`)
 - **Real-time**: Socket.IO client v4
 - **Payments UI**: Stripe React SDK (`@stripe/react-stripe-js`, `@stripe/stripe-js`)
+- **Crypto Wallet**: Raw `window.ethereum` EIP-1193 (no viem/wagmi dependency)
 - **Charts**: Recharts 3
 - **Icons**: Lucide React
 - **HTTP client**: Axios (wrapped in `apiClient.ts`)

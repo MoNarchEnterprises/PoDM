@@ -3,7 +3,7 @@
 /**
  * Defines the possible statuses for a fan's subscription.
  */
-export type SubscriptionStatus = 'active' | 'canceled' | 'expired';
+export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'pending';
 
 /**
  * Defines the billing cycle for a subscription.
@@ -41,7 +41,10 @@ export interface Subscription {
   start_date: string; // ISO 8601 date string
   end_date?: string; // ISO 8601 date string, for canceled/expired subscriptions
   next_billing_date?: string; // ISO 8601 date string, for active subscriptions
-  stripe_subscription_id?: string; // Stripe Subscription ID
+  stripe_subscription_id?: string; // Stripe Subscription ID or blockchain tx hash
+  blockchain_tx_hash?: string; // On-chain allowance approval transaction hash
+  fan_wallet_address?: string; // Fan's wallet that approved the recurring allowance
+  max_allowance?: number; // Max USDC allowance approved by fan (in USDC units, not cents)
   payment_method: PaymentMethod;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string

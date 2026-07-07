@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Box, Typography, TextField, Grid, Paper, Chip, Collapse,
+  Box, Typography, TextField, Grid2 as Grid, Paper, Chip, Collapse,
   IconButton, Table, TableHead, TableRow, TableCell, TableBody,
   FormControl, InputLabel, Select, MenuItem, InputAdornment,
   Skeleton,

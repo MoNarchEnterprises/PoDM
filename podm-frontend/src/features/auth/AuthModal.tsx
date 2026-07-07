@@ -143,7 +143,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                             {mode === 'login' ? 'Welcome Back' : 'Create Your Account'}
                         </h2>
                         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            {mode === 'login' ? 'Log in to continue your journey.' : 'Join the community of creators and fans.'}
+                            {mode === 'login' ? 'Log in to continue your journey.' : 'Join the community of creators and your audience.'}
                         </p>
 
                         <form onSubmit={handleSubmit} className="mt-8 space-y-6">

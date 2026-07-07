@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Box, Typography, Tabs, Tab, TextField, Grid, Skeleton,
+  Box, Typography, Tabs, Tab, TextField, Grid2 as Grid, Skeleton,
   InputAdornment,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
