@@ -78,6 +78,8 @@ Default section order:
 
 When the user requests a durable behavior change, record it here or in the relevant child AGENTS.md
 
+- Platform users are referred to as **Audience** (not "Fans") in all user-facing text
+
 ## Child DOX Index
 
 | Path | AGENTS.md | Scope |

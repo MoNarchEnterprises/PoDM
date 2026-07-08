@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Client-facing user interface for fans, creators, and administrators on the PoDM platform.
+Client-facing user interface for audience, creators, and administrators on the PoDM platform.
 
 ## Ownership
 
