@@ -1,100 +1,206 @@
 import { knowledgeGraph } from './knowledgeGraph';
-import { markdownLoader } from './markdownLoader';
-import type { KnowledgeGraph, Workflow, Module, Diagram } from '../types';
+import { embeddingService } from './embeddingService';
+import type {
+  Module, Service, Workflow, Diagram,
+  EmbeddingMatch, ContextSource,
+} from '../types';
 
 interface RagContext {
   content: string;
-  sources: { title: string; path: string; relevance: number }[];
+  sources: ContextSource[];
+}
+
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'if', 'else', 'so', 'as', 'at', 'by',
+  'for', 'from', 'in', 'into', 'of', 'on', 'to', 'with', 'without', 'is', 'are',
+  'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
+  'did', 'doing', 'will', 'would', 'can', 'could', 'shall', 'should', 'may',
+  'might', 'must', 'i', 'my', 'me', 'we', 'us', 'our', 'you', 'your', 'he',
+  'she', 'it', 'its', 'they', 'them', 'their', 'this', 'that', 'these',
+  'those', 'what', 'which', 'who', 'whom', 'whose', 'when', 'where', 'why',
+  'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some',
+  'such', 'only', 'own', 'same', 'than', 'too', 'very', 'just', 'also', 'get',
+  'got', 'go', 'goes', 'going', 'gone', 'about', 'above', 'after', 'again',
+  'against', 'before', 'below', 'between', 'during', 'further', 'here',
+  'there', 'then', 'once', 'out', 'over', 'under', 'up', 'down', 'off',
+  'no', 'not', 'now', 's', 't', 'll', 've', 're', 'd', 'm',
+]);
+
+function extractKeywords(query: string): string[] {
+  const raw = query.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const w of raw) {
+    if (!seen.has(w)) {
+      seen.add(w);
+      out.push(w);
+    }
+  }
+  return out;
 }
 
 class RagService {
   async retrieveContext(query: string): Promise<RagContext> {
-    const q = query.toLowerCase();
+    if (embeddingService.isIndexed() && embeddingService.getChunkCount() > 0) {
+      const matches = await embeddingService.retrieve(query, { topK: 8, minScore: 0.12 });
+      if (matches.length > 0) {
+        return this.buildEmbeddingsContext(matches);
+      }
+      const fallback = await this.retrieveKeywordContext(query);
+      return fallback.sources.length > 0 ? fallback : { content: '', sources: [] };
+    }
+    return this.retrieveKeywordContext(query);
+  }
+
+  private buildEmbeddingsContext(matches: EmbeddingMatch[]): RagContext {
     const parts: string[] = [];
-    const sources: RagContext['sources'] = [];
+    const sources: ContextSource[] = [];
+    for (const m of matches) {
+      parts.push(`--- ${m.entry.type}: ${m.entry.title} ---\n${m.entry.text}`);
+      sources.push({
+        title: m.entry.title,
+        path: m.entry.source,
+        relevance: Math.max(0, Math.min(1, m.score)),
+      });
+    }
+    return { content: parts.join('\n\n'), sources };
+  }
 
+  private async retrieveKeywordContext(query: string): Promise<RagContext> {
+    const keywords = extractKeywords(query);
+    if (keywords.length === 0) return { content: '', sources: [] };
+
+    const q = query.toLowerCase();
     const kg = knowledgeGraph;
+    const parts: string[] = [];
+    const sources: ContextSource[] = [];
 
-    const modResults = kg.getModules().filter(
-      (m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)
+    const matchedAny = (text: string): boolean => {
+      const lower = text.toLowerCase();
+      if (lower.includes(q)) return true;
+      return keywords.some((k) => lower.includes(k));
+    };
+
+    const addMatch = (
+      label: string,
+      description: string,
+      path: string,
+      relevance: number,
+    ) => {
+      parts.push(`${label}\n${description}`);
+      sources.push({ title: label, path, relevance });
+    };
+
+    const mods = kg.getModules().filter(
+      (m) => matchedAny(m.name) || matchedAny(m.description) || matchedAny(m.path),
     );
-    for (const mod of modResults.slice(0, 3)) {
-      parts.push(`Module: ${mod.name}\nDescription: ${mod.description}\nPath: ${mod.path}`);
-      sources.push({ title: `Module: ${mod.name}`, path: mod.path, relevance: 0.9 });
+    for (const mod of mods.slice(0, 3)) {
+      addMatch(`Module: ${mod.name}`, `${mod.description}\nPath: ${mod.path}`, mod.path, 0.9);
     }
 
-    const wfResults = kg.getWorkflows().filter(
-      (w) => w.name.toLowerCase().includes(q) || w.description.toLowerCase().includes(q)
+    const svcs = kg.getServices().filter(
+      (s) => matchedAny(s.name) || matchedAny(s.description) || s.methods.some((m) => matchedAny(m)),
     );
-    for (const wf of wfResults.slice(0, 3)) {
-      parts.push(`Workflow: ${wf.name}\nDescription: ${wf.description}\nMain Steps: ${wf.mainFlow.slice(0, 5).join(' -> ')}`);
-      sources.push({ title: `Workflow: ${wf.name}`, path: `#workflow-${wf.id}`, relevance: 0.85 });
+    for (const svc of svcs.slice(0, 3)) {
+      addMatch(
+        `Service: ${svc.name}`,
+        `${svc.description}\nModule: ${svc.module}\nMethods: ${svc.methods.join(', ')}`,
+        `#service-${svc.id}`,
+        0.85,
+      );
     }
 
-    const svcResults = kg.getServices().filter(
-      (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
+    const wfs = kg.getWorkflows().filter(
+      (w) => matchedAny(w.name) || matchedAny(w.description) || w.mainFlow.some((s) => matchedAny(s)),
     );
-    for (const svc of svcResults.slice(0, 3)) {
-      parts.push(`Service: ${svc.name}\nDescription: ${svc.description}\nModule: ${svc.module}\nMethods: ${svc.methods.join(', ')}`);
-      sources.push({ title: `Service: ${svc.name}`, path: `#service-${svc.id}`, relevance: 0.8 });
+    for (const wf of wfs.slice(0, 3)) {
+      addMatch(
+        `Workflow: ${wf.name}`,
+        `${wf.description}\nMain Steps: ${wf.mainFlow.slice(0, 5).join(' -> ')}`,
+        `#workflow-${wf.id}`,
+        0.8,
+      );
     }
 
-    const diaResults = kg.getDiagrams().filter(
-      (d) => d.title.toLowerCase().includes(q) || d.description.toLowerCase().includes(q)
+    const dias = kg.getDiagrams().filter(
+      (d) => matchedAny(d.title) || matchedAny(d.description),
     );
-    for (const dia of diaResults.slice(0, 2)) {
-      parts.push(`Diagram: ${dia.title}\nCategory: ${dia.category}\nType: ${dia.type}\nDescription: ${dia.description}`);
-      sources.push({ title: `Diagram: ${dia.title}`, path: `#diagram-${dia.id}`, relevance: 0.75 });
+    for (const dia of dias.slice(0, 2)) {
+      addMatch(
+        `Diagram: ${dia.title}`,
+        `Category: ${dia.category}\nType: ${dia.type}\nDescription: ${dia.description}`,
+        `#diagram-${dia.id}`,
+        0.75,
+      );
     }
 
-    const entResults = kg.getEntities().filter(
-      (e) => e.name.toLowerCase().includes(q) || e.table.toLowerCase().includes(q)
+    const ents = kg.getEntities().filter(
+      (e) => matchedAny(e.name) || matchedAny(e.table),
     );
-    for (const ent of entResults.slice(0, 3)) {
+    for (const ent of ents.slice(0, 3)) {
       const fields = ent.fields.slice(0, 5).map((f) => `${f.name} (${f.type})`).join(', ');
-      parts.push(`Entity: ${ent.name}\nTable: ${ent.table}\nFields: ${fields}`);
-      sources.push({ title: `Entity: ${ent.name}`, path: `#entity-${ent.id}`, relevance: 0.7 });
+      addMatch(`Entity: ${ent.name}`, `Table: ${ent.table}\nFields: ${fields}`, `#entity-${ent.id}`, 0.7);
     }
 
-    const routeResults = kg.getRoutes().filter(
-      (r) => r.domain.toLowerCase().includes(q) || r.path.toLowerCase().includes(q)
+    const routes = kg.getRoutes().filter(
+      (r) => matchedAny(r.domain) || matchedAny(r.path) || matchedAny(r.description),
     );
-    for (const route of routeResults.slice(0, 3)) {
-      parts.push(`Route: ${route.methods} ${route.path}\nDomain: ${route.domain}\nAuth: ${route.auth}\nDescription: ${route.description}`);
-      sources.push({ title: `Route: ${route.domain}`, path: route.path, relevance: 0.7 });
+    for (const route of routes.slice(0, 3)) {
+      addMatch(
+        `Route: ${route.methods} ${route.path}`,
+        `Domain: ${route.domain}\nAuth: ${route.auth}\nDescription: ${route.description}`,
+        route.path,
+        0.65,
+      );
     }
 
-    const agentResults = kg.getAgents().filter(
-      (a) => a.name.toLowerCase().includes(q) || a.purpose.toLowerCase().includes(q)
+    const agents = kg.getAgents().filter(
+      (a) => matchedAny(a.name) || matchedAny(a.purpose),
     );
-    for (const agent of agentResults.slice(0, 2)) {
-      parts.push(`AI Agent: ${agent.name}\nPurpose: ${agent.purpose}\nCapabilities: ${agent.capabilities.join(', ')}`);
-      sources.push({ title: `Agent: ${agent.name}`, path: `#agent-${agent.id}`, relevance: 0.65 });
+    for (const agent of agents.slice(0, 2)) {
+      addMatch(
+        `AI Agent: ${agent.name}`,
+        `Purpose: ${agent.purpose}\nCapabilities: ${agent.capabilities.join(', ')}`,
+        `#agent-${agent.id}`,
+        0.6,
+      );
     }
 
     const arch = kg.getArchitecture();
     if (arch && (q.includes('architecture') || q.includes('overview') || q.includes('pattern'))) {
-      parts.push(`Architecture: ${arch.name} v${arch.version}\nDescription: ${arch.description}\nPatterns: ${arch.patterns.join(', ')}\nPrinciples: ${arch.principles.join(', ')}`);
-      sources.push({ title: 'Architecture Overview', path: '#architecture', relevance: 0.95 });
+      addMatch(
+        'Architecture Overview',
+        `Architecture: ${arch.name} v${arch.version}\nDescription: ${arch.description}\nPatterns: ${arch.patterns.join(', ')}\nPrinciples: ${arch.principles.join(', ')}`,
+        '#architecture',
+        0.95,
+      );
     }
 
-    return {
-      content: parts.join('\n\n---\n\n'),
-      sources,
-    };
+    return { content: parts.join('\n\n---\n\n'), sources };
   }
 
   async retrieveArchitectureContext(): Promise<string> {
-    const kg = knowledgeGraph;
-    const arch = kg.getArchitecture();
+    const arch = knowledgeGraph.getArchitecture();
     const parts: string[] = [];
 
     if (arch) {
       parts.push(`# PoDM Architecture Overview\nVersion: ${arch.version}\nDescription: ${arch.description}\nPatterns: ${arch.patterns.join(', ')}`);
     }
 
-    const mods = kg.getModules();
-    parts.push(`\n# Modules (${mods.length})\n${mods.map((m) => `- ${m.name}: ${m.description}`).join('\n')}`);
+    const mods = knowledgeGraph.getModules();
+    parts.push(`\n# Modules (${mods.length})\n${mods.map((m: Module) => `- ${m.name}: ${m.description}`).join('\n')}`);
+
+    const svcs = knowledgeGraph.getServices();
+    parts.push(`\n# Services (${svcs.length})\n${svcs.map((s: Service) => `- ${s.name}: ${s.description}`).join('\n')}`);
+
+    const wfs = knowledgeGraph.getWorkflows();
+    parts.push(`\n# Workflows (${wfs.length})\n${wfs.map((w: Workflow) => `- ${w.name}: ${w.description}`).join('\n')}`);
+
+    const dias = knowledgeGraph.getDiagrams();
+    parts.push(`\n# Diagrams (${dias.length})\n${dias.map((d: Diagram) => `- ${d.title}: ${d.description}`).join('\n')}`);
 
     return parts.join('\n');
   }

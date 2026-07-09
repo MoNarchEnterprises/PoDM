@@ -81,3 +81,57 @@ export interface OllamaChatResponse {
 export interface OllamaTagsResponse {
   models: OllamaModel[];
 }
+
+export interface OllamaEmbeddingsRequest {
+  model: string;
+  prompt: string;
+  options?: {
+    temperature?: number;
+    top_p?: number;
+    top_k?: number;
+    repeat_penalty?: number;
+    num_predict?: number;
+    num_ctx?: number;
+    keep_alive?: string;
+  };
+}
+
+export interface OllamaEmbeddingsResponse {
+  model: string;
+  embedding: number[];
+}
+
+export interface OllamaPullRequest {
+  name: string;
+  stream?: boolean;
+}
+
+export interface EmbeddingChunk {
+  id: string;
+  type: 'module' | 'service' | 'entity' | 'route' | 'page' | 'component' |
+        'workflow' | 'diagram' | 'externalSystem' | 'event' | 'queue' |
+        'agent' | 'architecture' | 'markdown';
+  title: string;
+  text: string;
+  source: string;
+  hash: string;
+}
+
+export interface EmbeddingEntry extends EmbeddingChunk {
+  vector: number[];
+}
+
+export interface EmbeddingMatch {
+  entry: EmbeddingEntry;
+  score: number;
+}
+
+export interface EmbeddingIndexStatus {
+  indexed: boolean;
+  indexing: boolean;
+  progress: { done: number; total: number };
+  chunks: number;
+  model: string;
+  modelAvailable: boolean;
+  storageKey: string;
+}

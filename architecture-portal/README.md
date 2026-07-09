@@ -5,6 +5,9 @@ Interactive architecture exploration platform for the PoDM application.
 ## Quick Start
 
 ```bash
+# Prerequisite: pull the default embedding model (for AI Assistant semantic search)
+ollama pull nomic-embed-text
+
 npm install
 npm run dev
 ```

@@ -10,10 +10,11 @@ Interactive architecture exploration portal for the PoDM application. Enables de
 - Vite + React 19 + TypeScript application shell
 - MUI theme, layout, routing, and global state
 - Knowledge Graph service (loads JSON from `docs/knowledge/`)
+- Embedding service (`embeddingService.ts`) + chunker (`chunker.ts`) — Ollama embeddings RAG pipeline
 - Mermaid renderer, React Flow graph, Markdown renderer
-- AI Assistant with Ollama RAG integration
+- AI Assistant with Ollama RAG integration (semantic + keyword fallback)
 - Fuse.js global search
-- Settings management (Ollama config, theme, model selection)
+- Settings management (Ollama config, theme, model selection, embedding model)
 
 ## Local Contracts
 
@@ -25,6 +26,8 @@ Interactive architecture exploration portal for the PoDM application. Enables de
 - **fuse.js** for fuzzy search (Ctrl+K)
 - **framer-motion** for page transitions and animations
 - **TanStack Query** for async data fetching (knowledge graph loading)
+- **AI Assistant RAG**: Ollama embeddings (`/api/embeddings`) for semantic search, keyword fallback (`rag.ts`); lazy index on first query; `localStorage` persistence for embeddings cache
+- **New services**: `embeddingService.ts` (indexer + retriever), `chunker.ts` (entity + markdown chunking), `rag.ts` (orchestration + fallback)
 
 ### Naming Conventions
 
@@ -52,12 +55,15 @@ If data appears missing, run `node scripts/copy-docs.mjs` manually or check that
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | ESLint check |
 
+**Embedding model:** The AI Assistant requires `nomic-embed-text` in Ollama (`ollama pull nomic-embed-text`). If missing, the AI Assistant auto-prompts to download it on first query. The keyword fallback works without it (no semantic search).
+
 ## Verification
 
 - `npm run build` must pass with zero errors before committing
 - Build output goes to `architecture-portal/dist/` (128+ files)
 - After `npm run dev`, verify `public/docs/knowledge/modules.json` exists
 - Check browser DevTools Network tab for 404s on `/docs/` requests
+- AI Assistant: ask "Where does the fee amount get calculated?" — should return fee-service + fee calculation section from markdown docs as context sources
 
 ## Child DOX Index
 
@@ -71,3 +77,26 @@ The portal loads its content from `docs/` at runtime (copied to `public/docs/`):
 - `docs/flowcharts/` — Mermaid flowchart markdown files
 - `docs/diagram-specifications/` — 59 JSON diagram specs
 - `docs/api/` — API route reference markdown
+
+## AI Assistant RAG Pipeline
+
+The AI Assistant uses a two-tier retrieval strategy:
+
+### Tier 1: Semantic Search (via Ollama Embeddings)
+- **Service**: `src/services/embeddingService.ts` — indexes all knowledge graph entities + architecture markdown docs into vector embeddings
+- **Default model**: `nomic-embed-text` (configurable via Settings panel)
+- **Chunking**: `src/services/chunker.ts` — converts each knowledge graph entity (module, service, workflow, etc.) into a flat text chunk; splits architecture markdown by `##` headers into focused sections
+- **Indexing**: Lazy on first query — all chunks are embedded via Ollama `/api/embeddings` and cached to `localStorage` (keyed by `podm-architecture-embeddings`). Unchanged chunks are reused on reload via content-hash comparison
+- **Retrieval**: Query is embedded and cosine-similarity compared against all stored chunks; top 8 matches (min 0.12 score) are returned as context
+- **Auto-pull**: If the embedding model is not available in Ollama, the user is prompted to download it via Ollama's `/api/pull` (with status progress)
+
+### Tier 2: Keyword Fallback (Tokenized Substring)
+- **Service**: `src/services/rag.ts` — when embeddings are not yet indexed or return zero results, falls back to keyword extraction
+- **Keywords** are extracted from the query (stop words removed) and matched against entity name/description/method/step fields
+- **Coverage**: modules, services, workflows, diagrams, entities, routes, agents, architecture overview
+- No markdown doc content is available in fallback mode
+
+### Infrastructure
+- **Embedding model settings** pre-defined in `src/types/settings.ts` (`embeddingModel`, defaults to `nomic-embed-text`), configurable in AI Assistant settings panel
+- **Ollama client** (`src/services/ollamaClient.ts`) extended with `embed()`, `isModelAvailable()`, and `pullModel()` methods using Ollama's `/api/embeddings` and `/api/pull` endpoints
+- **Status indicator** in the AI Assistant toolbar shows index state (model available, indexing progress, indexed chunk count) with colors (warning/info/success)

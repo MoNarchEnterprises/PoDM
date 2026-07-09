@@ -3,18 +3,22 @@ import { motion } from 'framer-motion';
 import {
   Box, Typography, Paper, TextField, IconButton, Button,
   Select, MenuItem, FormControl, InputLabel, Chip, Skeleton,
-  Collapse, Divider, Slider, Tooltip, Switch, FormControlLabel,
+  Collapse, Slider, Tooltip, Switch, FormControlLabel,
+  Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
+  LinearProgress,
 } from '@mui/material';
 import {
   Send, Delete, ExpandMore, ExpandLess, Settings as SettingsIcon,
-  SmartToy, Refresh, Psychology, AutoAwesome,
+  SmartToy, Refresh, Psychology, AutoAwesome, CloudDownload,
+  CheckCircle, ErrorOutline,
 } from '@mui/icons-material';
 import { useKnowledgeGraph } from '../../hooks/useKnowledgeGraph';
 import { useSettings } from '../../hooks/useSettings';
 import { useChatStore } from '../../store/chatStore';
 import { ragService } from '../../services/rag';
 import { ollamaClient } from '../../services/ollamaClient';
-import type { OllamaModel, ChatMessage } from '../../types';
+import { embeddingService } from '../../services/embeddingService';
+import type { OllamaModel, ChatMessage, EmbeddingIndexStatus } from '../../types';
 import AiChat from '../../components/AiChat/AiChat';
 
 const suggestions = [
@@ -24,7 +28,14 @@ const suggestions = [
   'List all database entities',
   'What services does the auth module use?',
   'Show me the content upload flow',
+  'Where does the fee amount get calculated?',
 ];
+
+const EMBED_MODEL_SIZES: Record<string, string> = {
+  'nomic-embed-text': '~274 MB',
+  'mxbai-embed-large': '~670 MB',
+  'all-minilm': '~120 MB',
+};
 
 export default function AiAssistant() {
   const { loaded: kgLoaded } = useKnowledgeGraph();
@@ -36,8 +47,26 @@ export default function AiAssistant() {
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [contextVisible, setContextVisible] = useState(true);
+  const [embeddingStatus, setEmbeddingStatus] = useState<EmbeddingIndexStatus | null>(null);
+  const [pullDialogOpen, setPullDialogOpen] = useState(false);
+  const [pullStatus, setPullStatus] = useState<string>('');
+  const [pulling, setPulling] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    embeddingService.setModel(settings.embeddingModel);
+  }, [settings.embeddingModel]);
+
+  useEffect(() => {
+    const unsub = embeddingService.onStatus(setEmbeddingStatus);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (kgLoaded) embeddingService.checkModel().catch(() => undefined);
+  }, [kgLoaded]);
 
   useEffect(() => {
     ollamaClient.listModels().then((m) => {
@@ -51,6 +80,30 @@ export default function AiAssistant() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const ensureIndexed = useCallback(async (query: string): Promise<string | null> => {
+    if (embeddingStatus?.indexing) return null;
+    if (embeddingStatus?.indexed && embeddingStatus.chunks > 0) return null;
+    if (!kgLoaded) return null;
+
+    if (!embeddingStatus?.modelAvailable) {
+      setPendingQuery(query);
+      setPullDialogOpen(true);
+      return null;
+    }
+
+    embeddingService.index().catch((err) => console.warn('Indexing failed', err));
+    return null;
+  }, [embeddingStatus, kgLoaded]);
+
+  useEffect(() => {
+    if (pulling || !pendingQuery || !embeddingStatus?.modelAvailable) return;
+    if (embeddingStatus?.indexed) {
+      const q = pendingQuery;
+      setPendingQuery(null);
+      void q;
+    }
+  }, [pulling, pendingQuery, embeddingStatus]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -68,6 +121,14 @@ export default function AiAssistant() {
     setError(null);
 
     try {
+      if (kgLoaded && !embeddingService.isIndexing()) {
+        if (!embeddingService.isIndexed() && embeddingService.isModelAvailable()) {
+          embeddingService.index().catch((err) => console.warn('Background index failed', err));
+        } else if (!embeddingService.isModelAvailable()) {
+          ensureIndexed(text);
+        }
+      }
+
       const context = await ragService.retrieveContext(text);
       const chatHistory = messages
         .filter((m) => m.role !== 'system')
@@ -151,7 +212,7 @@ export default function AiAssistant() {
     } finally {
       setLoading(false);
     }
-  }, [input, isLoading, selectedModel, messages, settings, addMessage, setLoading, setError]);
+  }, [input, isLoading, selectedModel, messages, settings, addMessage, setLoading, setError, kgLoaded, ensureIndexed]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -159,6 +220,34 @@ export default function AiAssistant() {
       handleSend();
     }
   };
+
+  const handlePullConfirm = useCallback(async () => {
+    setPulling(true);
+    setPullStatus('pulling...');
+    try {
+      await ollamaClient.pullModel(settings.embeddingModel, (status) => {
+        setPullStatus(status);
+      });
+      setPullStatus('Model ready!');
+      await embeddingService.checkModel();
+      setPullDialogOpen(false);
+      setPulling(false);
+      setPullStatus('');
+      if (pendingQuery) {
+        embeddingService.index().catch(() => undefined);
+      }
+    } catch (err: any) {
+      setPullStatus(`Failed: ${err.message}`);
+      setPulling(false);
+    }
+  }, [settings.embeddingModel, pendingQuery]);
+
+  const handlePullCancel = useCallback(() => {
+    setPullDialogOpen(false);
+    setPendingQuery(null);
+    setPullStatus('');
+    setPulling(false);
+  }, []);
 
   return (
     <motion.div
@@ -189,6 +278,41 @@ export default function AiAssistant() {
                 ))}
               </Select>
             </FormControl>
+
+            {embeddingStatus && (
+              <Tooltip title={
+                embeddingStatus.indexing
+                  ? `Indexing knowledge: ${embeddingStatus.progress.done}/${embeddingStatus.progress.total}`
+                  : embeddingStatus.indexed
+                    ? `${embeddingStatus.chunks} chunks indexed via ${embeddingStatus.model}`
+                    : embeddingStatus.modelAvailable
+                      ? 'Embeddings ready — index on first query'
+                      : `Embedding model "${embeddingStatus.model}" not available`
+              }>
+                <Chip
+                  size="small"
+                  icon={
+                    embeddingStatus.indexing ? <Refresh sx={{ fontSize: 14 }} /> :
+                    embeddingStatus.indexed ? <CheckCircle sx={{ fontSize: 14 }} /> :
+                    embeddingStatus.modelAvailable ? <CloudDownload sx={{ fontSize: 14 }} /> :
+                    <ErrorOutline sx={{ fontSize: 14 }} />
+                  }
+                  label={
+                    embeddingStatus.indexing
+                      ? `${Math.round(embeddingStatus.progress.done / Math.max(1, embeddingStatus.progress.total) * 100)}%`
+                      : embeddingStatus.indexed
+                        ? `${embeddingStatus.chunks}`
+                        : embeddingStatus.modelAvailable
+                          ? 'Idle'
+                          : 'No model'
+                  }
+                  variant="outlined"
+                  color={embeddingStatus.indexed ? 'success' : embeddingStatus.modelAvailable ? 'info' : 'warning'}
+                  sx={{ height: 24, fontWeight: 500, fontSize: '0.7rem' }}
+                />
+              </Tooltip>
+            )}
+
             <Tooltip title="Settings">
               <IconButton size="small" onClick={() => setShowSettings(!showSettings)}>
                 <SettingsIcon />
@@ -249,6 +373,59 @@ export default function AiAssistant() {
                   }
                 />
               </Box>
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                <FormControl size="small" sx={{ minWidth: 180 }}>
+                  <InputLabel id="embed-model-label" sx={{ fontSize: '0.75rem' }}>Embedding Model</InputLabel>
+                  <Select
+                    labelId="embed-model-label"
+                    value={settings.embeddingModel}
+                    label="Embedding Model"
+                    onChange={(e) => updateSettings({ embeddingModel: e.target.value })}
+                    sx={{ fontSize: '0.8rem' }}
+                  >
+                    <MenuItem value="nomic-embed-text">nomic-embed-text (~274MB)</MenuItem>
+                    <MenuItem value="mxbai-embed-large">mxbai-embed-large (~670MB)</MenuItem>
+                    <MenuItem value="all-minilm">all-minilm (~120MB)</MenuItem>
+                  </Select>
+                </FormControl>
+                <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => embeddingService.index({ force: true }).catch(() => undefined)}
+                    disabled={embeddingStatus?.indexing || !embeddingStatus?.modelAvailable}
+                    startIcon={<Refresh />}
+                    sx={{ fontSize: '0.7rem' }}
+                  >
+                    Re-index
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="error"
+                    onClick={() => { embeddingService.clear(); }}
+                    disabled={!embeddingStatus?.indexed}
+                    sx={{ fontSize: '0.7rem' }}
+                  >
+                    Clear cache
+                  </Button>
+                </Box>
+              </Box>
+
+              {embeddingStatus?.indexing && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                    Indexing knowledge graph... {embeddingStatus.progress.done} / {embeddingStatus.progress.total}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={embeddingStatus.progress.total > 0
+                      ? (embeddingStatus.progress.done / embeddingStatus.progress.total) * 100
+                      : 0}
+                  />
+                </Box>
+              )}
               <Box sx={{ mt: 1 }}>
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}
@@ -426,6 +603,37 @@ export default function AiAssistant() {
           </Paper>
         )}
       </Box>
+
+      <Dialog open={pullDialogOpen} onClose={handlePullCancel} maxWidth="xs" fullWidth>
+        <DialogTitle>Download Embedding Model</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            The architecture AI needs an embedding model ({settings.embeddingModel}{' '}
+            {EMBED_MODEL_SIZES[settings.embeddingModel] || ''})
+            to index documentation for semantic search. Download it now?
+          </DialogContentText>
+          {pulling && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <LinearProgress />
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {pullStatus}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePullCancel} disabled={pulling} size="small">Skip</Button>
+          <Button
+            onClick={handlePullConfirm}
+            disabled={pulling}
+            variant="contained"
+            size="small"
+            startIcon={<CloudDownload />}
+          >
+            {pulling ? 'Downloading...' : 'Download'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </motion.div>
   );
 }
