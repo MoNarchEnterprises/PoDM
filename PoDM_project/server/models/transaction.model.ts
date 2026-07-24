@@ -23,17 +23,17 @@ export const findTransactionsByUser = async (userId: string): Promise<Transactio
     );
 };
 
-export const updateTransactionStatus = async (paymentGatewayId: string, status: Transaction['status']): Promise<Transaction | null> => {
+export const updateTransactionStatus = async (blockchainTxHash: string, status: Transaction['status']): Promise<Transaction | null> => {
     return handleQuery<Transaction>(
-        supabase.from('transactions').update({ status }).eq('payment_gateway_id', paymentGatewayId).select().single(),
+        supabase.from('transactions').update({ status }).eq('blockchain_tx_hash', blockchainTxHash).select().single(),
         'update transaction status'
     );
 };
 
-export const findTransactionByPaymentGatewayId = async (paymentGatewayId: string): Promise<Transaction | null> => {
+export const findTransactionByBlockchainTxHash = async (blockchainTxHash: string): Promise<Transaction | null> => {
     return handleQuery<Transaction>(
-        supabase.from('transactions').select('*').eq('payment_gateway_id', paymentGatewayId).single(),
-        'find transaction by payment gateway ID'
+        supabase.from('transactions').select('*').eq('blockchain_tx_hash', blockchainTxHash).single(),
+        'find transaction by blockchain tx hash'
     );
 };
 

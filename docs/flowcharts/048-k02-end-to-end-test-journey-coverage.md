@@ -50,11 +50,19 @@ flowchart LR
         U16["All Gallery / Feed Journeys"]
     end
 
-    A --> J1 & J2 & J3 & J4
-    FS --> J5 & J6 & J7
+    A --> J1
+    A --> J2
+    A --> J3
+    A --> J4
+    FS --> J5
+    FS --> J6
+    FS --> J7
     T --> J8
-    CD --> J9 & J10 & J11
-    AM --> J12 & J13
+    CD --> J9
+    CD --> J10
+    CD --> J11
+    AM --> J12
+    AM --> J13
 
     subgraph Stats["Coverage Statistics"]
         S["5 / 40 journeys covered = 12.5% -- 35 / 40 journeys have no E2E tests"]

@@ -9,7 +9,7 @@ The system has **two parallel payment paths**, both broken or mocked:
 - `POST /payments/tip`, `/unlock-post`, `/unlock-message`, `/confirm-transaction` all dead
 - `TipModal.tsx` and `UnlockModal.tsx` still call Stripe CardElement but get 404
 - `useStripePayment` hook is effectively dead code
-- Only `POST /users/me/setup-payment-method` (Stripe Setup Intent) is still active
+- ~~`POST /users/me/setup-payment-method` (Stripe Setup Intent) — ABORTED, removed from codebase~~
 
 ### 2. Crypto Path (Active but fully mocked)
 

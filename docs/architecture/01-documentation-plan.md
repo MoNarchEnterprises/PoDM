@@ -89,76 +89,46 @@ Diagram Index (planned)
 - **Deliverable**: `docs/architecture/01-repository-inventory.md`
 - **Status**: ✅ Complete
 
-### Phase 2 — Backend Deep Analysis (IN PROGRESS)
+### Phase 2 — Backend Deep Analysis (COMPLETE)
 
-- **Part 1** (✅ Complete): Dependency map covering all controllers, services, models, routes, middleware, config, utils, and external integrations
-- **Remaining**: Database schema, API endpoints, service layer detail, middleware/infrastructure deep-dives
-- **Deliverables completed**:
-  - `docs/architecture/02-dependency-map.md` (created early from Phase 4; now Phase 2 Part 1)
-- **Deliverables pending**:
-  - `docs/architecture/03-database-schema.md`
-  - `docs/architecture/04-api-endpoints.md`
-  - `docs/architecture/05-service-layer.md`
-  - `docs/architecture/06-middleware-infrastructure.md`
-  - `docs/architecture/07-backend-reference.md`
-  - `docs/api/01-api-overview.md`
+- Dependency map, architecture KB, business capabilities, user journeys
+- **Deliverables**:
+  - `docs/architecture/02-dependency-map.md`
+  - `docs/architecture/03-architecture-kb.md`
+  - `docs/architecture/04-business-capabilities.md`
+  - `docs/architecture/05-user-journeys.md`
 
 ### Phase 3 — Frontend Deep Analysis
 
-- React component tree
-- Routing structure
-- State management
-- API integration layer
-- Feature modules
-- Frontend test suite
-- Build and bundler configuration
+- React component tree, routing structure, state management, API integration, feature modules, frontend test suite, build config
 - **Deliverables**:
-  - `docs/architecture/08-frontend-architecture.md`
-  - `docs/architecture/09-frontend-component-tree.md`
+  - `docs/architecture/06-frontend-architecture.md`
 
 ### Phase 4 — Cross-Cutting Concerns
 
-- Data flow diagrams (textual)
-- Business capability mapping
-- User journey mapping
-- Internal workflow documentation
-- Integration points
+- Data flow architecture, internal workflows, cross-cutting concerns (security, deployment, CI/CD, testing, crypto deep-dive)
 - **Deliverables**:
-  - `docs/architecture/11-data-flow.md`
-  - `docs/architecture/12-business-capabilities.md`
-  - `docs/architecture/13-user-journeys.md`
-  - `docs/architecture/14-internal-workflows.md`
-
-**Note**: Dependency map (`02-dependency-map.md`) was completed early during Phase 2 and removed from Phase 4 scope.
+  - `docs/architecture/07-data-flow.md`
+  - `docs/architecture/07-cross-cutting-concerns.md`
+  - `docs/architecture/08-crypto-deep-dive.md`
+  - `docs/architecture/09-testing-monitoring.md`
+  - `docs/architecture/10-internal-workflows.md`
+  - `docs/architecture/12-maintenance.md`
 
 ### Phase 5 — Advanced Analysis
 
-- Security architecture review
-- Deployment and CI/CD pipeline
-- Testing strategy and coverage
-- Performance considerations
-- Scalability analysis
-- **Deliverables**:
-  - `docs/architecture/15-security-architecture.md`
-  - `docs/architecture/16-deployment-infrastructure.md`
-  - `docs/architecture/17-testing-strategy.md`
-  - `docs/architecture/18-performance-analysis.md`
+*(Rolled into Phase 4 — cross-cutting concerns cover security, deployment, CI/CD, testing, and crypto)*
 
 ### Phase 6 — Diagram Generation
 
 - Generate Mermaid diagrams from annotations
-- Create C4 model diagrams
-- Create ER diagrams
-- Create sequence diagrams
-- Create state diagrams
-- **Deliverable**: `docs/diagrams/` populated with `.mmd` files
+- Create C4, ER, sequence, state, flowchart, and journey diagrams
+- **Deliverable**: `docs/diagrams/` (11 .md files) + `docs/flowcharts/` (55 .md files)
 
 ### Phase 7 — Final Review and Index
 
-- Cross-reference verification
-- Completeness check
-- Documentation index generation
-- **Deliverable**: `docs/architecture/99-architecture-index.md`
+- Cross-reference verification, completeness check, quality audit
+- **Deliverable**: `docs/architecture/09-quality-report.md` + root AGENTS.md Child DOX Index serves as directory index
 
 ## Documentation Conventions
 
@@ -199,23 +169,30 @@ Every document should begin with:
 
 ## Execution Status
 
-All 7 phases complete as of 2026-07-02.
+All 19 phases complete.
 
 | Phase | Deliverable | File | Status |
 |---|---|---|---|
-| 0 | Directory structure, session notes, plan | `00-session-notes.md`, `01-documentation-plan.md` | ✅ Done |
+| 0 | Framework initialization | `00-session-notes.md`, `01-documentation-plan.md` | ✅ Done |
 | 1 | Repository inventory | `01-repository-inventory.md` | ✅ Done |
-| 2a | Dependency map | `02-dependency-map.md` | ✅ Done |
-| 2b | Architecture KB | `03-architecture-kb.md` | ✅ Done |
-| 2c | Business capabilities | `04-business-capabilities.md` | ✅ Done |
-| 2d | User journeys | `05-user-journeys.md` | ✅ Done |
-| 3 | Frontend architecture | `06-frontend-architecture.md` | ✅ Done |
-| 4 | Cross-cutting concerns | `07-cross-cutting-concerns.md` | ✅ Done |
-| 5 | Crypto & smart contract | `08-crypto-deep-dive.md` | ✅ Done |
-| 6 | Testing & monitoring | `09-testing-monitoring.md` | ✅ Done |
-| 7 | Mermaid diagrams | `docs/diagrams/01-10*.md` + `README.md` | ✅ Done |
-
-**Note on original Phase 7 (Final Review):** The final review and index generation were folded into the closeout section of `00-session-notes.md`. No `99-architecture-index.md` was created — the Child DOX Index in root `AGENTS.md` serves as the directory index.
+| 2 | Backend deep analysis | `02-dependency-map.md`, `03-architecture-kb.md`, `04-business-capabilities.md`, `05-user-journeys.md` | ✅ Done |
+| 3 | Frontend deep analysis | `06-frontend-architecture.md` | ✅ Done |
+| 4 | Cross-cutting concerns | `07-data-flow.md`, `07-cross-cutting-concerns.md`, `08-crypto-deep-dive.md`, `09-testing-monitoring.md`, `10-internal-workflows.md`, `12-maintenance.md` | ✅ Done |
+| 5 | Diagram generation (existing) | `docs/diagrams/` (11 files) | ✅ Done |
+| 6 | Diagram generation (flowchart prompts) | `docs/flowcharts/` prompt files (4 batches) | ✅ Done |
+| 7 | Diagram generation (flowcharts) | `docs/flowcharts/` (49 files) | ✅ Done |
+| 8 | Quality audit | `09-quality-report.md` | ✅ Done |
+| 9 | Maintenance guide | `12-maintenance.md` | ✅ Done |
+| 10 | Diagram index rewrite | `08-diagram-index.md` rewrite | ✅ Done |
+| 11 | Data flow architecture | `07-data-flow.md` rewrite | ✅ Done |
+| 12 | Internal workflows expansion | `10-internal-workflows.md` expansion | ✅ Done |
+| 13 | User journeys expansion | `05-user-journeys.md` expansion | ✅ Done |
+| 14 | Frontend architecture | `06-frontend-architecture.md` | ✅ Done |
+| 15 | Architecture KB expansion | `03-architecture-kb.md` expansion | ✅ Done |
+| 16 | Proposed diagram generation | `docs/flowcharts/` (7 files, 050–055) | ✅ Done |
+| 17 | Quality report v2 audit | `09-quality-report.md` rewrite | ✅ Done |
+| 18 | Maintenance guide rewrite | `12-maintenance.md` rewrite | ✅ Done |
+| 19 | Documentation fix pass | Stripe Setup Intent ABORTED, P0–P3 issue remediation | ✅ Done |
 
 ## Revision History
 

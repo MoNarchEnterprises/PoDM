@@ -68,7 +68,7 @@
     {
       "id": "stripe",
       "label": "Stripe",
-      "description": "Payment processing for subscriptions, SetupIntents, and payment method management. Frontend uses Stripe Elements for card UI. Backend Stripe endpoints are partially dead (tipping/PPV endpoints 404)."
+      "description": "Payment processing for subscriptions and payment method management. Frontend uses Stripe Elements for card UI. SetupIntents ABORTED. Backend Stripe endpoints are partially dead (tipping/PPV endpoints 404)."
     },
     {
       "id": "cloudflare-r2",
@@ -206,7 +206,7 @@
       "id": "stripe-ext",
       "label": "Stripe",
       "type": "external_system",
-      "description": "External payment processor. Receives SetupIntents for payment method setup. Frontend integrates via Stripe Elements. Tipping/PPV/Subscription payment endpoints on backend are partially dead."
+      "description": "External payment processor. SetupIntents ABORTED (removed from codebase). Frontend integrates via Stripe Elements. Tipping/PPV/Subscription payment endpoints on backend are partially dead."
     },
     {
       "id": "r2-ext",

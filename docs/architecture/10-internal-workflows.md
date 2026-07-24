@@ -37,6 +37,14 @@
 29. [Subscription Lifecycle Management](#29-subscription-lifecycle-management)
 30. [Admin Content Moderation Pipeline](#30-admin-content-moderation-pipeline)
 31. [Enclave Application Lifecycle](#31-enclave-application-lifecycle)
+32. [On-Ramp Webhook HMAC Verification & Transaction Update](#32-on-ramp-webhook-hmac-verification--transaction-update)
+33. [Payout Balance Computation with Concurrent Lock](#33-payout-balance-computation-with-concurrent-lock)
+34. [On-Chain Subscription Renewal Batch Processing](#34-on-chain-subscription-renewal-batch-processing)
+35. [Coinbase On-Ramp Session Creation](#35-coinbase-on-ramp-session-creation)
+36. [Admin Impersonation Flow](#36-admin-impersonation-flow)
+37. [Commission Rate Resolution (Default/Override/Enclave)](#37-commission-rate-resolution-defaultoverrideenclave)
+38. [Fan Feed Generation Pipeline](#38-fan-feed-generation-pipeline)
+39. [Gallery JSONB Operations](#39-gallery-jsonb-operations)
 
 ---
 
@@ -916,6 +924,270 @@ increment_gallery_count(uuid)        → stats.galleryAdds += 1
 
 ---
 
+## 32. On-Ramp Webhook HMAC Verification & Transaction Update
+
+**Purpose:** Verify Coinbase On-Ramp webhook signature, extract transaction details, and update the corresponding pending transaction record and subscription.
+
+**Entry Point:** `onramp.controller.ts` — `POST /api/v1/onramp/webhook`
+
+**Execution Steps:**
+1. Extract `X-CC-Webhook-Signature` header from request
+2. Read raw request body and re-compute HMAC SHA-256 using `ONRAMP_WEBHOOK_SECRET`
+3. Compare computed signature with header (constant-time if possible; simple string comparison in current impl)
+4. If mismatch → reject with 401, log `Invalid signature` warning
+5. If match → JSON-parse body, extract `event.type` and `event.data`
+6. If `event.type !== 'charge:confirmed'` → 200 OK (no-op, early return)
+7. Look up `pending_transactions` by `txHash` or `charge_id` from event data
+8. Update transaction status to `Cleared`, store on-chain confirmation details
+9. If the transaction is a subscription purchase → call subscription service to activate/upgrade subscription
+10. Return 200 OK
+
+**Dependencies:** `onramp.service.ts:verifyWebhookSignature`, `transaction.service.ts`, `subscription.service.ts`, `crypto.createHmac`, `Supabase (pending_transactions table)`
+
+**Exit Conditions:**
+- Success: 200 OK, transaction updated, subscription activated if applicable
+- Reject: 401 Unauthorized (invalid signature)
+- Skip: 200 OK (non-confirmed event types)
+
+**Failure Handling:** Invalid signature returns 401; missing/invalid payload returns 400; DB failures propagate as 500; all failures logged via `winston`
+
+**Retries:** None (webhook delivery retries managed by Coinbase; each delivery is independent)
+
+**Recovery:** No automatic recovery; manual DB reconciliation required if webhook is missed
+
+---
+
+## 33. Payout Balance Computation with Concurrent Lock
+
+**Purpose:** Compute total available payout balance for a creator (unlocked earnings minus active payout locks) and lock the amount during payout processing to prevent double-withdrawal.
+
+**Entry Point:** `payout.service.ts` — `getPayoutBalance(creatorId, db)` and `lockPayoutBalance(creatorId, amount, db)`
+
+**Execution Steps:**
+1. **Balance computation** (`getPayoutBalance`):
+   - Sum all `Cleared` earnings transactions for creator where `type = 'subscription' | 'ppv' | 'tip'`
+   - Subtract sum of all `Pending` payout records for creator
+   - Return `{ available, locked, total }`
+2. **Lock during payout** (`lockPayoutBalance`):
+   - Re-read current balance within the same DB transaction
+   - Verify requested amount ≤ available balance
+   - Insert a `Pending` payout record (acts as lock)
+   - Proceed with external on-chain transfer
+3. On transfer success → update payout record to `Completed`
+4. On transfer failure → update payout record to `Failed` (releasing the lock)
+
+**Dependencies:** `transaction.service.ts`, `payout.service.ts`, `Supabase DB transaction (pg client passed as parameter)`
+
+**Exit Conditions:**
+- Success: payout record created in `Pending` state, balance locked
+- Insufficient: throw AppError(400) "Insufficient payout balance"
+- DB error: rollback transaction
+
+**Failure Handling:** All DB operations wrapped in a single transaction; any failure triggers rollback, releasing the tentative lock
+
+**Retries:** None (idempotency key not implemented; concurrent requests race on balance)
+
+**Recovery:** Manual admin intervention required if payout record stuck in `Pending` after RPC failure
+
+---
+
+## 34. On-Chain Subscription Renewal Batch Processing
+
+**Purpose:** Batch job that identifies expired subscriptions and processes their renewal via on-chain USDC transfer verification or triggers a new Stripe payment.
+
+**Entry Point:** `jobs/renewSubscriptions.ts:renewSubscriptions` — called by scheduled cron or `node jobs/renewSubscriptions.ts`
+
+**Execution Steps:**
+1. Query Supabase for subscriptions where `end_date < NOW()` AND `auto_renew = true` AND `status = 'active'`
+2. For each expired subscription:
+   - Determine payment method (`stripe` vs `crypto`)
+   - If `crypto`: query blockchain for recent USDC transfer from fan to platform contract wallet; if confirmed, extend subscription by billing period
+   - If `stripe`: create `Stripe.Subscription.renew()` or charge saved payment method; on success, extend
+   - On payment failure: set subscription status to `past_due`, fan retains access for grace period
+3. Log batch summary: `{ renewed, failed, past_due }`
+4. Return summary
+
+**Dependencies:** `subscription.service.ts`, `cryptoPayment.service.ts`, `stripe SDK`, `Supabase`, `ethers.js`, `winston`
+
+**Exit Conditions:**
+- Success: subscriptions extended, status updated
+- Partial: some renewed, some `past_due` — logged with counts
+- Failure: error logged, no subscriptions changed
+
+**Failure Handling:** Per-subscription errors caught individually — a single failure does not abort the batch; failed subscriptions logged for manual review
+
+**Retries:** None (runs on a schedule; next run picks up still-expired subscriptions)
+
+**Recovery:** Manual `UPDATE subscriptions SET ...` or admin panel override; next scheduled run re-processes any remaining expired subscriptions
+
+---
+
+## 35. Coinbase On-Ramp Session Creation
+
+**Purpose:** Create a Coinbase On-Ramp checkout session for a fan to buy USDC with a card, then record the pending transaction.
+
+**Entry Point:** `onramp.controller.ts` — `POST /api/v1/onramp/create-session`
+
+**Execution Steps:**
+1. Authenticate fan user via `protect` middleware
+2. Validate request body: `{ amount, currency, destinationWallet, redirectUrl }`
+3. Build payload for Coinbase On-Ramp API: `{ destination_wallets, preset_crypto_amount, default_network, partner_user_id }`
+4. POST to `https://api.commerce.coinbase.com/onramp/v1/sessions` with API key header
+5. If API responds with session URL:
+   - Insert record into `pending_transactions` table with status `Pending`, type `onramp`, linked to fan user
+   - Return `{ sessionUrl, transactionId }` to frontend
+6. If API errors → throw AppError(502) with Coinbase error detail
+
+**Dependencies:** `onramp.service.ts:createOnrampSession`, `transaction.service.ts`, `Supabase`, `axios`, `COINBASE_COMMERCE_API_KEY` env
+
+**Exit Conditions:**
+- Success: 200 `{ sessionUrl, transactionId }`
+- Auth failure: 401
+- Validation failure: 400
+- Coinbase API failure: 502
+
+**Failure Handling:** Coinbase API errors caught and wrapped in AppError(502); DB insert failures roll back (no side effect — session URL not yet used by fan)
+
+**Retries:** None — Coinbase session creation is not idempotent; frontend re-calls on retry
+
+**Recovery:** If session created but DB insert fails, the Coinbase session is orphaned (no pending_tx record); fan sees an error and re-attempts
+
+---
+
+## 36. Admin Impersonation Flow
+
+**Purpose:** Allow an admin to act on behalf of a specific user by setting a special header that overrides the authenticated user identity for the request.
+
+**Entry Point:** `auth.middleware.ts` — within the `protect` middleware after JWT validation
+
+**Execution Steps:**
+1. After JWT token is validated and `req.user` is set:
+   - Check if `req.user.role === 'admin'`
+   - If not admin → skip impersonation, continue normally
+2. Check for `X-Admin-Impersonate` header containing a user ID
+3. If header present AND admin:
+   - Query the target user from Supabase
+   - If target user exists → set `req.user = targetUser`, append `req.impersonatedBy = originalAdminUser`
+   - If target user does not exist → throw AppError(404, "User to impersonate not found")
+4. All downstream logic operates on `req.user` (now the impersonated user)
+5. Audit log entry: `{ adminId, targetUserId, timestamp, route }`
+
+**Dependencies:** `auth.middleware.ts:protect`, `UserModel`, `Supabase`, `winston`
+
+**Exit Conditions:**
+- Normal: `req.user` = authenticated user
+- Impersonating: `req.user` = target user, `req.impersonatedBy` = admin, audit log written
+- Target not found: 404
+
+**Failure Handling:** If target user query fails (DB error), impersonation is skipped and admin continues as themselves — no hard failure
+
+**Retries:** None
+
+**Recovery:** Admin re-sends request with corrected header
+
+---
+
+## 37. Commission Rate Resolution (Default/Override/Enclave)
+
+**Purpose:** Determine the effective platform commission rate for a given creator, resolving from a three-tier hierarchy: enclave discount → per-creator override → global default.
+
+**Entry Point:** `fee.utils.ts:calculatePlatformFeePercentage(creatorId?)` — called during transaction processing
+
+**Execution Steps:**
+1. If `creatorId` is provided:
+   - Query `creator_commissions` table for row matching `creatorId`
+   - If row exists → use `commission_rate` (per-creator override)
+2. If no override row:
+   - Check if creator belongs to an **enclave** via `enclave_members` table
+   - If enclave found → use enclave's `discounted_commission_rate`
+3. If neither override nor enclave:
+   - Use global default from `PLATFORM_COMMISSION_DEFAULT` env or constant (e.g., 15%)
+4. Return the resolved rate as a decimal (e.g., 0.10 for 10%)
+5. If `creatorId` is omitted → return global default immediately
+
+**Dependencies:** `fee.utils.ts`, `creator_commissions` table, `enclaves` and `enclave_members` tables, `Supabase`, `PLATFORM_COMMISSION_DEFAULT` env
+
+**Exit Conditions:**
+- Success: resolved commission rate (number)
+- No creator: global default
+- DB error: fall back to global default (logged)
+
+**Failure Handling:** DB query failures are caught and return the global default with a warning log — transaction processing never fails due to commission resolution
+
+**Retries:** None
+
+**Recovery:** N/A — fallback value always returns
+
+---
+
+## 38. Fan Feed Generation Pipeline
+
+**Purpose:** Construct a personalized content feed for a fan by intersecting their active subscriptions with creator content, applying visibility filters, pagination, and enrichment.
+
+**Entry Point:** `creator.controller.ts` — `GET /api/v1/feed` (via `getFeed` controller handler)
+
+**Execution Steps:**
+1. Authenticate fan via `protect` middleware
+2. Extract query params: `limit`, `offset`, `sort` (created_at desc by default)
+3. Query `subscriptions` table for fan's active subscriptions → get list of subscribed creator IDs
+4. If no subscriptions → return empty feed `{ data: [], pagination: { total: 0 } }`
+5. Query `content` table for all content where `creator_id IN (subscribedCreatorIds)` AND `visibility IN ('public', 'subscribers_only')` — paginated
+6. For each content item, call `enrichContentWithUnlockStatus` to add signed URLs, unlock status, gallery info
+7. Sort enriched results by `created_at` descending
+8. Return `{ data: enrichedContent, pagination: { total, limit, offset } }`
+
+**Dependencies:** `content.service.ts:getContentForFan`, `content.utils.ts:enrichContentWithUnlockStatus`, `SubscriptionModel`, `ContentModel`, `Supabase`
+
+**Exit Conditions:**
+- Success: 200 with paginated enriched content array
+- Empty feed: 200 with empty data array
+- Auth failure: 401
+
+**Failure Handling:** Query failures throw AppError(500); enrichment failures per-item are caught and logged (item omitted from feed rather than failing the entire request)
+
+**Retries:** None
+
+**Recovery:** Fan refreshes feed; no side effects to recover
+
+---
+
+## 39. Gallery JSONB Operations
+
+**Purpose:** Add or remove content items from a creator's gallery, stored as a JSONB array column on the creator profile.
+
+**Entry Point:** `creator.service.ts` — add/remove/reorder gallery methods
+
+**Execution Steps:**
+1. **Add to gallery:**
+   - Validate content belongs to the creator (ownership check)
+   - Validate gallery not full (optional max limit check)
+   - Read current `gallery` JSONB array from `creator_profiles` table
+   - Append `contentId` if not already present
+   - `UPDATE creator_profiles SET gallery = newArray WHERE creator_id = ...`
+2. **Remove from gallery:**
+   - Read current `gallery` JSONB array
+   - Filter out `contentId`
+   - `UPDATE creator_profiles SET gallery = filteredArray WHERE creator_id = ...`
+3. **Reorder gallery:**
+   - Accept new ordered array of content IDs
+   - Validate all IDs belong to creator
+   - `UPDATE creator_profiles SET gallery = newOrderedArray WHERE creator_id = ...`
+
+**Dependencies:** `content.service.ts`, `creator.service.ts`, `Supabase`, `creator_profiles.gallery` column (JSONB)
+
+**Exit Conditions:**
+- Success: gallery updated, 200 `{ gallery }`
+- Ownership failure: 403 AppError
+- Content not found: 404
+
+**Failure Handling:** Ownership validation happens before writes; Supabase UPDATE failures throw AppError(500)
+
+**Retries:** None
+
+**Recovery:** Gallery state is fully mutable — any operation can be reversed by a subsequent operation
+
+---
+
 | # | Workflow | File | Entry Point | Retries | Async | DB Writes | External Calls |
 |---|---|---|---|---|---|---|---|
 | 1 | R2 Upload Retry | `storage.service.ts` | `uploadToPrivate` | 3 exp backoff | ✓ | — | Cloudflare R2 |
@@ -949,12 +1221,21 @@ increment_gallery_count(uuid)        → stats.galleryAdds += 1
 | 29 | Subscription Lifecycle | `subscription.service.ts` | `createSubscriptionForUser` | — | ✓ | ✓ | Supabase + RPC + MessageService |
 | 30 | Admin Moderation | `admin.service.ts` + `content.service.ts` | `reportContent` / `getFlaggedContent` | — | ✓ | ✓ | Supabase |
 | 31 | Enclave Applications | `enclave.controller.ts` | `submitApplication` / `updateApplicationStatus` | — | ✓ | ✓ | Supabase + EmailService |
+| 32 | On-Ramp Webhook HMAC Verify | `onramp.controller.ts` | webhook handler | — | ✓ | — | Coinbase + Supabase |
+| 33 | Payout Balance + Lock | `payout.service.ts` | `getPayoutBalance` / `lockPayoutBalance` | — | ✓ | ✓ | Supabase (tx) |
+| 34 | Subscription Renewal Batch | `jobs/renewSubscriptions.ts` | `renewSubscriptions` | — | ✓ | — | Supabase + Stripe + ethers |
+| 35 | Coinbase On-Ramp Session | `onramp.controller.ts` | `createSession` | — | ✓ | — | Coinbase API + Supabase |
+| 36 | Admin Impersonation | `auth.middleware.ts` | `protect` impersonate block | — | ✓ | — | Supabase |
+| 37 | Commission Rate Resolution | `fee.utils.ts` | `calculatePlatformFeePercentage` | — | ✓ | — | Supabase |
+| 38 | Fan Feed Generation | `creator.controller.ts` | `getFeed` | — | ✓ | — | Supabase |
+| 39 | Gallery JSONB Operations | `creator.service.ts` | add/remove/reorder gallery | — | ✓ | — | Supabase |
+| 40 | Contest Lifecycle | `contest.service.ts` | createContest, publishContest, enterContest, finalizeContest | — | ✓ | ✓ | Supabase + SubscriptionModel |
 
 ---
 
 ## Key Observations
 
-**31 workflows total** (previously 28 — added subscription lifecycle, admin moderation, enclave applications).
+**40 workflows total** (previously 31 — added on-ramp webhook, payout balance, renewal batch, on-ramp session, impersonation, commission resolution, feed generation, gallery operations, contest lifecycle).
 
 **Only workflow with retries:** R2 Upload (3 attempts, exponential backoff). No other internal workflow has retry logic.
 

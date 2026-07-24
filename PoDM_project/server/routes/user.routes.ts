@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { getMe, updateMe, getPublicProfile, addToGallery, removeFromGallery, 
         updateMyAvatar, completeOnboarding, submitVerification, 
         getFullPublicProfile, getMyFeed, getMyGallery, getMySettings, 
-        updateMySettings, updateMyPaymentMethod, createSetupIntent  } from '../controllers/user.controller';
+        updateMySettings } from '../controllers/user.controller';
 import { optionalProtect, protect, creatorOnly, protectAndCreator } from '../middleware/auth.middleware';
 // --- Add the avatar upload middleware import ---
 import { uploadAvatar, uploadBanner } from '../middleware/upload.middleware';
@@ -106,20 +106,5 @@ router.get('/me/settings', protect, getMySettings);
  */
 // 3. Add the new PUT route
 router.put('/me/settings', protect, updateMySettings);
-
-/**
- * @route   PUT /api/v1/users/me/payment-method
- * @desc    Update the default payment method for the logged-in user
- * @access  Private
- */
-// 2. Add the new route
-router.put('/me/payment-method', protect, updateMyPaymentMethod);
-
-/**
- * @route   POST /api/v1/users/me/setup-payment-method
- * @desc    Create a Stripe Setup Intent to prepare for saving a card
- * @access  Private
- */
-router.post('/me/setup-payment-method', protect, createSetupIntent);
 
 export default router;

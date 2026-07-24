@@ -111,7 +111,7 @@
     {"rule": "No DB-level locking — race condition allows concurrent payout over-draft", "source": "Flowchart C-05 annotations"},
     {"rule": "Off-ramp is fully mocked — no real money movement (processDebitCardOffRamp returns fake data)", "source": "08-crypto-deep-dive.md §8"},
     {"rule": "Platform fee = 0 for payout transactions (no additional fee on withdrawal)", "source": "cryptoPayment.service.ts"},
-    {"rule": "Payouts are final — no reversal mechanism", "source": "11-data-flow.md §7"}
+    {"rule": "Payouts are final — no reversal mechanism", "source": "07-data-flow.md §7"}
   ],
   "securityConsiderations": [
     "Race condition: No DB-level locking between balance read and payout insert — concurrent requests could over-draft",

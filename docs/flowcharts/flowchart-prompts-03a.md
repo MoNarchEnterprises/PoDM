@@ -216,7 +216,7 @@ Draw data flows across boundaries with annotations:
 - **Sandbox bypass**: Zone 3 sends `0x0000` txHash -> Zone 1 skips on-chain verification -> fake transaction recorded (weakened boundary between Zone 3 and Zone 1)
 - **AI caption**: Zone 1 -> Zone 2 (sends base64 image to OpenAI) -- no user consent
 
-**Sources:** `auth.middleware.ts`, `cryptoPayment.service.ts`, `apiClient.ts`, `08-crypto-deep-dive.md`, `07-cross-cutting-concerns.md`, `11-data-flow.md`
+**Sources:** `auth.middleware.ts`, `cryptoPayment.service.ts`, `apiClient.ts`, `08-crypto-deep-dive.md`, `07-cross-cutting-concerns.md`, `07-data-flow.md`
 
 ---
 
@@ -260,4 +260,4 @@ Use color-coded paths:
 - Transmission: Base64-encoded image sent to OpenRouter/OpenAI
 - No user consent: Media sent to third-party AI API without explicit user consent or disclosure
 
-**Sources:** `11-data-flow.md`, `07-cross-cutting-concerns.md`, `auth.middleware.ts`, `podm-frontend/.env`, `cryptoPayment.service.ts`
+**Sources:** `07-data-flow.md`, `07-cross-cutting-concerns.md`, `auth.middleware.ts`, `podm-frontend/.env`, `cryptoPayment.service.ts`

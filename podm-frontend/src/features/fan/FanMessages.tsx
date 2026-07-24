@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useStripe } from '@stripe/react-stripe-js';
 import { Send, ArrowLeft } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
 import Button from '../../components/ui/Button';
 import { socket } from '../../lib/socket';
 import ContentViewerModal from './components/ContentViewerModal';
@@ -28,7 +28,7 @@ interface ConversationWithCreator {
 const FanMessagesPage = () => {
     const { user: currentFan } = useAuth();
     const location = useLocation();
-    const stripe = useStripe();
+    const { processPayment: processCryptoPayment, isLoading: isCryptoLoading, error: cryptoError, setError: setCryptoError } = useCryptoPayment();
     const initialState = location.state;
     const [conversations, setConversations] = useState<ConversationWithCreator[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -153,45 +153,34 @@ const FanMessagesPage = () => {
     };
 
     const handleUnlockContent = async (message: Message) => {
-        if (!stripe || !message.content) { return; }
+        if (!message.content) { return; }
 
-        try {
-            const { data } = await apiClient.unlockMessageContent(message.id);
-            const { clientSecret, status, paymentIntentId } = data;
+        const recipientAddress = message.content.creatorWalletAddress;
+        if (!recipientAddress) {
+            alert('Creator has not set up their crypto wallet.');
+            return;
+        }
 
-            let finalStatus = status;
-            let finalPaymentIntentId = paymentIntentId;
+        const priceInDollars = (message.content.price || 0) / 100;
+        const success = await processCryptoPayment({
+            amount: priceInDollars,
+            recipientAddress,
+            contentId: message.content.contentId,
+            creatorId: message.sender_id,
+        });
 
-            if (status === 'requires_action') {
-                console.log("Stripe requires 3D Secure authentication. Opening modal...");
-                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
+        if (success) {
+            setMessages(prev => prev.map(msg =>
+                msg.id === message.id
+                    ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
+                    : msg
+            ));
 
-                if (error) {
-                    throw new Error(error.message);
-                }
-                finalStatus = paymentIntent?.status;
-                if (paymentIntent) finalPaymentIntentId = paymentIntent.id;
-            }
-
-            if (finalStatus === 'succeeded') {
-                setMessages(prev => prev.map(msg =>
-                    msg.id === message.id
-                        ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
-                        : msg
-                ));
-
+            try {
                 await apiClient.addContentToGallery(message.content.contentId);
+            } catch { }
 
-                if (finalPaymentIntentId) {
-                    await apiClient.confirmTransaction(finalPaymentIntentId);
-                }
-
-                alert("Content unlocked and added to your gallery!");
-            }
-
-        } catch (error: any) {
-            alert(`Payment failed: ${error.message}`);
-            console.error(error);
+            alert('Content unlocked and added to your gallery!');
         }
     };
 

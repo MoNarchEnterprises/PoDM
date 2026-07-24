@@ -79,7 +79,6 @@ export const signupAndSubscribe = async (
             console.log(`[AuthService] Public profile created for user: ${userId}`);
         }
 
-        // --- Step 4: Create the Stripe Subscription ---
         await SubscriptionService.createSubscriptionForUser(
             userId,
             creatorId,

@@ -3,8 +3,6 @@ import { DollarSign, Bookmark, BookmarkCheck } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { loadStripe } from '@stripe/stripe-js';
-
 import { AxiosError } from 'axios';
 
 // --- Import Shared Types ---
@@ -19,9 +17,6 @@ import { useModal } from '../../hooks/useModal';
 import TipModal from './TipModal';
 import UnlockModal from './UnlockModal'; // Import the UnlockModal
 import { ContentLockState } from './ContentLockManager';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
 
 // --- Local Types ---
 // This interface represents the shape of the data this component expects.

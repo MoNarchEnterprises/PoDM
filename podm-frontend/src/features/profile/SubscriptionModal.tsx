@@ -16,8 +16,19 @@ interface SubscriptionModalProps {
 const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
 const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
 
+function stringToBytes32(str: string | undefined): string {
+    if (!str) return '0'.repeat(64);
+    const clean = str.replace(/-/g, '');
+    if (/^[0-9a-fA-F]{64}$/.test(clean)) return clean.toLowerCase();
+    let hex = '';
+    for (let i = 0; i < str.length && i < 32; i++) {
+        hex += str.charCodeAt(i).toString(16);
+    }
+    return hex.padEnd(64, '0');
+}
+
 const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscriptionComplete }: SubscriptionModalProps) => {
-    const { isConnected, walletAddress, balance, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
+    const { isConnected, walletAddress, balance, chainId, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'connect' | 'approve'>('connect');
@@ -80,13 +91,17 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                 throw new Error('Creator has not configured their payout wallet.');
             }
 
+            const chainIdNum = chainId || 84532;
+            const usdcAddress = chainIdNum === 8453
+                ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
+                : '0x036eFd9011037348926609f2A377B6729024D914';
+
             const approveData = '0x' +
-                'e73e7d6e' +
+                '7158d140' +
+                usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
                 creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
                 amountWei.toString(16).padStart(64, '0') +
-                '0'.repeat(64) +
-                '0000000000000000000000000000000000000000000000000000000000000060' +
-                '0000000000000000000000000000000000000000000000000000000000000000';
+                stringToBytes32(selectedTier.id);
 
             const txHash = await eth.request({
                 method: 'eth_sendTransaction',

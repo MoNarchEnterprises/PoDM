@@ -314,7 +314,7 @@ Controller → uses req.user for all user identification
 | **Stripe Subscriptions** | Stripe subscription API | Recurring fan subscriptions | Creator-defined pricing |
 | **Stripe Connect (payouts)** | Stripe Express onboarding | Creator fiat withdrawals | Stripe Connect fees |
 | **Crypto (USDC)** | Smart contract `transferFrom` | Subscriptions (profile module), tips, PPV | Platform fee BPS (capped 30%) |
-| **Stripe SetupIntents** | Save payment method for reuse | Fan settings payment method update | None |
+| ~~Stripe SetupIntents~~ | ~~Save payment method for reuse~~ | ~~Fan settings payment method update~~ | ~~ABORTED (removed from codebase)~~ |
 
 ### 3.2 Stripe Payment Flow (Tips/PPV)
 
@@ -801,7 +801,7 @@ ADMIN                       BACKEND                     TARGET USER'S VIEW
 │  └── Public + Private buckets                       │
 │                                                     │
 │  Stripe                                             │
-│  ├── PaymentIntents, SetupIntents, Subscriptions    │
+│  ├── PaymentIntents, Subscriptions                  │
 │  └── Connect (Express for creator payouts)          │
 │                                                     │
 │  Ethereum (Base network)                            │

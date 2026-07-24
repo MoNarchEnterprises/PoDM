@@ -51,7 +51,7 @@
     "producer": "payments",
     "consumers": ["subscriptions", "notifications", "analytics", "referral"],
     "payload": "{ paymentId, userId, creatorId, amount, type, feeAmount, netAmount, timestamp }",
-    "description": "Emitted when a payment transaction is successfully processed by Stripe"
+    "description": "Emitted when a crypto payment transaction is successfully verified on-chain"
   },
   {
     "id": "payment-failed",
@@ -113,8 +113,8 @@
     "type": "domain",
     "producer": "payments",
     "consumers": ["notifications", "analytics", "creator"],
-    "payload": "{ payoutId, creatorId, amount, stripeTransferId, completedAt }",
-    "description": "Emitted when a creator payout is successfully processed by Stripe Connect"
+    "payload": "{ payoutId, creatorId, amount, blockchainTxId, completedAt }",
+    "description": "Emitted when a creator payout is successfully processed"
   },
   {
     "id": "message-sent",

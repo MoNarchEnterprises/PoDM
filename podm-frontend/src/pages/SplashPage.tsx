@@ -245,8 +245,8 @@ const SplashPage = () => {
                                             </tr>
                                             <tr className="hover:bg-gray-800/30 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-300">Processing Fees</td>
-                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~3% Stripe cut</td>
-                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~3% Stripe cut</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~0% (Base network gas only)</td>
+                                                <td className="px-6 py-4 text-sm text-center text-gray-400">~0% (Base network gas only)</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">3% + credit card fees</td>
                                                 <td className="px-6 py-4 text-sm text-center text-gray-400">30% total cut</td>
                                                 <td className="px-6 py-4 text-sm text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-white font-semibold">&lt; $0.01 Sub-penny Gas ✓</td>

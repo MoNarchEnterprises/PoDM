@@ -10,6 +10,8 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+jest.setTimeout(30000);
+
 describe('PPV Subscription Enforcement Integration Tests', () => {
     let creatorToken: string;
     let fanToken: string;
@@ -114,7 +116,7 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
             creator_id: creatorId,
             tier_id: 'tier1',
             status: 'active',
-            stripe_subscription_id: 'sub_test_manual'
+            blockchain_tx_hash: 'sub_test_manual'
         });
         if (error) throw error;
 
@@ -136,5 +138,5 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
             }, null, 2));
             throw error;
         }
-    }, 30000);
+    });
 });

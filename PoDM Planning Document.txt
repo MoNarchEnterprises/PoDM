@@ -48,7 +48,7 @@ PostgreSQL (Supabase) ←→ MongoDB Atlas
 ↓
 Supabase Storage
 ↓
-Stripe (Payments)
+USDC/Crypto (Base blockchain via PoDMPaymentProtocol contract)
 ```
 ### 2.3 Security Architecture
 - Authentication: JWT tokens with refresh token rotation
@@ -84,7 +84,7 @@ Stripe (Payments)
 - **Protection**: Watermarking, access controls, download prevention
 ### 4.2 Subscription System
 - **Tiers**: Multiple subscription levels with different benefits
-- **Billing**: Automated recurring payments via Stripe
+- **Billing**: Automated recurring payments via USDC on the Base blockchain
 - **Management**: Easy upgrade/downgrade/cancellation
 - **Access**: Immediate content access upon subscription
 ### 4.3 Gallery System
@@ -1655,18 +1655,22 @@ gap: 12px;
 - CCPA compliance for California residents
 - Regular security audits
 ### 9.4 Payment Security
-- **PCI Compliance**:
-- Stripe integration for PCI DSS compliance
+- **Crypto Payments**:
+- All payments processed via USDC on the Base blockchain
+- PoDMPaymentProtocol smart contract handles on-chain settlement
 - No credit card data stored on platform
-- Tokenization for payment processing
+- **Wallet Security**:
+- Users connect their own wallets (MetaMask, Coinbase Wallet)
+- Platform never holds or manages private keys
+- Smart contract verified on Base block explorer
 - **Fraud Prevention**:
-- Address Verification System (AVS)
-- Card Verification Value (CVV) checks
+- On-chain transaction verification before content access
+- Transaction hash validation against expected recipient addresses
 - Suspicious activity monitoring
 - **Dispute Resolution**:
 - Clear refund policy
-- Evidence collection for disputes
-- Chargeback handling procedures
+- On-chain evidence for any disputes
+- Admin-mediated refund processing via smart contract
 ---
 ## 10. Development Roadmap
 ### 10.1 Phase 1: MVP Foundation (4-6 weeks)
@@ -1683,7 +1687,7 @@ gap: 12px;
 - Implement responsive design
 #### Week 4-5: Core Features with UI Integration
 - Implement content management system
-- Implement subscription system with Stripe integration
+- Implement subscription system with USDC smart contract payments
 - Implement gallery system
 - Implement basic messaging system
 #### Week 6: Integration & Testing

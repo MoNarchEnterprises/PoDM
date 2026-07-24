@@ -50,7 +50,7 @@ export const createSubscriptionForUser = async (
 
     // 3. Save subscription to our database
     const dbSubscription = await SubscriptionModel.createSubscription({
-        stripe_subscription_id: txHash, // Reuse stripe_subscription_id column to store blockchain transaction hash
+        blockchain_tx_hash: txHash,
         fan_id: fan_id,
         creator_id: creator_id,
         tier_id: tier_id,

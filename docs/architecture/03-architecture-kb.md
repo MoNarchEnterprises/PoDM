@@ -2,11 +2,11 @@
 
 **Purpose**: Complete reference for every module in the PoDM creator-fan platform — purpose, responsibilities, interfaces, dependencies, failure modes, security, and operational characteristics. A new senior engineer should understand any module without reading source code.
 
-**Date**: 2026-07-02
-**Version**: 1.0.0 (backend) / 0.0.0 (frontend)
-**Confidence**: High
-**Source Files Examined**: 15 controllers, 15 services, 15 routes, 13+ models, 5 middleware, 13 utils, 3 config, Server.ts, frontend apiClient, hooks, context, App.tsx
-**Related Documents**: [01-repository-inventory.md](01-repository-inventory.md), [02-dependency-map.md](02-dependency-map.md)
+**Date**: 2026-07-19
+**Version**: 2.0.0 (backend) / 0.0.0 (frontend)
+**Confidence**: High — every source file was read or inspected
+**Source Files Examined**: 16 controllers, 17 services, 13 models, 16 routes, 4 middleware, 12 utils, 3 config, 1 job, 1 smart contract, Server.ts, frontend apiClient, hooks, context, App.tsx, all feature modules
+**Related Documents**: [01-repository-inventory.md](01-repository-inventory.md), [02-dependency-map.md](02-dependency-map.md), [07-cross-cutting-concerns.md](07-cross-cutting-concerns.md), [07-data-flow.md](07-data-flow.md)
 
 ---
 
@@ -88,8 +88,7 @@ Route-level middleware (applied to `router.use()`) is used by `admin.routes.ts`,
 - `GET /me/feed` — personalized content feed (`protect`)
 - `GET /me/settings` — user settings (`protect`)
 - `PUT /me/settings` — update settings (`protect`)
-- `PUT /me/payment-method` — update payment method (`protect`)
-- `POST /me/setup-payment-method` — create Stripe SetupIntent (`protect`)
+- ~~`PUT /me/payment-method` — ABORTED (removed)~~
 
 **Dependencies**: `user.controller` (imports all handlers), `auth.middleware` (`protect`, `protectAndCreator`), `upload.middleware` (`uploadAvatar`, `uploadVerificationDocs`).
 
@@ -695,6 +694,46 @@ Router-level `protect` applied to all routes.
 
 ---
 
+### 1.16 Onramp Routes Module
+
+**Purpose**: Coinbase On-Ramp card-to-USDC purchase sessions and webhook handling.
+
+**Responsibilities**: Create fiat-to-crypto on-ramp sessions, receive and verify Coinbase webhook callbacks for completed purchases.
+
+**Public interfaces**: `onramp.routes.ts` — 2 endpoints under `/api/v1/payments/onramp`:
+- `POST /session` — create on-ramp session (`protect`)
+- `POST /webhook` — receive Coinbase webhook event (no auth — secured by HMAC signature)
+
+**Dependencies**: `onramp.controller`, `auth.middleware` (`protect`).
+
+**Dependent modules**: Frontend on-ramp button, crypto wallet purchase flow.
+
+**Inputs**: JSON body with `amount`, `destinationWallet` (session); raw JSON body + `x-coinbase-signature` header (webhook).
+
+**Outputs**: JSON with `sessionId` and `hostUrl` (session); 200 OK (webhook).
+
+**Database interactions**: None directly.
+
+**External APIs**: None (routing layer only).
+
+**Configuration**: None at route level.
+
+**Failure modes**: Missing auth (401 on session), invalid body (400), webhook signature mismatch (401).
+
+**Recovery behavior**: Client retries with valid auth/amount.
+
+**Security considerations**: Session creation requires authentication. Webhook is public but HMAC-signed — signature verified in service layer.
+
+**Performance considerations**: Negligible routing overhead. Webhook is synchronous and blocks until service processing completes.
+
+**Logging**: None at route level.
+
+**Testing strategy**: Minimal — covered by onramp service tests.
+
+**Known assumptions**: Coinbase On-Ramp API is configured. Webhook delivers `charge_completed` events for USDC on Base.
+
+---
+
 # Layer 2: Controller Layer
 
 ## Controller Pattern Overview
@@ -774,8 +813,8 @@ Every controller function has the signature: `(req: AuthRequest | Request, res: 
 - `getMyGallery` — fan gallery; calls `user.service.getFanGallery`
 - `getMySettings` — settings; calls `user.service.getFanSettings`
 - `updateMySettings` — update settings; calls `user.service.updateFanSettings`
-- `updateMyPaymentMethod` — payment method; calls `user.service.updateFanPaymentMethod`
-- `createSetupIntent` — Stripe SetupIntent; calls `user.service.createSetupIntent`
+- ~~`updateMyPaymentMethod` — ABORTED (removed)~~
+- ~~`createSetupIntent` — ABORTED (removed)~~
 - `getSecureContentUrl` — **exported but unused in routes** (dead code)
 
 **Architectural Anomaly**: Also imports `ContentModel` directly (bypasses service layer) — used in `getSecureContentUrl`.
@@ -1388,11 +1427,51 @@ Every controller function has the signature: `(req: AuthRequest | Request, res: 
 
 ---
 
+### 2.16 Onramp Controller
+
+**File**: `server/controllers/onramp.controller.ts`
+
+**Purpose**: Coinbase On-Ramp session creation and webhook handling.
+
+**Public interfaces**:
+- `createOnRampSession` — validates amount + destination wallet, calls `onRampService.createCharge`, returns session with host URL
+- `handleOnRampWebhook` — receives raw body + HMAC signature, delegates to `onRampService.handleWebhook`
+
+**Dependencies**: `onRampService` (class instance), `response.ts` helpers, `asyncHandler.ts`.
+
+**Dependent modules**: Onramp routes, frontend on-ramp button.
+
+**Inputs**: `req.body` (amount, destinationWallet), `req.user` (session); raw body + `x-coinbase-signature` header (webhook).
+
+**Outputs**: JSON with session data (session); 200 OK (webhook).
+
+**Database interactions**: None directly.
+
+**External APIs**: None directly.
+
+**Configuration**: None.
+
+**Failure modes**: Missing auth (401), invalid amount (400), missing wallet (400), Coinbase API error (502).
+
+**Recovery behavior**: Retry with valid parameters.
+
+**Security considerations**: Authentication required for session creation. Webhook is public but HMAC-signed — controller passes raw body and signature to service for verification.
+
+**Performance considerations**: Session creation calls external Coinbase API. Webhook handling is synchronous.
+
+**Logging**: None.
+
+**Testing strategy**: Minimal — mocked Coinbase API.
+
+**Known assumptions**: Coinbase On-Ramp is configured with valid API key and webhook secret. Destination wallet is a valid Ethereum address.
+
+---
+
 # Layer 3: Service Layer
 
 ## Service Pattern Overview
 
-All 15 services are functional modules (not classes) exporting async functions. Each service:
+All 17 services are functional modules (not classes) exporting async functions. Each service:
 - Accepts domain objects (user IDs, content data, etc.)
 - Calls model functions for database access
 - May call other services for cross-cutting operations
@@ -1467,10 +1546,10 @@ Inter-service dependencies are explicit static imports, except `support.service`
 - `getFanGallery(fan_id)` — groups gallery content by creator, enriches with signed URLs
 - `getFanSettings(fan_id)` — profile + preferences + payment method from profiles table
 - `updateFanSettings(fan_id, updates)` — saves profile/preferences, returns full settings
-- `updateFanPaymentMethod(fan_id, paymentMethodId)` — saves crypto_wallet_address to profiles
-- `createSetupIntent(fanId)` — returns mock Stripe client secret (hardcoded Web3 response)
+- ~~`updateFanPaymentMethod(fan_id, paymentMethodId)` — ABORTED (removed)~~
+- ~~`createSetupIntent(fanId)` — ABORTED (removed)~~
 
-**Dependencies**: `UserModel`, `GalleryModel`, `ContentModel`, `SubscriptionModel`, `StorageService`, `tier.utils` (`syncTiersWithStripe`), `user.utils` (`reshapeUserForApp`), `content.utils` (`generateSignedUrlsForContent`, `enrichContentWithUnlockStatus`, `reshapePostForFeed`), `AppError`, `requireUser` guard, `supabase` (raw queries for getFanSettings, updateFanPaymentMethod).
+**Dependencies**: `UserModel`, `GalleryModel`, `ContentModel`, `SubscriptionModel`, `StorageService`, `tier.utils` (`syncTiersWithStripe`), `user.utils` (`reshapeUserForApp`), `content.utils` (`generateSignedUrlsForContent`, `enrichContentWithUnlockStatus`, `reshapePostForFeed`), `AppError`, `requireUser` guard, `supabase` (raw queries for getFanSettings).
 
 **Dependent modules**: User controller.
 
@@ -1496,7 +1575,7 @@ Inter-service dependencies are explicit static imports, except `support.service`
 
 **Testing strategy**: Integration tests for profile CRUD, gallery, feed.
 
-**Known assumptions**: Profile is separate from Supabase Auth users. Email updates go through Supabase Auth admin API. `createSetupIntent` is mocked for Web3-only mode.
+**Known assumptions**: Profile is separate from Supabase Auth users. Email updates go through Supabase Auth admin API. ~~`createSetupIntent` is mocked for Web3-only mode — ABORTED (removed)~~
 
 ---
 
@@ -2074,6 +2153,85 @@ Inter-service dependencies are explicit static imports, except `support.service`
 
 ---
 
+### 3.16 Onramp Service
+
+**File**: `server/services/onramp.service.ts`
+
+**Purpose**: Coinbase On-Ramp integration — card-to-USDC purchase session creation and webhook verification.
+
+**Public interfaces** (class `OnRampService`, 2 methods):
+- `createCharge(amount, fanId, destinationWallet)` — creates Coinbase On-Ramp session via REST API, inserts pending transaction record, returns `{ sessionId, hostUrl }`
+- `handleWebhook(rawBody, signature)` — verifies HMAC-SHA256 signature, parses event, updates transaction status from `Pending` to `Cleared` on `charge_completed` event
+
+**Dependencies**: `axios` (Coinbase API calls), `supabase` client (transaction records), `AppError`, `crypto` (HMAC verification, dynamically imported).
+
+**Dependent modules**: Onramp controller.
+
+**Inputs**: Amount in dollars, fan user ID, destination wallet address (createCharge); raw JSON body string, HMAC signature header (handleWebhook).
+
+**Outputs**: OnRampSession object with `sessionId` and `hostUrl` (createCharge); void (handleWebhook).
+
+**Database interactions**: Raw `supabase.from('transactions').insert()` to create pending onramp transaction. Raw `supabase.from('transactions').select().eq('blockchain_tx_hash', sessionId)` and `.update()` to mark as `Cleared` on webhook completion.
+
+**External APIs**: Coinbase On-Ramp REST API at `https://api.coinbase.com/api/v1/onramp/sessions` (session creation). Coinbase On-Ramp hosted page at `https://pay.coinbase.com/buy/{sessionId}`.
+
+**Configuration**: `COINBASE_ONRAMP_API_KEY`, `COINBASE_ONRAMP_WEBHOOK_SECRET`, `COINBASE_ONRAMP_APP_ID` from environment. Throws `AppError(500)` if any are missing.
+
+**Failure modes**: Missing config (500), invalid wallet address format (400), Coinbase API error (502), missing session ID in response (502), webhook signature mismatch (401), non-USDC purchase ignored (logged), missing pending transaction (logged), webhook event not `charge_completed` (logged and ignored).
+
+**Recovery behavior**: Config validation at runtime (not startup). HMAC signature mismatch rejects immediately. Non-completion webhook events silently ignored. Failed transaction record insert logged but does not abort session creation. Webhook failures are idempotent (no state if pending tx not found).
+
+**Security considerations**: Wallet address validated against `/^0x[a-fA-F0-9]{40}$/` regex. Webhook HMAC-SHA256 verified against shared secret. No API keys in code — all from environment. API key sent as Bearer token in Authorization header.
+
+**Performance considerations**: External API call adds 200-500ms. Webhook processing is synchronous and non-blocking. Dynamic `import('crypto')` on each webhook call adds minimal overhead.
+
+**Logging**: `console.error` for transaction insert/update failures. `console.log` for ignored events and completion confirmation.
+
+**Testing strategy**: Minimal — integration tests with mocked Coinbase API.
+
+**Known assumptions**: Coinbase On-Ramp API is available. Webhook delivers `charge_completed` events. Base network is `base` (not `base-mainnet`). Destination wallet is an Ethereum address on Base.
+
+---
+
+### 3.17 Payout Service
+
+**File**: `server/services/payout.service.ts`
+
+**Purpose**: Creator payout processing via blockchain — balance verification, on-chain payout execution, transaction recording.
+
+**Public interfaces** (1 exported function):
+- `processPayout(creatorId, amountInCents)` — verifies balance, acquires payout lock, sends USDC via smart contract, creates payout transaction record, releases lock
+
+**Dependencies**: `supabase` client, `TransactionModel`, `AppError`, `fee.utils` (`getCommissionRateForCreator`), `ethers` (dynamically imported), environment variables for RPC URL and contract address.
+
+**Dependent modules**: Creator controller (via creator.service), frontend creator earnings page.
+
+**Inputs**: Creator user ID, payout amount in cents.
+
+**Outputs**: `{ txHash: string }` containing the on-chain transaction hash.
+
+**Database interactions**: Raw `supabase.from('transactions').select('creator_payout')` to compute available balance. Raw `supabase.from('transactions').select('amount').eq('type', 'Payout')` for total paid out. Raw `supabase.from('profiles').select('crypto_wallet_address')` to get creator's payout wallet. RPC calls: `acquire_payout_lock` and `release_payout_lock` for concurrency control. `TransactionModel.createTransaction` to record the payout.
+
+**External APIs**: Base blockchain JSON-RPC via `ethers.JsonRpcProvider` (RPC URL from env). Smart contract `processPayout` function call via `ethers.Wallet.sendTransaction`.
+
+**Configuration**: `BASE_TESTNET_RPC_URL` or `https://sepolia.base.org` (default), `BASE_TESTNET_CONTRACT_ADDRESS` or `BASE_CONTRACT_ADDRESS`, `TREASURY_PRIVATE_KEY` or `DEPLOYER_PRIVATE_KEY`, `MIN_PAYOUT_CENTS` (default `1000` = $10.00 minimum).
+
+**Failure modes**: Missing treasury key or contract address (500), creator wallet not configured (400), amount below minimum (400), insufficient balance (400), concurrent payout lock (409), on-chain transaction failure (500), timeout (504).
+
+**Recovery behavior**: Balance validation before on-chain transaction. Payout lock prevents concurrent payouts for same creator. Lock always released in `finally` block even on failure. On-chain failure throws and is not retried automatically.
+
+**Security considerations**: Treasury private key controls on-chain payouts — stored in env only, never logged. Payout lock prevents double-withdrawal. Amount validated against available balance computed from cleared transactions. Wallet addresses validated at smart contract level.
+
+**Performance considerations**: On-chain transaction takes 2-15 seconds depending on network congestion. Payout lock ensures serial processing per creator. Ethers dynamically imported to avoid blocking server startup.
+
+**Logging**: None explicit beyond thrown AppError messages.
+
+**Testing strategy**: Minimal — integration tests with mocked blockchain.
+
+**Known assumptions**: Smart contract's `processPayout` function is `onlyOwner` (treasury wallet). RPC endpoint is accessible. USDC uses 6 decimal places (`BigInt(amountInCents / 100) * 1_000_000`). Creator has configured `crypto_wallet_address` in profiles. Payout lock RPC functions `acquire_payout_lock`/`release_payout_lock` exist in database.
+
+---
+
 # Layer 4: Model Layer
 
 ## Model Pattern Overview
@@ -2575,6 +2733,48 @@ All models are functional modules exporting named async functions. Each function
 
 ---
 
+### 5.4 Validation Middleware
+
+**File**: `server/middleware/validation.middleware.ts`
+
+**Purpose**: Request body validation using express-validator — validates user signup, content creation, and tip requests before they reach controllers.
+
+**Public interfaces**:
+- `validateSignup` — array of validation rules + error handler: checks `email` (valid email, normalized), `username` (min 3 chars), `password` (min 8 chars), `role` (must be `fan` or `creator`)
+- `validateContent` — array of validation rules + error handler: checks `title` (non-empty), `type` (must be `photo`/`video`/`text`/`audio`), `visibility` (must be `subscribers_only` or `pay_per_view`), `price` (numeric, required if PPV)
+- `validateTip` — array of validation rules + error handler: checks `creatorId` (non-empty), `amount` (integer, min 100 cents = $1.00)
+- `handleValidationErrors` — internal middleware that checks `validationResult(req)` and returns 400 with error array if validation fails
+
+**Dependencies**: `express-validator` (`body`, `validationResult`), `AppError`.
+
+**Dependent modules**: Auth routes (signup), content routes (create/update), tip routes (not currently routed).
+
+**Inputs**: `req.body` fields validated per chain rules.
+
+**Outputs**: Calls `next()` if valid; returns 400 with `{ errors: [...] }` if invalid.
+
+**Database interactions**: None.
+
+**External APIs**: None.
+
+**Configuration**: None.
+
+**Failure modes**: Missing/invalid fields return 400 with error array from express-validator.
+
+**Recovery behavior**: Client corrects validation errors and resubmits.
+
+**Security considerations**: Prevents injection of invalid data types. Email normalization reduces attack surface. Password length minimum prevents weak passwords.
+
+**Performance considerations**: Minimal overhead — synchronous field validation.
+
+**Logging**: None.
+
+**Testing strategy**: Unit test with express-validator test utilities. Validated through integration tests on signup and content creation endpoints.
+
+**Known assumptions**: Validation chains are applied before controller handlers in route definitions. Express-validator errors are always an array. `validateTip` chain exists but no route currently applies it.
+
+---
+
 # Layer 6: Infrastructure & Configuration
 
 ---
@@ -2737,6 +2937,46 @@ All models are functional modules exporting named async functions. Each function
 
 ---
 
+### 6.5 Jobs Subsystem
+
+**File**: `server/jobs/renewSubscriptions.ts`
+
+**Purpose**: Batch subscription renewal processing — finds subscriptions due for renewal, processes on-chain USDC renewal transactions, updates billing dates.
+
+**Public interfaces**:
+- `renewSubscriptions()` — async function that queries due subscriptions, processes renewals via smart contract, updates statuses
+- Runnable as standalone script: `node dist/jobs/renewSubscriptions.js`
+
+**Dependencies**: `SubscriptionModel` (`findSubscriptionsDueForRenewal`, `updateSubscription`), `TransactionModel` (`createTransaction`), `supabase` client (profile lookups), `ethers` (dynamically imported), `axios` (not directly used in function body — imported but unused).
+
+**Dependent modules**: None (standalone job, not imported by any service).
+
+**Inputs**: None directly — reads from environment variables for configuration.
+
+**Outputs**: Updates subscription records and transaction records in database. Console logs for each processed subscription.
+
+**Database interactions**: `SubscriptionModel.findSubscriptionsDueForRenewal` — queries subscriptions approaching `next_billing_date`. `supabase.from('profiles').select('crypto_wallet_address')` — fetches creator wallet. `SubscriptionModel.updateSubscription` — marks expired or updates `next_billing_date`. `TransactionModel.createTransaction` — records renewal with platform fee (12.5%).
+
+**External APIs**: Base blockchain JSON-RPC via `ethers.JsonRpcProvider`. Smart contract `processRenewal` function call.
+
+**Configuration**: `BASE_TESTNET_RPC_URL` or `https://sepolia.base.org`, `BASE_TESTNET_CONTRACT_ADDRESS` or `BASE_CONTRACT_ADDRESS`, `KEEPER_PRIVATE_KEY` or `DEPLOYER_PRIVATE_KEY`.
+
+**Failure modes**: Missing contract address (warns and skips entire run), missing keeper key (logs error, skips on-chain tx, marks subscription expired), on-chain transaction failure (logs error, marks subscription expired), missing wallet address (marks subscription expired).
+
+**Recovery behavior**: Each subscription is processed independently — one failure does not affect others. Missing wallets or failed transactions result in expired status with logged reason. No retry logic for failed renewals.
+
+**Security considerations**: Keeper private key stored in env — used to sign on-chain renewal transactions. Smart contract's `processRenewal` function requires valid allowance from fan.
+
+**Performance considerations**: Sequential processing — O(n) where n = due subscriptions. Each renewal makes 1 on-chain transaction (2-15 seconds). For large numbers of subscriptions, total runtime can be minutes.
+
+**Logging**: `console.log`/`console.error` for each subscription processed, including warnings for missing wallets and successful renewals with transaction hashes.
+
+**Testing strategy**: Minimal — not covered by CI test suite.
+
+**Known assumptions**: Subscription model has `findSubscriptionsDueForRenewal` function (returns subscriptions where `next_billing_date <= now()` and `status = 'active'`). Smart contract has `processRenewal` function with signature `processRenewal(address fan, address creator, uint256 amount)`. Commission rate is hardcoded as 12.5% (`Math.round(sub.price * 0.125)`). USDC uses 6 decimal places. Not scheduled — must be triggered externally (cron, manual, or webhook).
+
+---
+
 # Layer 7: External Integrations
 
 ---
@@ -2896,28 +3136,54 @@ All models are functional modules exporting named async functions. Each function
 
 ---
 
-### 7.7 Ethereum Smart Contract
+### 7.7 Ethereum Smart Contract (PoDMPaymentProtocol)
 
-**File**: `contracts/PoDMPaymentProtocol.sol`
+**File**: `contracts/contracts/PoDMPaymentProtocol.sol` (232 lines)
 
-**Purpose**: On-chain USDC payment splitting between creators and platform.
+**Purpose**: On-chain USDC payment splitting between creators and the platform treasury — enables trustless subscription payments, tips, PPV unlocks, recurring subscription allowances, and creator payouts on the Base blockchain.
 
-**Type**: Solidity smart contract (ERC-20).
+**Type**: Solidity smart contract (^0.8.20), OpenZeppelin `Ownable` and `Pausable`.
 
-**Functions**:
-- `paySubscription(creator, amount)` — subscription payment with platform fee split
-- `payTip(creator, amount)` — direct tip
-- `payPPV(creator, contentId, amount)` — pay-per-view content unlock
-- `setPlatformTreasury(address)` — admin: update fee recipient
-- `setPlatformFeeBps(uint256)` — admin: update fee (capped at 30%)
+**Public interfaces** (12 external/public functions):
+- `paySubscription(tokenAddress, creator, amount, tierIdHash)` — fan pays subscription: splits amount into platform fee (BPS) + creator amount, emits `SubscriptionPaid` event
+- `payTip(tokenAddress, creator, amount)` — direct tip: splits amount, emits `TipPaid` event
+- `payPPV(tokenAddress, creator, amount, contentIdHash)` — PPV content unlock: splits amount, emits `PPVPaid` event
+- `approveRecurringSubscription(creator, maxAmountPerPeriod, periodInSeconds)` — fan approves auto-renewal allowance (min 1 day period), emits `SubscriptionApproved`
+- `revokeRecurringSubscription(creator)` — fan cancels auto-renewal allowance, emits `SubscriptionRevoked`
+- `processRenewal(tokenAddress, fan, creator, amount)` — keeper/relay processes renewal: checks allowance, splits fee, emits `SubscriptionRenewed`, updates `lastRenewalAt`
+- `processPayout(tokenAddress, creator, amount)` — owner only: transfers USDC from contract to creator, emits `PayoutCompleted`
+- `getAllowance(fan, creator)` — view: returns `RecurringAllowance` struct
+- `pause()` / `unpause()` — owner only: emergency stop
+- `setPlatformTreasury(newTreasury)` — owner only: update fee recipient (capped at 30%)
+- `setPlatformFeeBps(newFeeBps)` — owner only: update fee rate (capped at 3000 BPS = 30%)
 
-**Events**: `SubscriptionPaid`, `TipPaid`, `PPVPaid`, `TreasuryUpdated`, `FeeUpdated`.
+**Dependencies**: `@openzeppelin/contracts/utils/Pausable.sol`, `@openzeppelin/contracts/access/Ownable.sol`, `IERC20` interface (local — not imported from OpenZeppelin).
 
-**Configuration**: Deployed contract address (not found in codebase — deployment-specific).
+**Dependent modules**: Backend `cryptoPayment.service` (transaction verification), `payout.service` (on-chain payout execution), `jobs/renewSubscriptions` (renewal processing), frontend `useCryptoWallet` hook (wallet connection + contract interaction).
 
-**Usage**: Frontend `useCryptoWallet` hook connects wallet, calls contract functions directly. Backend `cryptoPayment.service` verifies on-chain transactions.
+**Inputs**: ERC-20 token address (USDC on Base), creator/fan wallet addresses, amounts in USDC (6 decimal places), tier/content ID hashes (bytes32), BPS fee rates.
 
-**Security considerations**: Standard ERC-20 transfer pattern. Fee capped at 30% (3000 BPS). Owner/admin can update treasury and fee.
+**Outputs**: Events emitted on-chain, USDC transfers via `transferFrom`/`transfer`, `RecurringAllowance` structs for allowance queries.
+
+**Database interactions**: None — contract is stateless (only stores allowances mapping, treasury address, and fee rate).
+
+**External APIs**: Base blockchain RPC (JSON-RPC via ethers.js for backend).
+
+**Configuration**: Contract address set via environment variables (`BASE_TESTNET_CONTRACT_ADDRESS`, `BASE_CONTRACT_ADDRESS`). Deployed on Base Sepolia (testnet) and Base Mainnet. Hardhat config in `contracts/hardhat.config.ts` with network configurations.
+
+**Failure modes**: Zero-amount payment (revert), invalid creator address (revert), insufficient token allowance (revert — `transferFrom` fails), paused contract (revert — `whenNotPaused` modifier), unauthorized payout (revert — `onlyOwner`), fee exceeding 30% cap (revert — constructor check), allowance period below 1 day (revert), inactive allowance (revert — `processRenewal`), stale allowance period (revert).
+
+**Recovery behavior**: All failures are on-chain reverts — no partial state. Frontend catches revert errors from wallet provider. Backend detects failed transactions via missing receipt or revert reason. Owner can unpause contract to resume operations.
+
+**Security considerations**: ERC-20 `transferFrom` pattern requires prior allowance approval. Platform fee capped at 30% (3000 BPS) enforced in constructor and setter. Owner-only functions: `processPayout`, `setPlatformTreasury`, `setPlatformFeeBps`, `pause`, `unpause`. Pausable for emergency stop. Recurring allowance check in `processRenewal` includes period validation. No upgradeability pattern (not using UUPS or transparent proxy). No reentrancy guard (uses simple transfer pattern — no external calls to unknown contracts). `Ownable` provides single-owner access control (no multisig).
+
+**Performance considerations**: Each payment requires 2 `transferFrom` calls (one to treasury, one to creator) — ~40-60k gas per payment. Batch processing not implemented. Recurring allowance validation adds minimal gas overhead. Pausable modifier adds SLOAD per check.
+
+**Logging**: Events emitted for all payment, admin, and allowance operations.
+
+**Testing strategy**: Hardhat tests in `contracts/test/PoDMPaymentProtocol.test.ts`. Coverage includes payment functions, allowance lifecycle, owner-only access control, pause/unpause, fee updates.
+
+**Known assumptions**: USDC on Base uses 6 decimal places. Platform treasury address is set at deployment. Fee rate is set at deployment (default ~12.5% = 1250 BPS matching `DEFAULT_COMMISSION_RATE`). Users approve USDC spending before calling payment functions. Contract is deployed at a known address per network.
 
 ---
 
@@ -3077,6 +3343,84 @@ All models are functional modules exporting named async functions. Each function
 **Dependencies**: None.
 
 **Dependent modules**: Creator service (getEarningsData).
+
+---
+
+### 8.10 API Error (Dead Code)
+
+**File**: `server/utils/apiError.ts`
+
+**Purpose**: Custom `AppError` class for API errors with HTTP status codes — **duplicate** of the active `AppError` in `middleware/error.middleware.ts`.
+
+**Public interfaces**:
+- `AppError` class — extends `Error` with `statusCode` (number), `isOperational` (boolean), `Error.captureStackTrace`
+
+**Dependencies**: None.
+
+**Dependent modules**: None — this file is **unused** in the running application. All controllers, services, and middleware import `AppError` from `middleware/error.middleware.ts`.
+
+**Inputs**: Error message string, HTTP status code.
+
+**Outputs**: AppError instance with stack trace.
+
+**Database interactions**: None.
+
+**External APIs**: None.
+
+**Configuration**: None.
+
+**Failure modes**: N/A (dead code).
+
+**Recovery behavior**: N/A (dead code).
+
+**Security considerations**: Stack traces may be captured — not exposed to clients in production.
+
+**Performance considerations**: None (not imported anywhere).
+
+**Logging**: None.
+
+**Testing strategy**: Not tested (dead code).
+
+**Known assumptions**: This file is a legacy artifact from an earlier implementation. The active `AppError` in `error.middleware.ts` differs (no `isOperational`, no `captureStackTrace`). Should be removed once confirmed unused.
+
+---
+
+### 8.11 Platform Constants
+
+**File**: `server/lib/constants.ts`
+
+**Purpose**: Single shared constant for the platform commission rate.
+
+**Public interfaces**:
+- `DEFAULT_COMMISSION_RATE` — exported constant: `12.5` (12.5%)
+
+**Dependencies**: None.
+
+**Dependent modules**: `cryptoPayment.service`, `subscription.service`, `admin.service`, `fee.utils` (consumed via direct import).
+
+**Inputs**: None.
+
+**Outputs**: Numeric constant.
+
+**Database interactions**: None.
+
+**External APIs**: None.
+
+**Configuration**: Hardcoded value — not configurable via environment variable.
+
+**Failure modes**: None (constant value).
+
+**Recovery behavior**: N/A.
+
+**Security considerations**: N/A.
+
+**Performance considerations**: Compile-time constant — zero runtime cost.
+
+**Logging**: None.
+
+**Testing strategy**: N/A (constant value).
+
+**Known assumptions**: 12.5% commission rate is the platform default. Per-creator overrides stored in `profiles.commission_rate` can differ. This constant matches the smart contract's default fee BPS of 1250.
 
 ---
 
@@ -3298,24 +3642,26 @@ All models are functional modules exporting named async functions. Each function
 
 | Layer | Files | Key Modules |
 |---|---|---|
-| Routes | 15 | 14 mount prefixes, ~94 endpoints |
-| Controllers | 15 | All use asyncHandler + response helpers |
-| Services | 15 | 10+ with inter-service dependencies |
-| Models | 13+ | All use database.ts wrappers |
-| Middleware | 5 | Auth, error, upload, validation |
+| Routes | 16 | 14 mount prefixes, ~94 endpoints |
+| Controllers | 16 | All use asyncHandler + response helpers |
+| Services | 17 | 8 inter-service edges (2.9% density) |
+| Models | 13 | All use database.ts wrappers |
+| Middleware | 4 | Auth, error, upload, validation |
 | Config | 3 | supabase, r2, socket |
-| Utils | ~13 | Shared across all layers |
-| Frontend pages | 23 | Route-level, lazy-loaded |
-| Frontend components | 28 | Reusable + feature-specific |
+| Jobs | 1 | renewSubscriptions (batch on-chain renewals) |
+| Utils | 11 active (1 dead) | Shared across all layers |
+| Smart Contract | 1 | PoDMPaymentProtocol (Solidity, 232 LOC) |
+| Frontend routes | 34 | 14 lazy-loaded via React.lazy() |
+| Frontend components | 28 | 5 UI primitives + 3 auth guards + 17 domain-shared + 3 auth guards |
 | Frontend hooks | 9 | 5 app-level + 4 shared |
-| Frontend lib | 6 | apiClient, socket, constants |
+| Frontend lib | 6 | apiClient, socket, constants, formatters |
 
-**Inter-service edges**: 7 (3.1% density)
-**Controller→model bypasses**: 4 instances in 3 controllers
+**Inter-service edges**: 8 (2.9% density)
+**Controller→model bypasses**: 5 instances in 4 controllers
 **No-service modules**: 2 (enclave, referral)
-**External integrations**: 8
-**Circular dependencies**: 0
-**Architectural smells**: 12 identified (4 critical)
+**External integrations**: 8 (Supabase, Stripe, Cloudflare R2, OpenAI/OpenRouter, Socket.IO, Nodemailer, Ethereum/Base, Coinbase On-Ramp)
+**Dynamic require() workarounds**: 3 (circular dependency: message↔support, lazy import: message→storage)
+**Architectural smells**: 10 identified (1 critical, 3 high, 4 medium, 2 low)
 
 ---
 
@@ -3324,3 +3670,4 @@ All models are functional modules exporting named async functions. Each function
 | Date | Author | Change |
 |---|---|---|
 | 2026-07-02 | AI Architect | Initial architecture knowledge base (Phase 2) |
+| 2026-07-19 | AI Architect | Expanded: added onramp route/controller/service, payout service, validation middleware, jobs subsystem, expanded smart contract, added apiError (dead code) and constants utility. Updated metrics to 16 controllers, 17 services, 8 inter-service edges, 5 controller bypasses. |

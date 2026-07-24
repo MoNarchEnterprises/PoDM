@@ -85,7 +85,7 @@ export async function renewSubscriptions(): Promise<void> {
             platform_fee: Math.round(sub.price * 0.125),
             creator_payout: sub.price - Math.round(sub.price * 0.125),
             status: 'Cleared',
-            payment_gateway_id: txHash,
+            blockchain_tx_hash: txHash,
         });
 
         await SubscriptionModel.updateSubscription(String(sub.id), {

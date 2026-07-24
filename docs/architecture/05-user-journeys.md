@@ -382,7 +382,7 @@
 - Invalid email format: 400, "Invalid email"
 - Wallet address invalid: 400, "Invalid wallet address"
 **Completion State**: Settings saved and reflected immediately.
-**Referenced modules**: User service/controller (updateMe, uploadUserAvatar, updateFanSettings, updateFanPaymentMethod), storage service (R2 upload), frontend FanSettings page.
+**Referenced modules**: User service/controller (updateMe, uploadUserAvatar, updateFanSettings), storage service (R2 upload), frontend FanSettings page.
 
 ---
 
@@ -479,9 +479,71 @@
 
 ---
 
+### 20. Configure Crypto Wallet
+
+**Actor**: Fan
+**Trigger**: Fan clicks "Link Wallet" in settings or is prompted during payment flow.
+**Preconditions**: Fan is authenticated. Fan has an external crypto wallet (MetaMask, WalletConnect, etc.).
+**Happy Path**:
+1. Fan navigates to settings (`/fan/settings`), views "Payment Methods" section
+2. Fan clicks "Connect Wallet"
+3. Browser wallet extension prompts for connection approval
+4. Fan approves connection, wallet address returned to frontend
+5. Frontend sends PUT `/api/v1/users/me/payment-method` with wallet address
+6. Backend saves wallet address to `profiles.crypto_wallet_address`
+7. Fan sees "Wallet connected" confirmation with truncated address
+8. Wallet address now available for crypto payments (subscriptions, PPV, tips)
+**Alternative Paths**:
+- Fan uses Coinbase On-Ramp without pre-configuring wallet: on-ramp flow prompts wallet input
+- Fan changes wallet: reconnects, new address overwrites old
+**Failure Paths**:
+- Wallet extension not installed: show "Install MetaMask or use WalletConnect"
+- Connection rejected by user: no changes, return to previous state
+- Invalid address: 400, "Invalid wallet address"
+- Network mismatch (wrong chain): fan prompted to switch to Base network
+**Completion State**: Wallet address saved, fan can now make crypto payments.
+**Referenced modules**: User service/controller (~~updateFanPaymentMethod — ABORTED~~), frontend useCryptoWallet hook, frontend FanSettings page.
+
+---
+
+### 21. Buy USDC via Card (Fiat-to-Crypto On-Ramp)
+
+**Actor**: Fan
+**Trigger**: Fan clicks "Buy USDC" or "Add Funds" in wallet settings, or is prompted during crypto payment with insufficient balance.
+**Preconditions**: Fan is authenticated. Fan has a configured crypto wallet address. Coinbase On-Ramp is configured.
+**Happy Path**:
+1. Fan navigates to wallet settings, clicks "Buy USDC with Card"
+2. Fan enters USD amount to purchase
+3. Frontend sends POST `/api/v1/payments/onramp/session` with amount + destination wallet
+4. Backend validates amount > 0 and wallet address format
+5. Backend creates Coinbase On-Ramp session via API with destination wallet (Base network, USDC asset)
+6. Backend inserts pending transaction record (type=OnRamp, status=Pending)
+7. Frontend receives sessionId + hostUrl
+8. Fan redirected to Coinbase-hosted purchase page (or embedded iframe)
+9. Fan completes card payment with Coinbase (PCI-compliant, off-platform)
+10. Coinbase processes payment, delivers USDC to fan's wallet on Base
+11. Coinbase sends `charge_completed` webhook to backend
+12. Backend verifies HMAC-SHA256 signature, locates pending transaction by sessionId
+13. Transaction status updated to `Cleared`
+14. Fan sees USDC balance updated in wallet (or returns to app from Coinbase page)
+**Alternative Paths**:
+- Fan closes Coinbase page before completion: transaction remains Pending, no funds lost
+- Webhook delayed: fan may see Pending status until webhook arrives
+- Purchase non-USDC asset: webhook ignored (only USDC processed)
+**Failure Paths**:
+- Invalid wallet address: 400, "Valid Ethereum wallet address required"
+- Coinbase API error: 502, "Purchase service unavailable — try later"
+- Webhook signature mismatch: 401, event rejected (HMAC verification)
+- Amount too small/large: Coinbase-side validation (frontend should validate min/max)
+- Card declined: Coinbase handles on their page — fan sees decline reason there
+**Completion State**: USDC purchased and delivered to fan's wallet on Base. Transaction recorded as Cleared.
+**Referenced modules**: Onramp routes/controller/service, crypto payment service (wallet config), frontend OnRampButton, frontend WalletSettings.
+
+---
+
 ## Creator Journeys
 
-### 20. Complete Onboarding
+### 22. Complete Onboarding
 
 **Actor**: Creator
 **Trigger**: Creator signs up, is redirected to `/onboarding`. Or creator with incomplete onboarding navigates there.
@@ -505,7 +567,7 @@
 
 ---
 
-### 21. Submit Identity Verification
+### 23. Submit Identity Verification
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/verification` from onboarding prompt or settings.
@@ -529,7 +591,7 @@
 
 ---
 
-### 22. Publish New Content
+### 24. Publish New Content
 
 **Actor**: Creator
 **Trigger**: Creator clicks "New Post" on creator hub.
@@ -558,7 +620,7 @@
 
 ---
 
-### 23. Generate AI Caption
+### 25. Generate AI Caption
 
 **Actor**: Creator
 **Trigger**: Creator clicks "Generate Caption" on content upload form.
@@ -583,7 +645,7 @@
 
 ---
 
-### 24. Review Dashboard & Analytics
+### 26. Review Dashboard & Analytics
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/hub/dashboard` or `/hub/analytics`.
@@ -609,7 +671,7 @@
 
 ---
 
-### 25. Manage Content
+### 27. Manage Content
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/hub/content`.
@@ -639,7 +701,7 @@
 
 ---
 
-### 26. Withdraw Earnings
+### 28. Withdraw Earnings
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/hub/earnings` and clicks "Withdraw".
@@ -664,7 +726,7 @@
 
 ---
 
-### 27. Broadcast to Subscribers
+### 29. Broadcast to Subscribers
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/hub/messages`, clicks "Broadcast to Subscribers".
@@ -687,7 +749,7 @@
 
 ---
 
-### 28. Host a Contest
+### 30. Host a Contest
 
 **Actor**: Creator
 **Trigger**: Creator navigates to contest management in creator hub.
@@ -718,7 +780,7 @@
 
 ---
 
-### 29. Manage Subscription Tiers
+### 31. Manage Subscription Tiers
 
 **Actor**: Creator
 **Trigger**: Creator navigates to `/hub/settings`, views "Subscription Tiers" section.
@@ -737,7 +799,7 @@
 
 ---
 
-### 30. Reply to Fan Messages
+### 32. Reply to Fan Messages
 
 **Actor**: Creator
 **Trigger**: Creator opens `/hub/messages`, sees conversation list with unread badges.
@@ -760,7 +822,7 @@
 
 ---
 
-### 31. Export Business Data
+### 33. Export Business Data
 
 **Actor**: Creator
 **Trigger**: Creator clicks "Export CSV" on analytics or earnings page.
@@ -780,9 +842,64 @@
 
 ---
 
+### 34. Bulk Upload Content
+
+**Actor**: Creator
+**Trigger**: Creator navigates to `/hub/bulk-upload`.
+**Preconditions**: Creator is authenticated, onboarded, status is active. Creator has media files prepared.
+**Happy Path**:
+1. Creator navigates to bulk upload page (`/hub/bulk-upload`)
+2. Creator drags and drops multiple media files onto `DropZone` component (or clicks to select)
+3. Each file appears as a `DraftCard` showing filename, size, status
+4. Creator sets default visibility and pricing for all items (or configures per-item)
+5. Creator clicks "Upload All"
+6. Frontend sends files to `POST /api/v1/content` (one request per file, or sequentially)
+7. Each file processed server-side (sharp/ffmpeg) and uploaded to R2
+8. Content records created with status `published`
+9. Progress indicator shows upload status for each file
+10. Creator sees confirmation: "X files uploaded successfully"
+**Alternative Paths**:
+- Mixed visibility: some items subscribers_only, some PPV with different prices
+- Upload failure on some files: successful files published, failed files shown with retry option
+**Failure Paths**:
+- File too large: 413, Multer error per file (1GB limit)
+- Unsupported format: 400, specific file rejected, others continue
+- R2 upload failure: content record created but file missing (orphaned — no rollback)
+- Partial upload: some files succeed, some fail — creator retries failed ones
+**Completion State**: Multiple content items published simultaneously.
+**Referenced modules**: Content service/controller/routes (createContent called per file), storage service, upload middleware, frontend BulkUploadPage, DropZone, DraftCard components.
+
+---
+
+### 35. Configure Payout Settings
+
+**Actor**: Creator
+**Trigger**: Creator navigates to `/hub/settings`, views "Payout Settings" section.
+**Preconditions**: Creator is authenticated, onboarded. Creator has accumulated earnings.
+**Happy Path**:
+1. Creator navigates to `/hub/settings`, scrolls to payout/withdrawal section
+2. Creator sees current payout method status (wallet not configured / wallet connected)
+3. Creator enters or pastes Ethereum wallet address (Base network compatible)
+4. Creator saves via settings update
+5. Backend validates wallet address format and saves to `profiles.crypto_wallet_address`
+6. Wallet address now available for on-chain payouts
+7. Creator sees "Payout wallet configured" with truncated address
+**Alternative Paths**:
+- Creator changes wallet address: overwrites previous address
+- Creator removes wallet: clears address from profile
+- Fiat payout via Stripe Connect: not fully implemented — requires admin intervention
+**Failure Paths**:
+- Invalid wallet address: 400, "Valid Ethereum wallet address required"
+- Address not saved: 500, "Failed to save payout settings — try again"
+- Wrong network (e.g., Ethereum mainnet address for Base): no on-chain validation, address accepted as-is
+**Completion State**: Payout wallet address saved, creator can now request withdrawals.
+**Referenced modules**: Creator service (updateSettings), user model, crypto payment service (getUserWalletConfig, updateUserWalletConfig), frontend CreatorSettings component, frontend WalletSettings.
+
+---
+
 ## Admin Journeys
 
-### 32. View Admin Dashboard
+### 36. View Admin Dashboard
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/dashboard`.
@@ -799,7 +916,7 @@
 
 ---
 
-### 33. Manage User Accounts
+### 37. Manage User Accounts
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/users`.
@@ -826,7 +943,7 @@
 
 ---
 
-### 34. Moderate Platform Content
+### 38. Moderate Platform Content
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/content`.
@@ -847,7 +964,7 @@
 
 ---
 
-### 35. Review Verification Documents
+### 39. Review Verification Documents
 
 **Actor**: Admin
 **Trigger**: Admin navigates to user detail in admin panel, views verification section.
@@ -869,7 +986,7 @@
 
 ---
 
-### 36. Administer Support Tickets
+### 40. Administer Support Tickets
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/support`.
@@ -898,7 +1015,7 @@
 
 ---
 
-### 37. Configure Platform Settings
+### 41. Configure Platform Settings
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/settings`.
@@ -917,7 +1034,7 @@
 
 ---
 
-### 38. Generate Platform Reports
+### 42. Generate Platform Reports
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/reports`.
@@ -940,7 +1057,7 @@
 
 ---
 
-### 39. Oversee Enclave Applications
+### 43. Oversee Enclave Applications
 
 **Actor**: Admin
 **Trigger**: Admin navigates to `/admin/enclave` or `/admin/enclave-applications`.
@@ -960,7 +1077,7 @@
 
 ---
 
-### 40. Browse Enclave & Apply for Membership
+### 44. Browse Enclave & Apply for Membership
 
 **Actor**: Fan (or potential creator)
 **Trigger**: User clicks "Join Enclave" from splash page, creator dashboard promotion, or direct link.
@@ -993,7 +1110,7 @@
 
 ---
 
-### 41. Impersonate a User
+### 45. Impersonate a User
 
 **Actor**: Admin
 **Trigger**: Admin needs to debug a user's issue and wants to see the platform as that user.
@@ -1016,61 +1133,108 @@
 
 ---
 
+## System Journeys
+
+### 46. Process Subscription Renewals (Batch Job)
+
+**Actor**: System (scheduled job or manual trigger)
+**Trigger**: Cron schedule (not implemented — must be triggered manually) or operator runs `node dist/jobs/renewSubscriptions.js`.
+**Preconditions**: Smart contract is deployed and configured. Keeper wallet has sufficient ETH for gas. Active subscriptions exist with `next_billing_date <= now()`.
+**Happy Path**:
+1. Script starts, queries all due subscriptions via `SubscriptionModel.findSubscriptionsDueForRenewal`
+2. For each due subscription:
+   a. Fetch creator's crypto wallet address from profiles
+   b. Verify fan has a wallet address on record
+   c. Compute renewal amount in USDC (6 decimals)
+   d. Send on-chain transaction to smart contract `processRenewal` function via ethers
+   e. Smart contract validates: fan has active RecurringAllowance, amount within limit, renewal period elapsed
+   f. If successful: USDC transferred from fan → platform treasury (fee) + creator (payout)
+   g. Create `SubscriptionRenewal` transaction record (amount, platform_fee=12.5%, blockchain_tx_hash)
+   h. Update subscription `next_billing_date` = now + 30 days
+   i. Log success with transaction hash
+3. Script completes, prints summary
+**Alternative Paths**:
+- Subscription has no fan wallet: marked `expired`, logged warning, continues to next
+- Subscription has no creator wallet: marked `expired`, logged warning, continues to next
+- On-chain transaction fails: marked `expired`, logged error, continues to next
+- No subscriptions due: logs "No subscriptions due for renewal", exits
+**Failure Paths**:
+- Contract address not configured: logs warning, exits with no changes
+- Keeper private key missing/too short (< 64 chars): logs error, skips all on-chain transactions, all due subs marked `expired`
+- Network RPC unavailable: transaction fails, subscription marked `expired`
+- Gas estimation failure: transaction fails, subscription marked `expired`
+- Individual subscription failure: does not prevent other subscriptions from processing
+**Completion State**: All due subscriptions either renewed (with updated billing date and new transaction) or expired (with logged reason).
+**Referenced modules**: `jobs/renewSubscriptions.ts`, subscription model (`findSubscriptionsDueForRenewal`, `updateSubscription`), transaction model (`createTransaction`), `ethers` (dynamic import), smart contract `PoDMPaymentProtocol.processRenewal`.
+
+---
+
 ## Journey Dependency Map
 
 ```
 Auth Journeys (prerequisite for all others)
   │
-  ├── Fan Journeys ──────────────────────────────────────┐
-  │   ├── Browse Creator Profile                          │
-  │   ├── Subscribe to Creator ────────────────────────┐  │
-  │   ├── View Gated Content ◄─────────────────────────┼──┤
-  │   ├── Purchase PPV Content ◄───────────────────────┘  │
-  │   ├── Send a Tip                                      │
-  │   ├── Browse Personalized Feed ◄────────────────────┐  │
-  │   ├── Manage Gallery (save content from feed) ───────┤  │
-  │   ├── Send Direct Message                             │
-  │   ├── Participate in Contest                          │
-  │   ├── Manage Subscriptions (view, change, cancel)     │
-  │   ├── Manage Account Settings                         │
-  │   ├── Submit Support Ticket                           │
-  │   ├── Generate & Share Referral Code                  │
-  │   ├── Apply for Enclave Membership                    │
-  │   └── Manage Notifications (receive alerts) ──────────┘  │
-  │                                                         │
-  ├── Creator Journeys                                      │
-  │   ├── Complete Onboarding ──────────────────────────┐   │
-  │   ├── Submit Identity Verification                    │   │
-  │   ├── Publish New Content ─────────────────────────┐ │   │
-  │   │   └── Generate AI Caption (during publish)      │ │   │
-  │   ├── Manage Content (edit, delete) ◄───────────────┘ │   │
-  │   ├── Review Dashboard & Analytics ◄───────────────────┘   │
-  │   ├── Withdraw Earnings ◄───────────────────────────────────┘
-  │   ├── Broadcast to Subscribers
-  │   ├── Host a Contest
-  │   ├── Manage Subscription Tiers ──────────────────────┐
-  │   ├── Reply to Fan Messages                            │
-  │   └── Export Business Data                             │
-  │                                                        │
-  └── Admin Journeys                                      │
-      ├── View Admin Dashboard                             │
-      ├── Manage User Accounts ◄───────────────────────────┘
-      ├── Moderate Platform Content ◄───────────────────────── Subscription content
-      ├── Review Verification Documents ◄──────────────────── Creator verification
-      ├── Administer Support Tickets ◄─────────────────────── User support
-      ├── Configure Platform Settings
-      ├── Generate Platform Reports
-      ├── Oversee Enclave Applications ◄───────────────────── Enclave applications
-      └── Impersonate a User ◄─────────────────────────────── Any user
+  ├── Fan Journeys ──────────────────────────────────────────────────────────────┐
+  │   ├── Browse Creator Profile                                                  │
+  │   ├── Subscribe to Creator ────────────────────────────────────────────────┐  │
+  │   ├── View Gated Content ◄─────────────────────────────────────────────────┼──┤
+  │   ├── Purchase PPV Content ◄───────────────────────────────────────────────┘  │
+  │   ├── Send a Tip                                                              │
+  │   ├── Browse Personalized Feed ◄────────────────────────────────────────────┐  │
+  │   ├── Manage Gallery (save content from feed) ───────────────────────────────┤  │
+  │   ├── Send Direct Message                                                     │
+  │   ├── Participate in Contest                                                  │
+  │   ├── Manage Subscriptions (view, change, cancel) ◄───────────────────────┐   │
+  │   ├── Manage Account Settings ────────────────────────────────────────────┐│   │
+  │   ├── Configure Crypto Wallet ────────────────────────────────────────────┘│   │
+  │   ├── Buy USDC via Card (On-Ramp) ──────────────────────────────────────┐  │   │
+  │   ├── Submit Support Ticket                                               │  │   │
+  │   ├── Generate & Share Referral Code                                      │  │   │
+  │   ├── Apply for Enclave Membership                                        │  │   │
+  │   └── Manage Notifications (receive alerts) ──────────────────────────────┘  │   │
+  │                                                                               │   │
+  ├── Creator Journeys                                                            │   │
+  │   ├── Complete Onboarding ────────────────────────────────────────────────┐   │   │
+  │   ├── Submit Identity Verification                                          │   │   │
+  │   ├── Publish New Content ───────────────────────────────────────────────┐ │   │   │
+  │   │   └── Generate AI Caption (during publish) ─────────────────────────┐│ │   │   │
+  │   ├── Bulk Upload Content (alternative to single publish) ───────────────┘│ │   │   │
+  │   ├── Manage Content (edit, delete) ◄─────────────────────────────────────┘ │   │   │
+  │   ├── Review Dashboard & Analytics ◄─────────────────────────────────────────┘   │   │
+  │   ├── Configure Payout Settings ◄──────────────────────────────────────────────┐   │   │
+  │   ├── Withdraw Earnings ◄──────────────────────────────────────────────────────┼───┘   │
+  │   ├── Broadcast to Subscribers                                                         │
+  │   ├── Host a Contest                                                                   │
+  │   ├── Manage Subscription Tiers ────────────────────────────────────────────┐           │
+  │   ├── Reply to Fan Messages                                                  │           │
+  │   └── Export Business Data                                                   │           │
+  │                                                                              │           │
+  ├── Admin Journeys                                                             │           │
+  │   ├── View Admin Dashboard                                                   │           │
+  │   ├── Manage User Accounts ◄─────────────────────────────────────────────────┘           │
+  │   ├── Moderate Platform Content ◄─────────────────────────────────────────────── Subscription content
+  │   ├── Review Verification Documents ◄────────────────────────────────────────── Creator verification
+  │   ├── Administer Support Tickets ◄───────────────────────────────────────────── User support
+  │   ├── Configure Platform Settings
+  │   ├── Generate Platform Reports
+  │   ├── Oversee Enclave Applications ◄─────────────────────────────────────────── Enclave applications
+  │   └── Impersonate a User ◄───────────────────────────────────────────────────── Any user
+  │
+  └── System Journeys
+      └── Process Subscription Renewals ◄────────────────────────────────────────── Subscription Commerce
 ```
 
 **Key observations**:
-- 41 journeys across 4 user types (U=1, F=16, C=12, A=8 + shared auth=4)
+- 46 journeys across 5 user types (U=2, F=18, C=14, A=10, System=1 + shared auth=4)
 - Auth journeys are prerequisite for every other journey
 - "Publish New Content" triggers "Manage Notifications" (fan receives alert)
 - "Subscribe to Creator" gates "View Gated Content"
 - "Purchase PPV Content" gates "View Gated Content" (alternative path)
+- "Buy USDC via Card" enables crypto payment journeys (requires pre-configured wallet)
+- "Configure Crypto Wallet" is a prerequisite for crypto payment journeys (subscribe, PPV, tip, on-ramp)
 - "Complete Onboarding" is prerequisite for all creator journeys
+- "Configure Payout Settings" is prerequisite for "Withdraw Earnings" (crypto)
+- "Process Subscription Renewals" is an automated system journey that depends on Subscription Commerce
 - Admin journeys span every entity — admins touch every part of the system
 - "Impersonate a User" is a meta-journey — it lets admin experience any other journey as another user
 
@@ -1081,3 +1245,4 @@ Auth Journeys (prerequisite for all others)
 | Date | Author | Change |
 |---|---|---|
 | 2026-07-02 | AI Architect | Initial user journeys analysis |
+| 2026-07-19 | AI Architect | Added 5 journeys: Configure Crypto Wallet (20), Buy USDC via Card (21), Bulk Upload Content (34), Configure Payout Settings (35), Process Subscription Renewals (46). Added System actor type. Renumbered all Creator (→22-35) and Admin (→36-45) journeys. Updated dependency map and observations (46 journeys across 5 user types). |

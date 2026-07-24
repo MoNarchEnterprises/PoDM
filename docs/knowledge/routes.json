@@ -96,7 +96,7 @@
     "roles": ["fan", "creator", "admin"],
     "module": "payments",
     "controller": "payments.controller",
-    "description": "Payment processing — tips, PPV purchases, Stripe webhook receiving, payment history, refunds"
+    "description": "Payment processing — tips, PPV purchases, payment history, refunds"
   },
   {
     "id": "admin-api",

@@ -1,5 +1,4 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
 
 // --- Import Shared Types ---
@@ -22,76 +21,42 @@ export interface FanSettingsData {
     paymentMethod: { brand: string; last4: string; };
 }
 
-
-const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean; onClose: () => void; onUpdateSuccess: () => void; }) => {
-    const stripe = useStripe();
-    const elements = useElements();
-
-    // State for the server-side interaction
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
+const WalletLinkModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean; onClose: () => void; onUpdateSuccess: () => void; }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
-    // Fetch the client secret from our new backend endpoint whenever the modal opens
-    useEffect(() => {
-        if (isOpen) {
-            setError(null);
-            apiClient.createSetupIntent()
-                .then(response => {
-                    setClientSecret(response.data.clientSecret);
-                })
-                .catch(err => {
-                    setError("Could not prepare the payment form. Please try again.");
-                    console.error(err);
-                });
-        }
-    }, [isOpen]);
-
-    const CARD_ELEMENT_OPTIONS = { style: { base: { color: '#CBD5E1', fontFamily: 'sans-serif', fontSmoothing: 'antialiased', fontSize: '16px', '::placeholder': { color: '#64748B' } }, invalid: { color: '#EF4444', iconColor: '#EF4444' } } };
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        if (!stripe || !elements || !clientSecret) {
-            setError("Payment form is not ready. Please try again in a moment.");
-            return;
-        }
-
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) {
-            setError("Payment form not found. Please refresh.");
-            return;
-        }
-
+    const handleConnect = async () => {
         setIsLoading(true);
         setError(null);
-
-        // --- Step 1: Confirm the card setup on the client-side ---
-        const { error: setupError, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
-            payment_method: {
-                card: cardElement,
-            },
-        });
-
-        if (setupError) {
-            setError(setupError.message || "An unexpected error occurred.");
-            setIsLoading(false);
-            return;
-        }
-
-        if (setupIntent.status !== 'succeeded') {
-            setError("Card setup could not be completed. Please try again.");
-            setIsLoading(false);
-            return;
-        }
-
-        // --- Step 2: Card setup is successful, now send the confirmed payment method to our server ---
         try {
-            await apiClient.updateFanPaymentMethod(setupIntent.payment_method as string);
+            const eth = window.ethereum;
+            if (!eth) {
+                setError('No wallet detected. Please install MetaMask or Coinbase Wallet.');
+                return;
+            }
+            const accounts = await eth.request({ method: 'eth_requestAccounts' });
+            if (!accounts || accounts.length === 0) {
+                throw new Error('No accounts returned from wallet.');
+            }
+            setWalletAddress(accounts[0]);
+        } catch (err: any) {
+            setError(err.message || 'Failed to connect wallet.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!walletAddress) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            await apiClient.linkWallet(walletAddress);
             onUpdateSuccess();
             onClose();
-        } catch (apiError: any) {
-            setError(apiError.response?.data?.message || 'Failed to save the new payment method.');
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to link wallet.');
         } finally {
             setIsLoading(false);
         }
@@ -99,26 +64,37 @@ const UpdatePaymentModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: bool
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            <header className="p-6 border-b border-gray-200 dark:border-gray-700"><h2 className="text-xl font-bold">Update Payment Method</h2></header>
-            <form onSubmit={handleSubmit}>
-                <main className="p-6 space-y-4">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Enter your new card details below. Your information is sent securely to Stripe.</p>
-                    <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
-                        <CardElement options={CARD_ELEMENT_OPTIONS} />
+            <header className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold">Link Crypto Wallet</h2>
+            </header>
+            <main className="p-6 space-y-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Connect your wallet to send tips, unlock content, and manage subscriptions via USDC on Base.
+                </p>
+                {walletAddress ? (
+                    <div className="p-3 bg-slate-800 rounded-md border border-slate-700 text-center">
+                        <p className="text-sm text-gray-400">Your wallet:</p>
+                        <p className="font-semibold text-white text-xs truncate">{walletAddress}</p>
                     </div>
-                    {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-                </main>
+                ) : (
+                    <Button onClick={handleConnect} isLoading={isLoading} className="w-full">
+                        Connect Wallet
+                    </Button>
+                )}
+                {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            </main>
+            {walletAddress && (
                 <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <Button type="submit" isLoading={isLoading} disabled={!stripe || !elements || !clientSecret}>
-                        Save Card
+                    <Button onClick={handleSave} isLoading={isLoading}>
+                        Link Wallet
                     </Button>
                 </footer>
-            </form>
+            )}
         </Modal>
     );
 };
 
-// --- Settings Panels (Now with full implementations) ---
+// --- Settings Panels ---
 
 const AccountSettingsPanel = ({ profile, onProfileChange }: { profile: any; onProfileChange: (field: string, value: string) => void; }) => (<SettingsCard title="Profile Information" subtitle="Update your account details."><div className="flex items-center space-x-4"><div className="relative"><img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" /><Button variant="primary" size="sm" className="absolute bottom-0 right-0 p-1.5 h-auto rounded-full"><Camera className="w-4 h-4" /></Button></div><Input id="name" label="Display Name" value={profile.name || ''} onChange={(e) => onProfileChange('name', e.target.value)} containerClassName="flex-grow" /></div><Input id="username" label="Username" value={profile.username || ''} readOnly disabled /><Input id="email" label="Email Address" type="email" value={profile.email || ''} readOnly disabled /></SettingsCard>);
 const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['notifications']; onSettingsChange: (category: 'notifications', key: string, value: boolean) => void; }) => (
@@ -132,7 +108,31 @@ const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: F
     </SettingsCard>
 );
 const PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => (<SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard>);
-const PaymentsSettingsPanel = ({ paymentMethod, onUpdateClick }: { paymentMethod: FanSettingsData['paymentMethod'], onUpdateClick: () => void }) => (<SettingsCard title="Payment Methods" subtitle="Manage your saved payment information."><div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><div className="flex items-center space-x-4"><CreditCard className="w-8 h-8 text-blue-500" /><div><p className="font-semibold">{paymentMethod.brand} ending in {paymentMethod.last4}</p><p className="text-sm text-gray-500 dark:text-gray-400">Your default payment method</p></div></div><Button variant="ghost" onClick={onUpdateClick}>Update</Button></div></SettingsCard>);
+const PaymentsSettingsPanel = ({ walletAddress, onLinkClick }: { walletAddress?: string | null, onLinkClick: () => void }) => (
+    <SettingsCard title="Crypto Wallet" subtitle="Manage your connected wallet for payments.">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="flex items-center space-x-4">
+                <CreditCard className="w-8 h-8 text-blue-500" />
+                <div>
+                    {walletAddress ? (
+                        <>
+                            <p className="font-semibold">Wallet Connected</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono truncate max-w-[200px]">{walletAddress}</p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="font-semibold">No Wallet Connected</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Link a wallet to pay with USDC</p>
+                        </>
+                    )}
+                </div>
+            </div>
+            <Button variant="ghost" onClick={onLinkClick}>
+                {walletAddress ? 'Update' : 'Link Wallet'}
+            </Button>
+        </div>
+    </SettingsCard>
+);
 
 // --- FULL SECURITY PANEL IMPLEMENTATION ---
 const SecuritySettingsPanel = () => {
@@ -239,9 +239,9 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
     const [activeTab, setActiveTab] = useState('Account');
     const [profile, setProfile] = useState({ name: fan.profile.name, username: fan.username, email: fan.email, avatar: fan.profile.avatar });
     const [preferences, setPreferences] = useState({ notifications: initialSettings.notifications, privacy: initialSettings.privacy });
-    const [paymentMethod, setPaymentMethod] = useState(initialSettings.paymentMethod);
+    const [walletAddress, setWalletAddress] = useState<string | null>(fan.profile?.crypto_wallet_address || null);
     const [isSaving, setIsSaving] = useState(false);
-    const { isOpen: isPaymentModalOpen, openModal: openPaymentModal, closeModal: closePaymentModal } = useModal();
+    const { isOpen: isWalletModalOpen, openModal: openWalletModal, closeModal: closeWalletModal } = useModal();
 
     const handleProfileChange = (field: string, value: string) => setProfile(prev => ({ ...prev, [field]: value }));
     const handleSettingsChange = (category: 'notifications' | 'privacy', key: string, value: boolean) => setPreferences(prev => ({ ...prev, [category]: { ...prev[category], [key]: value } }));
@@ -257,14 +257,13 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
         } finally { setIsSaving(false); }
     };
 
-    const handlePaymentUpdateSuccess = async () => {
+    const handleWalletUpdateSuccess = async () => {
         try {
             const response = await apiClient.getFanSettings();
-            setPaymentMethod(response.data.settings.paymentMethod);
-            alert("Payment method updated successfully!");
+            setWalletAddress(response.data.fan?.profile?.crypto_wallet_address || null);
+            alert('Wallet linked successfully!');
         } catch (error) {
-            console.error("Failed to refresh settings after payment update:", error);
-            alert("Payment method was updated, but we couldn't refresh the details. Please refresh the page.");
+            console.error("Failed to refresh settings after wallet link:", error);
         }
     };
 
@@ -280,7 +279,7 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
         switch (activeTab) {
             case 'Account': return <AccountSettingsPanel profile={profile} onProfileChange={handleProfileChange} />;
             case 'Notifications': return <NotificationSettingsPanel settings={preferences.notifications} onSettingsChange={handleSettingsChange} />;
-            case 'Payments': return <PaymentsSettingsPanel paymentMethod={paymentMethod} onUpdateClick={openPaymentModal} />;
+            case 'Payments': return <PaymentsSettingsPanel walletAddress={walletAddress} onLinkClick={openWalletModal} />;
             case 'Security': return <SecuritySettingsPanel />;
             case 'Help': return <HelpPanel />;
             default: return <div className="text-center p-8 bg-white dark:bg-gray-800/50 rounded-xl"><p>Select a category.</p></div>;
@@ -289,7 +288,7 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
 
     return (
         <>
-            <UpdatePaymentModal isOpen={isPaymentModalOpen} onClose={closePaymentModal} onUpdateSuccess={handlePaymentUpdateSuccess} />
+            <WalletLinkModal isOpen={isWalletModalOpen} onClose={closeWalletModal} onUpdateSuccess={handleWalletUpdateSuccess} />
             <div className="p-4 sm:p-6 lg:p-8">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div><h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1><p className="text-gray-500 dark:text-gray-400 mt-1">Manage your profile and account preferences.</p></div>

@@ -24,7 +24,10 @@ export interface Transaction {
   status: TransactionStatus;
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
   message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
-  payment_gateway_id: string; // The ID from the payment processor (e.g., Stripe charge ID)
+  blockchain_tx_hash?: string;
+  payment_method?: 'stripe' | 'crypto' | 'card_onramp';
+  payment_currency?: 'USD' | 'USDC';
+  chain_id?: number;
   created_at: string; // ISO 8601 date string
   updated_at?: string; // ISO 8601 date string
 }

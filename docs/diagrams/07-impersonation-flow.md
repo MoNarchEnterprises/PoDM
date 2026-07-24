@@ -49,3 +49,5 @@ sequenceDiagram
   B->>M: Normal auth flow
   B-->>F: Response as admin
 ```
+
+> **See also:** `docs/flowcharts/050-b07-admin-impersonation-internal-flow.md` — deeper dive on backend middleware internals.

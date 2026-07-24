@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
                         <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
                             <li><strong>Account Information:</strong> Name, email address, username, password</li>
                             <li><strong>Profile Information:</strong> Bio, avatar, content preferences</li>
-                            <li><strong>Payment Information:</strong> Processed securely through Stripe (we do not store full payment details)</li>
+                            <li><strong>Payment Information:</strong> Processed via USDC on the Base blockchain (we do not store wallet private keys)</li>
                             <li><strong>Verification Documents:</strong> For creator verification (stored securely and encrypted)</li>
                             <li><strong>Content:</strong> Posts, messages, and media you upload</li>
                             <li><strong>Usage Data:</strong> Analytics about how you use the platform</li>
@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
                             <li><strong>With Your Consent:</strong> When you explicitly authorize us to share information</li>
-                            <li><strong>Service Providers:</strong> With trusted partners who help us operate (e.g., Stripe for payments, Cloudflare for storage)</li>
+                            <li><strong>Service Providers:</strong> With trusted partners who help us operate (e.g., Cloudflare for storage, Coinbase for on-ramp services)</li>
                             <li><strong>Legal Requirements:</strong> When required by law or to protect rights and safety</li>
                             <li><strong>Business Transfers:</strong> In the event of a merger or acquisition (with notice to users)</li>
                         </ul>

@@ -8,14 +8,6 @@
     "module": "all"
   },
   {
-    "id": "stripe",
-    "name": "Stripe",
-    "type": "payment",
-    "purpose": "Payment processing, subscription billing, Stripe Connect for creator payouts, webhook event handling",
-    "endpoints": ["/v1/payment_intents", "/v1/subscriptions", "/v1/checkout/sessions", "/v1/transfers", "/v1/webhook_endpoints"],
-    "module": "payments"
-  },
-  {
     "id": "solana",
     "name": "Solana",
     "type": "blockchain",

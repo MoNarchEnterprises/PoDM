@@ -16,7 +16,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
     // Destructure all properties from the flat object
     const {
         id, username, fullName, full_name, avatar_url, bio, email, created_at, role, status,
-        onboarding_complete, commission_rate, verification_data, stripe_customer_id,
+        onboarding_complete, commission_rate, verification_data,
         creator_data
     } = flatUser;
 

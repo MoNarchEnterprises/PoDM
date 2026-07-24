@@ -93,7 +93,7 @@ Annotate:
 - **⚠️ Refresh token gap**: No token rotation implemented; if token expires mid-session, user is logged out with no silent refresh
 - **localStorage XSS risk**: Token stored in plaintext in localStorage
 
-**Sources:** `auth.service.ts`, `auth.middleware.ts`, `apiClient.ts` (response interceptor), `useAuth.tsx`, `11-data-flow.md §1`
+**Sources:** `auth.service.ts`, `auth.middleware.ts`, `apiClient.ts` (response interceptor), `useAuth.tsx`, `07-data-flow.md §1`
 
 ---
 
@@ -233,7 +233,7 @@ Steps:
 Annotate at step 2:
 - 🔴 **CRITICAL SANDBOX BYPASS**: If `txHash` starts with `0x0000`, the service **skips all on-chain verification** and directly creates a verified transaction record. Any authenticated user can create fake transactions by submitting `0x0000` + arbitrary data. (Source: `cryptoPayment.service.ts:105-108`)
 
-**Sources:** `cryptoPayment.service.ts:80-267`, `transaction.model.ts`, `08-crypto-deep-dive.md`, `10-internal-workflows.md §11`, `11-data-flow.md §6`
+**Sources:** `cryptoPayment.service.ts:80-267`, `transaction.model.ts`, `08-crypto-deep-dive.md`, `10-internal-workflows.md §11`, `07-data-flow.md §6`
 
 ---
 
@@ -258,7 +258,7 @@ Annotate:
 - ⚠️ **No billing renewal** — one-time crypto payment grants permanent access
 - The `stripe_subscription_id` column in the subscriptions table is **repurposed** to store the crypto transaction hash
 
-**Sources:** `subscription.service.ts`, `subscription.model.ts`, `11-data-flow.md §5`
+**Sources:** `subscription.service.ts`, `subscription.model.ts`, `07-data-flow.md §5`
 
 ---
 
@@ -299,7 +299,7 @@ Annotate:
 - 🟡 Frontend also calls dead Stripe endpoints (`POST /api/v1/payments/tip`, `POST /api/v1/payments/unlock-post`) that return 404
 - Wallet interaction is **mocked** in current frontend (`useCryptoWallet.ts` returns fake txHash)
 
-**Sources:** `cryptoPayment.service.ts`, `cryptoPayment.controller.ts`, `apiClient.ts` (dead endpoints), `11-data-flow.md §6`, `08-crypto-deep-dive.md`
+**Sources:** `cryptoPayment.service.ts`, `cryptoPayment.controller.ts`, `apiClient.ts` (dead endpoints), `07-data-flow.md §6`, `08-crypto-deep-dive.md`
 
 ---
 
@@ -337,7 +337,7 @@ Annotate:
 - 🟡 **Balance race condition** — no DB-level locking between step 3 and step 6; concurrent payout requests could double-spend
 - 🟡 **No minimum payout threshold** — any amount can be requested (even $0.01)
 
-**Sources:** `creator.service.ts:389-424`, `cryptoPayment.service.ts:272-301`, `11-data-flow.md §7`, `10-internal-workflows.md §20`
+**Sources:** `creator.service.ts:389-424`, `cryptoPayment.service.ts:272-301`, `07-data-flow.md §7`, `10-internal-workflows.md §20`
 
 ---
 
@@ -401,7 +401,7 @@ Annotate:
 - 🟡 **2 unprotected routes**: `/api/v1/referrals/*` routes lack `protect` middleware
 - 🟡 **PII in codes**: Username embedded directly in referral code string
 
-**Sources:** `referral.model.ts`, `auth.service.ts` (signup integration), `11-data-flow.md §12`, `10-internal-workflows.md §26`
+**Sources:** `referral.model.ts`, `auth.service.ts` (signup integration), `07-data-flow.md §12`, `10-internal-workflows.md §26`
 
 ---
 
@@ -471,7 +471,7 @@ Annotate:
 - 🔴 **CSS-blur bypass**: Client-side blur can be removed via browser DevTools; server never serves full content without access check
 - 🟡 **Watermark security degradation**: If any watermarking step fails, original file is served (see D-04)
 
-**Sources:** `content.service.ts:461-502`, `subscription.model.ts`, `transaction.model.ts`, `11-data-flow.md §4`, `10-internal-workflows.md §9`
+**Sources:** `content.service.ts:461-502`, `subscription.model.ts`, `transaction.model.ts`, `07-data-flow.md §4`, `10-internal-workflows.md §9`
 
 ---
 
@@ -514,7 +514,7 @@ Annotate:
 - 🟡 **Synchronous thumbnail generation**: Blocks the request until both upload and thumbnail are complete
 - 🟡 **No CDN cache layer**: Signed URLs generated per-request; no Cloudflare cache integration
 
-**Sources:** `content.service.ts:168-311`, `storage.service.ts`, `sharp`, `fluent-ffmpeg`, `ContentModel`, `10-internal-workflows.md §7`, `11-data-flow.md §3`
+**Sources:** `content.service.ts:168-311`, `storage.service.ts`, `sharp`, `fluent-ffmpeg`, `ContentModel`, `10-internal-workflows.md §7`, `07-data-flow.md §3`
 
 ---
 
@@ -552,7 +552,7 @@ Annotate:
 - 🔴 **Security degradation fallback**: If any watermarking step fails (sharp error, R2 download failure, etc.), the **original unwatermarked file is served** instead
 - 🟡 Temp files are never cleaned up (no TTL on `temp/` prefix)
 
-**Sources:** `content.service.ts:41-99`, `storage.service.ts` (downloadFromPrivate, uploadToPrivate), `sharp`, `10-internal-workflows.md §8`, `11-data-flow.md §4`
+**Sources:** `content.service.ts:41-99`, `storage.service.ts` (downloadFromPrivate, uploadToPrivate), `sharp`, `10-internal-workflows.md §8`, `07-data-flow.md §4`
 
 ---
 
@@ -590,7 +590,7 @@ Annotate:
 - 🟡 **No retry / idempotency**: If AI API fails (429, 5xx), error propagates to user; no automatic retry
 - 🟡 **Synchronous**: Frontend shows loading spinner until API responds; no streaming or background processing
 
-**Sources:** `ai.service.ts`, `ai.controller.ts`, `ai.routes.ts`, `BulkUploadPage.tsx`, `DraftCard.tsx`, `10-internal-workflows.md §3`, `11-data-flow.md §9`
+**Sources:** `ai.service.ts`, `ai.controller.ts`, `ai.routes.ts`, `BulkUploadPage.tsx`, `DraftCard.tsx`, `10-internal-workflows.md §3`, `07-data-flow.md §9`
 
 ---
 
@@ -621,7 +621,7 @@ Annotate:
 - ⚠️ **No `scheduled` state** — scheduling uses `scheduled_date` column but content stays in `draft` until cron/publish
 - ⚠️ **No `archived` state** — no soft-delete mechanism
 
-**Sources:** `content.service.ts`, `ContentModel`, `10-internal-workflows.md §22`, `11-data-flow.md §3`
+**Sources:** `content.service.ts`, `ContentModel`, `10-internal-workflows.md §22`, `07-data-flow.md §3`
 
 ---
 
@@ -666,7 +666,7 @@ Annotate:
 - 🟡 No background queue — all processing happens in browser
 - 🟡 No retry on individual draft failure — "Publish All" fails at first error unless error-handled
 
-**Sources:** `BulkUploadPage.tsx`, `DropZone.tsx`, `DraftCard.tsx`, `apiClient.ts` (generateCaption, createContent), `11-data-flow.md §3`
+**Sources:** `BulkUploadPage.tsx`, `DropZone.tsx`, `DraftCard.tsx`, `apiClient.ts` (generateCaption, createContent), `07-data-flow.md §3`
 
 ---
 

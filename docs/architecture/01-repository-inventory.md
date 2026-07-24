@@ -1,104 +1,108 @@
 # Repository Inventory
 
-**Purpose**: Complete catalog of every file, module, service, controller, model, route, component, configuration, and integration in the PoDM application.
+**Purpose**: Complete inventory of every file, module, service, controller, model, route, component, configuration, and integration in the PoDM platform.
 
-**Date**: 2026-07-02
-**Version**: 1.0.0 (backend) / 0.0.0 (frontend)
-**Confidence**: High
+**Date**: 2026-07-19
+**Project Version**: 1.0.0 (backend), 0.0.0 (frontend)
+**Confidence**: High — every source file was read or inspected
+
+## Files Examined
+
+- All 98 TypeScript files in `PoDM_project/server/`
+- All 103 TypeScript/TSX files in `podm-frontend/src/`
+- All 11 root migrations in `PoDM_project/migrations/`
+- All 7 scripts/migrations in `PoDM_project/server/scripts/migrations/`
+- All 12 common type files in `PoDM_project/common/types/`
+- All root-level config files (package.json, tsconfig.json, Dockerfile, etc.)
+- All frontend config files (vite.config.ts, tailwind.config.js, playwright.config.ts, etc.)
+- CI/CD pipeline config (`.github/workflows/ci.yml`)
+- Smart contract (Solidity + Hardhat)
+- All 5 frontend Playwright E2E test specs
+- All 11 SQL migration files
+- All environment files (`.env` for both modules)
+
+## Modules Referenced
+
+- Backend: `PoDM_project/server/`
+- Frontend: `podm-frontend/src/`
+- Shared Types: `PoDM_project/common/types/`
+- Smart Contract: `PoDM_project/contracts/`
+- Database Migrations: `PoDM_project/migrations/`, `PoDM_project/server/scripts/migrations/`
 
 ---
 
 ## Repository Overview
 
-| Attribute | Value |
-|---|---|
-| **Purpose** | Creator-fan subscription platform (OnlyFans-like) — creators publish content, fans subscribe, tip, and message |
-| **Monorepo Structure** | Two top-level modules: `PoDM_project/` (backend) and `podm-frontend/` (frontend) |
-| **Total Source Files** | ~218 (109 TS backend + 109 TS/TSX frontend) |
-| **Total Source Lines** | ~25,600 (10,263 TS backend + 15,301 TS/TSX frontend) |
-| **Root Orchestration** | `docker-compose.yml`, `netlify.toml`, `.github/workflows/ci.yml` |
+### Application
+- **Name**: PoDM
+- **Purpose**: Creator-fan subscription platform — enables creators to publish gated content, manage subscriptions, receive tips/PPV payments, message fans, run contests, and manage referrals. Fans subscribe to creator tiers, access content, send tips, and participate in contests.
+- **Type**: Full-stack web application with blockchain (USDC) payment integration
 
 ### Languages
-
 | Language | Usage |
 |---|---|
-| TypeScript | Backend (Express 5) + Frontend (React 18) |
-| Solidity | Smart contract (`PoDMPaymentProtocol.sol`) |
-| SQL | Database migrations, seed data, stored procedures |
-| JavaScript | Build configs, automation scripts (Instagram scraper) |
-| CSS | Tailwind CSS (frontend) |
-| YAML | CI/CD pipeline |
+| TypeScript | 100% of backend (98 files) and frontend (103 files) |
+| Solidity | Smart contract (`PoDMPaymentProtocol.sol`, `MockUSDC.sol`) |
+| SQL | 17 migration files (PostgreSQL for Supabase) |
+| CSS | Tailwind CSS (frontend styles) |
+| YAML | CI/CD pipeline, Docker Compose |
 | TOML | Netlify deployment config |
-| Nix | Google Project IDX workspace |
+| JSON | NPM package configs, Hardhat config |
+| Nix | IDX workspace config |
 
 ### Frameworks
+| Framework | Module | Version | Purpose |
+|---|---|---|---|
+| Express | Backend | 5.1.0 | HTTP server and routing |
+| React | Frontend | 18.2.0 | UI component library |
+| Vite | Frontend | 7.1.2 | Build tool and dev server |
+| Tailwind CSS | Frontend | 3.4.1 | Utility-first CSS framework |
+| Hardhat | Contracts | 2.22.19 | Solidity development framework |
+| Jest | Both | 30.x | Unit/integration test runner |
+| Playwright | Frontend | 1.57.0 | E2E test framework |
 
-| Framework | Module | Version |
-|---|---|---|
-| Express | Backend | 5.x |
-| React | Frontend | 18.x |
-| Vite | Frontend (bundler) | 7.x |
-| Tailwind CSS | Frontend (styling) | 3.4 |
-| React Router | Frontend (routing) | 7.x |
-| Socket.IO | Backend + Frontend (real-time) | 4.x |
-
-### Key Libraries
-
+### Major Libraries
 | Library | Module | Purpose |
 |---|---|---|
-| `@supabase/supabase-js` | Both | Database client + auth |
-| `@stripe/stripe-js` / `@stripe/react-stripe-js` | Both | Payment processing |
-| `jsonwebtoken` | Backend | JWT verification (legacy, Supabase primary) |
-| `openai` | Backend | AI caption generation |
-| `@aws-sdk/client-s3` | Backend | Cloudflare R2 storage access |
-| `sharp` | Backend | Image processing |
-| `fluent-ffmpeg` | Backend | Video processing |
-| `multer` | Backend | File upload handling |
-| `nodemailer` | Backend | Email sending |
-| `axios` | Both | HTTP client |
-| `recharts` | Frontend | Charts and analytics |
-| `lucide-react` | Frontend | Icons |
-| `react-dropzone` | Frontend | File drag-and-drop |
-| `qrcode.react` | Frontend | QR code generation |
-| `uuid` | Both | Unique ID generation |
-| `express-validator` | Backend | Request validation |
-| `jsdom` | Frontend (test) | DOM environment |
+| `@supabase/supabase-js` | Both (2.86.0) | Database client + auth |
+| `@aws-sdk/client-s3` | Backend (3.953.0) | Cloudflare R2 (S3-compatible) storage |
+| `@aws-sdk/s3-request-presigner` | Backend (3.953.0) | Signed URL generation for private content |
+| `stripe` | Backend | Payment processing (subscriptions, tips, PPV) |
+| `socket.io` | Backend (4.8.1) | Real-time messaging server |
+| `socket.io-client` | Frontend (4.8.1) | Real-time messaging client |
+| `ethers` | Backend (6.17.0) | Ethereum/Base blockchain interaction |
+| `openai` | Backend (6.16.0) | AI caption generation (OpenRouter-compatible) |
+| `nodemailer` | Backend (7.0.12) | Email sending (SMTP) |
+| `sharp` | Backend (0.34.3) | Image processing (watermarking, thumbnails) |
+| `fluent-ffmpeg` | Backend (2.1.3) | Video processing (thumbnails) |
+| `multer` | Backend (2.0.2) | File upload handling (memory storage) |
+| `axios` | Both (1.11.0) | HTTP client |
+| `react-router-dom` | Both (7.8.0) | Frontend routing |
+| `recharts` | Both (3.1.2) | Charts and analytics visualization |
+| `lucide-react` | Both | Icon library |
+| `express-validator` | Backend (7.2.1) | Request validation |
+| `jsonwebtoken` | Backend (9.0.2) | JWT token handling |
+| `uuid` | Both | UUID generation |
 
 ### Build System
-
-| Module | System | Key Commands |
+| Tool | Module | Purpose |
 |---|---|---|
-| Backend | TypeScript (`tsc`) + `ts-node-dev` (dev) | `npm run build`, `npm run dev:server`, `npm start` |
-| Frontend | Vite 7 | `npm run dev`, `npm run build` |
+| `tsc` (TypeScript) | Backend | Compile TS to JS in `dist/` |
+| Vite | Frontend | Bundle and dev server |
+| Hardhat | Contracts | Compile Solidity, run tests, deploy |
+| Babel | Both | Jest transformation |
+| ts-jest | Both | TypeScript Jest integration |
 
 ### Package Managers
-
-- npm (workspace-level lock files in each module)
+- **npm** (both modules)
 
 ### Runtime Environments
-
 | Environment | Backend | Frontend |
 |---|---|---|
-| **Development** | `ts-node-dev --respawn --transpile-only` | Vite dev server (port 5173) |
-| **Production** | Node.js with compiled `dist/` | Static files via Netlify/Cloudflare Pages |
-| **Docker** | Dockerfile in `PoDM_project/` | Dockerfile in `podm-frontend/` |
-| **CI** | Node 18, `npm ci`, `npm test` | Node 18, `npm ci`, `npm run lint`, `npm run build` |
-
-### Estimated Total Lines of Code
-
-| Layer | Files | Lines (TS/TSX only) |
-|---|---|---|
-| Backend source (`.ts`) | 109 | ~10,263 |
-| Frontend source (`.ts/.tsx`) | 100 (in `src/`) | ~15,301 |
-| Frontend E2E tests (`.ts`) | 5 | ~17,985 |
-| Shared type definitions | 12 | ~700 |
-| SQL migrations | 18 (root) + 6 (scripts) | ~509 |
-| Solidity contract | 1 | ~147 |
-| Configuration files | ~20 | ~500 |
-| **Meaningful Source Total** | **~218** | **~25,600** |
-| Compiled JS (`dist/`) | ~113 | ~12,347 |
-| Log files | ~8 | ~31,977 (debug artifacts) |
-| Root data files | ~6 | ~3,242 (CSV, text) |
+| Development | `ts-node-dev` (hot-reload) | Vite dev server (port 5173) |
+| Production | Node.js on Render (compiled JS) | Netlify (static SPA) |
+| Docker | Node 20-alpine (compiled) | Node 18-alpine (dev mode only) |
+| CI | GitHub Actions (runs Jest tests) | GitHub Actions (lint + build) |
 
 ---
 
@@ -106,790 +110,920 @@
 
 ### Root (`PoDM/`)
 
-| Path | Purpose | Key Files |
+Contains 39 entries. Key items:
+
+| Path | Type | Purpose |
 |---|---|---|
-| `.github/workflows/` | CI/CD pipeline | `ci.yml` — two jobs: backend test + frontend lint/build |
-| `.agent/workflows/` | AI agent workflow specs | `implement-new-content-notifications.md`, `stripe-webhooks.md`, `test-notification-api.md` |
-| `.idx/` | Google Project IDX config | `dev.nix` |
-| `docs/` | Project documentation | Architecture KB, future-features specs, marketing, maintenance |
-| `node_modules/` | Root-level npm packages | `puppeteer`, `csv-parser`, `lucide-react` |
-| `.gitignore` | Git exclusion rules | node_modules, .env, dist/, *.log, *.csv, etc. |
-| `AGENTS.md` | DOX framework root contract | Hierarchy rules, child index, closeout |
-| `docker-compose.yml` | Multi-container orchestration | Backend (port 5000) + Frontend (port 5173) |
-| `netlify.toml` | Netlify deployment | Frontend: build to `dist/`, SPA redirects |
-| `GEMINI.md` | AI project context | Overview, build/run, conventions |
-| `MVP_Checklist.md` | Feature completion tracker | All major MVP items checked |
-| `PoDM Planning Document.txt` | Full design spec | 1744-line comprehensive specification |
-| `implementation_details.txt` | Implementation audit | Backend/frontend/database completion status |
-| `PlatformPromptTemplate.md` | Reusable AI prompt | Template for generating similar platform |
-| `TYPESCRIPT_ERRORS_SOLUTION.md` | Troubleshooting guide | Resolving TS dependency errors |
-| `db enum types.txt` | DB enum reference | All PostgreSQL enum type definitions |
-| `db functions.txt` | DB function reference | Aggregation and query functions |
-| `db schema visualization.txt` | DB schema reference | Full DDL for all 12 tables |
-| `podm_db.png` / `.svg` | DB diagram | Entity relationship visualization |
-| `debug-login.ps1` / `get-token.ps1` / `test-notifications.ps1` | Debug scripts | Production API testing |
-| `instagram_liker.ts` / `scrape_ig.js` | Automation scripts | Instagram scraping/liking |
-| `cookies.json` / `IG_*.csv` | Instagram data | Session cookies, extracted links |
-| `stripe_output*.txt` | Debug output | Stripe API debug data |
-| `package.json` | Root deps | `csv-parser`, `puppeteer`, `lucide-react`, `@types/node`, `@types/react` |
+| `PoDM_project/` | Directory | Backend module (Express API) |
+| `podm-frontend/` | Directory | Frontend module (React SPA) |
+| `docs/` | Directory | Project documentation, architecture KB |
+| `.github/workflows/` | Directory | CI/CD pipeline |
+| `.agent/workflows/` | Directory | AI agent workflow specifications |
+| `.idx/` | Directory | Google Project IDX config |
+| `netlify.toml` | File | Netlify deployment config (root, builds podm-frontend) |
+| `docker-compose.yml` | File | Docker Compose orchestration (backend + frontend) |
+| `.gitignore` | File | Git ignore rules |
+| `package.json` | File | Root npm config (shared deps: puppeteer, csv-parser) |
+| `AGENTS.md` | File | Root DOX framework contract |
+
+**Root-owned dev tooling scripts:**
+- `debug-login.ps1`, `test-notifications.ps1` — PowerShell dev utilities
+- `get-token.ps1` — Token retrieval utility
+- `instagram_liker.ts`, `scrape_ig.js` — Instagram scraping tools
+- `cookies.json`, `secret.txt` — Scraping credentials (gitignored?)
+- `implementation_details.txt`, `TYPESCRIPT_ERRORS_SOLUTION.md` — Dev notes
+
+---
 
 ### Backend (`PoDM_project/`)
 
+42 entries. Core server code in `server/`.
+
 ```
 PoDM_project/
-├── AGENTS.md                    — Backend DOX contract
-├── package.json                 — Dependencies + scripts (version 1.0.0)
-├── tsconfig.json                — TypeScript compiler config
-├── jest.config.js               — Jest test config
-├── jest.setup.js                — Jest setup
-├── babel.config.js              — Babel config
-├── Dockerfile                   — Backend Docker image
-├── .dockerignore                — Docker exclusion
-├── check_env.ts                 — Environment validation script
-├── debug_transactions.ts        — Transaction debugging script
-│
-├── common/types/                — Shared TypeScript type definitions (12 files)
-│   ├── Content.ts
-│   ├── Contest.ts
-│   ├── Conversation.ts
-│   ├── Creator.ts
-│   ├── Gallery.ts
-│   ├── Message.ts
-│   ├── Notification.ts
-│   ├── Report.ts
-│   ├── Subscription.ts
-│   ├── SupportTicket.ts
-│   ├── Transaction.ts
-│   ├── User.ts
-│
-├── lib/
-│   └── constants.ts             — Single constant: DEFAULT_COMMISSION_RATE = 12.5
-│
-├── contracts/
-│   └── PoDMPaymentProtocol.sol  — Solidity smart contract (Ethereum/USDC)
-│
-├── migrations/                  — Root-level SQL migrations (9 files)
-│   ├── add_crypto_fields.sql
-│   ├── add_enclave_membership_to_profiles.sql
-│   ├── add_rls_application_referral_tables.sql
-│   ├── add_speed_bonus_tracking.sql
-│   ├── create_enclave_applications.sql
-│   ├── create_referrals_table.sql
-│   ├── fix_function_search_paths.sql
-│   ├── update_crypto_constraints.sql
-│   ├── update_enclave_platforms_to_array.sql
-│
-├── scripts/
-│   └── migrate-to-r2.ts         — R2 migration script
-│
-├── server/                      — Core backend application
-│   ├── Server.ts                — Entry point: Express + HTTP + Socket.IO
-│   ├── .env                     — Environment variables
-│   ├── config/
-│   │   ├── supabaseClient.ts    — Supabase admin client (service role key)
-│   │   ├── r2Client.ts          — Cloudflare R2 (S3-compatible) client
-│   │   └── socket.ts            — Socket.IO server initialization
-│   ├── controllers/             — 15 controllers (request/response handling)
-│   ├── middleware/               — 4 middleware modules
-│   ├── models/                  — 13 database model modules
-│   ├── routes/                  — 15 route definition files
-│   ├── services/                — 16 business logic services
-│   ├── utils/                   — 13 utility modules
-│   ├── migrations/              — 9 SQL migrations + 3 utility scripts (data fixes)
-│   └── tests/                   — 3 test files (1 unit + 2 integration)
-│
-├── dist/                        — Compiled JavaScript output (mirrors server/)
-└── src/                         — Empty directory
+├── server/                    # Core application code (98 TS files)
+│   ├── Server.ts              # Entry point — Express + HTTP + Socket.IO setup
+│   ├── config/                # Infrastructure client configuration
+│   │   ├── supabaseClient.ts  # Supabase admin (service-role) client
+│   │   ├── r2Client.ts        # Cloudflare R2 (S3-compatible) client
+│   │   └── socket.ts          # Socket.IO server init + auth middleware
+│   ├── controllers/           # 16 controllers: request/response handling
+│   ├── models/                # 13 models: database query interfaces
+│   ├── services/              # 17 services: business logic layer
+│   ├── routes/                # 16 route files: endpoint definitions
+│   ├── middleware/            # 4 middleware: auth, error, upload, validation
+│   ├── utils/                 # 12 utility modules
+│   ├── tests/                 # 3 test files (1 unit + 2 integration)
+│   ├── jobs/                  # 1 job: renewSubscriptions.ts
+│   ├── scripts/               # 16 development/utility scripts
+│   └── .env                   # Environment variables
+├── common/types/              # 12 shared TypeScript interfaces
+├── migrations/                # 11 SQL migration files
+├── contracts/                 # Hardhat project (Solidity, tests, deploy)
+│   ├── contracts/             # 2 Solidity files
+│   ├── scripts/               # 1 deploy script
+│   ├── test/                  # 1 test file
+│   ├── hardhat.config.ts      # Hardhat config (Base Sepolia + Mainnet)
+│   └── package.json           # Hardhat + OpenZeppelin deps
+├── lib/                       # Shared constants
+│   └── constants.ts           # DEFAULT_COMMISSION_RATE = 12.5
+├── scripts/                   # Root-level scripts
+│   └── migrate-to-r2.ts       # Supabase-to-R2 migration
+├── src/                       # Legacy/alternative source (controllers + routes)
+│   ├── controllers/           # Duplicate controllers? (empty/inactive?)
+│   └── routes/                # Duplicate routes? (empty/inactive?)
+├── dist/                      # Compiled JS output
+├── .dockerignore
+├── Dockerfile                 # Multi-stage: build (node:20-alpine) + production
+├── tsconfig.json              # target ES2020, module nodenext
+├── jest.config.js
+├── babel.config.js
+├── jest.setup.js
+├── check_env.ts               # Environment validation script
+├── .env                       # Environment variables (secrets committed)
+├── package.json               # Backend dependencies
+├── package-lock.json
+├── *.log                      # Debug log files (debug.log, error_log.txt, etc.)
+├── *.txt                      # Debug output files (debug_output.txt, etc.)
+└── *.json                     # Debug JSON (debug_result.json, storage-report.json)
 ```
+
+**Debug artifacts in backend root** (non-production, development artifacts):
+- `debug.log` — 27,411+ lines of auth debugging
+- `debug_output.txt`, `debug_output_clean.txt`, `debug_result.json` — Debug script output
+- `error_log.txt`, `report.txt`, `verification-results.txt` — Error/debug reports
+- `storage-report.json`, `migration-output.txt`, `migration-debug.txt` — Migration logs
+- `backend_start.log`, `debug_subs.log`, `test_debug.log` — Various debug logs
+
+---
 
 ### Frontend (`podm-frontend/`)
 
+34 entries. React SPA in `src/`.
+
 ```
 podm-frontend/
-├── AGENTS.md                    — Frontend DOX contract
-├── package.json                 — Dependencies + scripts (version 0.0.0)
-├── tsconfig.json                — TypeScript compiler config
-├── tsconfig.jest.json           — Jest-specific TS config
-├── vite.config.ts               — Vite bundler config
-├── tailwind.config.js           — Tailwind CSS theme config
-├── postcss.config.js            — PostCSS config
-├── eslint.config.js             — ESLint flat config
-├── babel.config.cjs             — Babel config for Jest
-├── jest.config.ts               — Jest test config
-├── playwright.config.ts         — Playwright E2E test config
-├── index.html                   — Vite HTML entry point
-├── Dockerfile                   — Frontend Docker image
-├── .env                         — Environment variables
+├── src/                           # Source code (103 TS/TSX files)
+│   ├── main.tsx                   # React entry point
+│   ├── App.tsx                    # Root component (router + auth provider)
+│   ├── App.test.tsx               # Smoke test (single test)
+│   ├── vite-env.d.ts              # Vite type declarations
+│   ├── components/                # Reusable components (28 files)
+│   │   ├── ui/                    # Primitive UI (5 components)
+│   │   ├── layout/                # Layout shell (5 components)
+│   │   ├── shared/                # Domain-shared components (17 components)
+│   │   └── auth/                  # Auth guards (3 components)
+│   ├── features/                  # Feature modules (47 files)
+│   │   ├── admin/                 # Admin panel (10 files)
+│   │   ├── auth/                  # Auth modals (3 files)
+│   │   ├── contests/              # Contest management (3 files)
+│   │   ├── creator/               # Creator dashboard (10 files)
+│   │   ├── enclave/               # Enclave premium tier (6 files)
+│   │   ├── fan/                   # Fan experience (6 files)
+│   │   ├── messages/              # Messaging (1 file + components)
+│   │   ├── profile/               # Creator profile page (3 files)
+│   │   └── viewer/                # Content viewer (1 file)
+│   ├── pages/                     # Top-level page components (6 files)
+│   ├── hooks/                     # App-level hooks (5 files)
+│   ├── shared/hooks/              # Cross-feature hooks (4 files)
+│   ├── context/                   # React contexts (1 file)
+│   ├── lib/                       # API client, socket, config (6 files)
+│   ├── styles/                    # Global CSS (1 file)
+│   └── types/                     # TypeScript declarations (1 file)
+├── tests/                         # Playwright E2E tests (5 specs)
+├── public/                        # Static assets
+│   ├── assets/                    # 3 images (logo, placeholder, screenshot)
+│   ├── _redirects                 # Netlify SPA redirect rule
+│   ├── favicon.png
+│   └── vite.svg
+├── assets/                        # Additional assets (screenshots)
+├── dist/                          # Build output
+├── playwright-report/             # E2E test reports
+├── test-results/                  # Test output
+├── .env                           # Environment variables (secrets committed)
 ├── .gitignore
-├── setupTests.ts                — Jest setup
-│
-├── assets/                      — Static images (2 files)
-├── public/                      — Public assets + favicon + Netlify _redirects
-│
-├── src/
-│   ├── main.tsx                 — React DOM entry
-│   ├── App.tsx                  — Root component: routing, providers, lazy loads
-│   ├── App.test.tsx             — App-level unit test
-│   ├── styles/
-│   │   └── globals.css          — Tailwind directives + global styles
-│   │
-│   ├── components/
-│   │   ├── auth/                — 3 auth guard components
-│   │   ├── layout/              — 5 layout shell components
-│   │   ├── shared/              — 15 reusable domain components
-│   │   └── ui/                  — 5 primitive UI components
-│   │
-│   ├── features/                — 9 feature modules
-│   │   ├── admin/               — Admin panel (2 pages + 8 sub-components)
-│   │   ├── auth/                — Auth flows (3 components)
-│   │   ├── contests/            — Contest features (3 components)
-│   │   ├── creator/             — Creator hub (8 pages + 5 components)
-│   │   ├── enclave/             — Enclave membership (6 components)
-│   │   ├── fan/                 — Fan dashboard (5 pages + 1 component)
-│   │   ├── messages/            — Message UI (1 component)
-│   │   ├── profile/             — Creator profile (3 components)
-│   │   └── viewer/              — Content viewer (1 component)
-│   │
-│   ├── pages/                   — 6 top-level page components
-│   ├── hooks/                   — 5 custom React hooks
-│   ├── context/                 — 1 context provider (Toast)
-│   ├── lib/                     — 6 library modules
-│   └── shared/hooks/            — 4 cross-feature shared hooks
-│
-└── tests/                       — 5 Playwright E2E test specs
+├── vite.config.ts                 # Vite config + @common alias + API proxy
+├── tsconfig.json                  # target ES2020, strict
+├── tsconfig.jest.json             # Jest-specific TS config
+├── tailwind.config.js             # Tailwind theme (primary purple, secondary pink)
+├── postcss.config.js              # PostCSS + Tailwind + autoprefixer
+├── eslint.config.js               # ESLint flat config (React + TypeScript)
+├── babel.config.cjs               # Babel for Jest
+├── jest.config.ts                 # Jest config (ts-jest, jsdom)
+├── setupTests.ts                  # Jest setup
+├── playwright.config.ts           # Playwright config
+├── index.html                     # Vite HTML entry
+├── Dockerfile                     # Dev-mode Docker (runs vite dev --host)
+├── package.json
+├── package-lock.json
+├── README.md
+├── *.log                          # Dev logs
+└── *.png                          # Debug screenshots
 ```
 
 ---
 
-## Frontend
+## Frontend: Pages, Routes, Layouts, Components, Hooks, State
 
-### Pages (Route-Level Components)
+### Pages (6 top-level)
 
-| Page | File | Route(s) | Auth |
-|---|---|---|---|
-| SplashPage | `src/pages/SplashPage.tsx` | `/` | Public |
-| Enclave | `src/pages/Enclave.tsx` | `/enclave` | Public |
-| TermsOfService | `src/pages/TermsOfService.tsx` | `/terms-of-service` | Public |
-| PrivacyPolicy | `src/pages/PrivacyPolicy.tsx` | `/privacy-policy` | Public |
-| CreatorProfile | `src/features/profile/CreatorProfile.tsx` | `/creator/:username` | Public |
-| ContentViewer | `src/features/viewer/ContentViewer.tsx` | `/content/:contentId` | Public |
-| ResetPasswordPage | `src/pages/ResetPasswordPage.tsx` | `/reset-password` | Public |
-| CreatorOnboarding | `src/features/auth/CreatorOnboarding.tsx` | `/onboarding` | Private |
-| CreatorVerification | `src/features/auth/CreatorVerification.tsx` | `/verification` | Private |
-| AdminLoginPage | `src/pages/AdminLoginPage.tsx` | `/admin/login` | Public |
-| FanFeed | `src/features/fan/FanFeed.tsx` | `/fan/feed` | Private (fan) |
-| FanGallery | `src/features/fan/FanGallery.tsx` | `/fan/gallery` | Private (fan) |
-| FanSubscriptions | `src/features/fan/FanSubscriptions.tsx` | `/fan/subscriptions` | Private (fan) |
-| FanMessages | `src/features/fan/FanMessages.tsx` | `/fan/messages` | Private (fan) |
-| FanSettings | `src/features/fan/FanSettings.tsx` | `/fan/settings` | Private (fan) |
-| CreatorDashboard | `src/features/creator/CreatorDashboard.tsx` | `/hub/dashboard` | Private (creator) |
-| CreatorContent | `src/features/creator/CreatorContent.tsx` | `/hub/content` | Private (creator) |
-| CreatorMessages | `src/features/creator/CreatorMessages.tsx` | `/hub/messages` | Private (creator) |
-| CreatorAnalytics | `src/features/creator/CreatorAnalytics.tsx` | `/hub/analytics` | Private (creator) |
-| CreatorEarnings | `src/features/creator/CreatorEarnings.tsx` | `/hub/earnings` | Private (creator) |
-| CreatorSettings | `src/features/creator/CreatorSettings.tsx` | `/hub/settings` | Private (creator) |
-| BulkUploadPage | `src/features/creator/pages/BulkUploadPage.tsx` | `/hub/bulk-upload` | Private (creator) |
-| AdminPanel | `src/features/admin/AdminPanel.tsx` | `/admin/*` (layout) | Private (admin) |
-
-### Routes
-
-**Route Architecture**: React Router v7 with `BrowserRouter`. Routes defined in `src/App.tsx`.
-
-```
-/                              → SplashPage (public)
-/enclave                       → Enclave (public)
-/terms-of-service              → TermsOfService (public)
-/privacy-policy                → PrivacyPolicy (public)
-/creator/:username             → CreatorProfile (public)
-/content/:contentId            → ContentViewer (public)
-/reset-password                → ResetPasswordPage (public)
-/onboarding                    → CreatorOnboarding (private)
-/verification                  → CreatorVerification (private)
-/admin/login                   → AdminLoginPage (public)
-
-/fan/*                         → FanLayout (MainLayout + FAN_NAV_ITEMS)
-  /fan                         → FanFeed
-  /fan/feed                    → FanFeed
-  /fan/gallery                 → FanGalleryLoader
-  /fan/subscriptions           → FanSubscriptions
-  /fan/messages                → FanMessages
-  /fan/settings                → FanSettingsLoader
-
-/hub/*                         → CreatorRouteGuard → CreatorLayout (MainLayout + CREATOR_NAV_ITEMS)
-  /hub                         → CreatorDashboardLoader
-  /hub/dashboard               → CreatorDashboardLoader
-  /hub/content                 → CreatorContent
-  /hub/messages                → CreatorMessages
-  /hub/analytics               → CreatorAnalyticsLoader
-  /hub/earnings                → CreatorEarningsLoader
-  /hub/settings                → CreatorSettingsLoader
-  /hub/bulk-upload             → BulkUploadPage
-
-/admin/*                       → ProtectedRoute(admin) → AdminLayout (MainLayout + ADMIN_NAV_ITEMS)
-  /admin/enclave               → EnclaveApplications
-  /admin/enclave-applications  → EnclaveApplications
-  /admin/*                     → AdminPanel (data loader + outlet)
-    /admin/dashboard           → DashboardPanel
-    /admin/users               → UserManagementPanel
-    /admin/content             → ContentModerationPanel
-    /admin/analytics           → AnalyticsPanel
-    /admin/reports             → ReportsPanel
-    /admin/support             → SupportTicketsPanel
-    /admin/settings            → SettingsPanel
-```
-
-### Layouts
-
-| Component | File | Purpose |
+| File | Lines | Purpose |
 |---|---|---|
-| MainLayout | `src/components/layout/MainLayout.tsx` | Shell with sidebar nav (adapts to role-based nav items) |
-| AuthLayout | `src/components/layout/AuthLayout.tsx` | Auth page wrapper |
-| Container | `src/components/layout/Container.tsx` | Width-constrained content wrapper |
-| Header | `src/components/layout/Header.tsx` | Top navigation bar |
-| Footer | `src/components/layout/Footer.tsx` | Site footer |
+| `SplashPage.tsx` | 347 | Landing/marketing page |
+| `AdminLoginPage.tsx` | 147 | Admin-specific login page |
+| `ResetPasswordPage.tsx` | 104 | Password reset form |
+| `PrivacyPolicy.tsx` | 130 | Legal/privacy policy page |
+| `TermsOfService.tsx` | 101 | Terms of service page |
+| `Enclave.tsx` | 54 | Enclave premium tier marketing page |
+
+### Routing (34 routes in `App.tsx`)
+
+All routes defined in `App.tsx:282-357`. 14 lazy-loaded via `React.lazy()`.
+
+**Public Routes:**
+| Route | Component | Auth |
+|---|---|---|
+| `/` | SplashPage | None |
+| `/enclave` | Enclave | None |
+| `/terms-of-service` | TermsOfService | None |
+| `/privacy-policy` | PrivacyPolicy | None |
+| `/creator/:username` | CreatorProfileLoader | None |
+| `/content/:contentId` | ContentViewerLoader | None |
+| `/reset-password` | ResetPasswordPage | None |
+| `/onboarding` | CreatorOnboardingLoader | None |
+| `/verification` | CreatorVerification | None |
+| `/admin/login` | AdminLoginPage | None |
+
+**Fan Routes** (protected, `FanLayout`):
+| Route | Component |
+|---|---|
+| `/fan` (index) | FanFeed |
+| `/fan/feed` | FanFeed |
+| `/fan/gallery` | FanGalleryLoader |
+| `/fan/subscriptions` | FanSubscriptions |
+| `/fan/messages` | FanMessages |
+| `/fan/settings` | FanSettingsLoader |
+
+Note: No role-based guard on `/fan/*` routes — only token check via `ProtectedRoute` wrapper.
+
+**Creator Routes** (protected via `CreatorRouteGuard`):
+| Route | Component |
+|---|---|
+| `/hub` (index) | CreatorDashboardLoader |
+| `/hub/dashboard` | CreatorDashboardLoader |
+| `/hub/content` | CreatorContent |
+| `/hub/messages` | CreatorMessages |
+| `/hub/analytics` | CreatorAnalyticsLoader |
+| `/hub/earnings` | CreatorEarningsLoader |
+| `/hub/settings` | CreatorSettingsLoader |
+| `/hub/bulk-upload` | BulkUploadPage |
+
+**Admin Routes** (protected via `ProtectedRoute requiredRole="admin"`):
+| Route | Component |
+|---|---|
+| `/admin` (index) | DashboardPanel |
+| `/admin/dashboard` | DashboardPanel |
+| `/admin/users` | UserManagementPanel |
+| `/admin/content` | ContentModerationPanel |
+| `/admin/analytics` | AnalyticsPanel |
+| `/admin/reports` | ReportsPanel |
+| `/admin/support` | SupportTicketsPanel |
+| `/admin/settings` | SettingsPanel |
+| `/admin/enclave` | EnclaveApplications |
+| `/admin/enclave-applications` | EnclaveApplications |
+
+**Loader Wrappers** (6 components in `App.tsx`):
+- `CreatorProfileLoader` — fetches public creator profile
+- `ContentViewerLoader` — fetches content + creator + related content
+- `FanGalleryLoader` — fetches fan gallery data
+- `FanSettingsLoader` — fetches fan settings
+- `CreatorDashboardLoader` — fetches dashboard metrics (uses `useCreatorData`)
+- `CreatorAnalyticsLoader` — fetches analytics data
+- `CreatorEarningsLoader` — fetches earnings data
+- `CreatorSettingsLoader` — passes auth user to settings component
+- `CreatorOnboardingLoader` — pass-through to CreatorOnboarding
+- `AdminPanel` — acts as data loader + provides `<Outlet />`
+
+### Layouts (5 components)
+
+| File | Lines | Purpose |
+|---|---|---|
+| `MainLayout.tsx` | 122 | Sidebar nav + content area shell |
+| `Header.tsx` | 132 | Top navigation bar |
+| `Footer.tsx` | 21 | Site footer |
+| `Container.tsx` | 13 | Simple container wrapper |
+| `AuthLayout.tsx` | 19 | Auth page layout |
+
+3 layout wrappers in App.tsx: `FanLayout`, `CreatorLayout`, `AdminLayout` — each wraps `<MainLayout>` with role-specific nav items.
 
 ### Reusable Components
 
-**Primitive UI** (`src/components/ui/`):
-
-| Component | Purpose |
-|---|---|
-| Button | Styled button with variants |
-| Card | Content card container |
-| Input | Form input field |
-| Modal | Overlay modal dialog |
-| AudioPlayer | Audio playback component |
-
-**Auth Guards** (`src/components/auth/`):
-
-| Component | Purpose |
-|---|---|
-| ProtectedRoute | Route guard requiring specific role (`requiredRole` prop) |
-| CreatorRouteGuard | Route guard that validates creator role + loads creator data |
-| withAuthGuard | HOC that wraps components with auth/role checks |
-
-**Shared Domain** (`src/components/shared/`):
-
-| Component | Purpose |
-|---|---|
-| ConfirmModal | Confirmation dialog |
-| ContentCard | Content display card |
-| ContentLockManager | Content gating/lock management |
-| ContentLockOverlay | Overlay for locked content |
-| ConversationListItem | Message conversation list item |
-| ImpersonationBanner | Banner shown during admin impersonation |
-| ReportModal | Content reporting dialog |
-| SettingsCard | Settings section card |
-| StatCard | Metric display card |
-| StatusBadge | Status indicator badge |
-| TierCard | Subscription tier display card |
-| TipModal | Tip payment dialog |
-| ToggleSwitch | Toggle switch control |
-| UnlockModal | Content unlock (PPV) dialog |
-| VerificationBanner | Verification status banner |
-
-### Contexts
-
-| Context | File | Purpose |
+**UI Primitives** (5 files, `components/ui/`):
+| File | Lines | Purpose |
 |---|---|---|
-| ToastContext | `src/context/ToastContext.tsx` | Global toast notification system (success/error/info messages) + error handler registration |
+| `Button.tsx` | 91 | Styled button with variants |
+| `Input.tsx` | 70 | Styled input field |
+| `Card.tsx` | 29 | Content card container |
+| `Modal.tsx` | 74 | Generic modal dialog |
+| `AudioPlayer.tsx` | 91 | Audio playback component |
 
-### Hooks
-
-| Hook | File | Purpose |
+**Auth Guards** (3 files, `components/auth/`):
+| File | Lines | Purpose |
 |---|---|---|
-| useAuth | `src/hooks/useAuth.tsx` | Authentication state (user, login, logout, signup, impersonation) + AuthProvider |
-| useCreatorData | `src/hooks/useCreatorData.ts` | Creator dashboard data fetching |
-| useModal | `src/hooks/useModal.ts` | Modal open/close state management |
-| useOnClickOutside | `src/hooks/useOnClickOutside.ts` | Detect clicks outside an element |
-| useVoiceRecorder | `src/hooks/useVoiceRecorder.ts` | Voice message recording |
-| useAsyncData | `src/shared/hooks/useAsyncData.ts` | Generic async data fetching with loading/error states |
-| useCryptoWallet | `src/shared/hooks/useCryptoWallet.ts` | Crypto wallet connection (Ethereum) |
-| useFormSubmission | `src/shared/hooks/useFormSubmission.ts` | Form submission with loading state |
-| useStripePayment | `src/shared/hooks/useStripePayment.ts` | Stripe payment flow integration |
+| `withAuthGuard.tsx` | 84 | HOC factory for role-based protection |
+| `ProtectedRoute.tsx` | 24 | Route-level auth guard |
+| `CreatorRouteGuard.tsx` | 16 | Creator role check + redirect |
 
-### State Stores
-
-- **React Context**: `ToastContext` for global notifications
-- **Custom Hooks**: `useAuth` provides authentication state to entire component tree
-- **No Redux/Zustand**: State management is via React Context + hooks only
-- **No server-state library**: API calls made directly in components via `apiClient` functions
-
-### Utilities
-
-| Utility | File | Purpose |
+**Domain-Shared** (17 files, `components/shared/`):
+| File | Lines | Purpose |
 |---|---|---|
-| apiClient | `src/lib/apiClient.ts` | Axios-based API client (800 lines) — all API functions, interceptors, error handling |
-| constants | `src/lib/constants.ts` | Navigation items, Stripe card options, report reasons |
-| formatters | `src/lib/formatters.ts` | Date, currency, and display formatters |
-| socket | `src/lib/socket.ts` | Socket.IO client connection |
-| statusBadgeMap | `src/lib/statusBadgeMap.ts` | User/content status → badge color/style mapping |
-| supabaseClient | `src/lib/supabaseClient.ts` | Supabase client for auth flows (password reset) |
+| `ContentCard.tsx` | 161 | Content preview card |
+| `ContentLockManager.tsx` | 194 | Content access control logic |
+| `ContentLockOverlay.tsx` | 118 | Visual lock overlay |
+| `ConversationListItem.tsx` | 116 | Message conversation row |
+| `ConfirmModal.tsx` | 71 | Confirmation dialog |
+| `ImpersonationBanner.tsx` | 26 | Admin impersonation indicator |
+| `OnRampButton.tsx` | 84 | Crypto on-ramp (card to USDC) |
+| `PaymentModal.tsx` | 198 | Payment processing modal |
+| `ReportModal.tsx` | 91 | Content report dialog |
+| `SettingsCard.tsx` | 48 | Settings section wrapper |
+| `StatCard.tsx` | 33 | Dashboard stat display |
+| `StatusBadge.tsx` | 35 | Colored status badge |
+| `TierCard.tsx` | 47 | Subscription tier display |
+| `TipModal.tsx` | 126 | Tip sending modal |
+| `ToggleSwitch.tsx` | 57 | Toggle control |
+| `UnlockModal.tsx` | 111 | PPV unlock modal |
+| `VerificationBanner.tsx` | 57 | Verification status banner |
+
+### Hooks (9 files)
+
+**App-level hooks** (`src/hooks/`):
+| File | Lines | Purpose | Used By |
+|---|---|---|---|
+| `useAuth.tsx` | 204 | Auth context provider (login, signup, logout, impersonation) | Entire app |
+| `useCreatorData.ts` | 40 | Fetch creator dashboard data | CreatorDashboardLoader |
+| `useModal.ts` | 25 | Generic open/close state | Multiple modals |
+| `useOnClickOutside.ts` | 31 | Click-outside detection | Modals, dropdowns |
+| `useVoiceRecorder.ts` | 82 | Voice message recording | CreatorMessages |
+
+**Shared hooks** (`src/shared/hooks/`):
+| File | Lines | Purpose |
+|---|---|---|
+| `useAsyncData.ts` | 63 | Prescribed data-fetching pattern (not adopted in practice) |
+| `useCryptoPayment.ts` | 110 | Crypto wallet payment flow (uses raw `fetch()`) |
+| `useCryptoWallet.ts` | 168 | Wallet connection (fully mocked: fake addresses, 1250 USDC) |
+| `useFormSubmission.ts` | 61 | Form submission loading/error state |
+
+### State Management
+
+- **No Redux, Zustand, or external state library**
+- **Auth state**: React Context (`useAuth` provider wraps entire app)
+- **Toast/notifications**: `ToastContext.tsx` (98 LOC) — global toast + Axios error interceptor integration
+- **Local state**: Component-level `useState`/`useEffect` throughout feature modules
+- **No React Router loaders/actions** — all data fetching in wrapper components via `useEffect`
+
+### API Integration Layer
+
+**`src/lib/apiClient.ts`** — 614 lines, ~70 exported API functions
+
+Architecture: Axios instance with request/response interceptors:
+- **Request interceptor**: Attaches `Bearer` token from localStorage/sessionStorage + `X-Impersonating-User-Id` header
+- **Response interceptor**: Global error handler, 401 auto-redirect (clears token, redirects to `/`)
+- **Error handler registration**: `registerErrorHandler()` — integrates with `ToastContext`
+- **`api()` helper**: Shorthand for single-line calls: `api(method, url, data?, config?)`
+
+**API functions by category:**
+
+| Category | Functions | Count |
+|---|---|---|
+| Auth | `signup`, `login`, `forgotPassword`, `getMe`, `changePassword`, `signupAndSubscribe` | 6 |
+| User Profile | `updateMe`, `uploadAvatar`, `completeCreatorOnboarding`, `submitVerification` | 4 |
+| Creator | `updateCreatorSettings`, `getCreatorDashboardData`, `getCreatorAnalyticsData`, `exportCreatorMetricsCSV`, `exportCreatorFanEngagementCSV`, `getCreatorActivity`, `requestCreatorPayout`, `getCreatorTiers`, `broadcastMessage`, `getCreatorEarningsData` | 10 |
+| Content | `getMyCreatorContent`, `createContent`, `deleteContent`, `updateContent`, `getPublicCreatorProfile`, `getSecureContentUrl`, `getSecureContentViewUrl`, `getContentViewerData`, `reportContent` | 9 |
+| Fan | `getFanFeed`, `getFanSubscriptions`, `getFanGallery`, `getFanSettings`, `updateFanSettings`, `addContentToGallery`, `removeContentFromGallery` | 7 |
+| Messages | `getMyConversations`, `getMessagesInConversation`, `markConversationAsRead`, `sendMessage`, `deleteMessage`, `sendVoiceMessage` | 6 |
+| Admin | `getPlatformSettings`, `updatePlatformSettings`, `updateUserStatus`, `updateCreatorCommission`, `getVerificationDocs`, `getPlatformAnalytics`, `getSavedReports`, `generateReport`, `updateContentStatus`, `messageUser`, `getUserById` | 11 |
+| Subscriptions | `updateFanSubscription` | 1 |
+| Support | `submitSupportTicket`, `replyToSupportTicket` | 2 |
+| Notifications | `getNotifications`, `getUnreadNotificationCount`, `markNotificationAsRead`, `deleteNotification` | 4 |
+| Contests | `createContest`, `getMyContests`, `publishContest`, `finalizeContest`, `getFanContests`, `enterContest` | 6 |
+| Crypto | `linkWallet` (via settings endpoint) | 1 |
+| AI | `generateCaption` | 1 |
+| Analytics | `logAnalyticsEvent` | 1 |
+
+**Known bypass sites** (raw `fetch()` or raw apiClient calls outside typed wrappers):
+- `useCryptoWallet.ts` — uses raw `fetch()` for crypto verification endpoints
+- `WalletSettings.tsx` — uses raw `fetch()` for crypto operations
+- `ReferralCodes.tsx` — uses `apiClient.get('/referrals/...')` with raw path strings
+- `EnclaveApplications.tsx` — uses `apiClient.get('/admin/...')` with raw path strings
+- `EnclaveApplicationForm.tsx` — uses `apiClient.post('/enclave/...')` with raw path strings
+
+### Other `lib/` Files
+| File | Lines | Purpose |
+|---|---|---|
+| `constants.ts` | 43 | Nav items, DEFAULT_COMMISSION_RATE, report reasons |
+| `formatters.ts` | 121 | `formatCurrency`, `slugify`, `formatDate`, `formatMessageTimestamp`, `timeAgo`, `truncateText` |
+| `statusBadgeMap.ts` | 74 | Status-to-color mapping for badges |
+| `socket.ts` | 15 | Socket.IO client (autoConnect: false, auth via token) |
+| `supabaseClient.ts` | 16 | Supabase anon client for frontend auth |
+
+### Feature Modules (9, 47 files total)
+
+**admin/** (10 files, ~2,000 LOC):
+- `AdminPanel.tsx` — Data loader + outlet provider
+- `EnclaveApplications.tsx` — Enclave application management
+- `components/DashboardPanel.tsx` — Key metrics dashboard
+- `components/UserManagementPanel.tsx` — User list + status management
+- `components/ContentModerationPanel.tsx` — Flagged content moderation
+- `components/AnalyticsPanel.tsx` — Platform-wide analytics
+- `components/ReportsPanel.tsx` — Saved reports
+- `components/SupportTicketsPanel.tsx` — Support ticket management
+- `components/SettingsPanel.tsx` — Platform settings
+- `components/VerificationDetailPanel.tsx` — Creator verification docs review
+
+**auth/** (3 files):
+- `AuthModal.tsx` (230 LOC) — Login/signup modal with role selection
+- `CreatorOnboarding.tsx` (176 LOC) — Multi-step onboarding flow
+- `CreatorVerification.tsx` (109 LOC) — ID upload + verification
+
+**contests/** (3 files):
+- `CreateContestModal.tsx` (199 LOC) — Contest creation form
+- `CreatorContestList.tsx` (115 LOC) — Creator's contests list
+- `FanContestList.tsx` (91 LOC) — Fan's available contests
+
+**creator/** (10 files, ~3,870 LOC — largest feature):
+- `CreatorDashboard.tsx` (167 LOC)
+- `CreatorContent.tsx` (694 LOC) — Content management with grid + filters
+- `CreatorMessages.tsx` (395 LOC) — DMs + voice messages
+- `CreatorAnalytics.tsx` (362 LOC) — Metrics, subscriber growth, revenue, top content
+- `CreatorEarnings.tsx` (219 LOC) — Earnings summary with transactions
+- `CreatorSettings.tsx` (674 LOC) — Profile, tiers, payouts, content settings
+- `ReferralCodes.tsx` (228 LOC) — Referral code management
+- `WalletSettings.tsx` (376 LOC) — Crypto wallet configuration
+- `components/AttachmentModal.tsx` — File attachment UI
+- `components/BroadcastModal.tsx` — Subscriber broadcast compose
+- `components/BulkUpload/DraftCard.tsx` — Bulk upload draft card
+- `components/BulkUpload/DropZone.tsx` — Bulk upload file drop zone
+- `pages/BulkUploadPage.tsx` (260 LOC) — Bulk upload page
+
+**enclave/** (6 files):
+- `EnclaveApplicationForm.tsx` (385 LOC) — Enclave membership application
+- `EnclaveBenefits.tsx`, `EnclaveComparison.tsx`, `EnclaveFAQ.tsx`, `EnclaveHero.tsx`, `EnclaveValueProps.tsx` — Marketing sections
+
+**fan/** (6 files):
+- `FanFeed.tsx` (100 LOC) — Personalized content feed
+- `FanGallery.tsx` (179 LOC) — Saved content collection
+- `FanSubscriptions.tsx` (255 LOC) — Subscription management
+- `FanMessages.tsx` (239 LOC) — Direct messages
+- `FanSettings.tsx` (287 LOC) — Fan settings + payment methods
+- `components/ContentViewerModal.tsx` (246 LOC) — Content viewer modal
+
+**messages/** (1 file + 1 component):
+- `components/MessageBubble.tsx` (100 LOC) — Message display component
+- *(Messaging logic primarily in CreatorMessages.tsx and FanMessages.tsx)*
+
+**profile/** (3 files):
+- `CreatorProfile.tsx` (302 LOC) — Public creator profile page
+- `SubscriptionAuthModal.tsx` (133 LOC) — Combined auth + subscribe flow
+- `SubscriptionModal.tsx` (202 LOC) — Tier selection + payment modal
+
+**viewer/** (1 file):
+- `ContentViewer.tsx` (198 LOC) — Full-size content viewer
+
+### Context (1 file)
+| File | Lines | Purpose |
+|---|---|---|
+| `ToastContext.tsx` | 84 | Global toast notifications + registers with apiClient error handler |
+
+### Styles (1 file)
+| File | Purpose |
+|---|---|
+| `globals.css` | Tailwind directives (`@tailwind base/components/utilities`) + custom styles |
 
 ---
 
 ## Backend
 
-### Entry Point
+### Entry Point: `Server.ts` (110 LOC)
 
-| File | Role |
+- Loads `.env` from `server/` or parent directory
+- Creates Express app + HTTP server (for Socket.IO)
+- Initializes Socket.IO via `initSocketServer(httpServer)`
+- Configures CORS (localhost:5173, podm.app, all `*.pages.dev`)
+- Sets 1100MB body limit (JSON + URL-encoded)
+- Mounts 15 route groups at `/api/v1/*`
+- Health check: `GET /` returns "PoDM API is running!"
+- Global error handler middleware
+- Listens on `process.env.PORT || 5000`
+
+### Controllers (16 files)
+
+All controllers follow the `asyncHandler` wrapper pattern — no try/catch blocks in controller code. Response helpers (`ok()`, `created()`, `okMsg()`, `createdMsg()`) standardize the JSON envelope.
+
+| Controller | Lines | Exported Functions | Notes |
+|---|---|---|---|
+| `admin.controller.ts` | 115 | 10 (`getDashboardStats`, `getAllUsers`, `updateUserStatus`, `getFlaggedContent`, `updateContentStatus`, `getPlatformAnalytics`, `generateReport`, `getSupportTickets`, `updateSupportTicket`, `getAdminUsers`, `getSavedReports`, `getSettings`, `updateSettings`, `setCreatorCommission`, `getCreatorVerificationDocs`, `messageUser`) | Largest number of exported functions |
+| `analytics.controller.ts` | 18 | 1 (`logAnalytics`) | Minimal |
+| `auth.controller.ts` | 60 | 6 (`signup`, `login`, `logout`, `getMe`, `changePassword`, `forgotPassword`, `signupAndSubscribe`) | |
+| `content.controller.ts` | 103 | 9 (`createContent`, `getContentById`, `updateContent`, `deleteContent`, `getContentByCreator`, `getMyContent`, `getSecureContentUrl`, `getContentView`, `getContentViewerData`, `reportContent`) | |
+| `contest.controller.ts` | 32 | 3 (`createContest`, `publishContest`, `finalizeContest`, `getContestFeed`, `getMyContests`, `enterContest`) | |
+| `creator.controller.ts` | 88 | 7 (`getDashboard`, `getAnalytics`, `getEarnings`, `getCreatorActivity`, `updateSettings`, `broadcastToSubscribers`, `requestPayout`, `getTiers`, `exportMetricsCSV`, `exportFanEngagementCSV`) | |
+| `cryptoPayment.controller.ts` | 55 | 2 (`configureWallet`, `verifyPayment`, `getTransactionHistory`) | |
+| `enclave.controller.ts` | 254 | 6+ (`submitApplication`, `getApplications`, `updateApplication`, etc.) | No dedicated service — uses raw Supabase + direct model imports |
+| `message.controller.ts` | 61 | 5 (`sendMessage`, `getConversations`, `getMessages`, `deleteMessage`, `sendVoiceMessage`) | |
+| `notification.controller.ts` | 33 | 4 (`getNotifications`, `getUnreadCount`, `markAsRead`, `deleteNotification`) | Direct model import bypass |
+| `onramp.controller.ts` | 26 | 2 (`createOnRampSession`, `handleWebhook`) | |
+| `referral.controller.ts` | 51 | 5+ (`generateCode`, `validateCode`, `getStats`, `checkMilestone`, `getLeaderboard`) | No dedicated service — direct model imports |
+| `subscription.controller.ts` | 36 | 4 (`createSubscription`, `updateSubscription`, `cancelSubscription`, `getMySubscriptions`) | |
+| `support.controller.ts` | 32 | 3 (`createTicket`, `getMyTickets`, `addReply`) | |
+| `user.controller.ts` | 101 | 7 (`getMe`, `updateMe`, `updateMyAvatar`, `addToGallery`, `removeFromGallery`, `getPublicProfile`, `completeOnboarding`, `submitVerification`, `getMyFeed`, `getMySettings`, `updateMySettings`) | Exports `getSecureContentUrl` but no route maps to it |
+
+### Services (17 files)
+
+True business logic layer. Not all controllers have a corresponding service (enclave and referral bypass the service layer).
+
+| Service | Lines | Key Functions | Ext Dependencies |
+|---|---|---|---|
+| `admin.service.ts` | 343 | Dashboard stats, user management, platform analytics, reports, support tickets, settings | 7 models + StorageService + EmailService |
+| `ai.service.ts` | 62 | `generateCaption` — calls OpenAI/OpenRouter vision model | OpenAI SDK |
+| `analytics.service.ts` | 64 | `logAnalyticsEvent` — logs to `analytics_events` table | Supabase |
+| `auth.service.ts` | 257 | `signupUser`, `loginUser`, `changeUserPassword`, `requestPasswordReset`, `signupAndSubscribe` | Supabase auth (anon + admin), UserModel, SubscriptionService, ReferralModel |
+| `content.service.ts` | 646 | Content CRUD, watermarking (sharp), thumbnail generation (ffmpeg), access control, upload | ContentModel, StorageService, NotificationService, sharp, ffmpeg |
+| `contest.service.ts` | 64 | Contest CRUD, entry handling, weighted random winner selection | ContestModel, SubscriptionModel |
+| `creator.service.ts` | 593 | Dashboard/analytics/earnings aggregation, settings update, broadcast, payout | AnalyticsService, CryptoPaymentService, StorageService, 5 models |
+| `cryptoPayment.service.ts` | 227 | `verifyAndRecordBasePayment` (11-step flow), wallet config, fee calculation, network config | ethers, axios (BaseScan/Coinbase), Stripe |
+| `email.service.ts` | 55 | `sendEmail` — SMTP via nodemailer | Nodemailer |
+| `message.service.ts` | 354 | Message CRUD, conversation management, voice messages, Socket.IO broadcast | ConversationModel, MessageModel |
+| `notification.service.ts` | 94 | Create/query notifications | NotificationModel |
+| `onramp.service.ts` | 146 | Coinbase On-Ramp session creation, webhook handling | Coinbase API |
+| `payout.service.ts` | 103 | Payout request creation, approval flow | TransactionModel, profiles |
+| `storage.service.ts` | 181 | R2 upload (private/public), signed URLs, download, delete, exists check | AWS SDK S3 |
+| `subscription.service.ts` | 177 | Subscription CRUD, blockchain tx verification, welcome DM, tier validation | 5 models + MessageService + CryptoPaymentService |
+| `support.service.ts` | 147 | Ticket CRUD, admin reply, DM sync | Dynamic `require()` of message.service |
+| `user.service.ts` | 396 | Profile CRUD, avatar upload, gallery, feed, settings, creator onboarding/verification | StorageService, 5 models |
+
+**Service Gap** (no service layer):
+| Controller | Bypasses Service Via |
 |---|---|
-| `server/Server.ts` | Creates Express app, HTTP server, initializes Socket.IO, registers CORS, mounts all 14 route groups, global error handler, listens on port 5000 |
-
-### Controllers (15 files)
-
-Controllers handle HTTP request/response. They use `asyncHandler` wrapper, response helpers (`ok`, `created`, `okMsg`, `createdMsg`), and entity guards (`requireUser`, `requireContent`, etc.).
-
-| Controller | File | Responsibilities |
-|---|---|---|
-| Auth | `server/controllers/auth.controller.ts` | signup, login, logout, getMe, changePassword, forgotPassword, signupAndSubscribe |
-| User | `server/controllers/user.controller.ts` | getProfile, updateMe, uploadAvatar, completeOnboarding, submitVerification, feed, gallery CRUD, settings CRUD, payment-method |
-| Creator | `server/controllers/creator.controller.ts` | dashboard, analytics, earnings, settings, tiers, broadcast, payouts, activity, metrics export |
-| Content | `server/controllers/content.controller.ts` | create (with file upload), update, delete, list, myContent, secure-url, view, viewer-data, report |
-| Subscription | `server/controllers/subscription.controller.ts` | create, update, cancel, list (fan), listSubscribers (creator) |
-| Message | `server/controllers/message.controller.ts` | send, delete, conversations, conversation detail, markRead, voice messages |
-| Crypto Payment | `server/controllers/cryptoPayment.controller.ts` | crypto payment processing |
-| Admin | `server/controllers/admin.controller.ts` | user management (status, commission), content moderation, settings, analytics, reports, enclave applications, user messaging |
-| Analytics | `server/controllers/analytics.controller.ts` | event logging, platform analytics |
-| AI | `server/controllers/ai.controller.ts` | caption generation |
-| Notification | `server/controllers/notification.controller.ts` | list, unreadCount, markRead, delete |
-| Contest | `server/controllers/contest.controller.ts` | create, publish, finalize, my contests, feed, enter |
-| Enclave | `server/controllers/enclave.controller.ts` | application management |
-| Referral | `server/controllers/referral.controller.ts` | referral code management |
-| Support | `server/controllers/support.controller.ts` | ticket CRUD, admin reply |
-
-### Services (16 files)
-
-All business logic lives in services. Controllers delegate to services.
-
-| Service | File | Responsibilities |
-|---|---|---|
-| Auth | `server/services/auth.service.ts` | User registration, authentication, token management, password management |
-| User | `server/services/user.service.ts` | User profile management, onboarding, verification, feed, gallery |
-| Creator | `server/services/creator.service.ts` | Dashboard aggregation, analytics, earnings, settings, tiers, broadcast, payouts |
-| Content | `server/services/content.service.ts` | Content CRUD, file processing (sharp/ffmpeg), watermarking, R2 upload, signed URLs |
-| Subscription | `server/services/subscription.service.ts` | Subscription lifecycle, Stripe integration, tier management |
-| Message | `server/services/message.service.ts` | Direct messaging, conversation management, voice messages |
-| Crypto Payment | `server/services/cryptoPayment.service.ts` | Crypto transaction processing via smart contract |
-| Admin | `server/services/admin.service.ts` | Admin operations, user management, reports |
-| Analytics | `server/services/analytics.service.ts` | Event tracking, aggregation, reporting |
-| AI | `server/services/ai.service.ts` | OpenAI integration for caption generation |
-| Notification | `server/services/notification.service.ts` | Notification CRUD, delivery |
-| Contest | `server/services/contest.service.ts` | Contest lifecycle management |
-| Support | `server/services/support.service.ts` | Support ticket handling |
-| Email | `server/services/email.service.ts` | Email sending via Nodemailer |
-| Storage | `server/services/storage.service.ts` | R2 file operations (upload, delete, signed URLs) |
-| Enclave | *Embedded in controller* | Application handling |
-
-### Middleware (5 files)
-
-| Middleware | File | Purpose |
-|---|---|---|
-| Auth | `server/middleware/auth.middleware.ts` | JWT verification via Supabase, user attachment to `req.user`, impersonation support, role guards (`creatorOnly`, `adminOnly`, `requireRole`, `optionalProtect`) |
-| Error | `server/middleware/error.middleware.ts` | Custom `AppError` class + centralized error handler (catches all errors, returns consistent JSON envelope) |
-| Upload | `server/middleware/upload.middleware.ts` | Multer configuration for file uploads |
-| Validation | `server/middleware/validation.middleware.ts` | `express-validator` middleware factories |
+| `enclave.controller.ts` | Raw Supabase queries + direct model imports (EmailService, SupportTicketModel, ReferralModel) |
+| `referral.controller.ts` | Direct ReferralModel imports |
 
 ### Models (13 files)
 
-Data access layer using Supabase queries. Each model maps to a database table/entity.
+All models use the `handleQuery<T>`, `handleCount`, `handleList<T>` database wrappers from `utils/database.ts`. Models define the database interface layer, not the database schema itself (schema is in Supabase).
 
-| Model | File | Table |
+| Model | Lines | Table(s) | Key Functions |
+|---|---|---|---|
+| `user.model.ts` | 132 | `profiles` | `findUserById` (via RPC `get_user_details`), `findUserByUsername`, `findUserByEmail`, `findUsersByIds`, `createProfile`, `updateProfile`, `countAllUsers`, `findAll` (via RPC `get_all_users_details`), `getNewUsersOverTime` (via `auth.admin.listUsers`) |
+| `content.model.ts` | 190 | `content` | CRUD, list by creator, search/filter, content stats, bulk operations |
+| `subscription.model.ts` | 84 | `subscriptions` | CRUD, find by fan/creator |
+| `transaction.model.ts` | 211 | `transactions` | CRUD, earning aggregation, payout queries, analytics |
+| `message.model.ts` | 66 | `messages` | CRUD, conversation messages |
+| `conversation.model.ts` | 32 | `conversations` | CRUD, participant queries |
+| `notification.model.ts` | 52 | `notifications` | CRUD, unread count |
+| `contest.model.ts` | 171 | `contests` | CRUD, entries, winner selection |
+| `referral.model.ts` | 209 | `enclave_applications`, `referrals` | Code generation, validation, bonus awarding, milestone checking, leaderboard |
+| `supportTicket.model.ts` | 45 | `support_tickets` | CRUD, admin assignment |
+| `report.model.ts` | 45 | `reports` | CRUD, status management |
+| `gallery.model.ts` | 42 | `gallery` | CRUD, fan gallery |
+| `settings.model.ts` | 14 | `settings` | Get/update platform settings |
+
+### Routes (16 files)
+
+All routes mount under `/api/v1/{resource}` in `Server.ts:100-115`.
+
+| Routes File | Lines | Prefix | Endpoints | Auth Pattern |
+|---|---|---|---|---|
+| `auth.routes.ts` | 50 | `/api/v1/auth` | 7 endpoints (POST signup, login, logout, forgot-password, signup-and-subscribe; GET me; PUT change-password) | Public except `me` and `change-password` (protect) |
+| `user.routes.ts` | 93 | `/api/v1/users` | 11+ endpoints | Mixed (protect, optionalProtect) |
+| `creator.routes.ts` | 71 | `/api/v1/creator` | 10+ endpoints | protectAndCreator |
+| `content.routes.ts` | 70 | `/api/v1/content` | 10 endpoints | Mixed (protectAndCreator, protect, optionalProtect) |
+| `subscription.routes.ts` | 30 | `/api/v1/subscriptions` | 4 endpoints | protect |
+| `message.routes.ts` | 49 | `/api/v1/messages` | 5+ endpoints | protect |
+| `cryptoPayment.routes.ts` | 34 | `/api/v1/payments/crypto` | 3+ endpoints | protect |
+| `admin.routes.ts` | 106 | `/api/v1/admin` | 15 endpoints | protectAndAdmin |
+| `analytics.routes.ts` | 7 | `/api/v1/analytics` | 1 endpoint | protect (skipAuthRedirect) |
+| `support.routes.ts` | 14 | `/api/v1/support` | 3+ endpoints | protect |
+| `ai.routes.ts` | 9 | `/api/v1/ai` | 1 endpoint | protectAndCreator |
+| `notification.routes.ts` | 17 | `/api/v1/notifications` | 4 endpoints | protect |
+| `contest.routes.ts` | 14 | `/api/v1/contests` | 6+ endpoints | protect |
+| `enclave.routes.ts` | 11 | `/api/v1/enclave` | 2+ endpoints | Public (submit) + protect |
+| `referral.routes.ts` | 13 | `/api/v1/referrals` | 4+ endpoints | Mixed — 2 unprotected (`/check-milestone/:userId`, `/validate/:code`) |
+| `onramp.routes.ts` | 17 | `/api/v1/payments/onramp` | 2+ endpoints | protect |
+
+**Total endpoints**: ~90+ across 15 route groups
+
+### Middleware (4 files)
+
+| Middleware | Lines | Purpose |
 |---|---|---|
-| User | `server/models/user.model.ts` | `profiles` |
-| Content | `server/models/content.model.ts` | `content` |
-| Subscription | `server/models/subscription.model.ts` | `subscriptions` |
-| Transaction | `server/models/transaction.model.ts` | `transactions` |
-| Message | `server/models/message.model.ts` | `messages` |
-| Conversation | `server/models/conversation.model.ts` | `conversations` |
-| Notification | `server/models/notification.model.ts` | Notifications (table not in schema DDL) |
-| Contest | `server/models/contest.model.ts` | `contests` |
-| Gallery | `server/models/gallery.model.ts` | `galleries` — 5 exported functions: `findGalleryByFanId`, `createGallery`, `addItemToGallery`, `removeItemFromGallery`, `getGalleryDetails` |
-| Referral | `server/models/referral.model.ts` | `referrals` |
-| Report | `server/models/report.model.ts` | `reports` |
-| Settings | `server/models/settings.model.ts` | `platform_settings` |
-| Support Ticket | `server/models/supportTicket.model.ts` | `support_tickets` |
+| `auth.middleware.ts` | 141 | `protect` (JWT verify + user fetch + impersonation), `optionalProtect`, `creatorOnly`, `adminOnly`, `requireRole`, `protectAndCreator`, `protectAndAdmin`. Debug logging via `fs.appendFileSync` to `debug.log`. |
+| `error.middleware.ts` | 64 | `AppError` class + `errorHandler` — catches errors, normalizes status codes, standardized JSON response. |
+| `upload.middleware.ts` | 109 | Multer memoryStorage (1GB limit for content, 10MB for voice). Export: `uploadContent`, `uploadAvatar`, `uploadVerificationDocs`, `uploadBanner`, `uploadVoiceMessage`, `uploadAICaptionImage`. |
+| `validation.middleware.ts` | 70 | `express-validator` chains: `validateSignup`, `validateContent`, `validateTip`. |
 
-### Route Files (15)
+### Utilities (12 files)
 
-Each file defines Express `Router` with endpoints and middleware chains.
-
-| Routes | File | Base Path |
+| Utility | Lines | Purpose |
 |---|---|---|
-| Auth | `server/routes/auth.routes.ts` | `/api/v1/auth` |
-| User | `server/routes/user.routes.ts` | `/api/v1/users` |
-| Creator | `server/routes/creator.routes.ts` | `/api/v1/creator` |
-| Content | `server/routes/content.routes.ts` | `/api/v1/content` |
-| Subscription | `server/routes/subscription.routes.ts` | `/api/v1/subscriptions` |
-| Message | `server/routes/message.routes.ts` | `/api/v1/messages` |
-| Crypto Payment | `server/routes/cryptoPayment.routes.ts` | `/api/v1/payments/crypto` |
-| Admin | `server/routes/admin.routes.ts` | `/api/v1/admin` |
-| Analytics | `server/routes/analytics.routes.ts` | `/api/v1/analytics` |
-| AI | `server/routes/ai.routes.ts` | `/api/v1/ai` |
-| Notification | `server/routes/notification.routes.ts` | `/api/v1/notifications` |
-| Contest | `server/routes/contest.routes.ts` | `/api/v1/contests` |
-| Enclave | `server/routes/enclave.routes.ts` | `/api/v1/enclave` |
-| Referral | `server/routes/referral.routes.ts` | `/api/v1/referrals` |
-| Support | `server/routes/support.routes.ts` | `/api/v1/support` |
+| `apiError.ts` | 19 | `AppError` class (duplicate of `error.middleware.ts:AppError` — different implementation!) |
+| `asyncHandler.ts` | 8 | Wraps async route handlers — catches errors and passes to `next()` |
+| `content.utils.ts` | 237 | `generateSignedUrlsForContent`, `enrichContentWithUnlockStatus` — signed URL generation, access control, watermarking orchestration |
+| `database.ts` | 129 | `handleQuery`, `handleCount`, `handleList`, `createRecord`, `updateRecord`, `deleteRecord`, `findRecordById`, `countRecords` — Supabase query wrappers |
+| `entityGuards.ts` | 26 | `requireUser`, `requireContent`, `requireContentOwnership` — throw `AppError` if not found/not owned |
+| `fee.utils.ts` | 28 | `getCommissionRateForCreator`, `calculatePlatformFee` |
+| `formatters.ts` | 104 | `formatCurrency`, `slugify`, `formatDate`, `timeAgo`, `truncateText` (server-side formatting) |
+| `requestHelpers.ts` | 26 | `requireAuth`, `requireId`, `requireBody` — guard helpers for controllers |
+| `response.ts` | 21 | `ok()`, `created()`, `okMsg()`, `createdMsg()` — standardized response helpers |
+| `subscription.utils.ts` | 38 | `reshapeSubscriptionForApp` — enriches subscription with creator + tier data |
+| `tier.utils.ts` | 36 | `syncTiers` — assigns permanent UUIDs to subscription tiers |
+| `user.utils.ts` | 78 | `reshapeUserForApp` — transforms flat DB RPC result to nested `User`/`Creator` object |
 
-### Utilities (13 files)
+### Jobs (1 file)
 
-| Utility | File | Purpose |
+| File | Lines | Purpose |
 |---|---|---|
-| apiError | `server/utils/apiError.ts` | Custom error class |
-| asyncHandler | `server/utils/asyncHandler.ts` | Async route handler wrapper (eliminates try/catch in controllers) |
-| response | `server/utils/response.ts` | Response helpers: `ok()`, `created()`, `okMsg()`, `createdMsg()` |
-| database | `server/utils/database.ts` | Supabase query wrappers: `handleQuery`, `handleCount`, `handleList`, `createRecord`, `updateRecord`, `deleteRecord`, `findRecordById`, `countRecords` |
-| entityGuards | `server/utils/entityGuards.ts` | Guard functions: `requireUser`, `requireContent`, `requireContentOwnership` |
-| requestHelpers | `server/utils/requestHelpers.ts` | Request parameter extraction: `requireId`, `requireBody` |
-| content.utils | `server/utils/content.utils.ts` | Content processing utilities |
-| fee.utils | `server/utils/fee.utils.ts` | Fee calculation utilities |
-| formatters | `server/utils/formatters.ts` | Data formatting utilities |
-| subscription.utils | `server/utils/subscription.utils.ts` | Subscription business logic helpers |
-| tier.utils | `server/utils/tier.utils.ts` | Tier level calculation/validation |
-| user.utils | `server/utils/user.utils.ts` | User profile reshaping (`reshapeUserForApp`) |
+| `jobs/renewSubscriptions.ts` | 84 | Batch subscription renewal logic — queries active subscriptions approaching `next_billing_date`, processes renewals. Not scheduled — must be triggered externally. |
+
+### Config (3 files)
+
+| File | Lines | Purpose |
+|---|---|---|
+| `config/supabaseClient.ts` | 20 | Supabase admin client (service-role key), `autoRefreshToken: false`, `persistSession: false` |
+| `config/r2Client.ts` | 36 | Cloudflare R2 S3 client, bucket names (private + public), public URL base |
+| `config/socket.ts` | 76 | Socket.IO server init, CORS, auth middleware (Supabase JWT), room management (`join_conversation`/`leave_conversation`) |
 
 ---
 
 ## Database
 
-### Database Platform
+### Schema
 
-| Attribute | Value |
-|---|---|
-| **Engine** | PostgreSQL (via Supabase) |
-| **Client** | `@supabase/supabase-js` (service role key for server, anon key for client) |
-| **Auth** | Supabase Auth (built-in JWT management) |
+Managed via Supabase PostgreSQL. 12+ tables defined across 17 SQL migration files.
 
-### Schema: Tables (12)
+#### Migration Files
 
-| Table | Primary Key | Description |
+**Root migrations** (`PoDM_project/migrations/`, 11 files):
+
+| File | Lines | Purpose |
 |---|---|---|
-| `profiles` | `id` (UUID, FK to `auth.users`) | User profiles — all roles (fan, creator, admin) |
-| `content` | `id` (bigint) | Published content — photos, videos, text, audio |
-| `subscriptions` | `id` (bigint) | Fan-to-creator subscription records |
-| `transactions` | `id` (bigint) | Payment transactions (subscriptions, tips, PPV) |
-| `messages` | `id` (bigint) | Direct messages between users |
-| `conversations` | `id` (bigint) | Message conversation threads |
-| `galleries` | `id` (bigint) | Fan-curated content galleries |
-| `analytics_events` | `id` (bigint) | Profile visits and post views |
-| `monthly_analytics_summary` | `id` (bigint) | Aggregated monthly analytics |
-| `platform_settings` | `key` (text) | Key-value platform configuration |
-| `support_tickets` | `id` (bigint) | User support requests |
-| `reports` | `id` (UUID) | Saved admin report configurations |
+| `add_crypto_fields.sql` | 25 | Adds `crypto_wallet_address`, `crypto_wallet_type`, `crypto_wallet_payout_preference` to `profiles`; `blockchain_tx_hash`, `payment_method`, `payment_currency`, `chain_id` to `transactions` |
+| `add_enclave_membership_to_profiles.sql` | 10 | Adds `is_enclave_member`, `enclave_joined_at` to `profiles` |
+| `add_rls_application_referral_tables.sql` | 71 | Row-level security policies for application/referral tables |
+| `add_speed_bonus_tracking.sql` | 11 | Speed bonus tracking columns |
+| `create_enclave_applications.sql` | 28 | `enclave_applications` table |
+| `create_referrals_table.sql` | 53 | `referrals` table (code, referrer, bonus, milestones, leaderboard) |
+| `fix_function_search_paths.sql` | 12 | Fix search paths for DB functions |
+| `rename_payment_gateway_id.sql` | 1 | Rename column |
+| `rename_stripe_subscription_id.sql` | 1 | Rename column |
+| `update_crypto_constraints.sql` | 16 | Update crypto column constraints |
+| `update_enclave_platforms_to_array.sql` | 20 | Change enclave platforms from single to array |
 
-### Schema: Additional Tables (from migrations)
+**Script-level migrations** (`PoDM_project/server/scripts/migrations/`, 6 files):
 
-- `contests` — Creator-hosted contests
-- `referrals` — Referral tracking
-- `enclave_applications` — Enclave membership applications
-- Saved reports, RLS policies, crypto fields
-
-### Schema: Enums
-
-| Enum | Values |
-|---|---|
-| `user_role` | `fan`, `creator`, `admin` |
-| `user_status` | `active`, `suspended`, `banned`, `pending`, `pending verification` |
-| `subscription_status` | `active`, `canceled`, `expired` |
-| `transaction_type` | `Subscription`, `Tip`, `PPV Message`, `PPV Post` |
-| `transaction_status` | `Pending`, `Cleared`, `Failed`, `Refunded` |
-| `content_type` | `photo`, `video`, `text`, `audio` |
-| `content_status` | `draft`, `published`, `scheduled`, `flagged` |
-| `content_visibility` | `subscribers_only`, `pay_per_view` |
-| `ticket_status` | `Open`, `Pending`, `Closed`, `Escalated` |
-| `ticket_priority` | `Low`, `Medium`, `High` |
-| `report_metric` | `Users`, `Revenue`, `Engagement` |
-| `report_filter` | `User Type`, `User Status` |
-
-### Migrations
-
-**Root migrations** (`PoDM_project/migrations/` — 9 files): Platform-wide schema changes (crypto, enclave, referrals, RLS, speed bonus).
-
-**Script migrations** (`server/scripts/migrations/` — 6 files): Contests, reports, RLS fixes, tier levels.
-
-### Seeds
-
-| File | Purpose |
-|---|---|
-| `server/scripts/seed.ts` | Database seeding (run via `npm run seed`) |
-
-### Connection Architecture
-
-```
-[Frontend]                 [Backend]                  [Database]
-   │                          │                           │
-   ├─ supabaseClient.ts ──────┤                           │
-   │  (anon key, auth only)   │                           │
-   │                          ├─ supabaseClient.ts ───────┤
-   │                          │  (service role key, admin)│
-   │                          │                           │
-   │  apiClient.ts ──────────►│  models/* ──────────────► │
-   │  (Axios HTTP)            │  (query wrappers)         │
-```
-
----
-
-## AI
-
-| Component | File | Details |
+| File | Lines | Purpose |
 |---|---|---|
-| **Provider** | OpenAI | `openai` npm package |
-| **Service** | `server/services/ai.service.ts` | OpenAI API integration |
-| **Controller** | `server/controllers/ai.controller.ts` | Caption endpoint handler |
-| **Route** | `server/routes/ai.routes.ts` | `POST /api/v1/ai/caption` |
-| **Frontend** | `src/lib/apiClient.ts` (generateCaption) | Sends image URL or file to caption endpoint |
-| **Capability** | **Image-to-caption generation** | Only AI feature implemented |
-| **Prompts** | Hardcoded in service (not externalized) | No prompt management system |
-| **Agents** | None | No agent framework |
-| **Tool Calling** | None | No function/tool calling |
-| **Memory** | None | No conversational memory |
-| **Vector Search** | None | No embeddings/vector DB |
-| **RAG** | None | No retrieval-augmented generation |
-| **Embeddings** | None | No embedding generation |
-| **Orchestration** | None | Single endpoint, no AI pipeline |
+| `create_contests_table.sql` | 48 | `contests` + `contest_entries` tables |
+| `create_reports_table.sql` | 13 | `reports` table |
+| `create_saved_reports_table.sql` | 12 | `saved_reports` table (admin) |
+| `add_min_tier_level.sql` | 8 | Add `min_tier_level` to content |
+| `update_contests_schema.sql` | 6 | Contest schema updates |
+| `enable_rls_security_fixes.sql` | 63 | RLS policy fixes + security |
 
----
+#### Tables (identified from schema files + model usage)
 
-## Integrations
-
-| Service | Integration | SDK/Client | Purpose |
-|---|---|---|---|
-| **Supabase** | Database + Auth | `@supabase/supabase-js` | PostgreSQL database, user authentication, JWT management |
-| **Stripe** | Payments | `stripe` (v18 backend), `@stripe/stripe-js` + `@stripe/react-stripe-js` (frontend) | Connect, PaymentIntents, SetupIntents, subscriptions, payouts |
-| **Cloudflare R2** | File Storage | `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` | Object storage for media files (images, video, audio), signed URLs |
-| **OpenAI** | AI | `openai` (v6) | Image caption generation |
-| **Socket.IO** | Real-time | `socket.io` (backend), `socket.io-client` (frontend) | Live messaging, conversation room management |
-| **Nodemailer** | Email | `nodemailer` | Transactional emails (password reset, notifications) |
-| **Ethereum** | Crypto | Custom Solidity contract + ethers (via crypto wallet hooks) | USDC subscription/tip/PPV payments via smart contract splitter |
-| **Cloudflare Pages** | Hosting | Netlify config + Cloudflare Pages preview (`*.pages.dev`) | Frontend deployment |
-| **Render** | Hosting | Production API URL: `https://podm.onrender.com` | Backend deployment |
-| **Netlify** | Hosting | `netlify.toml` | Alternative frontend deployment (SPA with redirects) |
-
----
-
-## Authentication
-
-| Mechanism | Source | Details |
+| Table | Purpose | Key Columns |
 |---|---|---|
-| **Supabase Auth** | Backend `auth.middleware.ts` | JWT verification via `supabase.auth.getUser(token)`. Service role key validates tokens server-side. |
-| **JWT Bearer Token** | Backend middleware, Frontend `apiClient.ts` | Token stored in `localStorage` or `sessionStorage`. Sent as `Authorization: Bearer <token>` header. |
-| **Role-Based Access** | Backend `auth.middleware.ts` | Three roles: `fan`, `creator`, `admin`. Middleware factory `requireRole(...roles)` + composite arrays (`protectAndCreator`, `protectAndAdmin`). |
-| **Optional Auth** | Backend `optionalProtect` | Public routes optionally attach user data if valid token present |
-| **Admin Impersonation** | Backend `auth.middleware.ts` | Admin can set `X-Impersonating-User-Id` header to act as another user. Original admin stored in `req.originalUser`. |
-| **Supabase Auth (Frontend)** | Frontend `supabaseClient.ts` | Anon key used for client-side auth flows (password reset) |
-| **Stripe Connect** | Backend + Frontend | Creators onboard via Stripe Connect for payout capability |
-| **Crypto Wallet** | Frontend `useCryptoWallet.ts` | Ethereum wallet connection for smart contract payments |
+| `profiles` | User accounts (extends Supabase auth.users) | `id`, `username`, `email`, `role` (fan/creator/admin), `status`, `creator_data` (JSONB), `verification_data` (JSONB), `onboarding_complete`, `commission_rate`, `crypto_wallet_address`, `crypto_wallet_type`, `is_enclave_member`, `enclave_joined_at` |
+| `content` | Creator posts | `id`, `creator_id`, `title`, `type`, `files` (JSONB), `visibility`, `price`, `min_tier_level`, `tags`, `stats` (JSONB), `schedule` (JSONB), `status` |
+| `subscriptions` | Fan-to-creator subscriptions | `id`, `fan_id`, `creator_id`, `tier_id`, `status`, `price`, `billing_cycle`, `blockchain_tx_hash`, `fan_wallet_address`, `start_date`, `end_date`, `next_billing_date` |
+| `transactions` | Financial events | `id`, `fan_id`, `creator_id`, `type`, `amount`, `platform_fee`, `creator_payout`, `status`, `blockchain_tx_hash`, `payment_method`, `payment_currency`, `chain_id`, `related_content_id` |
+| `messages` | Direct messages | `id`, `conversation_id`, `sender_id`, `receiver_id`, `text`, `content` (JSONB, for PPV), `voice_message_url`, `is_read` |
+| `conversations` | Message conversations | `id`, `participants` (array), `last_message` (JSONB) |
+| `notifications` | User notifications | `id`, `user_id`, `type`, `title`, `message`, `related_content_id`, `is_read` — (model exists, DDL not found in migrations) |
+| `contests` | Creator contests | `id`, `creator_id`, `title`, `description`, `start_date`, `end_date`, `entry_requirements`, `prize_description`, `status`, `winner_id` |
+| `contest_entries` | Contest entries | (Referenced in contest.model.ts, no separate DDL file found) |
+| `reports` | Content reports | `id`, `reporter_id`, `content_id`, `reason`, `status` |
+| `saved_reports` | Admin saved reports | (Referenced in admin flow) |
+| `support_tickets` | Customer support | `id`, `user_id`, `subject`, `status`, `priority`, `assigned_admin_id`, `conversation` (JSONB array) |
+| `gallery` | Fan saved content | `id`, `fan_id`, `content` (JSONB array) |
+| `enclave_applications` | Enclave membership | `id`, `full_name`, `email`, `status`, `referral_code`, `platforms` (array) |
+| `referrals` | Referral tracking | `id`, `code`, `referrer_id`, `bonus_awarded`, `milestones` |
+| `settings` | Platform settings | (Single-row table for commission rate, etc.) |
+| `analytics_events` | Analytics log | `id`, `event_type`, `creator_id`, `viewer_id`, `content_id`, `created_at` |
+
+#### DB Functions (referenced in code)
+
+- `get_user_details(user_id)` — RPC returning shaped user object
+- `get_all_users_details()` — RPC returning all users
+- Various Supabase built-in auth functions
+
+## AI Components
+
+### AI Integration Inventory
+
+| Component | File | Type | Lines | Purpose |
+|---|---|---|---|---|
+| AI Service | `server/services/ai.service.ts` | Service | 62 | Image caption generation |
+| AI Route | `server/routes/ai.routes.ts` | Route | 9 | `POST /api/v1/ai/caption` |
+| AI Controller | `server/controllers/ai.controller.ts` | Controller | 23 | Request handler |
+| AI Upload | `middleware/upload.middleware.ts` | Middleware | (embedded) | `uploadAICaptionImage` — single image upload |
+| AI Frontend | `src/lib/apiClient.ts` | API Client | (embedded) | `generateCaption()` — sends image, returns caption |
+
+### AI Architecture
+
+- **Provider**: OpenAI SDK v6 (compatible with OpenRouter)
+- **Model**: `google/gemma-3-27b-it:free` (configurable via `AI_MODEL_ID` env var)
+- **API Key**: `AI_API_KEY` — supports OpenAI keys and OpenRouter keys (auto-detected via `sk-or-v1` prefix)
+- **Protocol**: OpenAI-compatible chat completions API
+- **Input**: Single image (uploaded via FormData or URL)
+- **Output**: Single caption string (≤20 words, 1-2 emojis, hashtags)
+- **Rate**: No rate limiting, no caching, no retry logic
+
+### Missing AI Capabilities
+- ❌ No AI agents or multi-step reasoning
+- ❌ No tool calling or function calling
+- ❌ No vector search, embeddings, or RAG
+- ❌ No memory/persistence of AI interactions
+- ❌ No prompt management system (prompt hardcoded in ai.service.ts:39)
+- ❌ No content moderation / NSFW filtering
+- ❌ No AI-powered recommendations or personalization
 
 ---
 
-## Configuration
+## Integrations (External Services)
+
+| Service | Module | SDK/Library | Purpose | Config |
+|---|---|---|---|---|
+| **Supabase** | Backend + Frontend | `@supabase/supabase-js` v2.86.0 | Database + Auth (PostgreSQL) | Service-role key (admin backend), Anon key (frontend) |
+| **Stripe** | Backend | Stripe SDK v18 | PaymentIntents, Connect, subscriptions, payouts (SetupIntents ABORTED — removed) | Inline `new Stripe()` in 4+ files (no shared config) |
+| **Cloudflare R2** | Backend | `@aws-sdk/client-s3` v3.953.0 | File storage (private + public buckets) | Account ID + Access Key + Secret Key |
+| **OpenAI / OpenRouter** | Backend | `openai` v6.16.0 | AI image caption generation | API key (auto-detects OpenRouter prefix) |
+| **Socket.IO** | Backend + Frontend | `socket.io` v4.8.1 + `socket.io-client` v4.8.1 | Real-time messaging | Backend: server init with CORS; Frontend: auto-connect with auth |
+| **Nodemailer** | Backend | `nodemailer` v7.0.12 | Email sending (password reset, admin messages) | SMTP host/port/user/pass |
+| **Ethereum (Base Blockchain)** | Backend | `ethers` v6.17.0 | On-chain transaction verification | RPC URLs, contract addresses, chain IDs (8453 mainnet / 84532 testnet) |
+| **Coinbase On-Ramp** | Backend | HTTP API (axios) | Card-to-USDC purchase sessions | API key (shared with Stripe key env var) |
+| **Render** | Deployment | — | Backend production hosting | `https://podm.onrender.com` |
+| **Netlify** | Deployment | — | Frontend production hosting + SPA redirect | `netlify.toml` |
+| **Cloudflare Pages** | Deployment | — | Frontend preview deployments | CORS allows all `*.pages.dev` |
+
+---
+
+## Authentication Mechanisms
+
+Six distinct mechanisms, stacked throughout the request lifecycle:
+
+### 1. Supabase JWT (Primary Auth)
+
+- **Trigger**: `POST /api/v1/auth/signup` or `login`
+- **Flow**: Frontend sends email/password → `authSupabase.auth.signUp()` / `signInWithPassword()` → returns `access_token` (JWT) → stored in `localStorage`/`sessionStorage`
+- **Verification**: `middleware/auth.middleware.ts:protect` — `supabase.auth.getUser(token)` (2 API calls: JWT verify + profile fetch)
+- **Scope**: All protected endpoints
+
+### 2. Role Guards (Authorization)
+
+| Guard | File | Check |
+|---|---|---|
+| `creatorOnly` | `auth.middleware.ts:117` | `req.user.role === 'creator'` (+ admin-impersonating-creator) |
+| `adminOnly` | `auth.middleware.ts:139` | `req.user.role === 'admin'` |
+| `requireRole(...roles)` | `auth.middleware.ts:151` | Factory: `req.user.role in roles` |
+| `protectAndCreator` | `auth.middleware.ts:160` | `[protect, creatorOnly]` |
+| `protectAndAdmin` | `auth.middleware.ts:161` | `[protect, adminOnly]` |
+
+### 3. Optional Protect (Conditional Auth)
+
+- **File**: `auth.middleware.ts:30`
+- **Behavior**: If `Authorization` header exists → runs full `protect`; otherwise → continues without user
+- **Used by**: Public routes that vary content for logged-in users (`content/creator/:username`, `users/profile/:username`)
+
+### 4. Admin Impersonation
+
+- **Trigger**: `X-Impersonating-User-Id` header on admin requests
+- **File**: `auth.middleware.ts:80-96` (integrated into `protect`)
+- **Behavior**: Admin requests with header → `findUserById(impersonatingUserId)` → stores original admin in `req.originalUser` → sets `req.user` to target user
+- **Frontend**: `apiClient.ts` interceptor reads `impersonating_user_id` from localStorage/sessionStorage and attaches header
+- **Audit**: No audit trail of impersonation actions
+
+### 5. Socket.IO Auth (Real-Time)
+
+- **File**: `config/socket.ts:44-67`
+- **Flow**: Client passes `{ token }` in `handshake.auth` → `supabase.auth.getUser(token)` → attaches `userId` to socket data
+- **Scope**: All WebSocket connections
+
+### 6. Stripe Connect (Payment Identity)
+
+- **File**: Inline in subscription/tip/payout services
+- **Pattern**: Stripe account linking for creator payouts (Stripe Connect)
+- **Scope**: Payout flows
+
+**Authentication Gap**:
+- No MFA / social login / OAuth providers
+- No token refresh mechanism (401 interceptor clears auth and redirects to splash)
+- `auth.middleware.ts` writes 5-10 `fs.appendFileSync` calls per request for debugging
+
+---
+
+## Configuration Files
+
+### Backend Configuration
+
+| File | Purpose | Key Settings |
+|---|---|---|
+| `PoDM_project/tsconfig.json` | TypeScript config | target ES2020, module nodenext, strict, paths (`@common/*`) |
+| `PoDM_project/package.json` | NPM config | CommonJS, scripts (dev, build, start, seed, test) |
+| `PoDM_project/jest.config.js` | Jest config | ts-jest transformation |
+| `PoDM_project/babel.config.js` | Babel config | presets for TS + React + env |
+| `PoDM_project/jest.setup.js` | Jest setup | Global test setup |
+| `PoDM_project/.dockerignore` | Docker ignore | Node modules, dist |
+| `PoDM_project/Dockerfile` | Docker build | Multi-stage (node:20-alpine) |
+| `PoDM_project/contracts/hardhat.config.ts` | Hardhat config | Solidity 0.8.20, Base Sepolia + Mainnet |
+| `PoDM_project/contracts/package.json` | Contracts NPM | Hardhat + OpenZeppelin deps |
+| `PoDM_project/contracts/tsconfig.json` | Contracts TS config | Hardhat-recommended |
+
+### Frontend Configuration
+
+| File | Purpose | Key Settings |
+|---|---|---|
+| `podm-frontend/tsconfig.json` | TypeScript config | strict, jsx react-jsx, bundler module resolution, paths (`@common/*`) |
+| `podm-frontend/tsconfig.jest.json` | Jest-specific TS config | |
+| `podm-frontend/package.json` | NPM config | ESM, scripts (dev, build, lint, test) |
+| `podm-frontend/vite.config.ts` | Vite config | React plugin, `@common` alias, API proxy to localhost:5000 |
+| `podm-frontend/tailwind.config.js` | Tailwind config | Custom colors (primary purple, secondary pink), Inter font |
+| `podm-frontend/postcss.config.js` | PostCSS config | Tailwind + autoprefixer |
+| `podm-frontend/eslint.config.js` | ESLint config | TypeScript-aware, React + Hooks + Refresh plugins |
+| `podm-frontend/babel.config.cjs` | Babel config | TS + React + env presets |
+| `podm-frontend/jest.config.ts` | Jest config | ts-jest, jsdom environment |
+| `podm-frontend/setupTests.ts` | Jest setup | |
+| `podm-frontend/playwright.config.ts` | Playwright config | |
+| `podm-frontend/Dockerfile` | Docker build | Node 18-alpine, runs `vite dev --host` (dev mode only) |
+| `podm-frontend/.gitignore` | Git ignore | |
+
+### Infrastructure Configuration
+
+| File | Purpose | Key Settings |
+|---|---|---|
+| `.github/workflows/ci.yml` | CI/CD pipeline | 2 parallel jobs: backend-test (Jest), frontend-lint-build (ESLint + Vite) |
+| `docker-compose.yml` | Local orchestration | Backend on 5000, Frontend on 5173 |
+| `netlify.toml` | Netlify deploy | Build from podm-frontend, publish dist/, SPA redirects |
+| `.idx/dev.nix` | Google IDX workspace | |
 
 ### Environment Files
 
-| File | Contents |
-|---|---|
-| `PoDM_project/server/.env` | Backend environment (Supabase URL + keys, R2 credentials, Stripe keys, OpenAI key, SMTP config, Ethereum RPC, JWT secret, client URL) |
-| `podm-frontend/.env` | Frontend environment (VITE_API_URL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_STRIPE_PUBLISHABLE_KEY) |
+| File | Variables Count | Key Variables |
+|---|---|---|
+| `PoDM_project/.env` | ~20+ | R2 keys, Supabase keys, AI_API_KEY, crypto RPC URLs, contract addresses, Stripe key, SMTP config, CLIENT_URL, DISCORD_ENCLAVE_INVITE_URL |
+| `podm-frontend/.env` | 5 | VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY (!!), JWT_SECRET (!!), VITE_APP_BASE_URL |
 
-### TypeScript Configuration
-
-| File | Purpose |
-|---|---|
-| `PoDM_project/tsconfig.json` | Backend TS config (target ES2020, module commonjs, strict, outDir dist) |
-| `podm-frontend/tsconfig.json` | Frontend TS config (strict, JSX react-jsx, path aliases) |
-| `podm-frontend/tsconfig.jest.json` | Jest-specific overrides |
-
-### Build Configuration
-
-| File | Purpose |
-|---|---|
-| `podm-frontend/vite.config.ts` | Vite bundler (React plugin, CSS, build output to dist/) |
-| `podm-frontend/postcss.config.js` | PostCSS with Tailwind + autoprefixer |
-| `podm-frontend/tailwind.config.js` | Tailwind content paths, theme extensions |
-
-### Linting
-
-| File | Purpose |
-|---|---|
-| `podm-frontend/eslint.config.js` | ESLint flat config (TypeScript + React hooks + React refresh) |
-
-### Testing
-
-| File | Purpose |
-|---|---|
-| `PoDM_project/jest.config.js` + `jest.setup.js` | Backend Jest config |
-| `podm-frontend/jest.config.ts` + `setupTests.ts` + `babel.config.cjs` | Frontend Jest config (jsdom) |
-| `podm-frontend/playwright.config.ts` | E2E test config |
+**Security note**: Frontend `.env` file contains `SUPABASE_SERVICE_ROLE_KEY` and `JWT_SECRET` — these are backend secrets exposed in the client-accessible environment.
 
 ---
 
 ## Infrastructure
 
-### Deployment
+### Deployment Architecture
 
-| Platform | Service | Config File |
-|---|---|---|
-| **Docker Compose** | Local orchestration | `docker-compose.yml` |
-| **Docker** | Backend container | `PoDM_project/Dockerfile` |
-| **Docker** | Frontend container | `podm-frontend/Dockerfile` |
-| **Netlify** | Frontend hosting | `netlify.toml` |
-| **Cloudflare Pages** | Frontend (preview) | Handled via `_redirects` |
-| **Render** | Backend hosting | URL: `https://podm.onrender.com` (config external) |
-| **CI/CD** | GitHub Actions | `.github/workflows/ci.yml` |
-
-### CI/CD Pipeline
-
-```yaml
-# .github/workflows/ci.yml
-Jobs:
-  backend-build-and-test:
-    runs-on: ubuntu-latest
-    Node 18.x
-    npm ci → npm test
-    Working dir: ./PoDM_project
-
-  frontend-build-and-lint:
-    runs-on: ubuntu-latest
-    Node 18.x
-    npm ci → npm run lint → npm run build
-    Working dir: ./podm-frontend
+```
+Internet
+    ├── podm.app (Netlify — Frontend SPA)
+    │       └── Reverse proxy: /api/* → podm.onrender.com
+    │
+    ├── podm.onrender.com (Render — Backend API)
+    │       ├── Supabase PostgreSQL (Database)
+    │       ├── Cloudflare R2 (File Storage)
+    │       └── External: Stripe, OpenAI, Ethereum RPC, Coinbase, SMTP
+    │
+    └── *.pages.dev (Cloudflare Pages — Preview Deployments)
 ```
 
-### Docker Compose Services
+### CI/CD Pipeline (`.github/workflows/ci.yml`)
 
-```yaml
-services:
-  backend:
-    build: ./PoDM_project
-    ports: 5000:5000
-    env_file: ./PoDM_project/server/.env
+- **Trigger**: Push or PR to `main`/`master`
+- **Jobs**:
+  1. `backend-build-and-test`: Node 18, `npm ci`, `npm test` (Jest)
+  2. `frontend-build-and-lint`: Node 18, `npm ci`, `npm run lint`, `npm run build` (Vite)
+- **Not in CI**: Playwright E2E tests, contract tests, integration tests
 
-  frontend:
-    build: ./podm-frontend
-    ports: 5173:5173
-    env_file: ./podm-frontend/.env
-    depends_on: backend
-```
+### Docker
 
----
+- **Compose** (`docker-compose.yml`): Backend + Frontend services
+- **Backend Dockerfile**: Multi-stage build (node:20-alpine) — runs compiled JS
+- **Frontend Dockerfile**: Dev-mode only — runs `vite dev --host`
 
-## Testing
+### Monitoring & Observability
 
-### Backend Tests (Jest)
+- **Status**: None. No structured logging, no APM, no error tracking (Sentry/Datadog), no health check endpoint, no metrics.
+- **Current logging**: `console.log`/`console.error` scattered across 100+ call sites. Auth middleware uses synchronous `fs.appendFileSync` to `debug.log` (27,411+ lines).
+- **No request logging middleware** (morgan/pino-http)
 
-| Test | File | Type |
-|---|---|---|
-| Auth Controller | `server/tests/auth.controller.test.ts` | Unit |
-| Auth Integration | `server/tests/integration/auth.integration.test.ts` | Integration |
-| PPV Subscription | `server/tests/integration/ppv_subscription.test.ts` | Integration |
+### Deployment Files
 
-### Frontend Tests
-
-| Test | File | Type |
-|---|---|---|
-| App | `src/App.test.tsx` | Unit (Jest) |
-
-### E2E Tests (Playwright)
-
-| Spec | File | Flow |
-|---|---|---|
-| Login | `tests/login.spec.ts` | Authentication flows |
-| Fan | `tests/fan.spec.ts` | Fan dashboard + content browsing |
-| Creator | `tests/creator.spec.ts` | Creator hub + content management |
-| Admin | `tests/admin.spec.ts` | Admin panel operations |
-| Tip | `tests/tip.spec.ts` | Tipping flow |
-
----
-
-## Shared Type Definitions (`common/types/`)
-
-| Type File | Key Types |
+| File | Purpose |
 |---|---|
-| `User.ts` | User, UserRole, UserProfile, UserStatus |
-| `Content.ts` | Content, ContentType, ContentStatus, ContentVisibility |
-| `Creator.ts` | Creator (extends User), CreatorData, CreatorMetrics, Tier |
-| `Subscription.ts` | Subscription, SubscriptionStatus, TierConfig |
-| `Transaction.ts` | Transaction, TransactionType, TransactionStatus |
-| `Message.ts` | Message, MessageContent |
-| `Conversation.ts` | Conversation, ConversationParticipant |
-| `Notification.ts` | Notification, NotificationType |
-| `Contest.ts` | Contest, ContestStatus, ContestEntry |
-| `Gallery.ts` | GalleryItem, GalleryCollection |
-| `Report.ts` | ReportConfig, ReportMetric, ReportFilter |
-| `SupportTicket.ts` | SupportTicket, TicketStatus, TicketPriority |
+| `.github/workflows/ci.yml` | CI pipeline |
+| `docker-compose.yml` | Local Docker orchestration |
+| `PoDM_project/Dockerfile` | Backend production Docker image |
+| `podm-frontend/Dockerfile` | Frontend dev-mode Docker image |
+| `netlify.toml` | Netlify frontend deployment config |
+| `.idx/dev.nix` | Google IDX workspace |
 
 ---
 
-## Smart Contract
+## Key Metrics Summary
 
-| Attribute | Value |
+| Metric | Value |
 |---|---|
-| **File** | `contracts/PoDMPaymentProtocol.sol` |
-| **Language** | Solidity ^0.8.20 |
-| **Standard** | ERC-20 (USDC) |
-| **Network** | Ethereum (address-based) |
-| **Functions** | `paySubscription()`, `payTip()`, `payPPV()` |
-| **Admin** | `setPlatformTreasury()`, `setPlatformFeeBps()` |
-| **Events** | `SubscriptionPaid`, `TipPaid`, `PPVPaid`, `TreasuryUpdated`, `FeeUpdated` |
-| **Fee Model** | Basis points (BPS), capped at 30% |
+| Backend TypeScript files | 98 |
+| Frontend TS/TSX files | 103 |
+| Shared types | 12 |
+| SQL migration files | 17 |
+| Solidity contracts | 2 |
+| Configuration files | 20+ |
+| Controllers | 16 |
+| Services | 17 |
+| Models | 13 |
+| Routes | 16 |
+| Middleware | 4 |
+| Utilities | 12 (backend) |
+| Frontend components | 28 (shared + ui + layout + auth) |
+| Feature files | 47 |
+| Hooks | 9 |
+| API functions | ~70 |
+| Routes defined | 34 |
+| API endpoints | ~90+ |
+| Test files | 9 (3 backend + 1 frontend unit + 5 E2E) |
+| E2E test specs | 5 (login, fan, creator, admin, tip) |
+| Migration SQL | 17 files |
+| External integrations | 8 |
+| Auth mechanisms | 6 |
+| Dockerfiles | 2 |
 
 ---
 
-## Scripts
+## Dependencies
 
-### Backend Scripts (`server/scripts/` — 15 files)
+### Backend Runtime (22)
+`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `@supabase/supabase-js`, `axios`, `body-parser`, `cors`, `dotenv`, `ethers`, `express`, `express-validator`, `fluent-ffmpeg`, `jsonwebtoken`, `lodash`, `lucide-react`, `ms`, `multer`, `nodemailer`, `openai`, `path-to-regexp`, `react-router-dom`, `recharts`, `sharp`, `socket.io`, `tailwind`, `uuid`
 
-| Script | Purpose |
-|---|---|
-| `seed.ts` | Database seeding with test data |
-| `add-voice-message-column.ts` + `.sql` | Add voice message column migration |
-| `debug_subs.ts` | Subscription debug |
-| `fix-content-types.ts` + `.sql` | Content type fixing migration |
-| `generate-missing-files-report.ts` | Missing files audit |
-| `migrate-supabase-to-r2.ts` | Storage migration from Supabase to R2 |
-| `test_settings.ts`, `test_settings_direct.ts`, `test_settings_robust.ts` | Settings configuration testing |
-| `verify-storage.ts`, `verify_persistence.ts`, `verify_r2.ts` | Storage verification |
-| `fix_analytics.sql` | Analytics data fix |
+### Frontend Runtime (18)
+`@supabase/supabase-js`, `axios`, `lucide-react`, `qrcode.react`, `react`, `react-dom`, `react-dropzone`, `react-router-dom`, `recharts`, `socket.io-client`, `uuid`
 
-### Root Scripts
-
-| Script | Purpose |
-|---|---|
-| `scripts/migrate-to-r2.ts` | R2 migration utility |
-| `check_env.ts` | Environment variable validation |
-| `debug_transactions.ts` | Transaction processing debug |
-| `instagram_liker.ts` | Instagram automation |
-| `scrape_ig.js` | Instagram data scraping |
-| `debug-login.ps1`, `get-token.ps1`, `test-notifications.ps1` | API debugging (PowerShell) |
-
----
-
-## Known Gaps / Unanswered Questions
-
-- **Notification table**: Referenced in models but not in the root schema DDL — may be managed by Supabase or added in unlisted migration
-- **Enclave model**: Controller exists but no separate model file — may use raw queries or be embedded in another service
-- **Settings model**: Table `platform_settings` exists at `server/models/settings.model.ts` with `getSetting`, `updateSetting`, `getAllSettings` functions
-- **AI prompts**: Not externalized — hardcoded in service file
-- **No scheduled jobs framework**: No cron, queues, or worker infrastructure found
-- **No monitoring/logging pipeline**: No structured logging, APM, or error tracking integration
-- **Crypto wallet integration**: Frontend `useCryptoWallet` hook exists, but backend crypto payment integration is minimal (single controller)
-- **Duplicate/compiled files**: `dist/` directory contains 113 compiled JS files — build artifact, not source
-- **Debug artifacts**: Multiple `.log`, `.txt` files scattered across the backend — indicate active development
-
----
-
-## Revision History
-
-| Date | Author | Change |
-|---|---|---|
-| 2026-07-02 | AI Architect | Initial repository inventory (Phase 1) |
+### Contracts Development (5)
+`@nomicfoundation/hardhat-toolbox`, `@openzeppelin/contracts`, `dotenv`, `hardhat`, `typescript`
 
 ---
 
 ## Related Documents
 
-- [00-session-notes.md](00-session-notes.md) — Session notes and discoveries
-- [01-documentation-plan.md](01-documentation-plan.md) — Multi-phase documentation roadmap
-- `PoDM_project/AGENTS.md` — Backend DOX contract
-- `podm-frontend/AGENTS.md` — Frontend DOX contract
+- `docs/architecture/00-session-notes.md` — Running session log
+- `docs/architecture/02-dependency-map.md` — Inter-module dependency graph
+- `docs/architecture/03-architecture-kb.md` — Full architecture knowledge base
+- `docs/architecture/04-business-capabilities.md` — Business capability mapping
+- `docs/architecture/05-user-journeys.md` — End-to-end user journeys
+- `docs/architecture/06-frontend-architecture.md` — Frontend architecture deep-dive
+- `docs/architecture/07-cross-cutting-concerns.md` — Cross-cutting analysis
+
+## Revision History
+
+| Date | Author | Change |
+|---|---|---|
+| 2026-07-19 | AI Architect | Complete repository inventory covering all modules, files, and configurations |

@@ -449,7 +449,7 @@ const CreatorSettingsPage = ({ creator }: CreatorSettingsPageProps) => {
             price: 10, // Default price
             features: ['Full content access'],
             subscriberCount: 0,
-            stripePriceId: undefined, // New tiers won't have a Stripe price ID yet
+            priceId: '',
             level: 1, // Default level
         };
 

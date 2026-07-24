@@ -41,8 +41,7 @@ export interface Subscription {
   start_date: string; // ISO 8601 date string
   end_date?: string; // ISO 8601 date string, for canceled/expired subscriptions
   next_billing_date?: string; // ISO 8601 date string, for active subscriptions
-  stripe_subscription_id?: string; // Stripe Subscription ID or blockchain tx hash
-  blockchain_tx_hash?: string; // On-chain allowance approval transaction hash
+  blockchain_tx_hash?: string;
   fan_wallet_address?: string; // Fan's wallet that approved the recurring allowance
   max_allowance?: number; // Max USDC allowance approved by fan (in USDC units, not cents)
   payment_method: PaymentMethod;

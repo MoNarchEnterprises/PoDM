@@ -1,5 +1,3 @@
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useParams } from 'react-router-dom';
 import * as apiClient from './lib/apiClient';
@@ -279,18 +277,11 @@ const FanLayout = () => (<MainLayout logoText="PoDM" navItems={FAN_NAV_ITEMS}><R
 const CreatorLayout = () => (<MainLayout logoText="PoDM" navItems={CREATOR_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout>);
 const AdminLayout = () => (<MainLayout logoText="PoDM - Admin" navItems={ADMIN_NAV_ITEMS}><React.Suspense fallback={<div>Loading...</div>}><Outlet /></React.Suspense></MainLayout>);
 
-// Initialize Stripe outside of the component to avoid re-initialization on every render
-// Get your publishable key from environment variables
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
-const stripePromise = loadStripe(stripeKey);
-
-
 // --- Main App Component ---
 const App = () => {
     return (
         <ToastProvider>
-            <Elements stripe={stripePromise}>
-                <BrowserRouter>
+            <BrowserRouter>
                     <AuthProvider>
                         <React.Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading Page...</div>}>
                             <Routes>
@@ -359,7 +350,6 @@ const App = () => {
                         </React.Suspense>
                     </AuthProvider>
                 </BrowserRouter>
-            </Elements>
         </ToastProvider>
     );
 };

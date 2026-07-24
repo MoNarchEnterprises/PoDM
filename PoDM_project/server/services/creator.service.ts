@@ -8,7 +8,7 @@ import { AppError } from '../middleware/error.middleware';
 import { requireUser } from '../utils/entityGuards';
 import { reshapeUserForApp } from '../utils/user.utils';
 import supabase from '../../server/config/supabaseClient';
-import { syncTiersWithStripe } from '../../server/utils/tier.utils';
+import { syncTiers } from '../../server/utils/tier.utils';
 import * as AnalyticsService from './analytics.service';
 import * as CryptoPaymentService from './cryptoPayment.service';
 import { Content } from '@common/types/Content';
@@ -294,12 +294,9 @@ export const updateSettings = async (creator_id: string, settingsData: any, file
 
     // In the future, you can merge other settings here too
     // if (creator_data.payoutSettings) { ... }
-    // --- STRIPE SYNC LOGIC ---
     if (creator_data?.subscriptionTiers) {
-        newCreatorData.subscriptionTiers = await syncTiersWithStripe(creator_data.subscriptionTiers);
-
+        newCreatorData.subscriptionTiers = await syncTiers(creator_data.subscriptionTiers);
     }
-    // --- END OF STRIPE SYNC LOGIC ---
 
 
     profileUpdates.creator_data = newCreatorData;

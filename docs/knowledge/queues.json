@@ -13,8 +13,8 @@
     "name": "Payout Queue",
     "type": "batch",
     "producer": "PayoutService",
-    "consumer": "StripeService",
-    "purpose": "Batch processing of creator payout requests, scheduled daily processing, handles Stripe Connect transfer submission",
+    "consumer": "PayoutService",
+    "purpose": "Batch processing of creator payout requests, scheduled daily processing",
     "retryPolicy": "3 retries with 1-hour intervals; manual intervention required after final failure"
   },
   {

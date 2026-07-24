@@ -24,8 +24,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 - **Stack**: Node.js (CommonJS), Express 5, TypeScript 5
 - **Database**: Supabase (PostgreSQL) via `@supabase/supabase-js`
-- **Payments**: Stripe v18 (Connect, PaymentIntents, SetupIntents)
-- **Crypto**: Base-only USDC via PoDMPaymentProtocol Solidity contract (Monad/MegaETH dropped)
+- **Payments**: USDC on Base via PoDMPaymentProtocol smart contract
 - **On-Ramp**: Coinbase On-Ramp API for card-to-USDC purchases (service + webhook)
 - **Storage**: Cloudflare R2 (S3-compatible) via AWS SDK v3
 - **Real-time**: Socket.IO v4

@@ -2,6 +2,8 @@ import axios from 'axios';
 import supabase from '../config/supabaseClient';
 import { AppError } from '../middleware/error.middleware';
 
+import crypto from 'crypto';
+
 interface OnRampSession {
     sessionId: string;
     hostUrl: string;
@@ -20,19 +22,72 @@ interface OnRampWebhookEvent {
     };
 }
 
+function generateCoinbaseJwt(keyId: string, secret: string, method: string, path: string): string {
+    const host = 'api.coinbase.com';
+    const uri = `${method} ${host}${path}`;
+
+    let key: crypto.KeyObject;
+    if (secret.includes('-----BEGIN')) {
+        key = crypto.createPrivateKey(secret);
+    } else {
+        const buf = Buffer.from(secret, 'base64');
+        let pkcs8: Buffer;
+        if (buf.length === 32) {
+            const pkcs8Header = Buffer.from('302e020100300506032b657004220420', 'hex');
+            pkcs8 = Buffer.concat([pkcs8Header, buf]);
+        } else if (buf.length === 64) {
+            const pkcs8Header = Buffer.from('302e020100300506032b657004220420', 'hex');
+            pkcs8 = Buffer.concat([pkcs8Header, buf.subarray(0, 32)]);
+        } else {
+            pkcs8 = buf;
+        }
+        key = crypto.createPrivateKey({ key: pkcs8, format: 'der', type: 'pkcs8' });
+    }
+
+    const header = {
+        alg: 'EdDSA',
+        kid: keyId,
+        nonce: crypto.randomBytes(16).toString('hex')
+    };
+
+    const iat = Math.floor(Date.now() / 1000);
+    const payload = {
+        iss: 'cdp',
+        sub: keyId,
+        nbf: iat,
+        iat,
+        exp: iat + 120,
+        uri
+    };
+
+    const base64url = (b: Buffer) => b.toString('base64url');
+    const headerStr = base64url(Buffer.from(JSON.stringify(header)));
+    const payloadStr = base64url(Buffer.from(JSON.stringify(payload)));
+    const data = `${headerStr}.${payloadStr}`;
+    const signature = crypto.sign(null, Buffer.from(data), key);
+    return `${data}.${base64url(signature)}`;
+}
+
 function getConfig(): { apiKey: string; webhookSecret: string; appId: string } {
     const apiKey = process.env.COINBASE_ONRAMP_API_KEY;
     const webhookSecret = process.env.COINBASE_ONRAMP_WEBHOOK_SECRET;
     const appId = process.env.COINBASE_ONRAMP_APP_ID;
 
-    if (!apiKey || !webhookSecret || !appId) {
+    if (!apiKey && (!process.env.COINBASE_ONRAMP_API_KEY_ID || !process.env.COINBASE_ONRAMP_API_KEY_SECRET)) {
         throw new AppError(
-            'Coinbase On-Ramp not configured. Set COINBASE_ONRAMP_API_KEY, COINBASE_ONRAMP_WEBHOOK_SECRET, and COINBASE_ONRAMP_APP_ID.',
+            'Coinbase On-Ramp not configured. Set COINBASE_ONRAMP_API_KEY (or COINBASE_ONRAMP_API_KEY_ID and COINBASE_ONRAMP_API_KEY_SECRET), COINBASE_ONRAMP_WEBHOOK_SECRET, and COINBASE_ONRAMP_APP_ID.',
             500
         );
     }
 
-    return { apiKey, webhookSecret, appId };
+    if (!webhookSecret || !appId) {
+        throw new AppError(
+            'Coinbase On-Ramp not configured. Set COINBASE_ONRAMP_WEBHOOK_SECRET and COINBASE_ONRAMP_APP_ID.',
+            500
+        );
+    }
+
+    return { apiKey: apiKey || '', webhookSecret, appId };
 }
 
 const ONRAMP_API_BASE = 'https://api.coinbase.com/api/v1';
@@ -48,6 +103,16 @@ export class OnRampService {
 
         if (!destinationWallet || !/^0x[a-fA-F0-9]{40}$/.test(destinationWallet)) {
             throw new AppError('A valid destination wallet address is required.', 400);
+        }
+
+        let token = apiKey;
+        if (!token && process.env.COINBASE_ONRAMP_API_KEY_ID && process.env.COINBASE_ONRAMP_API_KEY_SECRET) {
+            token = generateCoinbaseJwt(
+                process.env.COINBASE_ONRAMP_API_KEY_ID,
+                process.env.COINBASE_ONRAMP_API_KEY_SECRET,
+                'POST',
+                '/api/v1/onramp/sessions'
+            );
         }
 
         const response = await axios.post(
@@ -71,7 +136,7 @@ export class OnRampService {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${apiKey}`,
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             }
@@ -89,7 +154,7 @@ export class OnRampService {
                 type: 'OnRamp',
                 amount: Math.round(amount * 100),
                 status: 'Pending',
-                payment_gateway_id: session.id,
+                blockchain_tx_hash: session.id,
                 payment_method: 'card_onramp',
                 payment_currency: 'USD',
             });
@@ -144,7 +209,7 @@ export class OnRampService {
         const { data: pendingTx, error: lookupError } = await supabase
             .from('transactions')
             .select('*')
-            .eq('payment_gateway_id', sessionId)
+            .eq('blockchain_tx_hash', sessionId)
             .single();
 
         if (lookupError || !pendingTx) {

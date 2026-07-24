@@ -5,6 +5,10 @@ module.exports = {
   // Run the setup file to add browser APIs like TextEncoder (if needed, though node usually has them)
   setupFilesAfterEnv: ['./jest.setup.js'],
 
+  // Exclude Hardhat contracts and compiled dist folders from the root Jest run
+  testPathIgnorePatterns: ['/node_modules/', '/contracts/', '/dist/'],
+  modulePathIgnorePatterns: ['<rootDir>/contracts/', '<rootDir>/dist/'],
+
   // Explicitly tell Jest to use ts-jest for all .ts and .tsx files
   transform: {
     '^.+\\.tsx?$': 'ts-jest',

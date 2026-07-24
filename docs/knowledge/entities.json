@@ -118,7 +118,7 @@
       {"name": "status", "type": "enum", "description": "active, cancelled, expired, paused"},
       {"name": "current_period_start", "type": "timestamp", "description": "Billing period start"},
       {"name": "current_period_end", "type": "timestamp", "description": "Billing period end"},
-      {"name": "stripe_subscription_id", "type": "varchar", "description": "Stripe subscription reference"},
+
       {"name": "canceled_at", "type": "timestamp", "description": "When subscription was cancelled"},
       {"name": "created_at", "type": "timestamp", "description": "Subscription creation timestamp"}
     ],
@@ -186,7 +186,7 @@
       {"name": "type", "type": "enum", "description": "subscription, tip, ppv, payout"},
       {"name": "amount", "type": "decimal", "description": "Transaction amount"},
       {"name": "currency", "type": "varchar", "description": "Currency code (USD, SOL)"},
-      {"name": "stripe_payment_intent_id", "type": "varchar", "description": "Stripe reference"},
+
       {"name": "status", "type": "enum", "description": "pending, completed, failed, refunded"},
       {"name": "platform_fee", "type": "decimal", "description": "Platform fee amount"},
       {"name": "net_amount", "type": "decimal", "description": "Amount after fees"},
@@ -209,7 +209,7 @@
       {"name": "amount", "type": "decimal", "description": "Payout amount"},
       {"name": "currency", "type": "varchar", "description": "Payout currency"},
       {"name": "status", "type": "enum", "description": "pending, processing, completed, failed"},
-      {"name": "stripe_transfer_id", "type": "varchar", "description": "Stripe transfer reference"},
+
       {"name": "payout_method", "type": "varchar", "description": "Bank, crypto, etc"},
       {"name": "period_start", "type": "timestamp", "description": "Payout period start"},
       {"name": "period_end", "type": "timestamp", "description": "Payout period end"},

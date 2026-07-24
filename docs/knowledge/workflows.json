@@ -105,30 +105,30 @@
     "id": "payment-subscription",
     "name": "Subscription Purchase",
     "category": "payments",
-    "description": "Fan subscribes to a creator's tier with Stripe payment processing and access grant",
-    "actors": ["Fan", "StripeService", "SubscriptionService", "Stripe", "Webhook"],
-    "preconditions": ["Fan is authenticated", "Fan does not have active subscription to this creator", "Tier is active and available"],
+    "description": "Fan subscribes to a creator's tier with USDC payment via smart contract and access grant",
+    "actors": ["Fan", "CryptoPaymentService", "SubscriptionService"],
+    "preconditions": ["Fan is authenticated", "Fan does not have active subscription to this creator", "Tier is active and available", "Fan has connected wallet with sufficient USDC balance"],
     "mainFlow": [
       "Fan selects tier and initiates subscription",
       "SubscriptionService creates pending subscription record",
-      "StripeService creates Stripe Checkout Session or PaymentIntent",
-      "Fan completes payment on Stripe-hosted UI or modal",
-      "Stripe sends webhook event payment_intent.succeeded or checkout.session.completed",
-      "Webhook handler updates subscription status to active",
+      "CryptoPaymentService generates subscription payment intent with USDC amount and smart contract address",
+      "Fan approves USDC spend and submits on-chain transaction via wallet",
+      "Smart contract verifies payment and emits Transfer event",
+      "CryptoPaymentService polls or listens for on-chain confirmation",
+      "SubscriptionService updates subscription status to active on confirmation",
       "ContentAccess records created for all tier-appropriate content",
       "Creator notified of new subscriber",
       "Fan receives confirmation and content access granted"
     ],
     "alternativeFlows": [
       {"condition": "Trial period available", "steps": ["Create subscription without immediate charge", "Schedule first payment at trial end"]},
-      {"condition": "Promo code applied", "steps": ["Validate promo code", "Apply discount to Stripe session", "Record promo usage"]}
+      {"condition": "Promo code applied", "steps": ["Validate promo code", "Apply discount to payment amount", "Record promo usage"]}
     ],
     "errorPaths": [
-      {"condition": "Stripe payment fails", "steps": ["Mark subscription as failed", "Return error to fan", "Offer alternative payment method"]},
-      {"condition": "Webhook delivery delayed", "steps": ["Implement idempotency keys", "Poll Stripe for status", "Grace period for activation"]},
-      {"condition": "Card declined", "steps": ["Return specific decline reason", "Suggest different card"]}
+      {"condition": "On-chain transaction fails or reverted", "steps": ["Mark subscription as failed", "Return error to fan", "Prompt to retry transaction"]},
+      {"condition": "Insufficient USDC balance", "steps": ["Return insufficient balance error", "Suggest acquiring USDC on Base"]}
     ],
-    "retryPaths": ["Webhook retry with 5 retries and backoff", "Stripe automatic payment retry for failed recurring charges"],
+    "retryPaths": ["Fan can retry payment from UI with new transaction", "Pending subscriptions auto-cancelled after 30 minutes"],
     "modules": ["payments", "subscriptions"],
     "apis": ["payments-api", "subscriptions-api"],
     "tables": ["subscriptions", "payments", "content_access"],
@@ -140,16 +140,17 @@
     "id": "payment-tip",
     "name": "Tip Payment",
     "category": "payments",
-    "description": "Fan sends a tip to a creator with optional message and fee calculation",
-    "actors": ["Fan", "Creator", "StripeService", "FeeService", "Stripe"],
-    "preconditions": ["Fan is authenticated", "Creator account is active", "Fan has payment method on file"],
+    "description": "Fan sends a USDC tip to a creator with optional message and fee calculation",
+    "actors": ["Fan", "Creator", "CryptoPaymentService", "FeeService"],
+    "preconditions": ["Fan is authenticated", "Creator account is active", "Fan has connected wallet with sufficient USDC balance"],
     "mainFlow": [
       "Fan selects tip amount and optional message",
       "FeeService calculates platform fee and net creator amount",
-      "StripeService creates PaymentIntent for tip amount",
-      "Fan confirms payment",
-      "Stripe processes payment and sends webhook",
-      "Payment record created with fee breakdown",
+      "CryptoPaymentService generates tip payment intent with USDC amount and recipient addresses",
+      "Fan approves USDC spend and submits on-chain transaction via wallet",
+      "Smart contract transfers USDC, splits fee to platform and net to creator",
+      "CryptoPaymentService confirms on-chain transaction",
+      "Payment record created with fee breakdown and blockchainTxId",
       "Creator notified of tip with message",
       "Fan receives confirmation"
     ],
@@ -157,9 +158,9 @@
       {"condition": "Referral bonus applicable", "steps": ["Check if referrer code was used", "Calculate referral bonus", "Credit referrer's bonus account"]}
     ],
     "errorPaths": [
-      {"condition": "Payment fails", "steps": ["Refund any partial charges", "Notify fan of failure", "Retry with different method"]}
+      {"condition": "On-chain transaction fails", "steps": ["Notify fan of failure", "No funds moved (reverted on-chain)", "Prompt to retry"]}
     ],
-    "retryPaths": ["Stripe automatic payment retry"],
+    "retryPaths": ["Fan can retry tip from UI with new transaction"],
     "modules": ["payments"],
     "apis": ["payments-api"],
     "tables": ["payments", "fees", "referral_bonuses"],
@@ -171,16 +172,16 @@
     "id": "payment-payout",
     "name": "Creator Payout",
     "category": "payments",
-    "description": "Scheduled payout to creators for accumulated earnings with fee deduction",
-    "actors": ["Creator", "PayoutService", "FeeService", "Stripe Connect", "System"],
-    "preconditions": ["Creator has connected Stripe account", "Creator has minimum payout balance", "Payout period has ended"],
+    "description": "Scheduled USDC payout to creators for accumulated earnings with fee deduction",
+    "actors": ["Creator", "PayoutService", "FeeService", "System"],
+    "preconditions": ["Creator has registered wallet address on Base", "Creator has minimum payout balance", "Payout period has ended"],
     "mainFlow": [
       "System triggers payout batch processing at schedule interval",
       "PayoutService calculates creator balance for the period",
       "FeeService deducts platform fees from balance",
       "Payout record created with 'pending' status",
-      "Stripe Connect transfer initiated to creator's connected account",
-      "Payout status updated based on Stripe response",
+      "PayoutService initiates USDC transfer via smart contract to creator's wallet",
+      "Payout status updated on on-chain confirmation",
       "Creator notified of payout completion",
       "Payout history updated in creator dashboard"
     ],
@@ -189,7 +190,7 @@
       {"condition": "Partial payout due to reserves", "steps": ["Calculate reserve amount for potential refunds", "Release reserve after hold period"]}
     ],
     "errorPaths": [
-      {"condition": "Stripe Connect transfer fails", "steps": ["Mark payout as failed", "Notify creator", "Retry in next batch cycle"]},
+      {"condition": "On-chain transfer fails", "steps": ["Mark payout as failed", "Notify creator", "Retry in next batch cycle"]},
       {"condition": "Insufficient balance", "steps": ["Skip creator in batch", "Notify if balance below threshold"]}
     ],
     "retryPaths": ["Automatic retry 3 times with 24-hour intervals", "Manual retry via admin panel"],

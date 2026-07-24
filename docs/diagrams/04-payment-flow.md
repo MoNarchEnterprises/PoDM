@@ -61,3 +61,5 @@ sequenceDiagram
   D-->>B: created
   B-->>F: { success }
 ```
+
+> **See also:** `docs/flowcharts/009-c04-tipping-and-ppv-payment-flow.md` — crypto path (USDC smart contract) for parallel payment method.

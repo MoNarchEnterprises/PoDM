@@ -18,7 +18,7 @@
     {"id": "cryptoPaymentService", "label": "Crypto Payment Service", "type": "service", "description": "Core 11-step verifyAndRecordBasePayment and wallet config management"}
   ],
   "services": [
-    {"id": "stripeService", "label": "Stripe Service", "type": "service", "description": "Stripe SDK integration for PaymentIntents and SetupIntents"}
+    {"id": "stripeService", "label": "Stripe Service", "type": "service", "description": "Stripe SDK integration for PaymentIntents (SetupIntents ABORTED)"}
   ],
   "externalSystems": [
     {"id": "stripe", "label": "Stripe API", "type": "external_system", "description": "Payment processor handling card payments and 3D Secure"},

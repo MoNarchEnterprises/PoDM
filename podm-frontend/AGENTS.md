@@ -12,7 +12,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - Routing and lazy loading via React Router v7
 - API client (`src/lib/apiClient.ts`) — all frontend-to-backend communication
 - Socket.IO client for real-time messaging
-- Stripe payment UI (via `@stripe/react-stripe-js`)
+- Crypto wallet payment UI (via `useCryptoPayment` hook, `window.ethereum` EIP-1193)
 - State management: React Context (ToastContext), custom hooks
 - Global styles (Tailwind CSS) and Tailwind configuration
 - E2E tests (Playwright) in `/tests/`
@@ -27,8 +27,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **Styling**: Tailwind CSS 3.4 with `@tailwindcss/forms`
 - **Routing**: React Router v7 (lazy-loaded routes in `App.tsx`)
 - **Real-time**: Socket.IO client v4
-- **Payments UI**: Stripe React SDK (`@stripe/react-stripe-js`, `@stripe/stripe-js`)
-- **Crypto Wallet**: Raw `window.ethereum` EIP-1193 (no viem/wagmi dependency)
+- **Payments UI**: Crypto wallet payments via `useCryptoPayment` hook (raw `window.ethereum` EIP-1193, no viem/wagmi dependency)
 - **Charts**: Recharts 3
 - **Icons**: Lucide React
 - **HTTP client**: Axios (wrapped in `apiClient.ts`)

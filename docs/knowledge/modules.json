@@ -128,10 +128,10 @@
   {
     "id": "payments",
     "name": "Payments",
-    "description": "Stripe payment processing, tipping, pay-per-view, payout management, fee calculation, referral bonuses",
+    "description": "Payment processing for subscriptions, tipping, PPV, payouts, fee calculation, referral bonuses",
     "path": "PoDM_project/routes/payments.routes.js",
-    "sourceFiles": ["routes/payments.routes.js", "controllers/payments.controller.js", "services/stripe.service.js", "services/payout.service.js", "services/fee.service.js", "services/referral.service.js"],
-    "services": ["StripeService", "PayoutService", "FeeService", "ReferralService"],
+    "sourceFiles": ["routes/payments.routes.js", "controllers/payments.controller.js", "services/payout.service.js", "services/fee.service.js", "services/referral.service.js"],
+    "services": ["PayoutService", "FeeService", "ReferralService"],
     "routes": ["payments/*"],
     "entities": ["Payment", "Payout", "Fee", "ReferralBonus"],
     "dependencies": ["auth", "users", "subscriptions"],
@@ -140,7 +140,7 @@
     "workflows": ["C-03", "C-06", "C-07", "C-08"],
     "apis": ["payments-api"],
     "agents": [],
-    "events": ["payment-completed", "payment-failed", "tip-received", "payout-initiated", "payout-completed", "referral-bonus-awarded"],
+    "events": ["tip-received", "payout-initiated", "payout-completed", "referral-bonus-awarded"],
     "queues": ["payout-queue"]
   },
   {

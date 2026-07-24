@@ -88,7 +88,7 @@
     {"rule": "No expiry — subscriptions are permanent one-time crypto payments", "source": "Flowchart C-03"},
     {"rule": "No pause mechanism — fan must cancel and re-subscribe", "source": "Flowchart C-03"},
     {"rule": "No billing renewal — stripe_subscription_id stores crypto txHash, not Stripe subscription ID", "source": "Flowchart C-03"},
-    {"rule": "Canceled subscriptions remain in DB with status='canceled' — no hard delete", "source": "11-data-flow.md §5"},
+    {"rule": "Canceled subscriptions remain in DB with status='canceled' — no hard delete", "source": "07-data-flow.md §5"},
     {"rule": "next_billing_date set to now()+30 days on creation but unused (no renewal logic)", "source": "subscription.service.ts"}
   ],
   "securityConsiderations": [

@@ -47,6 +47,7 @@ describe('Auth Controller', () => {
             (AuthService.loginUser as jest.Mock).mockRejectedValue(mockError);
 
             await AuthController.login(req as Request, res as Response, next);
+            await new Promise(resolve => process.nextTick(resolve));
 
             expect(next).toHaveBeenCalledWith(mockError);
         });
@@ -55,6 +56,7 @@ describe('Auth Controller', () => {
             req.body = { email: 'test@example.com' }; // Missing password
 
             await AuthController.login(req as Request, res as Response, next);
+            await new Promise(resolve => process.nextTick(resolve));
 
             expect(next).toHaveBeenCalledWith(expect.any(Error));
         });
@@ -70,7 +72,7 @@ describe('Auth Controller', () => {
 
             await AuthController.signup(req as Request, res as Response, next);
 
-            expect(AuthService.signupUser).toHaveBeenCalledWith('new@example.com', 'password123', 'newuser', 'fan');
+            expect(AuthService.signupUser).toHaveBeenCalledWith('new@example.com', 'password123', 'newuser', 'fan', undefined);
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith({
                 success: true,

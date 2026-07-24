@@ -9,7 +9,7 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import { SubscriptionTier } from '@common/types/Creator';
 import * as ContentModel from '../models/content.model';
 import * as SubscriptionModel from '../models/subscription.model';
-import { syncTiersWithStripe } from '../../server/utils/tier.utils';
+import { syncTiers } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../../server/utils/content.utils';
 import * as StorageService from './storage.service';
 
@@ -190,7 +190,7 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
 
     // Prepare the creator_data JSONB field update
     // Instead of saving the raw tiers, process them with our utility first.
-    const syncedTiers = await syncTiersWithStripe(tiers);
+    const syncedTiers = await syncTiers(tiers);
 
     const creator_dataUpdate = {
         ...existingProfile.creator_data,
@@ -458,6 +458,9 @@ export const updateFanSettings = async (fan_id: string, updates: any) => {
     if (profile) {
         dbUpdates.username = profile.name; // Assuming name and username are kept in sync
         dbUpdates.bio = profile.bio;
+        if (profile.crypto_wallet_address) {
+            dbUpdates.crypto_wallet_address = profile.crypto_wallet_address;
+        }
     }
     if (preferences) {
         dbUpdates.preferences = preferences;
@@ -471,30 +474,3 @@ export const updateFanSettings = async (fan_id: string, updates: any) => {
     return getFanSettings(fan_id); // Return the full, updated settings object
 };
 
-/**
- * Attaches a new payment method to a fan's Stripe customer profile and sets it as their default.
- * @param fan_id - The UUID of the fan.
- * @param paymentMethodId - The `pm_...` ID from the frontend.
- */
-export const updateFanPaymentMethod = async (fan_id: string, paymentMethodId: string) => {
-    try {
-        const { error } = await supabase
-            .from('profiles')
-            .update({ crypto_wallet_address: paymentMethodId })
-            .eq('id', fan_id);
-        if (error) throw error;
-        return { success: true, message: 'Crypto wallet successfully linked.' };
-    } catch (error: any) {
-        console.error("Wallet link error:", error);
-        throw new AppError(`Wallet Error: ${error.message}`, 500);
-    }
-};
-
-/**
- * Creates a Stripe SetupIntent for a fan to save a new payment method for future use.
- * @param fanId - The UUID of the fan.
- * @returns An object containing the clientSecret for the SetupIntent.
- */
-export const createSetupIntent = async (fanId: string) => {
-    return { clientSecret: 'web3_pure_payment_no_stripe_intent' };
-};

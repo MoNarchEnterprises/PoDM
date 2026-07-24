@@ -8,7 +8,7 @@
     {"name": "API Gateway", "technologies": ["Express", "Socket.IO"]},
     {"name": "Business Logic", "technologies": ["Node.js", "Express"]},
     {"name": "Data Access", "technologies": ["Supabase", "PostgreSQL"]},
-    {"name": "Infrastructure", "technologies": ["Cloudflare R2", "Stripe", "Solana", "Netlify"]}
+    {"name": "Infrastructure", "technologies": ["Cloudflare R2", "Solana", "Netlify"]}
   ],
   "principles": [
     "Role-based access control",

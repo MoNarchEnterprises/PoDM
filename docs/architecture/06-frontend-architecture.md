@@ -523,7 +523,7 @@ Backend Express Server
 | **Auth** | signup, login, forgotPassword, getMe, signupAndSubscribe | 5 |
 | **Profile/Settings** | updateMe, updateCreatorSettings, changePassword, uploadAvatar, getFanSettings, updateFanSettings | 6 |
 | **Content** | getMyCreatorContent, createContent, updateContent, deleteContent, getPublicCreatorProfile, getSecureContentUrl, getSecureContentViewUrl, getContentViewerData | 8 |
-| **Payments** | sendTip, confirmTransaction, createSubscription, createSetupIntent, unlockPost, updateFanPaymentMethod, updateFanSubscription | 7 |
+| **Payments** | sendTip, confirmTransaction, createSubscription, unlockPost, updateFanSubscription | 5 |
 | **Creator Finance** | getCreatorEarningsData, requestCreatorPayout, createStripeOnboardingLink | 3 |
 | **Creator Analytics** | getCreatorDashboardData, getCreatorAnalyticsData, exportCreatorMetricsCSV, exportCreatorFanEngagementCSV | 4 |
 | **Messaging** | getMyConversations, getMessagesInConversation, sendMessage, sendVoiceMessage, deleteMessage, unlockMessageContent, markConversationAsRead | 7 |

@@ -1,81 +1,44 @@
 import React, { useState } from 'react';
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { X, Lock, CheckCircle, CreditCard } from 'lucide-react';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
+import { X, Lock, CheckCircle, Wallet } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import { CARD_ELEMENT_OPTIONS } from '../../lib/constants';
-import * as apiClient from '../../lib/apiClient';
 
 interface UnlockModalProps {
     isOpen: boolean;
     onClose: () => void;
     contentId: string;
     title: string;
-    price: number; // Price in cents
+    price: number;
     onUnlockSuccess: () => void;
+    creatorWalletAddress?: string;
 }
 
-const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess }: UnlockModalProps) => {
-    const stripe = useStripe();
-    const elements = useElements();
-    const { paymentMethod } = useAuth();
+const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess, creatorWalletAddress }: UnlockModalProps) => {
+    const { user: currentFan } = useAuth();
+    const { processPayment, isLoading, error, step, setStep, setError, setIsLoading } = useCryptoPayment();
 
-    const [step, setStep] = useState(1);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const showCardForm = !paymentMethod || !paymentMethod.id;
     const formattedPrice = (price / 100).toFixed(2);
+    const hasCreatorWallet = !!creatorWalletAddress;
+    const hasFanWallet = !!currentFan?.profile?.crypto_wallet_address;
 
     const handleUnlock = async () => {
-        if (!stripe) {
-            setError("Payment form is not ready.");
+        if (!creatorWalletAddress) {
+            setError('Creator has not set up their crypto wallet.');
             return;
         }
 
-        setIsLoading(true);
-        setError(null);
+        const success = await processPayment({
+            amount: price / 100,
+            recipientAddress: creatorWalletAddress,
+            contentId,
+            creatorId: currentFan?.id,
+        });
 
-        try {
-            let unlockPaymentMethodId: string | undefined = paymentMethod?.id || undefined;
-
-            if (showCardForm) {
-                const cardElement = elements?.getElement(CardElement);
-                if (!cardElement) throw new Error("Card element not found.");
-
-                const { error: pmError, paymentMethod: newPaymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-                if (pmError || !newPaymentMethod) throw new Error(pmError?.message || "Invalid card details.");
-                unlockPaymentMethodId = newPaymentMethod.id;
-            }
-
-            const { clientSecret, status, paymentIntentId } = await apiClient.unlockPost(contentId, unlockPaymentMethodId);
-
-            let finalPaymentIntentId = paymentIntentId;
-
-            if (status === 'requires_action' || status === 'requires_payment_method' || status === 'requires_confirmation') {
-                const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) {
-                    throw new Error(confirmationError.message);
-                }
-                if (paymentIntent) {
-                    finalPaymentIntentId = paymentIntent.id;
-                }
-            }
-
-            if (finalPaymentIntentId) {
-                await apiClient.confirmTransaction(finalPaymentIntentId);
-            }
-
-            setStep(2);
+        if (success) {
             onUnlockSuccess();
-
-        } catch (err: any) {
-            console.error('Error unlocking content:', err);
-            setError(err.message || "An unexpected error occurred.");
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -101,29 +64,42 @@ const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess
                             <Lock className="w-12 h-12 mx-auto text-pink-500 mb-2" />
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white">{title}</h3>
                             <p className="text-gray-500 dark:text-gray-400">
-                                Unlock this exclusive content for <span className="font-bold text-gray-800 dark:text-white">${formattedPrice}</span>
+                                Unlock this exclusive content for <span className="font-bold text-gray-800 dark:text-white">${formattedPrice}</span> USDC
                             </p>
                         </div>
 
-                        {showCardForm ? (
+                        {!hasCreatorWallet ? (
+                            <div className="p-3 bg-yellow-900/30 rounded-md border border-yellow-700 text-center">
+                                <p className="text-sm text-yellow-400">This creator has not set up their crypto wallet for payments.</p>
+                            </div>
+                        ) : !hasFanWallet ? (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
-                                <CardElement options={CARD_ELEMENT_OPTIONS} />
+                                <p className="text-sm text-gray-400 mb-2">Connect your wallet to unlock this content via USDC on Base.</p>
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => {
+                                        const eth = window.ethereum;
+                                        if (eth) eth.request({ method: 'eth_requestAccounts' });
+                                        else setError('No wallet detected.');
+                                    }}
+                                >
+                                    <Wallet className="w-4 h-4 mr-2" /> Connect Wallet
+                                </Button>
                             </div>
                         ) : (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700 text-center">
-                                <p className="text-sm text-gray-400">Using your saved card:</p>
-                                <div className="flex items-center justify-center space-x-2 font-semibold text-white mt-1">
-                                    <CreditCard className="w-5 h-5" />
-                                    <span>{paymentMethod?.brand} **** {paymentMethod?.last4}</span>
-                                </div>
+                                <p className="text-sm text-gray-400">Paying from:</p>
+                                <p className="font-semibold text-white text-xs truncate">{currentFan.profile.crypto_wallet_address}</p>
                             </div>
                         )}
 
                         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
                     </main>
                     <footer className="p-4 border-t border-gray-200 dark:border-gray-700">
-                        <Button onClick={handleUnlock} isLoading={isLoading} disabled={!stripe || isLoading} className="w-full flex items-center justify-center space-x-2 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg transition-colors">
-                            <span>Pay ${formattedPrice} & Unlock</span>
+                        <Button onClick={handleUnlock} isLoading={isLoading} disabled={!hasCreatorWallet || !hasFanWallet || isLoading} className="w-full flex items-center justify-center space-x-2 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg transition-colors">
+                            <span>Pay ${formattedPrice} USDC & Unlock</span>
                         </Button>
                     </footer>
                 </>

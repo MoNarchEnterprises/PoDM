@@ -6,7 +6,7 @@
 |---|---|
 | `docs/architecture/` | Core architecture knowledge base — 16 files covering all platform aspects |
 | `docs/diagrams/` | 10 Mermaid C4/ER/sequence/flowchart diagrams (high-level overviews) |
-| `docs/flowcharts/` | 49 Mermaid diagrams (detailed deep-dives) + 4 prompt files |
+| `docs/flowcharts/` | 55 Mermaid diagrams (detailed deep-dives) + 4 prompt files |
 | `docs/api/` | API route reference |
 | `docs/future-features/` | Planned feature specs |
 | `docs/marketing/` | Marketing collateral |
@@ -84,6 +84,12 @@ All 59 diagrams are indexed in `docs/architecture/08-diagram-index.md` across 11
 | `047-k01-test-coverage-gap-map.md` | K-01 | Graph |
 | `048-k02-end-to-end-test-journey-coverage.md` | K-02 | Graph |
 | `049-k03-monitoring-and-observability-gap-diagram.md` | K-03 | Graph |
+| `050-b07-admin-impersonation-internal-flow.md` | B-07 | Sequence |
+| `051-c09-fiat-to-crypto-on-ramp-flow.md` | C-09 | Sequence |
+| `052-c10-subscription-renewal-batch-processing.md` | C-10 | Flowchart |
+| `053-c11-payout-balance-lock-flow.md` | C-11 | Flowchart |
+| `054-d09-fan-feed-generation-pipeline.md` | D-09 | Sequence |
+| `055-d10-gallery-jsonb-operations.md` | D-10 | Sequence |
 
 ## Quick Links
 

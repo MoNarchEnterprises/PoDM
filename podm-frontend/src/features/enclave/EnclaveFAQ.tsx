@@ -19,7 +19,7 @@ export default function EnclaveFAQ() {
         },
         {
             question: 'How do I get paid?',
-            answer: 'Payments are processed through Stripe with weekly payouts directly to your bank account. Fast, secure, and reliable.'
+            answer: 'Payments are processed via USDC on the Base blockchain with automatic smart contract payouts. Fast, secure, and decentralized.'
         },
         {
             question: 'Can I stay on other platforms?',

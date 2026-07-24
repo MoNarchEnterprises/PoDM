@@ -51,7 +51,7 @@ const run = async () => {
             creator_id: creatorId,
             tier_id: 'tier1',
             status: 'active',
-            stripe_subscription_id: 'sub_debug',
+            blockchain_tx_hash: 'sub_debug',
             next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }).select().single();
         

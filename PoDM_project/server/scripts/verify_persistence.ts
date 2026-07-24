@@ -69,7 +69,7 @@ const verify = async () => {
                 type: 'PPV Post',
                 status: 'Cleared',
                 related_content_id: contentId,
-                payment_gateway_id: 'pi_manual_verification_' + Date.now(),
+                blockchain_tx_hash: 'pi_manual_verification_' + Date.now(),
                 platform_fee: 50,
                 creator_payout: 450
             })

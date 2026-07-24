@@ -1,75 +1,64 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { useSettings } from './hooks/useSettings';
-import AppLayout from './components/Layout/AppLayout';
-import { searchService } from './services/searchService';
+import { Routes, Route, NavLink } from 'react-router-dom';
+import type { KnowledgeGraph } from './types';
+import { loadKnowledgeGraph } from './data/loader';
+import Dashboard from './pages/Dashboard';
+import Modules from './pages/Modules';
+import Entities from './pages/Entities';
+import Services from './pages/Services';
+import Diagrams from './pages/Diagrams';
+import Graph from './pages/Graph';
+import Search from './pages/Search';
+import Wallets from './pages/Wallets';
 
-import Dashboard from './pages/Dashboard/Dashboard';
-import Modules from './pages/Modules/Modules';
-import ModuleDetail from './pages/Modules/ModuleDetail';
-import Workflows from './pages/Workflows/Workflows';
-import WorkflowDetail from './pages/Workflows/WorkflowDetail';
-import Diagrams from './pages/Diagrams/Diagrams';
-import DiagramViewer from './pages/Diagrams/DiagramViewer';
-import AiAssistant from './pages/AiAssistant/AiAssistant';
-import Settings from './pages/Settings/Settings';
-import ModuleTree from './pages/ModuleTree/ModuleTree';
-import Services from './pages/Services/Services';
-import Api from './pages/Api/Api';
-import Database from './pages/Database/Database';
-import Entities from './pages/Entities/Entities';
-import NotFound from './pages/NotFound/NotFound';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
-
-function AppContent() {
-  const { muiTheme } = useSettings();
-
-  useEffect(() => {
-    searchService.initialize();
-  }, []);
-
-  return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/modules" element={<Modules />} />
-            <Route path="/modules/:id" element={<ModuleDetail />} />
-            <Route path="/workflows" element={<Workflows />} />
-            <Route path="/workflows/:id" element={<WorkflowDetail />} />
-            <Route path="/diagrams" element={<Diagrams />} />
-            <Route path="/diagrams/:id" element={<DiagramViewer />} />
-            <Route path="/ai" element={<AiAssistant />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/module-tree" element={<ModuleTree />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/api" element={<Api />} />
-            <Route path="/database" element={<Database />} />
-            <Route path="/entities" element={<Entities />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
-  );
-}
+const data: KnowledgeGraph = loadKnowledgeGraph();
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <div className="layout">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h1>PoDM Architecture</h1>
+          <p>v{data.architecture.version}</p>
+        </div>
+        <nav className="sidebar-nav">
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>📊</span> Dashboard
+          </NavLink>
+          <NavLink to="/wallets" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>🌐</span> Wallets & Blockchain
+          </NavLink>
+          <NavLink to="/modules" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>🧩</span> Modules
+          </NavLink>
+          <NavLink to="/services" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>⚙️</span> Services
+          </NavLink>
+          <NavLink to="/entities" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>🗄️</span> Entities
+          </NavLink>
+          <NavLink to="/diagrams" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>📈</span> Diagrams
+          </NavLink>
+          <NavLink to="/graph" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>🔗</span> Knowledge Graph
+          </NavLink>
+          <NavLink to="/search" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span>🔍</span> Search
+          </NavLink>
+        </nav>
+      </aside>
+      <main className="main">
+        <Routes>
+          <Route path="/" element={<Dashboard data={data} />} />
+          <Route path="/wallets" element={<Wallets data={data} />} />
+          <Route path="/modules" element={<Modules data={data} />} />
+          <Route path="/services" element={<Services data={data} />} />
+          <Route path="/entities" element={<Entities data={data} />} />
+          <Route path="/diagrams" element={<Diagrams data={data} />} />
+          <Route path="/graph" element={<Graph data={data} />} />
+          <Route path="/search" element={<Search data={data} />} />
+        </Routes>
+      </main>
+    </div>
   );
 }

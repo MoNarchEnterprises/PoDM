@@ -105,7 +105,7 @@ export async function processPayout(
             platform_fee: 0,
             creator_payout: -amountInCents,
             status: 'Cleared',
-            payment_gateway_id: receipt.hash,
+            blockchain_tx_hash: receipt.hash,
         });
 
         await supabase
@@ -116,7 +116,7 @@ export async function processPayout(
                 payment_currency: 'USDC',
                 chain_id: 84532,
             })
-            .eq('payment_gateway_id', receipt.hash);
+            .eq('blockchain_tx_hash', receipt.hash);
 
         return { txHash: receipt.hash };
     } finally {

@@ -81,21 +81,12 @@
     "events": ["subscription-created", "subscription-cancelled", "subscription-expired"]
   },
   {
-    "id": "stripe-service",
-    "name": "StripeService",
-    "module": "payments",
-    "description": "Integrates with Stripe for payment processing, webhook handling, payment intent creation, refund processing",
-    "methods": ["createPaymentIntent", "confirmPayment", "handleWebhook", "processRefund", "createCheckoutSession", "retrievePayment"],
-    "dependencies": ["subscription-service"],
-    "events": ["payment-completed", "payment-failed"]
-  },
-  {
     "id": "payout-service",
     "name": "PayoutService",
     "module": "payments",
-    "description": "Handles creator payouts via Stripe Connect, payout scheduling, batch processing, payout history",
-    "methods": ["requestPayout", "processPayout", "schedulePayout", "getPayoutHistory", "getPayoutStatus"],
-    "dependencies": ["stripe-service", "fee-service"],
+    "description": "Handles creator payouts and balance management",
+    "methods": ["requestPayout", "processPayout", "getPayoutBalance", "getPayoutHistory"],
+    "dependencies": ["fee-service"],
     "events": ["payout-initiated", "payout-completed"]
   },
   {

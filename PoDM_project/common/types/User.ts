@@ -49,8 +49,6 @@ export interface User {
   status: UserStatus;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string
-  stripe_account_id?: string;  // For Creators (acct_...)
-  stripe_customer_id?: string; // For Fans (cus_...)
   verification_data?: VerificationData;
   creator_data?: any; // JSONB column
   preferences?: any; // JSONB column

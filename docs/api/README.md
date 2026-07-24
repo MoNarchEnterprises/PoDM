@@ -1,7 +1,7 @@
 # API Route Reference
 
 **Base URL**: `/api/v1`  
-**Route files**: `PoDM_project/server/routes/` (15 files, 74 endpoints + 1 health check)  
+**Route files**: `PoDM_project/server/routes/` (16 files, 102 endpoints + 1 health check)  
 **Source**: Extracted from Express route definitions on 2026-07-03
 
 ## Auth — `/auth`
@@ -37,12 +37,9 @@
 | GET | `/users/me/feed` | `getMyFeed` | `protect` |
 | GET | `/users/me/settings` | `getMySettings` | `protect` |
 | PUT | `/users/me/settings` | `updateMySettings` | `protect` |
-| PUT | `/users/me/payment-method` | `updateMyPaymentMethod` | `protect` |
-| POST | `/users/me/setup-payment-method` | `createSetupIntent` | `protect` |
-
 **File**: `user.routes.ts`  
 **Controller**: `user.controller`  
-**15 endpoints**
+**13 endpoints**
 
 ## Creator — `/creator`
 
@@ -239,6 +236,17 @@
 **Controller**: `referral.controller`  
 **5 endpoints**
 
+## Payments (On-Ramp) — `/payments/onramp`
+
+| Method | Path | Handler | Middleware |
+|---|---|---|---|
+| POST | `/payments/onramp/session` | `createOnRampSession` | `protect` |
+| POST | `/payments/onramp/webhook` | `handleOnRampWebhook` | — |
+
+**File**: `onramp.routes.ts`  
+**Controller**: `onramp.controller`  
+**2 endpoints**
+
 ## Health Check
 
 | Method | Path | Handler |
@@ -252,7 +260,7 @@
 | Domain | Endpoints | Auth Required | Files |
 |---|---|---|---|
 | Auth | 7 | 2 protected | `auth.routes.ts` |
-| Users | 15 | 14 protected | `user.routes.ts` |
+| Users | 13 | 12 protected | `user.routes.ts` |
 | Creator | 10 | 10 (creator) | `creator.routes.ts` |
 | Content | 10 | 10 protected | `content.routes.ts` |
 | Subscriptions | 4 | 4 protected | `subscription.routes.ts` |
@@ -266,8 +274,9 @@
 | Contests | 7 | 7 protected | `contest.routes.ts` |
 | Enclave | 4 | 2 protected | `enclave.routes.ts` |
 | Referrals | 5 | 3 protected | `referral.routes.ts` |
+| Onramp | 2 | 1 protected | `onramp.routes.ts` |
 | Health | 1 | none | `Server.ts` |
-| **Total** | **100** | | |
+| **Total** | **102** | | |
 
 *Note: Admin routes use `router.use(protectAndAdmin)` at the top of the file. Creator routes spread `...protectAndCreator` per-route. All middleware functions are defined in `server/middleware/`.*
 
@@ -305,3 +314,4 @@
 | `contest.routes.ts` | `../controllers/contest.controller` |
 | `enclave.routes.ts` | `../controllers/enclave.controller` |
 | `referral.routes.ts` | `../controllers/referral.controller` |
+| `onramp.routes.ts` | `../controllers/onramp.controller` |

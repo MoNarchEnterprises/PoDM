@@ -49,7 +49,7 @@ For each risk, add annotation text:
 - Mitigation status: (mitigated / partial / none)
 - Referenced module file path
 
-**Sources:** `07-cross-cutting-concerns.md`, `11-data-flow.md`, `08-crypto-deep-dive.md`
+**Sources:** `07-cross-cutting-concerns.md`, `07-data-flow.md`, `08-crypto-deep-dive.md`
 
 ---
 

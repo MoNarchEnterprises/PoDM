@@ -7,7 +7,7 @@ const envPath = path.resolve(process.cwd(), '.env');
 console.log('Loading .env from:', envPath);
 dotenv.config({ path: envPath });
 
-// Skip invalid stripe check essentially by only importing supabase
+// Skip invalid check by only importing supabase
 // We need to verify we have supabase keys
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Missing Supabase keys in environment variables.');

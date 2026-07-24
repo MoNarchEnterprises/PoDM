@@ -34,11 +34,11 @@ classDiagram
     PoDMPaymentProtocol --> Events : emits
     PoDMPaymentProtocol --> PaymentType : uses
 
-    Note1["Contract uses ERC-20 transferFrom to pull USDC from sender"]
-    Note2["PaymentType enum exists in events but is NOT stored on-chain per payment"]
-    Note3["No SubscriptionExpired or SubscriptionCancelled events"]
-    Note4["No pause mechanism for emergency stops"]
-    Note5["Contract is immutable - no upgrade mechanism"]
+    note for PoDMPaymentProtocol "Contract uses ERC-20 transferFrom to pull USDC from sender"
+    note for PaymentType "PaymentType enum exists in events but is NOT stored on-chain per payment"
+    note for PoDMPaymentProtocol "No SubscriptionExpired or SubscriptionCancelled events"
+    note for PoDMPaymentProtocol "No pause mechanism for emergency stops"
+    note for PoDMPaymentProtocol "Contract is immutable - no upgrade mechanism"
 ```
 
 Diagrams the contract's storage properties (owner, treasury, fee), 5 external functions (paySubscription, payTip, payPPV, updateTreasury, updateFee), 5 events, and the PaymentType enum. Annotations highlight the lack of on-chain PaymentType storage, missing lifecycle events, absent pause mechanism, and immutability.

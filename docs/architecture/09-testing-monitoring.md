@@ -199,7 +199,7 @@ The CI pipeline runs **only** the backend Jest tests (3 files) and frontend lint
 
 | Test Type | Coverage | What's Missing |
 |---|---|---|
-| **Backend Unit** | 1/15 controllers, 1/15 services (mocked) | 14 controllers, 14 services, all models, all middleware |
+| **Backend Unit** | 1/16 controllers, 1/17 services (mocked) | 15 controllers, 16 services, all models, all middleware |
 | **Backend Integration** | Auth (basic), PPV subscription | All other endpoints, error scenarios, Stripe webhooks |
 | **Frontend Unit** | App mount (smoke) | All 28 components, 9 hooks, API client, formatters |
 | **Frontend E2E** | 5 flows (heavy Stripe dependency) | Messaging, notifications, contests, enclave, referral, settings, analytics, wallet, gallery |

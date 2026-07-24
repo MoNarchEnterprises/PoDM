@@ -87,7 +87,7 @@ const seed = async () => {
                             price: 500,
                             description: 'Basic access',
                             features: ['Access to feed'],
-                            stripePriceId: 'price_fake_1'
+                            priceId: 'price_fake_1'
                         }
                     ]
                 } : null,

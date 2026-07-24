@@ -116,18 +116,3 @@ export const updateMySettings = asyncHandler(async (req: Request, res: Response)
     ok(res, updatedSettings);
 });
 
-export const updateMyPaymentMethod = asyncHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
-    const { paymentMethodId } = req.body;
-    if (!paymentMethodId) {
-        throw new AppError('A paymentMethodId is required.', 400);
-    }
-    const result = await UserService.updateFanPaymentMethod(userId, paymentMethodId);
-    ok(res, result);
-});
-
-export const createSetupIntent = asyncHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
-    const result = await UserService.createSetupIntent(userId);
-    ok(res, result);
-});

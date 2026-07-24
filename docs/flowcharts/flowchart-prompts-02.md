@@ -37,7 +37,7 @@ Annotate:
 - 🟡 No typing indicators — `typing` / `stop_typing` events don't exist
 - 🟡 No offline delivery — messages sent while user is disconnected are loaded on next page load (REST), not pushed via WebSocket
 
-**Sources:** `socket.ts`, `message.service.ts`, `FanMessages.tsx`, `CreatorMessages.tsx`, `11-data-flow.md §8`, `07-cross-cutting-concerns.md §4`
+**Sources:** `socket.ts`, `message.service.ts`, `FanMessages.tsx`, `CreatorMessages.tsx`, `07-data-flow.md §8`, `07-cross-cutting-concerns.md §4`
 
 ---
 
@@ -83,7 +83,7 @@ Annotate:
 - 🟡 JSONB conversation array — no relational model for support messages (no separate `support_messages` table)
 - 🟡 No email notification when ticket is replied to (SMTP configured but unused)
 
-**Sources:** `support.service.ts`, `message.service.ts`, `SupportTicketsPanel.tsx`, `FanMessages.tsx`, `10-internal-workflows.md §13`, `11-data-flow.md §14`
+**Sources:** `support.service.ts`, `message.service.ts`, `SupportTicketsPanel.tsx`, `FanMessages.tsx`, `10-internal-workflows.md §13`, `07-data-flow.md §14`
 
 ---
 
@@ -193,7 +193,7 @@ Stages:
     - Standard: Response JSON to client
     - Deviations: Socket.IO broadcast (messaging), R2 upload (storage), Stripe API (legacy), OpenAI API (AI captions), Ethereum RPC (crypto verify)
 
-**Sources:** `11-data-flow.md` (all 14 features), `07-cross-cutting-concerns.md §1`, `03-architecture-kb.md`
+**Sources:** `07-data-flow.md` (all 14 features), `07-cross-cutting-concerns.md §1`, `03-architecture-kb.md`
 
 ---
 
@@ -222,7 +222,7 @@ Annotate:
 - 🔴 **Unbounded table growth**: `analytics_events` has no TTL, archive, or deletion policy
 - 🟡 Guest tracking works with nullable `viewer_id` — no privacy consideration documented
 
-**Sources:** `analytics.service.ts`, `analytics.controller.ts`, `analytics.routes.ts`, `ContentModel (stats JSONB)`, `10-internal-workflows.md §4`, `11-data-flow.md §10`
+**Sources:** `analytics.service.ts`, `analytics.controller.ts`, `analytics.routes.ts`, `ContentModel (stats JSONB)`, `10-internal-workflows.md §4`, `07-data-flow.md §10`
 
 ---
 
@@ -251,7 +251,7 @@ Annotate:
 - ⚠️ **No re-open from Resolved** — once resolved, ticket is terminal
 - ⚠️ State transitions are implicit in service methods, not enforced at DB level (no CHECK constraint on status)
 
-**Sources:** `support.service.ts`, `supportTicket.model.ts`, `11-data-flow.md §14`, `05-user-journeys.md §M-07`
+**Sources:** `support.service.ts`, `supportTicket.model.ts`, `07-data-flow.md §14`, `05-user-journeys.md §M-07`
 
 ---
 
@@ -280,7 +280,7 @@ Annotate:
 - ⚠️ **No auto-complete**: When `end_date` passes, contest stays `active` — creator must manually finalize
 - ⚠️ **No `canceled` entry refund**: If canceled during active period, no mechanism to refund entry fees (no entry fees in current implementation — entries are free with subscription check)
 
-**Sources:** `contest.service.ts`, `contest.model.ts`, `11-data-flow.md §13`, `05-user-journeys.md §C-10`
+**Sources:** `contest.service.ts`, `contest.model.ts`, `07-data-flow.md §13`, `05-user-journeys.md §C-10`
 
 ---
 
@@ -319,7 +319,7 @@ Annotate:
 - 🔴 **No audit trail**: No record of random seed, algorithm inputs, or selected winner's probability
 - 🟡 Weighted algorithm queries `transactions` table with real dollar amounts — privacy concern for entrants
 
-**Sources:** `contest.service.ts` (finalize), `TransactionModel`, `11-data-flow.md §13`
+**Sources:** `contest.service.ts` (finalize), `TransactionModel`, `07-data-flow.md §13`
 
 ---
 
@@ -348,7 +348,7 @@ Annotate:
 - 🟡 **No error isolation**: If one query fails, entire Promise.all rejects → dashboard shows error
 - 🟡 **`sumPlatformFeeForPeriod` scans transactions table**: No index on `created_at` with partial `platform_fee IS NOT NULL`
 
-**Sources:** `admin.service.ts` (getDashboardStats), `admin.controller.ts`, `UserModel`, `TransactionModel`, `SupportTicketModel`, `11-data-flow.md §11`
+**Sources:** `admin.service.ts` (getDashboardStats), `admin.controller.ts`, `UserModel`, `TransactionModel`, `SupportTicketModel`, `07-data-flow.md §11`
 
 ---
 
@@ -451,7 +451,7 @@ Annotate:
 - All panels require `protectAndAdmin` middleware
 - 🔴 No admin audit trail — no admin_action_log table
 
-**Sources:** `admin.routes.ts`, `admin.controller.ts`, `admin.service.ts`, all admin panel components, `11-data-flow.md §11`
+**Sources:** `admin.routes.ts`, `admin.controller.ts`, `admin.service.ts`, all admin panel components, `07-data-flow.md §11`
 
 ---
 
@@ -491,7 +491,7 @@ Annotate:
 - 🟡 **60-second window**: URLs expire quickly, but are logged in browser history / network tab
 - 🟡 **No access audit**: No record of who viewed whose verification docs or when
 
-**Sources:** `admin.service.ts`, `storage.service.ts`, `VerificationDetailPanel.tsx`, `11-data-flow.md §11`
+**Sources:** `admin.service.ts`, `storage.service.ts`, `VerificationDetailPanel.tsx`, `07-data-flow.md §11`
 
 ---
 

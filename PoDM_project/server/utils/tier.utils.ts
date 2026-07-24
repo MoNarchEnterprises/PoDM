@@ -9,7 +9,7 @@ import { SubscriptionTier } from '@common/types/Creator';
  * @param tiers - The array of tiers from the frontend, which may contain temporary IDs.
  * @returns A promise that resolves to a new array of tiers with permanent IDs.
  */
-export const syncTiersWithStripe = async (tiers: Partial<SubscriptionTier>[]): Promise<SubscriptionTier[]> => {
+export const syncTiers = async (tiers: Partial<SubscriptionTier>[]): Promise<SubscriptionTier[]> => {
     if (!tiers || tiers.length === 0) {
         return [];
     }
@@ -33,7 +33,7 @@ export const syncTiersWithStripe = async (tiers: Partial<SubscriptionTier>[]): P
             features: tier.features || [],
             subscriberCount: tier.subscriberCount || 0,
             level: tier.level || 1,
-            stripePriceId: tier.stripePriceId || 'web3_tier',
+            priceId: tier.priceId || '',
         };
 
         return finalTierObject;

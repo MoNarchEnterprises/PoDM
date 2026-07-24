@@ -85,7 +85,7 @@ export const findSubscriptionByFanAndCreator = async (fanId: string, creatorId: 
             .eq('creator_id', creatorId)
             .eq('status', 'active')
             .single(),
-        'find subscription by fan and creator', fanId, creatorId
+        'find subscription by fan and creator'
     );
 };
 

@@ -165,9 +165,14 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Transaction failed on the blockchain.', 400);
         }
 
+        const expectedTopic = input.transactionType === 'Subscription'
+            ? EVENT_TOPICS.SubscriptionPaid
+            : (input.transactionType === 'Tip' ? EVENT_TOPICS.TipPaid : EVENT_TOPICS.PPVPaid);
+
         const contractInteracted = (receipt.to && receipt.to.toLowerCase() === contractAddress.toLowerCase()) ||
             (receipt.logs && receipt.logs.some((log: any) =>
-                log.address && log.address.toLowerCase() === contractAddress.toLowerCase()
+                log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
+                log.topics && log.topics[0] === expectedTopic
             ));
 
         if (!contractInteracted) {
@@ -175,10 +180,11 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         }
 
         const contractLog = receipt.logs.find((log: any) =>
-            log.address && log.address.toLowerCase() === contractAddress.toLowerCase()
+            log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
+            log.topics && log.topics[0] === expectedTopic
         );
         if (!contractLog) {
-            throw new AppError('Failed to parse transaction logs: PoDM protocol event not found.', 400);
+            throw new AppError('Failed to parse transaction logs: Expected PoDM protocol event not found.', 400);
         }
 
         // Parse topics: topics[1] = fan address, topics[2] = creator address
@@ -227,7 +233,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         platform_fee: platformFee,
         creator_payout: creatorPayout,
         status: 'Cleared',
-        payment_gateway_id: input.txHash,
+        blockchain_tx_hash: input.txHash,
         related_content_id: input.relatedId,
     });
 
@@ -259,7 +265,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 };
 
 export const processDebitCardOffRamp = async (creatorId: string, amountInCents: number, debitCardToken?: string) => {
-    const { processPayout } = await import('./payout.service');
+    const { processPayout } = await import('./payout.service.js');
     const result = await processPayout(creatorId, amountInCents);
     return {
         success: true,

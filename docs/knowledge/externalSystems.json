@@ -1,15 +1,5 @@
 [
   {
-    "id": "stripe",
-    "name": "Stripe",
-    "type": "payment",
-    "purpose": "Payment processing, subscription billing, Stripe Connect for creator payouts, webhook event handling",
-    "integration": "api",
-    "module": "payments",
-    "endpoints": ["/v1/payment_intents", "/v1/subscriptions", "/v1/checkout/sessions", "/v1/transfers", "/v1/customers", "/v1/webhook_endpoints"],
-    "authMethod": "API key (secret key) + webhook signing secret"
-  },
-  {
     "id": "supabase",
     "name": "Supabase",
     "type": "database",

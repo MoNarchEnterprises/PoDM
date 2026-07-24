@@ -20,7 +20,7 @@
   ],
   "services": [],
   "externalSystems": [
-    { "id": "ext-stripe", "label": "Stripe API", "description": "Payment processing (SetupIntent, customer creation; payment endpoints dead)" },
+    { "id": "ext-stripe", "label": "Stripe API", "description": "Payment processing (SetupIntent ABORTED, customer creation; payment endpoints dead)" },
     { "id": "ext-openai", "label": "OpenAI / OpenRouter API", "description": "AI caption generation service" },
     { "id": "ext-ethereum", "label": "Ethereum RPC (Base/Monad/MegaETH)", "description": "Blockchain RPC for transaction verification" },
     { "id": "ext-supabase-auth", "label": "Supabase Auth API", "description": "Authentication service (JWT validation, user management)" },

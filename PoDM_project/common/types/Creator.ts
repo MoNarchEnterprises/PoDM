@@ -12,7 +12,7 @@ export interface SubscriptionTier {
   features: string[];
   subscriberCount: number;
   level: number; // 1-10, where 10 is the highest
-  stripePriceId?: string; // ID from Stripe for this tier's price
+  priceId?: string;
 }
 
 /**

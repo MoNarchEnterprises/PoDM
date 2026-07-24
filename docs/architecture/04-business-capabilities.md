@@ -11,7 +11,7 @@
 ## Capability Inventory
 
 | # | Capability | Primary Users | Revenue Impact |
-|---|---|---|---|
+|---|---|---|---|---|
 | 1 | Identity & Access Management | All users, platform | Enabling (prerequisite) |
 | 2 | Creator Onboarding & Verification | Creators, Admin | Enabling (trust) |
 | 3 | Content Publishing | Creators | Core (product) |
@@ -32,6 +32,8 @@
 | 18 | Platform Administration | Admin | Governance |
 | 19 | Business Intelligence | Creators, Admin | Retention (insight) |
 | 20 | AI Content Tools | Creators | Productivity |
+| 21 | Fiat-to-Crypto On-Ramp | Fans | Enabling (crypto ecosystem) |
+| 22 | Recurring Billing & Renewal | Platform, Creators, Fans | Core (revenue continuity) |
 
 ---
 
@@ -645,30 +647,102 @@
 
 ---
 
+### 21. Fiat-to-Crypto On-Ramp
+
+**Purpose**: Enable fans to purchase USDC on the Base blockchain using a credit card. Bridges fiat currency to the crypto payment ecosystem, making crypto payments accessible to users without pre-existing crypto wallets or balances.
+
+**Primary users**: Fans (buy USDC), Platform (facilitates, earns on subsequent crypto spend).
+
+**Major workflows**:
+- Fan initiates purchase from wallet settings or payment flow
+- Fan specifies fiat amount (USD) to convert
+- Backend creates Coinbase On-Ramp session with destination wallet and Base network configuration
+- Fan is redirected to Coinbase-hosted purchase page (or embedded iframe)
+- Fan completes card payment with Coinbase (PCI-compliant, off-platform)
+- Coinbase sends webhook event (`charge_completed`) to backend
+- Backend verifies webhook HMAC-SHA256 signature
+- Backend updates pending transaction record status from `Pending` to `Cleared`
+- USDC arrives in fan's wallet on Base network
+- Subsequent crypto payments (subscriptions, tips, PPV) can use the purchased USDC
+
+**Dependencies**:
+- Payment Processing (the crypto payment capability that spends the purchased USDC)
+- Fan must have a configured crypto wallet address to receive the purchased USDC
+
+**Related modules**: Onramp routes/controller/service, crypto payment service (wallet config), frontend OnRampButton component, frontend WalletSettings page.
+
+**Database entities**: `transactions` (type=OnRamp, amount in cents USD, status=Pending→Cleared, blockchain_tx_hash=onramp session ID, payment_method=card_onramp, payment_currency=USD).
+
+**APIs**: `POST /api/v1/payments/onramp/session`, `POST /api/v1/payments/onramp/webhook`.
+
+**External services**: Coinbase On-Ramp API (session creation), Coinbase-hosted purchase page (card processing), HMAC-SHA256 shared secret.
+
+---
+
+### 22. Recurring Billing & Renewal
+
+**Purpose**: Automate the renewal of active subscriptions at the end of each billing period. Ensures revenue continuity without manual fan intervention by processing recurring on-chain payments.
+
+**Primary users**: Platform (operations), Creators (receive recurring revenue), Fans (maintain continuous access).
+
+**Major workflows**:
+- Scheduled job (or manual trigger) queries all active subscriptions where `next_billing_date <= now()`
+- For each due subscription:
+  1. Fetch creator's crypto wallet address and fan's wallet address
+  2. Compute renewal amount (same subscription price)
+  3. Send on-chain renewal transaction via smart contract `processRenewal` function
+  4. Smart contract validates: fan has active recurring allowance, amount within limit, renewal period elapsed
+  5. On success: USDC transferred from fan to platform treasury (fee) + creator (payout)
+  6. Create `SubscriptionRenewal` transaction record with 12.5% platform fee
+  7. Update subscription `next_billing_date` to current date + 30 days
+- If renewal fails (no allowance, insufficient funds, network error): subscription marked `expired`
+- If wallets missing or keeper key not configured: subscription marked `expired` with logged warning
+- Each subscription processed independently — failures do not cascade
+
+**Dependencies**:
+- Payment Processing (on-chain transaction execution)
+- Blockchain smart contract (`processRenewal` function + RecurringAllowance)
+- Subscription Commerce (tier pricing, billing amounts)
+- Fan must have pre-approved recurring allowance on smart contract
+
+**Related modules**: `jobs/renewSubscriptions.ts`, subscription model (`findSubscriptionsDueForRenewal`, `updateSubscription`), transaction model (`createTransaction`), `ethers` (dynamic import for on-chain interaction), smart contract `PoDMPaymentProtocol.processRenewal`.
+
+**Database entities**: `subscriptions` (status=active, next_billing_date, price, fan_wallet_address), `transactions` (type=SubscriptionRenewal, amount, platform_fee, blockchain_tx_hash, status=Cleared), `profiles` (crypto_wallet_address for creator/fan).
+
+**APIs**: None (internal job — not exposed as REST endpoint). Triggered via `node dist/jobs/renewSubscriptions.js` or scheduled cron.
+
+**External services**: Base blockchain JSON-RPC (ethers.JsonRpcProvider), smart contract processRenewal function.
+
+---
+
 ## Capability Dependency Graph
 
 ```
-Identity & Access Management ──────────────────────────────────────────┐
-    │                                                                   │
-    ├── Creator Onboarding & Verification ──────────────────┐           │
-    │       │                                                │           │
-    │       ├── Content Publishing ───────────────────────┐  │           │
-    │       │       │                                     │  │           │
-    │       │       ├── Content Access Control             │  │           │
-    │       │       │       │                             │  │           │
-    │       │       │       ├── Tipping & PPV ──────────┐  │  │          │
-    │       │       │       │                            │  │  │          │
-    │       │       │       ├── Subscription Commerce ──┐│  │  │          │
-    │       │       │       │       │                   ││  │  │          │
-    │       │       │       │       └── Payment Proc. ──┼┼──┼──┼──────── │
-    │       │       │       │                            │  │  │          │
-    │       │       │       └── Subscriber Broadcast     │  │  │          │
-    │       │       │                                    │  │  │          │
-    │       │       └── Notifications                    │  │  │          │
-    │       │                                            │  │  │          │
-    │       ├── Direct Messaging                         │  │  │          │
-    │       │                                            │  │  │          │
-    │       └── Payout Management ◄──────────────────────┼──┼──┼──────────┘
+Identity & Access Management ──────────────────────────────────────────────────────┐
+    │                                                                               │
+    ├── Creator Onboarding & Verification ──────────────────┐                       │
+    │       │                                                │                       │
+    │       ├── Content Publishing ───────────────────────┐  │                       │
+    │       │       │                                     │  │                       │
+    │       │       ├── Content Access Control             │  │                       │
+    │       │       │       │                             │  │                       │
+    │       │       │       ├── Tipping & PPV ──────────┐  │  │                      │
+    │       │       │       │                            │  │  │                      │
+    │       │       │       ├── Subscription Commerce ──┐│  │  │                      │
+    │       │       │       │       │        ┌──────────┘│  │  │                      │
+    │       │       │       │       │        ▼           │  │  │                      │
+    │       │       │       │       ├── Recurring Billing│  │  │                      │
+    │       │       │       │       │   & Renewal        │  │  │                      │
+    │       │       │       │       │        │           │  │  │                      │
+    │       │       │       │       └── Payment Proc. ──┼┼──┼──┼──────────────────── │
+    │       │       │       │                            │  │  │                      │
+    │       │       │       └── Subscriber Broadcast     │  │  │                      │
+    │       │       │                                    │  │  │                      │
+    │       │       └── Notifications                    │  │  │                      │
+    │       │                                            │  │  │                      │
+    │       ├── Direct Messaging                         │  │  │                      │
+    │       │                                            │  │  │                      │
+    │       └── Payout Management ◄──────────────────────┼──┼──┼──────────────────────┘
     │                                                    │  │  │
     ├── Personalized Feed ───────────────────────────────┘  │  │
     │                                                        │  │
@@ -682,6 +756,10 @@ Identity & Access Management ─────────────────
     │                                                            │
     ├── Customer Support                                         │
     │                                                            │
+    ├── Fiat-to-Crypto On-Ramp ──────────────────────────────────┘
+    │                  │
+    │                  └── Payment Processing (spends purchased USDC)
+    │
     ├── Platform Administration ◄────────────────────────────────┘
     │
     ├── Business Intelligence
@@ -690,9 +768,11 @@ Identity & Access Management ─────────────────
 ```
 
 **Key observations**:
-- **Payment Processing** is the most depended-on capability (subs, PPV, tips, payouts all depend on it)
+- **Payment Processing** is the most depended-on capability (subscriptions, PPV, tips, payouts, renewals all depend on it)
 - **Identity & Access Management** is prerequisite for every other capability
 - **Subscription Commerce** and **Content Publishing** are the two primary value-generating capabilities
+- **Recurring Billing & Renewal** is a downstream automation of Subscription Commerce — ensures revenue continuity
+- **Fiat-to-Crypto On-Ramp** enables the crypto ecosystem by allowing fans to convert fiat to USDC
 - **Platform Administration** depends on every data-creating capability (needs to manage all entities)
 - **AI Content Tools** is fully independent (no database, no other capabilities)
 - **Enclave Membership** is a standalone premium tier that integrates with support + referral
@@ -706,6 +786,8 @@ Identity & Access Management ─────────────────
 | Subscription Commerce | Recurring (primary) | Core revenue — monthly subscriptions |
 | Tipping & PPV | One-time (secondary) | Incremental revenue per transaction |
 | Payment Processing | Fee capture (12.5% commission) | All revenue flows through this |
+| Recurring Billing & Renewal | Recurring (automation) | Ensures subscription revenue continuity |
+| Fiat-to-Crypto On-Ramp | Enabling (transaction fee) | Facilitates crypto payment volume |
 | Enclave Membership | Premium tier (potential) | Future revenue opportunity |
 
 All other capabilities are **engagement** or **enabling** — they drive retention, acquisition, or operational efficiency.
@@ -736,6 +818,8 @@ All other capabilities are **engagement** or **enabling** — they drive retenti
 | Platform Administration | Mature | Full CRUD for all entities |
 | Business Intelligence | Functional | Basic aggregation, no real-time dashboards |
 | AI Content Tools | Basic | Single caption use case, no image generation or other AI tools |
+| Fiat-to-Crypto On-Ramp | Functional | Single provider (Coinbase), no alternative on-ramp options |
+| Recurring Billing & Renewal | Basic | Not scheduled (manual trigger only), no fallback for failed renewals, no grace period |
 
 ---
 
@@ -744,3 +828,4 @@ All other capabilities are **engagement** or **enabling** — they drive retenti
 | Date | Author | Change |
 |---|---|---|
 | 2026-07-02 | AI Architect | Initial business capabilities analysis |
+| 2026-07-19 | AI Architect | Added capability 21 (Fiat-to-Crypto On-Ramp) and 22 (Recurring Billing & Renewal). Updated dependency graph, revenue mapping, and maturity assessment. All 22 capabilities now include all 8 required sections. |

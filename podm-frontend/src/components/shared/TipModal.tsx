@@ -1,117 +1,46 @@
-// src/features/shared/TipModal.tsx
-
 import React, { useState } from 'react';
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { X, Send, CheckCircle, CreditCard } from 'lucide-react';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
+import { X, Send, CheckCircle, Wallet } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-
 import { Creator } from '@common/types/Creator';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import { CARD_ELEMENT_OPTIONS } from '../../lib/constants';
-import * as apiClient from '../../lib/apiClient';
 
 interface TipModalProps {
     isOpen: boolean;
     onClose: () => void;
     creator: Creator;
-    onSubmit: (amount: number, message: string, paymentMethodId?: string) => Promise<{ clientSecret: string; status: string; paymentIntentId?: string }>;
+    onSubmit: (amount: number, message: string) => Promise<void>;
 }
 
 const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
-    const stripe = useStripe();
-    const elements = useElements();
-
-    const { paymentMethod } = useAuth();
-
+    const { user: currentFan } = useAuth();
+    const { processPayment, isLoading, error, step, setStep, setError, setIsLoading } = useCryptoPayment();
     const [amount, setAmount] = useState(10);
     const [customAmount, setCustomAmount] = useState('');
     const [message, setMessage] = useState('');
-    const [step, setStep] = useState(1);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    const showCardForm = !paymentMethod || !paymentMethod.id;
+    const recipientAddress = creator.profile?.crypto_wallet_address;
+    const hasWallet = !!recipientAddress;
 
     const handleSendTip = async () => {
-        if (!stripe) {
-            setError("Payment form is not ready.");
-            return;
-        }
-
         const finalAmount = customAmount ? parseFloat(customAmount) : amount;
         if (finalAmount <= 0) {
-            setError("Please enter a valid tip amount.");
+            setError('Please enter a valid tip amount.');
             return;
         }
 
+        const success = await processPayment({
+            amount: finalAmount,
+            recipientAddress,
+            creatorId: creator.id,
+            message,
+        });
 
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            let tipPaymentMethodId: string | undefined = paymentMethod?.id || undefined;
-
-            if (showCardForm) {
-                console.log('[TIP MODAL DEBUG] Creating new payment method from card element');
-                const cardElement = elements?.getElement(CardElement);
-                if (!cardElement) throw new Error("Card element not found.");
-
-                const { error: pmError, paymentMethod: newPaymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-                if (pmError || !newPaymentMethod) throw new Error(pmError?.message || "Invalid card details.");
-                tipPaymentMethodId = newPaymentMethod.id;
-
-            }
-
-
-
-            const { clientSecret, status, paymentIntentId } = await onSubmit(finalAmount, message, tipPaymentMethodId);
-
-
-
-            let finalPaymentIntentId = paymentIntentId;
-
-            // Handle confirmation based on status
-            if (status === 'requires_confirmation') {
-
-                const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) {
-
-                    throw new Error(confirmationError.message);
-                }
-                if (paymentIntent) {
-                    finalPaymentIntentId = paymentIntent.id;
-
-                }
-            } else if (status === 'requires_action' || status === 'requires_payment_method') {
-
-                const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret);
-                if (confirmationError) {
-
-                    throw new Error(confirmationError.message);
-                }
-                if (paymentIntent) {
-                    finalPaymentIntentId = paymentIntent.id;
-
-                }
-            } else {
-                console.log('[TIP MODAL DEBUG] No confirmation needed, status:', status);
-            }
-
-            // Manually confirm transaction to ensure DB record is created
-            if (finalPaymentIntentId) {
-                await apiClient.confirmTransaction(finalPaymentIntentId);
-
-            }
-
-            setStep(2);
-
-        } catch (err: any) {
-            console.error('[TIP MODAL DEBUG] Error in handleSendTip:', err);
-            setError(err.message || "An unexpected error occurred.");
-        } finally {
-            setIsLoading(false);
+        if (success) {
+            try {
+                await onSubmit(finalAmount, message);
+            } catch { }
         }
     };
 
@@ -151,17 +80,30 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                         </div>
                         <input type="number" placeholder="Custom amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setAmount(0); }} className="w-full bg-gray-100 dark:bg-gray-700 border-transparent rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-pink-500" />
 
-                        {showCardForm ? (
+                        {!hasWallet ? (
+                            <div className="p-3 bg-yellow-900/30 rounded-md border border-yellow-700 text-center">
+                                <p className="text-sm text-yellow-400">This creator has not set up their crypto wallet yet.</p>
+                            </div>
+                        ) : !currentFan?.profile?.crypto_wallet_address ? (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700">
-                                <CardElement options={CARD_ELEMENT_OPTIONS} />
+                                <p className="text-sm text-gray-400 mb-2">Connect your wallet to send a tip via USDC on Base.</p>
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => {
+                                        const eth = window.ethereum;
+                                        if (eth) eth.request({ method: 'eth_requestAccounts' });
+                                        else setError('No wallet detected.');
+                                    }}
+                                >
+                                    <Wallet className="w-4 h-4 mr-2" /> Connect Wallet
+                                </Button>
                             </div>
                         ) : (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700 text-center">
-                                <p className="text-sm text-gray-400">Using your saved card:</p>
-                                <div className="flex items-center justify-center space-x-2 font-semibold text-white mt-1">
-                                    <CreditCard className="w-5 h-5" />
-                                    <span>{paymentMethod?.brand} **** {paymentMethod?.last4}</span>
-                                </div>
+                                <p className="text-sm text-gray-400">Sending from:</p>
+                                <p className="font-semibold text-white text-xs truncate">{currentFan.profile.crypto_wallet_address}</p>
                             </div>
                         )}
 
@@ -169,9 +111,9 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
                     </main>
                     <footer className="p-4 border-t border-gray-200 dark:border-gray-700">
-                        <Button onClick={handleSendTip} isLoading={isLoading} disabled={!stripe || isLoading} className="w-full flex items-center justify-center space-x-2 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg transition-colors">
+                        <Button onClick={handleSendTip} isLoading={isLoading} disabled={!hasWallet || !currentFan?.profile?.crypto_wallet_address || isLoading} className="w-full flex items-center justify-center space-x-2 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg transition-colors">
                             <Send className="w-4 h-4" />
-                            <span>Send Tip of ${customAmount || amount}</span>
+                            <span>Send Tip of ${customAmount || amount} (USDC)</span>
                         </Button>
                     </footer>
                 </>
@@ -181,7 +123,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                     <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tip Sent!</h2>
                     <p className="text-gray-500 dark:text-gray-400 mt-2">
-                        You sent <span className="font-bold text-gray-800 dark:text-white">${customAmount || amount}</span> to <span className="font-bold text-gray-800 dark:text-white">{creator.profile.name}</span>. Thank you for your support!
+                        You sent <span className="font-bold text-gray-800 dark:text-white">${customAmount || amount}</span> USDC to <span className="font-bold text-gray-800 dark:text-white">{creator.profile.name}</span>. Thank you for your support!
                     </p>
                     <Button onClick={handleClose} className="mt-6 w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
                         Done

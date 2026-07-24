@@ -23,8 +23,19 @@ interface PaymentModalProps {
 const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
 const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
 
+function stringToBytes32(str: string | undefined): string {
+    if (!str) return '0'.repeat(64);
+    const clean = str.replace(/-/g, '');
+    if (/^[0-9a-fA-F]{64}$/.test(clean)) return clean.toLowerCase();
+    let hex = '';
+    for (let i = 0; i < str.length && i < 32; i++) {
+        hex += str.charCodeAt(i).toString(16);
+    }
+    return hex.padEnd(64, '0');
+}
+
 const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, relatedId, tierName, onSuccess, fanId }: PaymentModalProps) => {
-    const { isConnected, walletAddress, balance, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
+    const { isConnected, walletAddress, balance, chainId, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'connect' | 'approve' | 'success'>('connect');
@@ -68,25 +79,36 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
             const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
             if (!contractAddress) throw new Error('Contract address not configured.');
 
+            const chainIdNum = chainId || 84532;
+            const usdcAddress = chainIdNum === 8453
+                ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
+                : '0x036eFd9011037348926609f2A377B6729024D914';
+
             const amountWei = BigInt(Math.round((displayAmount / 100) * 1e6));
             const creatorWallet = creator.profile.crypto_wallet_address || creator.crypto_wallet_address;
             if (!creatorWallet) throw new Error('Creator has not configured their payout wallet.');
 
             let data: string;
             if (type === 'subscription') {
-                const sig = 'e73e7d6e';
-                const zeroBytes32 = '0'.repeat(64);
+                const sig = '7158d140';
                 data = '0x' + sig +
+                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
                     creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
                     amountWei.toString(16).padStart(64, '0') +
-                    zeroBytes32 +
-                    '0000000000000000000000000000000000000000000000000000000000000060' +
-                    '0000000000000000000000000000000000000000000000000000000000000000';
-            } else {
-                const sig = '0xbeabacc8';
-                data = sig +
+                    stringToBytes32(relatedId);
+            } else if (type === 'tip') {
+                const sig = '7b6c03b7';
+                data = '0x' + sig +
+                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
                     creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
                     amountWei.toString(16).padStart(64, '0');
+            } else {
+                const sig = 'f6ad20a7';
+                data = '0x' + sig +
+                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
+                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
+                    amountWei.toString(16).padStart(64, '0') +
+                    stringToBytes32(relatedId);
             }
 
             const hash: string = await eth.request({
