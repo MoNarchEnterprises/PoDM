@@ -21,6 +21,7 @@
   ],
   "exclude": [
     "node_modules",
-    "server/scripts"
+    "server/scripts",
+    "contracts"
   ]
 }
