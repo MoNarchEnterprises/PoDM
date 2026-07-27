@@ -81,7 +81,8 @@ const ChangeTierModal = ({ isOpen, onClose, onConfirm, subscription, isLoading }
 
 
 const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription: SubscriptionWithCreator; isSelected: boolean; onClick: () => void; }) => {
-    const statusStyle = { active: 'text-green-500', expired: 'text-red-500', canceled: 'text-yellow-500' }[subscription.status];
+    const statusMap: Record<string, string> = { active: 'text-green-500', expired: 'text-red-500', canceled: 'text-yellow-500', pending: 'text-yellow-500' };
+    const statusStyle = statusMap[subscription.status] || 'text-gray-400';
     return (
         <div onClick={onClick} className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-purple-500 bg-purple-900/50' : 'bg-gray-800/50 border-transparent hover:border-gray-600'}`}>
             <div className="flex items-center justify-between">

@@ -1,11 +1,13 @@
-﻿// src/features/fan/FanMessages.tsx
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Send, ArrowLeft } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
+import { useEmbeddedWallet } from '../../context/EmbeddedWalletContext';
+import { useEmbeddedWalletEnabled } from '../../shared/hooks/useFeatureFlag';
+import { PaymentOrchestrator, resolveRecipientWallet } from '../../shared/lib/PaymentOrchestrator';
+import EmbeddedPaymentModal from '../../components/shared/EmbeddedPaymentModal';
 import Button from '../../components/ui/Button';
 import { socket } from '../../lib/socket';
 import ContentViewerModal from './components/ContentViewerModal';
@@ -29,7 +31,10 @@ interface ConversationWithCreator {
 const FanMessagesPage = () => {
     const { user: currentFan } = useAuth();
     const location = useLocation();
-    const { processPayment: processCryptoPayment, isLoading: isCryptoLoading, error: cryptoError, setError: setCryptoError } = useCryptoPayment();
+    const cryptoPaymentHook = useCryptoPayment();
+    const embeddedWallet = useEmbeddedWallet();
+    const { enabled: embeddedWalletEnabled } = useEmbeddedWalletEnabled();
+    const [unlockingMessage, setUnlockingMessage] = useState<Message | null>(null);
     const initialState = location.state;
     const [conversations, setConversations] = useState<ConversationWithCreator[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -152,49 +157,56 @@ const FanMessagesPage = () => {
         }
     };
 
+    const markContentUnlocked = async (msgToUnlock: Message) => {
+        setMessages(prev => prev.map(msg =>
+            msg.id === msgToUnlock.id
+                ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
+                : msg
+        ));
+
+        try {
+            if (msgToUnlock.content?.contentId) {
+                await apiClient.addContentToGallery(msgToUnlock.content.contentId);
+            }
+            await apiClient.unlockMessageContent(msgToUnlock.id);
+        } catch { }
+
+        alert('Content unlocked and added to your gallery!');
+    };
+
     const handleUnlockContent = async (message: Message) => {
         if (!message.content) { return; }
 
-        // Resolve recipient address via fallback chain:
-        // 1. creatorWalletAddress on the message content (set at send time)
-        // 2. crypto_wallet_address on the creator profile from the conversation
-        // 3. Fetch from backend via getUserById
-        let recipientAddress = message.content.creatorWalletAddress;
-        if (!recipientAddress) {
-            recipientAddress = getCryptoWallet(activeConversation?.creator);
+        if (embeddedWalletEnabled && embeddedWallet.isReady && embeddedWallet.smartAccountAddress) {
+            setUnlockingMessage(message);
+            return;
         }
-        if (!recipientAddress) {
-            try {
-                const userResp = await apiClient.getUserById(message.sender_id);
-                const creatorData = userResp.data;
-                recipientAddress = getCryptoWallet(creatorData);
-            } catch { }
-        }
+
+        const orchestrator = new PaymentOrchestrator(embeddedWallet, cryptoPaymentHook);
+        const recipientAddress = await orchestrator.resolveRecipientWallet({
+            creatorWalletAddress: message.content.creatorWalletAddress,
+            creatorProfile: activeConversation?.creator,
+            creatorId: message.sender_id,
+        });
+
         if (!recipientAddress) {
             alert('Creator has not set up their crypto wallet.');
             return;
         }
 
         const priceInDollars = (message.content.price || 0) / 100;
-        const success = await processCryptoPayment({
+        const result = await orchestrator.payWithBrowserWallet({
+            paymentType: 'PPV Message',
             amount: priceInDollars,
-            recipientAddress,
-            contentId: message.content.contentId,
             creatorId: message.sender_id,
+            creatorWalletAddress: recipientAddress,
+            contentId: message.content.contentId,
         });
 
-        if (success) {
-            setMessages(prev => prev.map(msg =>
-                msg.id === message.id
-                    ? { ...msg, content: { ...msg.content!, isUnlocked: true } }
-                    : msg
-            ));
-
-            try {
-                await apiClient.addContentToGallery(message.content.contentId);
-            } catch { }
-
-            alert('Content unlocked and added to your gallery!');
+        if (result.success) {
+            await markContentUnlocked(message);
+        } else if (result.error) {
+            alert(`Unlock failed: ${result.error}`);
         }
     };
 
@@ -218,6 +230,21 @@ const FanMessagesPage = () => {
 
     return (
         <>
+            {unlockingMessage && embeddedWalletEnabled && (
+                <EmbeddedPaymentModal
+                    isOpen={!!unlockingMessage}
+                    onClose={() => setUnlockingMessage(null)}
+                    type="PPV Message"
+                    amount={(unlockingMessage.content?.price || 0) / 100}
+                    creator={{ id: unlockingMessage.sender_id, profile: { name: activeConversation?.creator.profile.name || 'Creator' } } as any}
+                    contentTitle="Exclusive Message Content"
+                    relatedId={unlockingMessage.content?.contentId}
+                    onSuccess={async () => {
+                        await markContentUnlocked(unlockingMessage);
+                        setUnlockingMessage(null);
+                    }}
+                />
+            )}
             <ContentViewerModal
                 galleryItems={galleryItemsForModal}
                 currentIndex={viewingContent ? 0 : null}

@@ -1,6 +1,6 @@
 {
   "code": "23502",
-  "details": "Failing row contains (95, null, Integration Test PPV, Test Description, video, [{\"url\": \"test.mp4\", \"type\": \"video/mp4\", \"thumbnailUrl\": \"thumb..., pay_per_view, 500, null, null, null, published, 2026-07-27 04:23:58.50995+00, 2026-07-27 04:23:58.50995+00, 1).",
+  "details": "Failing row contains (97, null, Integration Test PPV, Test Description, video, [{\"url\": \"test.mp4\", \"type\": \"video/mp4\", \"thumbnailUrl\": \"thumb..., pay_per_view, 500, null, null, null, published, 2026-07-27 16:59:51.530052+00, 2026-07-27 16:59:51.530052+00, 1).",
   "hint": null,
   "message": "null value in column \"creator_id\" of relation \"content\" violates not-null constraint"
 }

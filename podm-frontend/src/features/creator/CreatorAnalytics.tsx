@@ -85,16 +85,16 @@ const ContentRow = ({ item, onViewPost, onEditPost }: {
                 </div>
             </td>
             <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                {item.stats.views.toLocaleString()}
+                {item.stats?.views?.toLocaleString() || '0'}
             </td>
             <td className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                {item.stats.galleryAdds.toLocaleString()}
+                {item.stats?.galleryAdds?.toLocaleString() || '0'}
             </td>
             <td className="px-4 py-3 text-center text-sm font-semibold text-blue-600 dark:text-blue-400">
-                {formatCurrency(item.stats.ppvEarnings || 0)}
+                {formatCurrency(item.stats?.ppvEarnings || 0)}
             </td>
             <td className="px-4 py-3 text-center text-sm font-semibold text-green-600 dark:text-green-400">
-                {formatCurrency(item.stats.tips)}
+                {formatCurrency(item.stats?.tips ?? 0)}
             </td>
             <td className="px-4 py-3 text-center relative">
                 <button
@@ -195,21 +195,21 @@ const CreatorAnalyticsPage = ({ metrics, subscriberGrowth, revenueBreakdown, top
 
             switch (sort.key) {
                 case 'views':
-                    aVal = a.stats.views;
-                    bVal = b.stats.views;
+                    aVal = a.stats?.views || 0;
+                    bVal = b.stats?.views || 0;
                     break;
                 case 'galleryAdds':
-                    aVal = a.stats.galleryAdds;
-                    bVal = b.stats.galleryAdds;
+                    aVal = a.stats?.galleryAdds || 0;
+                    bVal = b.stats?.galleryAdds || 0;
                     break;
                 case 'ppvEarnings':
-                    aVal = a.stats.ppvEarnings || 0;
-                    bVal = b.stats.ppvEarnings || 0;
+                    aVal = a.stats?.ppvEarnings || 0;
+                    bVal = b.stats?.ppvEarnings || 0;
                     break;
                 case 'tips':
                 default:
-                    aVal = a.stats.tips;
-                    bVal = b.stats.tips;
+                    aVal = a.stats?.tips || 0;
+                    bVal = b.stats?.tips || 0;
                     break;
             }
 

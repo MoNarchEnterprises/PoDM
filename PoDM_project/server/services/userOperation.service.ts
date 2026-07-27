@@ -10,6 +10,7 @@ import supabase from '../config/supabaseClient';
 import { verifyPaymentReceiptInBackground } from './verification.service';
 import * as TransactionModel from '../models/transaction.model';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 
 const PODM_ABI = [
     "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash)",
@@ -54,6 +55,25 @@ function packUints(high: bigint, low: bigint): string {
     const paddedHigh = high.toString(16).padStart(32, '0');
     const paddedLow = low.toString(16).padStart(32, '0');
     return '0x' + paddedHigh + paddedLow;
+}
+
+/**
+ * Convert internal UserOp (with initCode) to bundler format (factory/factoryData).
+ * Pimlico v0.7 API rejects initCode and expects factory/factoryData when initializing,
+ * or neither field when the account is already deployed.
+ */
+export function convertToBundlerFormat(userOp: any) {
+    const op = { ...userOp };
+    if (!op.initCode || op.initCode === '0x') {
+        delete op.initCode;
+        if (!op.factory || op.factory === '0x') delete op.factory;
+        if (!op.factoryData || op.factoryData === '0x') delete op.factoryData;
+        return op;
+    }
+    const factory = '0x' + op.initCode.slice(2, 42);
+    const factoryData = '0x' + op.initCode.slice(42);
+    delete op.initCode;
+    return { ...op, factory, factoryData };
 }
 
 /**
@@ -215,12 +235,12 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const isEligible = await paymaster.isEligibleForSponsorship(intent.amountInCents, userId);
         let sponsoredGas = false;
         if (isEligible) {
-            const sponsorData = await paymaster.sponsorUserOperation(op, entryPoint);
+            const sponsorData = await paymaster.sponsorUserOperation(convertToBundlerFormat(op), entryPoint);
             op = { ...op, ...sponsorData };
             sponsoredGas = true;
         } else {
             // Non-sponsored: estimate gas via bundler (smart account must have ETH for gas)
-            const gasEstimates = await bundler.estimateUserOperationGas(op, entryPoint);
+            const gasEstimates = await bundler.estimateUserOperationGas(convertToBundlerFormat(op), entryPoint);
             op = { ...op, ...gasEstimates };
         }
 
@@ -229,12 +249,10 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const ethSignedHash = ethers.hashMessage(ethers.getBytes(userOpHash));
         const signature = await walletProvider.signUserOperation(userId, ethSignedHash);
 
-        //const userOpHash = await computeUserOpHash(op as UserOperation, entryPoint);
-        //const signature = await walletProvider.signUserOperation(userId, userOpHash);
         op.signature = signature;
 
         // Submit
-        const finalOpHash = await bundler.sendUserOperation(op as UserOperation, entryPoint);
+        const finalOpHash = await bundler.sendUserOperation(convertToBundlerFormat(op) as UserOperation, entryPoint);
 
         // Log event
         await supabase.from('wallet_events').insert({
@@ -296,6 +314,16 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         if (!transaction) {
             throw new AppError('Failed to record transaction in the database.', 500);
+        }
+
+        if (intent.relatedId) {
+            if (intent.type === 'Tip') {
+                incrementContentTipStats(intent.relatedId, intent.amountInCents)
+                    .catch(err => console.error('[UserOpService] Error updating content tip stats:', err));
+            } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
+                incrementContentPpvEarningsStats(intent.relatedId, creatorPayout)
+                    .catch(err => console.error('[UserOpService] Error updating content PPV stats:', err));
+            }
         }
 
         // Fire background verification — polls eth_getTransactionReceipt up to

@@ -75,3 +75,11 @@ export const sendVoiceMessage = asyncHandler(async (req: Request, res: Response)
     const newMessage = await MessageService.sendVoiceMessage(sender_id, receiver_id, voiceFile);
     created(res, newMessage);
 });
+
+export const unlockMessageContent = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { id: messageId } = req.params;
+
+    const updatedMessage = await MessageService.unlockMessageContent(messageId, userId);
+    ok(res, updatedMessage);
+});

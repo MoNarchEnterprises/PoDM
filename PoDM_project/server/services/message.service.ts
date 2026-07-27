@@ -419,3 +419,49 @@ export const sendVoiceMessage = async (sender_id: string, receiver_id: string, v
 
     return messageForFrontend;
 };
+
+/**
+ * Unlocks PPV content in a message, persisting isUnlocked: true to DB.
+ * @param messageId - The ID of the message to unlock.
+ * @param userId - The ID of the requesting user.
+ */
+export const unlockMessageContent = async (messageId: string, userId: string) => {
+    const message = await MessageModel.findMessageById(messageId);
+    if (!message) {
+        throw new AppError('Message not found.', 404);
+    }
+
+    if (message.sender_id !== userId && message.receiver_id !== userId) {
+        throw new AppError('You are not authorized to unlock content in this message.', 403);
+    }
+
+    const updatedMessage = await MessageModel.unlockContentInMessage(messageId);
+    if (!updatedMessage) {
+        throw new AppError('Failed to unlock content in message.', 500);
+    }
+
+    let processedContent = updatedMessage.content;
+    if (updatedMessage.content?.thumbnailUrl) {
+        const tempContentWrapper = { files: [{ thumbnailUrl: updatedMessage.content.thumbnailUrl }] };
+        const signedContentWrapper = await generateSignedUrlsForContent(tempContentWrapper);
+        processedContent = { ...updatedMessage.content, thumbnailUrl: signedContentWrapper.files[0].thumbnailUrl };
+    }
+
+    const finalMessage = {
+        id: updatedMessage.id.toString(),
+        conversation_id: updatedMessage.conversation_id,
+        sender_id: updatedMessage.sender_id,
+        receiver_id: updatedMessage.receiver_id,
+        text: updatedMessage.text,
+        content: processedContent,
+        voiceMessageUrl: updatedMessage.voice_message_url,
+        is_read: updatedMessage.is_read,
+        created_at: updatedMessage.created_at,
+        updated_at: updatedMessage.updated_at,
+    };
+
+    const roomName = `conversation:${updatedMessage.conversation_id}`;
+    io.to(roomName).emit('message_updated', finalMessage);
+
+    return finalMessage;
+};

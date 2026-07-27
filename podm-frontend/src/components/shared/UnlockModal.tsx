@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { payFromWallet } from '../../lib/cryptoPayments';
+import { PaymentOrchestrator } from '../../shared/lib/PaymentOrchestrator';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
 import { getCryptoWallet } from '../../lib/wallet';
 import { X, Lock, CheckCircle, Wallet } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,6 +23,7 @@ interface UnlockModalProps {
 
 const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess, creatorWalletAddress, creatorId }: UnlockModalProps) => {
     const { user: currentFan } = useAuth();
+    const cryptoPayment = useCryptoPayment();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,13 +40,14 @@ const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess
         setIsLoading(true);
         setError(null);
 
-        const result = await payFromWallet({
-            fromAddress: fanWalletAddress,
-            toAddress: recipientWallet,
+        const orchestrator = new PaymentOrchestrator(undefined, cryptoPayment);
+        const result = await orchestrator.payWithBrowserWallet({
+            paymentType: 'PPV Post',
+            amount: price / 100,
             creatorId: creatorId || '',
-            amountInCents: price,
-            transactionType: 'PPV Post',
-            relatedId: contentId,
+            creatorWalletAddress: recipientWallet,
+            contentId,
+            fromAddress: fanWalletAddress,
         });
 
         setIsLoading(false);

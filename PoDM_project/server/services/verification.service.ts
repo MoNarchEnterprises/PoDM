@@ -2,6 +2,7 @@ import supabase from '../config/supabaseClient';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
+import { getCryptoWalletForUser } from './wallet.service';
 
 const EVENT_TOPICS = {
     SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
@@ -101,11 +102,12 @@ export const verifyPaymentReceiptInBackground = async (
 
     const expectedTopic = getExpectedTopic(transactionType);
 
-    const contractInteracted = (receipt.to && receipt.to.toLowerCase() === contractAddress.toLowerCase()) ||
-        (receipt.logs && receipt.logs.some((log: any) =>
-            log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
-            log.topics && log.topics[0] === expectedTopic
-        ));
+    // Rely strictly on event log inspection for PoDM contract interaction.
+    // For ERC-4337 UserOps, receipt.to is the EntryPoint contract address (0x000...32), not the PoDM contract.
+    const contractInteracted = receipt.logs && receipt.logs.some((log: any) =>
+        log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
+        log.topics && log.topics[0] === expectedTopic
+    );
 
     if (!contractInteracted) {
         console.warn('[VerificationService] Transaction did not interact with PoDM contract:', txHash);
@@ -130,17 +132,25 @@ export const verifyPaymentReceiptInBackground = async (
         return;
     }
 
-    const creatorWalletAddress = await getCreatorWalletFromProfile(creatorId);
+    let creatorWalletAddress = await getCreatorWalletFromProfile(creatorId);
+    if (!creatorWalletAddress) {
+        creatorWalletAddress = await getCryptoWalletForUser(creatorId);
+    }
+
     const recipientTopic = contractLog.topics[2];
     if (recipientTopic) {
-        const recipientHex = '0x' + recipientTopic.slice(26).toLowerCase();
-        if (recipientHex.toLowerCase() !== creatorWalletAddress.toLowerCase()) {
-            console.warn('[VerificationService] Recipient mismatch. Expected:', creatorWalletAddress, 'Got:', recipientHex);
-            await supabase
-                .from('transactions')
-                .update({ status: 'Failed' })
-                .eq('id', transactionId);
-            return;
+        if (!creatorWalletAddress) {
+            console.warn('[VerificationService] Creator wallet unconfigured, skipping recipient topic check for tx:', txHash);
+        } else {
+            const recipientHex = '0x' + recipientTopic.slice(26).toLowerCase();
+            if (recipientHex.toLowerCase() !== creatorWalletAddress.toLowerCase()) {
+                console.warn('[VerificationService] Recipient mismatch. Expected:', creatorWalletAddress, 'Got:', recipientHex);
+                await supabase
+                    .from('transactions')
+                    .update({ status: 'Failed' })
+                    .eq('id', transactionId);
+                return;
+            }
         }
     }
 

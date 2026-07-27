@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead, sendVoiceMessage } from '../controllers/message.controller';
+import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead, sendVoiceMessage, unlockMessageContent } from '../controllers/message.controller';
 import { protect, creatorOnly, protectAndCreator } from '../middleware/auth.middleware';
 import { uploadVoiceMessage } from '../middleware/upload.middleware';
 
@@ -34,6 +34,13 @@ router.post('/', protect, sendMessage);
  * @access  Private
  */
 router.put('/conversations/:conversationId/read', protect, markConversationAsRead);
+
+/**
+ * @route   PATCH /api/v1/messages/:id/unlock
+ * @desc    Unlock PPV content in a message
+ * @access  Private (Sender or Receiver)
+ */
+router.patch('/:id/unlock', protect, unlockMessageContent);
 
 /**
  * @route   DELETE /api/v1/messages/:id

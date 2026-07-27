@@ -62,8 +62,8 @@ export class PimlicoPaymasterService implements IPaymasterService {
             paymasterOp.factoryData = '0x' + raw.slice(40);
         } else {
             console.log('[PaymasterService] initCode is empty/deployed (value=%s, length=%d)', op.initCode, op.initCode?.length);
-            paymasterOp.factory = null;
-            paymasterOp.factoryData = null;
+            paymasterOp.factory = undefined;
+            paymasterOp.factoryData = undefined;
         }
 
         console.log('[PaymasterService] Sending pm_sponsorUserOperation: factory=%s, factoryData.length=%d, sender=%s, nonce=%s, sig.length=%d',

@@ -5,10 +5,10 @@ export const PLATFORM_TREASURY_ADDRESS = process.env.PLATFORM_TREASURY_ADDRESS |
 
 /**
  * Single canonical backend service method to resolve a user's crypto wallet address.
- * Automatically falls back to the Platform Treasury Wallet if unconfigured.
+ * Returns an empty string if unconfigured (never falls back to treasury).
  */
 export async function getCryptoWalletForUser(userId: string): Promise<string> {
-    if (!userId) return PLATFORM_TREASURY_ADDRESS;
+    if (!userId) return '';
 
     try {
         const { data: profile } = await supabase
@@ -25,5 +25,5 @@ export async function getCryptoWalletForUser(userId: string): Promise<string> {
         console.error(`[wallet.service] Failed to fetch wallet address for user ${userId}:`, err);
     }
 
-    return PLATFORM_TREASURY_ADDRESS;
+    return '';
 }

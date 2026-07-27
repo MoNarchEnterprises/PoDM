@@ -363,7 +363,120 @@ export const getContentByCreatorId = async (creator_id: string, query: ContentQu
         };
     }));
 
-    return contentWithUrls;
+    return await enrichContentWithEarnings(contentWithUrls, creator_id);
+};
+
+/**
+ * Enriches an array of content items with actual Tip and PPV earnings
+ * from cleared transactions. Both the content page and the analytics page
+ * use this to guarantee identical tips/PPV values.
+ */
+export async function enrichContentWithEarnings(
+    contentItems: Partial<Content>[],
+    creatorId: string
+): Promise<Content[]> {
+    const contentIds = contentItems.map(c => c.id).filter(Boolean);
+    if (contentIds.length === 0) return contentItems as Content[];
+
+    const { data: tipTx } = await supabase
+        .from('transactions')
+        .select('related_content_id, amount')
+        .eq('creator_id', creatorId)
+        .eq('status', 'Cleared')
+        .eq('type', 'Tip')
+        .in('related_content_id', contentIds);
+
+    const { data: ppvTx } = await supabase
+        .from('transactions')
+        .select('related_content_id, creator_payout')
+        .eq('creator_id', creatorId)
+        .eq('status', 'Cleared')
+        .in('type', ['PPV Post', 'PPV Message'])
+        .in('related_content_id', contentIds);
+
+    const tipsByContent: Record<string, number> = {};
+    const ppvByContent: Record<string, number> = {};
+
+    (tipTx || []).forEach(tx => {
+        if (tx.related_content_id) {
+            const cid = String(tx.related_content_id);
+            tipsByContent[cid] = (tipsByContent[cid] || 0) + (tx.amount || 0);
+        }
+    });
+
+    (ppvTx || []).forEach(tx => {
+        if (tx.related_content_id) {
+            const cid = String(tx.related_content_id);
+            ppvByContent[cid] = (ppvByContent[cid] || 0) + (tx.creator_payout || 0);
+        }
+    });
+
+    return contentItems.map(item => {
+        const cid = String(item.id);
+        const existing = item.stats || { views: 0, galleryAdds: 0, tips: 0 };
+        return {
+            ...item,
+            id: cid,
+            stats: {
+                views: existing.views ?? 0,
+                galleryAdds: existing.galleryAdds ?? 0,
+                tips: tipsByContent[cid] ?? (existing.tips ?? 0),
+                ppvEarnings: ppvByContent[cid] ?? (existing as any).ppvEarnings ?? 0,
+            },
+        } as Content;
+    });
+}
+
+/**
+ * Increment content tip amount stats in JSONB content.stats
+ */
+export const incrementContentTipStats = async (contentId: string, tipAmountInCents: number) => {
+    if (!contentId) return;
+    try {
+        const { data: contentItem } = await supabase
+            .from('content')
+            .select('stats')
+            .eq('id', contentId)
+            .maybeSingle();
+
+        if (contentItem) {
+            const currentStats = contentItem.stats || { views: 0, galleryAdds: 0, tips: 0 };
+            const newTips = (currentStats.tips || 0) + tipAmountInCents;
+            const updatedStats = { ...currentStats, tips: newTips };
+            await supabase
+                .from('content')
+                .update({ stats: updatedStats })
+                .eq('id', contentId);
+        }
+    } catch (err) {
+        console.error(`[ContentService] Failed to increment tips for content ${contentId}:`, err);
+    }
+};
+
+/**
+ * Increment content PPV earnings stats in JSONB content.stats
+ */
+export const incrementContentPpvEarningsStats = async (contentId: string, creatorPayoutInCents: number) => {
+    if (!contentId) return;
+    try {
+        const { data: contentItem } = await supabase
+            .from('content')
+            .select('stats')
+            .eq('id', contentId)
+            .maybeSingle();
+
+        if (contentItem) {
+            const currentStats = contentItem.stats || { views: 0, galleryAdds: 0, tips: 0 };
+            const newPpvEarnings = (currentStats.ppvEarnings || 0) + creatorPayoutInCents;
+            const updatedStats = { ...currentStats, ppvEarnings: newPpvEarnings };
+            await supabase
+                .from('content')
+                .update({ stats: updatedStats })
+                .eq('id', contentId);
+        }
+    } catch (err) {
+        console.error(`[ContentService] Failed to increment PPV earnings for content ${contentId}:`, err);
+    }
 };
 
 /**

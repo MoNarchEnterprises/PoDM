@@ -5,6 +5,7 @@ import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
+import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 
 interface WalletConfigInput {
     walletAddress: string;
@@ -185,11 +186,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             ? EVENT_TOPICS.SubscriptionPaid
             : (input.transactionType === 'Tip' ? EVENT_TOPICS.TipPaid : EVENT_TOPICS.PPVPaid);
 
-        const contractInteracted = (receipt.to && receipt.to.toLowerCase() === contractAddress.toLowerCase()) ||
-            (receipt.logs && receipt.logs.some((log: any) =>
-                log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
-                log.topics && log.topics[0] === expectedTopic
-            ));
+        const contractInteracted = receipt.logs && receipt.logs.some((log: any) =>
+            log.address && log.address.toLowerCase() === contractAddress.toLowerCase() &&
+            log.topics && log.topics[0] === expectedTopic
+        );
 
         if (!contractInteracted) {
             throw new AppError('Invalid transaction: Interacted target is not the PoDM smart contract on Base.', 400);
@@ -258,6 +258,16 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
     if (!transaction) {
         throw new AppError('Failed to record transaction in the database.', 500);
+    }
+
+    if (input.relatedId) {
+        if (input.transactionType === 'Tip') {
+            incrementContentTipStats(input.relatedId, amount)
+                .catch(err => console.error('[CryptoPaymentService] Error updating content tip stats:', err));
+        } else if (input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message') {
+            incrementContentPpvEarningsStats(input.relatedId, creatorPayout)
+                .catch(err => console.error('[CryptoPaymentService] Error updating content PPV stats:', err));
+        }
     }
 
     // 7. Update with blockchain metadata

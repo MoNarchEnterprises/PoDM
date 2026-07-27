@@ -140,7 +140,7 @@ apiClient.interceptors.response.use(
 
 // --- API Service Functions ---
 
-type ApiMethod = 'get' | 'post' | 'put' | 'delete';
+type ApiMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
 export const api = async <T = any>(method: ApiMethod, url: string, data?: any, config?: any): Promise<T> => {
     const response = await (apiClient[method] as Function)(url, data, config);
@@ -499,6 +499,13 @@ export const sendVoiceMessage = async (formData: FormData) => {
     const response = await apiClient.post('/messages/voice', formData);
     return response.data;
 };
+
+/**
+ * Unlocks PPV content in a message.
+ * @param messageId - The ID of the message to unlock.
+ */
+export const unlockMessageContent = (messageId: string) =>
+    api('patch', `/messages/${messageId}/unlock`);
 
 /**
  * Fetches the personalized content feed for the logged-in fan.

@@ -28,7 +28,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **Styling**: Tailwind CSS 3.4 with `@tailwindcss/forms`
 - **Routing**: React Router v7 (lazy-loaded routes in `App.tsx`)
 - **Real-time**: Socket.IO client v4
-- **Payments UI**: Crypto wallet payments via `useCryptoPayment` hook (raw `window.ethereum` EIP-1193, no viem/wagmi dependency); embedded wallet payments via `EmbeddedPaymentModal` (feature-flagged, gasless via ERC-4337)
+- **Payments UI**: Consolidated payment orchestrator (`PaymentOrchestrator` in `src/shared/lib/PaymentOrchestrator.ts`) handles address resolution, browser-wallet payments (via `useCryptoPayment`), and embedded-wallet payments (via `EmbeddedPaymentModal` / ERC-4337 gasless user ops across Tips, PPV Posts, PPV Messages, and Subscriptions)
 - **Feature Flags**: `useFeatureFlag` hook with env kill switch (`VITE_ENABLE_EMBEDDED_WALLET`) + backend flag resolution
 - **Charts**: Recharts 3
 - **Icons**: Lucide React

@@ -13,6 +13,7 @@ import * as AnalyticsService from './analytics.service';
 import * as CryptoPaymentService from './cryptoPayment.service';
 import { Content } from '@common/types/Content';
 import * as StorageService from './storage.service';
+import { enrichContentWithEarnings } from './content.service';
 
 
 
@@ -192,44 +193,13 @@ export const getAnalyticsData = async (creator_id: string) => {
         .from('content')
         .select('*')
         .eq('creator_id', creator_id)
-        .order('stats->>tips', { ascending: false, nullsFirst: false } as any) // Order by tips (default sort)
+        .order('created_at', { ascending: false })
         .limit(10); // Fetch more to allow client-side sorting
 
     if (topContentError) throw new AppError('Could not fetch top content.', 500);
 
-    // --- 4b. Calculate PPV earnings per content ---
-    const contentIds = topContentData.map(c => c.id);
-    const { data: ppvTransactions, error: ppvError } = await supabase
-        .from('transactions')
-        .select('related_content_id, creator_payout')
-        .eq('creator_id', creator_id)
-        .eq('status', 'Cleared')
-        .eq('type', 'PPV Post')
-        .in('related_content_id', contentIds);
-
-    if (ppvError) {
-        console.error('Error fetching PPV transactions:', ppvError);
-        // Don't throw, just proceed without PPV data
-    }
-
-    // Group PPV earnings by content ID
-    const ppvEarningsByContent: Record<string, number> = {};
-    (ppvTransactions || []).forEach(tx => {
-        if (tx.related_content_id) {
-            ppvEarningsByContent[tx.related_content_id] =
-                (ppvEarningsByContent[tx.related_content_id] || 0) + tx.creator_payout;
-        }
-    });
-
-    // Merge PPV earnings into content stats
-    const topContentWithPpv = topContentData.map(item => ({
-        ...item,
-        id: item.id.toString(),
-        stats: {
-            ...item.stats,
-            ppvEarnings: ppvEarningsByContent[item.id] || 0,
-        },
-    })) as Content[];
+    // --- 4b. Enrich content with actual tips & PPV earnings from transactions ---
+    const topContentWithPpv = await enrichContentWithEarnings(topContentData, creator_id);
 
     // --- 5. Assemble final payload ---
     return {

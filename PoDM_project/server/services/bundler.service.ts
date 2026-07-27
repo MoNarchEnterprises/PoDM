@@ -26,6 +26,10 @@ export class PimlicoBundlerService implements IBundlerService {
             out.factory = ethers.getAddress(factoryAddr);
             out.factoryData = '0x' + raw.slice(40);
             delete out.initCode;
+        } else {
+            delete out.initCode;
+            if (!out.factory || out.factory === '0x') delete out.factory;
+            if (!out.factoryData || out.factoryData === '0x') delete out.factoryData;
         }
         return out;
     }

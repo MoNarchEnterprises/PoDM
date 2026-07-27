@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { payFromWallet } from '../../lib/cryptoPayments';
+import { PaymentOrchestrator } from '../../shared/lib/PaymentOrchestrator';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
 import { getCryptoWallet } from '../../lib/wallet';
 import { X, Send, CheckCircle, Wallet, Zap } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -61,6 +62,8 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
         handleClose();
     };
 
+    const cryptoPayment = useCryptoPayment();
+
     const handleSendTip = async () => {
         if (finalAmount <= 0) {
             setError('Please enter a valid tip amount.');
@@ -74,13 +77,15 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
         setIsLoading(true);
         setError(null);
 
-        const result = await payFromWallet({
-            fromAddress: resolvedAddress,
-            toAddress: recipientAddress,
+        const orchestrator = new PaymentOrchestrator(undefined, cryptoPayment);
+        const result = await orchestrator.payWithBrowserWallet({
+            paymentType: 'Tip',
+            amount: finalAmount,
             creatorId: creator.id,
-            amountInCents: Math.round(finalAmount * 100),
-            transactionType: 'Tip',
+            creatorWalletAddress: recipientAddress,
+            creatorProfile: creator,
             message,
+            fromAddress: resolvedAddress,
         });
 
         setIsLoading(false);

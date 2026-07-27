@@ -3,7 +3,9 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
 import { useCryptoWallet } from '../../shared/hooks/useCryptoWallet';
-import { Wallet, ShieldCheck, Zap, AlertCircle, CreditCard, ChevronRight } from 'lucide-react';
+import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
+import { PaymentOrchestrator } from '../../shared/lib/PaymentOrchestrator';
+import { ShieldCheck, Zap, CreditCard, ChevronRight, AlertCircle } from 'lucide-react';
 import { getCryptoWallet } from '../../lib/wallet';
 import OnRampButton from '../../components/shared/OnRampButton';
 import { useEmbeddedWalletEnabled } from '../../shared/hooks/useFeatureFlag';
@@ -17,22 +19,9 @@ interface SubscriptionModalProps {
     onSubscriptionComplete: (result: any) => void;
 }
 
-const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
-const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
-
-function stringToBytes32(str: string | undefined): string {
-    if (!str) return '0'.repeat(64);
-    const clean = str.replace(/-/g, '');
-    if (/^[0-9a-fA-F]{64}$/.test(clean)) return clean.toLowerCase();
-    let hex = '';
-    for (let i = 0; i < str.length && i < 32; i++) {
-        hex += str.charCodeAt(i).toString(16);
-    }
-    return hex.padEnd(64, '0');
-}
-
 const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscriptionComplete }: SubscriptionModalProps) => {
-    const { isConnected, walletAddress, balance, chainId, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
+    const { isConnected, walletAddress, balance, isLoading: walletLoading, error: walletError, connectWallet } = useCryptoWallet();
+    const cryptoPayment = useCryptoPayment();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'connect' | 'approve'>('connect');
@@ -72,74 +61,29 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
         setError(null);
 
         try {
-            const eth = window.ethereum;
-            let txHash: string;
-
-            if (eth && walletAddress) {
-                await eth.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
-                }).catch(async (switchError: any) => {
-                    if (switchError.code === 4902) {
-                        await eth.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: BASE_SEPOLIA_CHAIN_ID,
-                                chainName: 'Base Sepolia Testnet',
-                                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-                                rpcUrls: [BASE_SEPOLIA_RPC],
-                                blockExplorerUrls: ['https://sepolia.basescan.org'],
-                            }],
-                        });
-                    } else {
-                        throw new Error('Failed to switch network to Base Sepolia.');
-                    }
-                });
-
-                const amountWei = BigInt(Math.round(selectedTier.price * 1e6));
-                const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
-                if (!contractAddress) {
-                    throw new Error('Contract address not configured. Please set VITE_BASE_TESTNET_CONTRACT_ADDRESS.');
-                }
-
-                const creatorWallet = getCryptoWallet(creator);
-
-                const chainIdNum = chainId || 84532;
-                const usdcAddress = chainIdNum === 8453
-                    ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-                    : '0x036CbD53842c5426634e7929541eC2318F3dCF7e';
-
-                const approveData = '0x' +
-                    '7158d140' +
-                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
-                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
-                    amountWei.toString(16).padStart(64, '0') +
-                    stringToBytes32(selectedTier.id);
-
-                const result: any = await eth.request({
-                    method: 'eth_sendTransaction',
-                    params: [{
-                        from: walletAddress,
-                        to: contractAddress,
-                        data: approveData,
-                    }],
-                });
-
-                if (!result || typeof result !== 'string') {
-                    throw new Error('Transaction was rejected or failed.');
-                }
-                txHash = result;
-            } else if (walletAddress) {
-                // Manual wallet address / card purchase without browser extension
-                txHash = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
-            } else {
+            if (!walletAddress) {
                 throw new Error('Please enter a wallet address or connect a Web3 wallet.');
+            }
+
+            const orchestrator = new PaymentOrchestrator(undefined, cryptoPayment);
+            const result = await orchestrator.payWithBrowserWallet({
+                paymentType: 'Subscription',
+                amount: selectedTier.price,
+                creatorId: creator.id,
+                creatorWalletAddress: getCryptoWallet(creator),
+                creatorProfile: creator,
+                tierId: selectedTier.id,
+                fromAddress: walletAddress,
+            });
+
+            if (!result.success) {
+                throw new Error(result.error || 'Transaction failed or rejected by wallet.');
             }
 
             await onSubscriptionComplete({
                 creatorId: creator.id,
                 tierId: selectedTier.id,
-                paymentMethodId: txHash,
+                paymentMethodId: result.txHash || 'subscription-payment',
             });
             onClose();
         } catch (err: any) {
