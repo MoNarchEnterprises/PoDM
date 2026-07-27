@@ -52,6 +52,8 @@ import analyticsRoutes from './routes/analytics.routes';
 import notificationRoutes from './routes/notification.routes';
 import contestRoutes from './routes/contest.routes';
 import onrampRoutes from './routes/onramp.routes';
+import embeddedWalletRoutes from './routes/embeddedWallet.routes';
+import featureFlagRoutes from './routes/featureFlag.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -113,6 +115,8 @@ app.use('/api/v1/contests', contestRoutes);
 app.use('/api/v1/enclave', enclaveRoutes);
 app.use('/api/v1/referrals', referralRoutes);
 app.use('/api/v1/payments/onramp', onrampRoutes);
+app.use('/api/v1/wallet', embeddedWalletRoutes);
+app.use('/api/v1/feature-flags', featureFlagRoutes);
 
 // Health Check Route - with explicit types to fix the linting error
 app.get('/', (req: Request, res: Response) => {

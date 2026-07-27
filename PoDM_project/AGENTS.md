@@ -6,8 +6,8 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 ## Ownership
 
-- All `/api/v1/*` REST endpoints (auth, users, creator, content, subscriptions, messages, payments/crypto, admin, analytics, support, ai, notifications, contests, enclave, referrals)
-- Business logic in `/server/services/` (15 service modules)
+- All `/api/v1/*` REST endpoints (auth, users, creator, content, subscriptions, messages, payments/crypto, admin, analytics, support, ai, notifications, contests, enclave, referrals, wallet, feature-flags)
+- Business logic in `/server/services/` (21 service modules)
 - Data models and DB interfaces in `/server/models/` (13 models)
 - Express middleware: auth, error, upload, validation
 - Database migrations (`/migrations/`) and seed scripts
@@ -24,8 +24,13 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 - **Stack**: Node.js (CommonJS), Express 5, TypeScript 5
 - **Database**: Supabase (PostgreSQL) via `@supabase/supabase-js`
-- **Payments**: USDC on Base via PoDMPaymentProtocol smart contract
+- **Payments**: USDC on Base via PoDMPaymentProtocol smart contract (`0x454D9F55E580928876447096348E41f832d4a448` on Base Sepolia)
+- **Embedded Wallets**: Privy server-side REST API (v1) — server-controlled EOA wallets (`POST /v1/wallets`, `POST /v1/wallets/{id}/rpc` with `secp256k1_sign`). Wallet ID persisted on `profiles.crypto_wallet_provider_id`.
+- **Account Abstraction (ERC-4337 v0.7)**: Pimlico bundler + paymaster on Base Sepolia, EntryPoint `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, SimpleAccountFactory `0x91E60e0613810449d098b0b5Ec8b51A0FE8c8985`. Privy EOA signs the EntryPoint's `getUserOpHash` via `secp256k1_sign`. `userOperation.service.ts` polls `eth_getUserOperationReceipt` and records the real tx hash via `verifyAndRecordBasePayment`.
+- **Verification Policy**: A crypto transaction is NEVER marked Cleared without an on-chain receipt (`cryptoPayment.service.ts` retries 5×3s = 15s; no dev fallback).
+- **Feature Flags**: Database-backed feature flag system with env kill switch, per-user overrides, percentage rollout
 - **On-Ramp**: Coinbase On-Ramp API for card-to-USDC purchases (service + webhook)
+- **Browser Wallet UI**: MetaMask/Coinbase Wallet flow hits the contract directly — `useCryptoPayment` hook and `PaymentModal` perform `USDC.approve(contract, MAX_UINT256)` then `payX(...)` (one-time approve, then single-click)
 - **Storage**: Cloudflare R2 (S3-compatible) via AWS SDK v3
 - **Real-time**: Socket.IO v4
 - **Auth**: JWT with refresh tokens
@@ -58,6 +63,8 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - All API responses follow consistent JSON envelope
 - New model functions: always use `handleQuery<T>`, `handleCount`, or `handleList<T>` for consistent error handling
 - New controller handlers: always use `asyncHandler` wrapper and response helpers; never catch errors or send 500 inline
+- **Crypto payments env vars** (server/.env): `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PIMLICO_API_KEY`, `PIMLICO_BUNDLER_URL`, `PIMLICO_PAYMASTER_URL`, `ENTRYPOINT_ADDRESS`, `SMART_ACCOUNT_FACTORY_ADDRESS`, `BASE_TESTNET_CONTRACT_ADDRESS`, `BASE_CONTRACT_ADDRESS`, `PLATFORM_TREASURY_ADDRESS`
+- **Migration required for embedded wallet signing**: `migrations/add_provider_wallet_id.sql` adds `profiles.crypto_wallet_provider_id` (Privy wallet id) — needed for `signUserOperation` to resolve the EOA to sign with
 
 ## Verification
 

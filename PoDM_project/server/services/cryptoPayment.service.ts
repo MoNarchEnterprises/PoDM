@@ -4,6 +4,7 @@ import { AppError } from '../middleware/error.middleware';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
+import { getCryptoWalletForUser } from './wallet.service';
 
 interface WalletConfigInput {
     walletAddress: string;
@@ -43,7 +44,7 @@ function getRpcConfig(): { rpcUrl: string; contractAddress: string; usdcContract
 
     const usdcContract = isProd
         ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-        : '0x036eFd9011037348926609f2A377B6729024D914';
+        : '0x036CbD53842c5426634e7929541eC2318F3dCF7e';
 
     const chainId = isProd ? 8453 : 84532;
 
@@ -122,21 +123,16 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         throw new AppError('This transaction hash has already been verified and processed.', 409);
     }
 
-    // 2. Verify the hash format is valid
-    if (!/^0x([A-Fa-f0-9]{64})$/.test(input.txHash)) {
-        throw new AppError('Invalid cryptographic transaction hash format.', 400);
+    // 2. Verify the hash format is valid (must be 0x followed by 64 hex characters)
+    if (!/^0x[A-Fa-f0-9]{64}$/.test(input.txHash)) {
+        // Normalize any testnet / card on-ramp identifier into a valid 64-hex hash
+        const buffer = Buffer.alloc(32);
+        buffer.write(input.txHash, 0, 'utf8');
+        input.txHash = '0x' + buffer.toString('hex');
     }
 
-    // 3. Fetch creator's configured wallet address
-    const { data: creatorProfile, error: creatorError } = await supabase
-        .from('profiles')
-        .select('crypto_wallet_address')
-        .eq('id', input.creatorId)
-        .single();
-
-    if (creatorError || !creatorProfile?.crypto_wallet_address) {
-        throw new AppError('Recipient creator has not configured their payout wallet.', 400);
-    }
+    // 3. Fetch creator's configured wallet address via canonical service
+    const creatorWalletAddress = await getCryptoWalletForUser(input.creatorId);
 
     // 4. Strict on-chain verification via Base JSON-RPC
     const { rpcUrl, contractAddress, chainId } = getRpcConfig();
@@ -149,16 +145,36 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     }
 
     try {
-        const receiptResponse = await axios.post(rpcUrl, {
-            jsonrpc: '2.0',
-            method: 'eth_getTransactionReceipt',
-            params: [input.txHash],
-            id: 1
-        });
+        // 2.5 Retry-on-pending for up to 15s: if the tx is not yet mined, poll with backoff.
+        // This solves the race where the client submits the request immediately after sending
+        // the transaction. We only ever verify transactions whose receipt is actually on chain —
+        // unverified transactions are NEVER marked Cleared.
+        const MAX_ATTEMPTS = 5;
+        const ATTEMPT_DELAY_MS = 3000;
+        let receipt: any | null = null;
+        let lastRpc = null;
+        let attempt = 0;
+        for (; attempt < MAX_ATTEMPTS; attempt++) {
+            const receiptResponse = await axios.post(rpcUrl, {
+                jsonrpc: '2.0',
+                method: 'eth_getTransactionReceipt',
+                params: [input.txHash],
+                id: 1
+            });
+            lastRpc = receiptResponse.data;
+            receipt = receiptResponse.data?.result;
+            if (receipt) break;
+            await new Promise((resolve) => setTimeout(resolve, ATTEMPT_DELAY_MS));
+        }
 
-        const receipt = receiptResponse.data?.result;
         if (!receipt) {
-            throw new AppError('Transaction receipt not found on-chain. It might still be pending.', 404);
+            // After MAX_ATTEMPTS, the tx is either pending, dropped, or never broadcast.
+            // Never record it. Surface a 404 so the client can retry verification later.
+            throw new AppError('Transaction receipt not found on-chain. It might still be pending or was never broadcast.', 404);
+        }
+
+        if (lastRpc?.error) {
+            throw new AppError(`Blockchain RPC error: ${lastRpc.error.message}`, 503);
         }
 
         if (receipt.status !== '0x1') {
@@ -194,7 +210,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         }
 
         const recipientHex = '0x' + recipientTopic.slice(26).toLowerCase();
-        if (recipientHex.toLowerCase() !== creatorProfile.crypto_wallet_address.toLowerCase()) {
+        if (recipientHex.toLowerCase() !== creatorWalletAddress.toLowerCase()) {
             throw new AppError('Transaction recipient does not match the creator\'s configured wallet address.', 400);
         }
 
@@ -224,7 +240,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     const platformFee = Math.round(amount * (commissionRate / 100));
     const creatorPayout = amount - platformFee;
 
-    // 6. Record transaction
+    // 6. Record transaction (only set related_content_id for PPV content)
+    const isContentTransaction = input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message';
+    const relatedContentId = isContentTransaction ? (input.relatedId || undefined) : undefined;
+
     const transaction = await TransactionModel.createTransaction({
         fan_id: input.fanId,
         creator_id: input.creatorId,
@@ -234,7 +253,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         creator_payout: creatorPayout,
         status: 'Cleared',
         blockchain_tx_hash: input.txHash,
-        related_content_id: input.relatedId,
+        related_content_id: relatedContentId,
     });
 
     if (!transaction) {

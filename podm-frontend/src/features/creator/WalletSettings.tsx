@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import useCryptoWallet from '../../shared/hooks/useCryptoWallet';
+import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+
+const getAuthHeaders = (): Record<string, string> => {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const impersonating = localStorage.getItem('impersonating_user_id') || sessionStorage.getItem('impersonating_user_id');
+    if (impersonating) {
+        headers['x-impersonating-user-id'] = impersonating;
+    }
+    return headers;
+};
 
 export const WalletSettings: React.FC = () => {
     const {
@@ -14,6 +30,7 @@ export const WalletSettings: React.FC = () => {
     const [walletType, setWalletType] = useState<'embedded' | 'custom'>('embedded');
     const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain' | 'base'>('debit_card');
     const [customAddress, setCustomAddress] = useState<string>('');
+    const [commissionRate, setCommissionRate] = useState<number>(DEFAULT_COMMISSION_RATE);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -25,12 +42,17 @@ export const WalletSettings: React.FC = () => {
     useEffect(() => {
         const loadConfigs = async () => {
             try {
-                const response = await fetch('/api/v1/payments/crypto/wallet');
+                const response = await fetch('/api/v1/payments/crypto/wallet', {
+                    headers: getAuthHeaders(),
+                });
                 if (response.ok) {
                     const result = await response.json();
                     if (result.data) {
                         setWalletType(result.data.walletType || 'embedded');
                         setPayoutPreference(result.data.payoutPreference || 'debit_card');
+                        if (result.data.commissionRate !== undefined && result.data.commissionRate !== null) {
+                            setCommissionRate(result.data.commissionRate);
+                        }
                         if (result.data.walletType === 'custom') {
                             setCustomAddress(result.data.walletAddress || '');
                         }
@@ -63,9 +85,7 @@ export const WalletSettings: React.FC = () => {
 
             const response = await fetch('/api/v1/payments/crypto/wallet', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(payload),
             });
 
@@ -92,9 +112,7 @@ export const WalletSettings: React.FC = () => {
 
             const response = await fetch('/api/v1/payments/crypto/withdraw', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ amountInCents }),
             });
 
@@ -169,7 +187,7 @@ export const WalletSettings: React.FC = () => {
                             </div>
                             <div className="flex justify-between text-xs border-t border-gray-900 pt-3">
                                 <span className="text-gray-400">Platform Commission</span>
-                                <span className="font-bold text-purple-400">Per-creator rate</span>
+                                <span className="font-bold text-purple-400">{commissionRate}%</span>
                             </div>
                         </div>
                     </div>

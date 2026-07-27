@@ -16,10 +16,16 @@ import CreatorRouteGuard from './components/auth/CreatorRouteGuard';
 import { useAuth } from './hooks/useAuth';
 import { useCreatorData } from './hooks/useCreatorData'; // Import the new hook
 import { ToastProvider } from './context/ToastContext';
+import { EmbeddedWalletProvider } from './context/EmbeddedWalletContext';
+import { useEmbeddedWalletEnabled } from './shared/hooks/useFeatureFlag';
 
-
-
-// --- Import Page Components (Lazy Loaded) ---
+const EmbeddedWalletWrapper = ({ children }: { children: React.ReactNode }) => {
+    const { enabled } = useEmbeddedWalletEnabled();
+    if (enabled) {
+        return <EmbeddedWalletProvider>{children}</EmbeddedWalletProvider>;
+    }
+    return <>{children}</>;
+};// --- Import Page Components (Lazy Loaded) ---
 const SplashPage = React.lazy(() => import('./pages/SplashPage'));
 const Enclave = React.lazy(() => import('./pages/Enclave'));
 const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
@@ -284,69 +290,71 @@ const App = () => {
             <BrowserRouter>
                     <AuthProvider>
                         <React.Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading Page...</div>}>
-                            <Routes>
-                                {/* --- Public Routes --- */}
-                                <Route path="/" element={<SplashPage />} />
-                                <Route path="/enclave" element={<Enclave />} />
-                                <Route path="/terms-of-service" element={<TermsOfService />} />
-                                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                                <Route path="/creator/:username" element={<CreatorProfileLoader />} />
-                                <Route path="/content/:contentId" element={<ContentViewerLoader />} />
+                            <EmbeddedWalletWrapper>
+                                <Routes>
+                                    {/* --- Public Routes --- */}
+                                    <Route path="/" element={<SplashPage />} />
+                                    <Route path="/enclave" element={<Enclave />} />
+                                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                                    <Route path="/creator/:username" element={<CreatorProfileLoader />} />
+                                    <Route path="/content/:contentId" element={<ContentViewerLoader />} />
 
-                                {/* --- Auth Routes --- */}
-                                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                                <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
-                                <Route path="/verification" element={<CreatorVerification />} />
-                                <Route path="/admin/login" element={<AdminLoginPage />} />
+                                    {/* --- Auth Routes --- */}
+                                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                                    <Route path="/onboarding" element={<CreatorOnboardingLoader />} />
+                                    <Route path="/verification" element={<CreatorVerification />} />
+                                    <Route path="/admin/login" element={<AdminLoginPage />} />
 
-                                {/* --- Fan Routes (Protected) --- */}
-                                <Route path="/fan" element={<FanLayout />}>
-                                    <Route index element={<FanFeed />} />
-                                    <Route path="feed" element={<FanFeed />} />
-                                    <Route path="gallery" element={<FanGalleryLoader />} />
-                                    <Route path="subscriptions" element={<FanSubscriptions />} />
-                                    <Route path="messages" element={<FanMessages />} />
-                                    <Route path="settings" element={<FanSettingsLoader />} />
-                                </Route>
-
-                                {/* --- Creator Routes (Protected) --- */}
-                                <Route element={<CreatorRouteGuard />}>
-                                    <Route path="/hub" element={<CreatorLayout />}>
-                                        {/* The nested routes are now correct relative to "/hub" */}
-                                        <Route index element={<CreatorDashboardLoader />} />
-                                        <Route path="dashboard" element={<CreatorDashboardLoader />} />
-                                        <Route path="content" element={<CreatorContent />} />
-                                        <Route path="messages" element={<CreatorMessages />} />
-                                        <Route path="analytics" element={<CreatorAnalyticsLoader />} />
-                                        <Route path="earnings" element={<CreatorEarningsLoader />} />
-                                        <Route path="settings" element={<CreatorSettingsLoader />} />
-                                        <Route path="bulk-upload" element={<BulkUploadPage />} />
-
+                                    {/* --- Fan Routes (Protected) --- */}
+                                    <Route path="/fan" element={<FanLayout />}>
+                                        <Route index element={<FanFeed />} />
+                                        <Route path="feed" element={<FanFeed />} />
+                                        <Route path="gallery" element={<FanGalleryLoader />} />
+                                        <Route path="subscriptions" element={<FanSubscriptions />} />
+                                        <Route path="messages" element={<FanMessages />} />
+                                        <Route path="settings" element={<FanSettingsLoader />} />
                                     </Route>
-                                </Route>
 
-                                {/* --- Admin Routes (Protected) --- */}
-                                <Route element={<ProtectedRoute requiredRole="admin" />}>
-                                    <Route path="/admin" element={<AdminLayout />}>
-                                        {/* Enclave route - standalone, doesn't need AdminPanel data */}
-                                        <Route path="enclave" element={<EnclaveApplications />} />
-                                        <Route path="enclave-applications" element={<EnclaveApplications />} />
+                                    {/* --- Creator Routes (Protected) --- */}
+                                    <Route element={<CreatorRouteGuard />}>
+                                        <Route path="/hub" element={<CreatorLayout />}>
+                                            {/* The nested routes are now correct relative to "/hub" */}
+                                            <Route index element={<CreatorDashboardLoader />} />
+                                            <Route path="dashboard" element={<CreatorDashboardLoader />} />
+                                            <Route path="content" element={<CreatorContent />} />
+                                            <Route path="messages" element={<CreatorMessages />} />
+                                            <Route path="analytics" element={<CreatorAnalyticsLoader />} />
+                                            <Route path="earnings" element={<CreatorEarningsLoader />} />
+                                            <Route path="settings" element={<CreatorSettingsLoader />} />
+                                            <Route path="bulk-upload" element={<BulkUploadPage />} />
 
-                                        {/* The AdminPanel now acts as a data loader and provides the Outlet */}
-                                        <Route element={<AdminPanel />}>
-                                            <Route index element={<DashboardPanel />} />
-                                            <Route path="dashboard" element={<DashboardPanel />} />
-                                            <Route path="users" element={<UserManagementPanel />} />
-                                            <Route path="content" element={<ContentModerationPanel />} />
-                                            <Route path="analytics" element={<AnalyticsPanel />} />
-                                            <Route path="reports" element={<ReportsPanel />} />
-                                            <Route path="support" element={<SupportTicketsPanel />} />
-                                            <Route path="settings" element={<SettingsPanel />} />
                                         </Route>
                                     </Route>
-                                </Route>
 
-                            </Routes>
+                                    {/* --- Admin Routes (Protected) --- */}
+                                    <Route element={<ProtectedRoute requiredRole="admin" />}>
+                                        <Route path="/admin" element={<AdminLayout />}>
+                                            {/* Enclave route - standalone, doesn't need AdminPanel data */}
+                                            <Route path="enclave" element={<EnclaveApplications />} />
+                                            <Route path="enclave-applications" element={<EnclaveApplications />} />
+
+                                            {/* The AdminPanel now acts as a data loader and provides the Outlet */}
+                                            <Route element={<AdminPanel />}>
+                                                <Route index element={<DashboardPanel />} />
+                                                <Route path="dashboard" element={<DashboardPanel />} />
+                                                <Route path="users" element={<UserManagementPanel />} />
+                                                <Route path="content" element={<ContentModerationPanel />} />
+                                                <Route path="analytics" element={<AnalyticsPanel />} />
+                                                <Route path="reports" element={<ReportsPanel />} />
+                                                <Route path="support" element={<SupportTicketsPanel />} />
+                                                <Route path="settings" element={<SettingsPanel />} />
+                                            </Route>
+                                        </Route>
+                                    </Route>
+
+                                </Routes>
+                            </EmbeddedWalletWrapper>
                         </React.Suspense>
                     </AuthProvider>
                 </BrowserRouter>

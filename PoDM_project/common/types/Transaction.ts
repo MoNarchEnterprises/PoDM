@@ -25,7 +25,9 @@ export interface Transaction {
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
   message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
   blockchain_tx_hash?: string;
-  payment_method?: 'stripe' | 'crypto' | 'card_onramp';
+  user_operation_hash?: string;
+  gas_sponsored?: boolean;
+  payment_method?: 'stripe' | 'crypto' | 'card_onramp' | 'embedded_wallet';
   payment_currency?: 'USD' | 'USDC';
   chain_id?: number;
   created_at: string; // ISO 8601 date string

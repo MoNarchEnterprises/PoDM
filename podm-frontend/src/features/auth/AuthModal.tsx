@@ -151,7 +151,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">I am a...</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <Button type="button" variant={userType === 'fan' ? 'primary' : 'secondary'} onClick={() => setUserType('fan')}>Fan</Button>
+                                        <Button type="button" variant={userType === 'fan' ? 'primary' : 'secondary'} onClick={() => setUserType('fan')}>Audience Member</Button>
                                         <Button type="button" variant={userType === 'creator' ? 'primary' : 'secondary'} onClick={() => setUserType('creator')}>Creator</Button>
                                     </div>
                                 </div>

@@ -4,7 +4,7 @@ import { handleQuery, handleCount, handleList } from '../utils/database';
 
 export const findUserById = async (id: string): Promise<User | null> => {
     return handleQuery<User>(
-        supabase.rpc('get_user_details', { user_id: id }).single(),
+        supabase.from('profiles').select('*').eq('id', id).single(),
         'find user by ID', id
     );
 };

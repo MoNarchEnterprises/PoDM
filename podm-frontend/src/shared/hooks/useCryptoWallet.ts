@@ -4,7 +4,7 @@ const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
 const BASE_SEPOLIA_CHAIN_ID_NUM = 84532;
 
 const USDC_ADDRESSES: Record<number, string> = {
-    84532: '0x036eFd9011037348926609f2A377B6729024D914',
+    84532: '0x036CbD53842c5426634e7929541eC2318F3dCF7e',
     8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913',
 };
 
@@ -29,24 +29,43 @@ export const useCryptoWallet = () => {
 
     const fetchUsdcBalance = useCallback(async (address: string): Promise<number> => {
         try {
-            const eth = window.ethereum;
-            if (!eth) return 0;
-
             const usdcAddress = getUsdcAddress();
             const data = ERC20_BALANCE_OF_ABI + address.slice(2).toLowerCase().padStart(64, '0');
 
-            const result = await eth.request({
-                method: 'eth_call',
-                params: [{
-                    to: usdcAddress,
-                    data,
-                }, 'latest'],
-            });
+            const eth = window.ethereum;
+            if (eth) {
+                try {
+                    const result = await eth.request({
+                        method: 'eth_call',
+                        params: [{ to: usdcAddress, data }, 'latest'],
+                    });
+                    if (result && result !== '0x') {
+                        return Number(BigInt(result as string)) / 1e6;
+                    }
+                } catch {
+                    // Fall back to HTTP RPC below
+                }
+            }
 
-            const hexBalance = result as string;
-            const rawBalance = BigInt(hexBalance);
-            return Number(rawBalance) / 1e6;
-        } catch {
+            // Direct HTTP RPC fetch (works for manual wallet addresses without extension)
+            const rpcUrl = getRpcUrl();
+            const response = await fetch(rpcUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: 1,
+                    method: 'eth_call',
+                    params: [{ to: usdcAddress, data }, 'latest'],
+                }),
+            });
+            const resJson = await response.json();
+            if (resJson.result && resJson.result !== '0x') {
+                return Number(BigInt(resJson.result)) / 1e6;
+            }
+            return 0;
+        } catch (err) {
+            console.error('[useCryptoWallet] Error fetching USDC balance:', err);
             return 0;
         }
     }, []);
@@ -75,19 +94,23 @@ export const useCryptoWallet = () => {
         }
     }, []);
 
-    const connectWallet = useCallback(async (type: 'embedded' | 'custom') => {
+    const connectWallet = useCallback(async (type: 'embedded' | 'custom', customAddress?: string) => {
         setIsLoading(true);
         setError(null);
         try {
-            if (type === 'embedded') {
-                setError('Embedded (Privy) wallet not yet available. Please use a browser extension wallet.');
+            if (customAddress && customAddress.startsWith('0x') && customAddress.length === 42) {
+                setWalletAddress(customAddress);
+                setChainId(84532);
+                setIsConnected(true);
+                const usdcBalance = await fetchUsdcBalance(customAddress);
+                setBalance(usdcBalance);
                 setIsLoading(false);
                 return;
             }
 
             const eth = window.ethereum;
             if (!eth) {
-                setError('No wallet detected. Please install MetaMask or Coinbase Wallet.');
+                setError('No browser extension wallet detected. Use Credit Card (Coinbase On-Ramp) or enter your wallet address below.');
                 setIsLoading(false);
                 return;
             }
@@ -133,11 +156,17 @@ export const useCryptoWallet = () => {
         setIsLoading(true);
         setError(null);
         try {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('/api/v1/payments/crypto/verify', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(params),
             });
 

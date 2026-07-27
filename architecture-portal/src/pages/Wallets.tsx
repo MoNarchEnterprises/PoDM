@@ -26,7 +26,7 @@ export default function Wallets({ data }: WalletsProps) {
   const deployerKey = 'b4eb01a9a2ec2fcc02a8408ccefe745e46a0a9ed27778528e047b7e32456f593';
   const cdpProjectId = '45b6cb1d-a02b-4525-841c-020852e1f3ed';
   const cdpApiKeyId = '911bf132-7562-4418-a672-61baacf6114d';
-  const usdcTestnetAddress = '0x036eFd9011037348926609f2A377B6729024D914';
+  const usdcTestnetAddress = '0x036CbD53842c5426634e7929541eC2318F3dCF7e';
 
   const fetchTreasuryBalance = async () => {
     setIsLoadingBalance(true);

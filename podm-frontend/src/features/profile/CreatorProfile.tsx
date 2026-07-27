@@ -51,15 +51,18 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
         openAuthModal();
     };
 
+    // Safe extraction of subscription tiers array
+    const tiers: SubscriptionTier[] = creator?.creator_data?.subscriptionTiers || (creator as any)?.creatorData?.subscriptionTiers || [];
+
     // State for UI selection and loading
-    const [selectedTierId, setSelectedTierId] = useState(creator.creator_data.subscriptionTiers[0]?.id || '');
+    const [selectedTierId, setSelectedTierId] = useState(tiers[0]?.id || '');
     const [isPreparing, setIsPreparing] = useState(false);
 
     // This state will hold the FRESH tier data right before opening a modal
     const [tierForModal, setTierForModal] = useState<SubscriptionTier | null>(null);
 
     // Derived state for UI display (this can be stale, which is fine for display purposes)
-    const selectedTierForDisplay = creator.creator_data.subscriptionTiers.find(t => t.id === selectedTierId);
+    const selectedTierForDisplay = tiers.find(t => t.id === selectedTierId);
     const isAlreadySubscribed = isSubscribed;
 
     /**
@@ -72,8 +75,9 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
         setIsPreparing(true);
         try {
             const response = await apiClient.getPublicCreatorProfile(creator.username);
-            const freshCreator = response.data.creator;
-            const freshTier = freshCreator.creatorData.subscriptionTiers.find((t: SubscriptionTier) => t.id === tierId);
+            const freshCreator = response.data?.creator;
+            const freshTiers = freshCreator?.creator_data?.subscriptionTiers || (freshCreator as any)?.creatorData?.subscriptionTiers || [];
+            const freshTier = freshTiers.find((t: SubscriptionTier) => t.id === tierId);
 
             if (!freshTier) {
                 throw new Error("This tier is not available. Please refresh the page and try again.");
@@ -104,7 +108,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
         } else {
             // If user is a guest, find the tier from the current (possibly stale) data
             // to pass to the auth modal. The auth modal will handle fetching fresh data if needed.
-            const tier = creator.creator_data.subscriptionTiers.find(t => t.id === selectedTierId);
+            const tier = tiers.find(t => t.id === selectedTierId);
             if (tier) {
                 setTierForModal(tier);
                 openSubAuthModal();
@@ -138,7 +142,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
     };
 
     const gridColsMap: { [key: number]: string } = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' };
-    const numTiers = creator.creator_data.subscriptionTiers.length || 1;
+    const numTiers = tiers.length || 1;
     const gridColsClass = gridColsMap[numTiers] || 'md:grid-cols-3';
 
     return (
@@ -220,7 +224,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                             <div className="mt-8">
                                 <h2 className="text-xl font-bold mb-4 text-center">Choose Your Subscription</h2>
                                 <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
-                                    {creator.creator_data.subscriptionTiers.map(tier => (
+                                    {tiers.map(tier => (
                                         <TierCard key={tier.id} tier={tier} onSelect={setSelectedTierId} isSelected={selectedTierId === tier.id} />
                                     ))}
                                 </div>
@@ -260,6 +264,9 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                     );
                                     const postWithCreator = {
                                         ...post,
+                                        isUnlocked: lockState.isUnlocked,
+                                        isSubscribedToCreator: isAlreadySubscribed,
+                                        isLockedByTier: lockState.lockType === 'tier',
                                         creator: {
                                             _id: creator.id,
                                             username: creator.username,

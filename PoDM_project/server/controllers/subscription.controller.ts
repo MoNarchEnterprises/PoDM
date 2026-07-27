@@ -13,7 +13,9 @@ export const getMySubscriptions = asyncHandler(async (req: Request, res: Respons
 
 export const createSubscription = asyncHandler(async (req: Request, res: Response) => {
     const fan_id = requireAuth(req);
-    const { creator_id, tier_id, paymentMethodId } = req.body;
+    const creator_id = req.body.creator_id || req.body.creatorId;
+    const tier_id = req.body.tier_id || req.body.tierId;
+    const paymentMethodId = req.body.paymentMethodId || req.body.txHash;
 
     if (!creator_id || !tier_id || !paymentMethodId) {
         throw new AppError('Creator ID, Tier ID, and Payment Method ID are required.', 400);

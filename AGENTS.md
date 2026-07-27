@@ -79,6 +79,8 @@ Default section order:
 When the user requests a durable behavior change, record it here or in the relevant child AGENTS.md
 
 - Platform users are referred to as **Audience** (not "Fans") in all user-facing text
+- `getCryptoWallet` must never fallback to platform treasury address — returns empty string when no wallet is configured
+- Wallet linking in settings must always provide a manual address text input (not only browser wallet connect)
 
 ## Child DOX Index
 

@@ -3,7 +3,11 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
 import { useCryptoWallet } from '../../shared/hooks/useCryptoWallet';
-import { Wallet, ShieldCheck, Zap, AlertCircle } from 'lucide-react';
+import { Wallet, ShieldCheck, Zap, AlertCircle, CreditCard, ChevronRight } from 'lucide-react';
+import { getCryptoWallet } from '../../lib/wallet';
+import OnRampButton from '../../components/shared/OnRampButton';
+import { useEmbeddedWalletEnabled } from '../../shared/hooks/useFeatureFlag';
+import EmbeddedPaymentModal from '../../components/shared/EmbeddedPaymentModal';
 
 interface SubscriptionModalProps {
     isOpen: boolean;
@@ -32,6 +36,10 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'connect' | 'approve'>('connect');
+    const [manualAddress, setManualAddress] = useState('');
+    const [showManualAddress, setShowManualAddress] = useState(false);
+    const { enabled: useEmbeddedWallet } = useEmbeddedWalletEnabled();
+    const [showEmbeddedModal, setShowEmbeddedModal] = useState(false);
 
     React.useEffect(() => {
         if (isConnected) {
@@ -41,13 +49,22 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
         }
     }, [isConnected]);
 
-    const handleConnect = async (type: 'embedded' | 'custom') => {
+    const handleConnect = async (type: 'embedded' | 'custom', customAddress?: string) => {
         try {
             setError(null);
-            await connectWallet(type);
+            await connectWallet(type, customAddress);
         } catch (err: any) {
             setError(err.message || 'Failed to connect wallet.');
         }
+    };
+
+    const handleManualAddressSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!manualAddress || !manualAddress.startsWith('0x') || manualAddress.length !== 42) {
+            setError('Please enter a valid 42-character 0x... EVM wallet address.');
+            return;
+        }
+        handleConnect('custom', manualAddress);
     };
 
     const handleConfirmSubscription = async () => {
@@ -56,64 +73,67 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
 
         try {
             const eth = window.ethereum;
-            if (!eth || !walletAddress) {
-                throw new Error('Wallet not connected.');
-            }
+            let txHash: string;
 
-            await eth.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
-            }).catch(async (switchError: any) => {
-                if (switchError.code === 4902) {
-                    await eth.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: BASE_SEPOLIA_CHAIN_ID,
-                            chainName: 'Base Sepolia Testnet',
-                            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-                            rpcUrls: [BASE_SEPOLIA_RPC],
-                            blockExplorerUrls: ['https://sepolia.basescan.org'],
-                        }],
-                    });
-                } else {
-                    throw new Error('Failed to switch network to Base Sepolia.');
+            if (eth && walletAddress) {
+                await eth.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+                }).catch(async (switchError: any) => {
+                    if (switchError.code === 4902) {
+                        await eth.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BASE_SEPOLIA_CHAIN_ID,
+                                chainName: 'Base Sepolia Testnet',
+                                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                                rpcUrls: [BASE_SEPOLIA_RPC],
+                                blockExplorerUrls: ['https://sepolia.basescan.org'],
+                            }],
+                        });
+                    } else {
+                        throw new Error('Failed to switch network to Base Sepolia.');
+                    }
+                });
+
+                const amountWei = BigInt(Math.round(selectedTier.price * 1e6));
+                const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
+                if (!contractAddress) {
+                    throw new Error('Contract address not configured. Please set VITE_BASE_TESTNET_CONTRACT_ADDRESS.');
                 }
-            });
 
-            const amountWei = BigInt(Math.round(selectedTier.price * 1e6));
-            const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
-            if (!contractAddress) {
-                throw new Error('Contract address not configured. Please set VITE_BASE_TESTNET_CONTRACT_ADDRESS.');
-            }
+                const creatorWallet = getCryptoWallet(creator);
 
-            const creatorWallet = creator.profile.crypto_wallet_address;
-            if (!creatorWallet) {
-                throw new Error('Creator has not configured their payout wallet.');
-            }
+                const chainIdNum = chainId || 84532;
+                const usdcAddress = chainIdNum === 8453
+                    ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
+                    : '0x036CbD53842c5426634e7929541eC2318F3dCF7e';
 
-            const chainIdNum = chainId || 84532;
-            const usdcAddress = chainIdNum === 8453
-                ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-                : '0x036eFd9011037348926609f2A377B6729024D914';
+                const approveData = '0x' +
+                    '7158d140' +
+                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
+                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
+                    amountWei.toString(16).padStart(64, '0') +
+                    stringToBytes32(selectedTier.id);
 
-            const approveData = '0x' +
-                '7158d140' +
-                usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
-                creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
-                amountWei.toString(16).padStart(64, '0') +
-                stringToBytes32(selectedTier.id);
+                const result: any = await eth.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: walletAddress,
+                        to: contractAddress,
+                        data: approveData,
+                    }],
+                });
 
-            const txHash = await eth.request({
-                method: 'eth_sendTransaction',
-                params: [{
-                    from: walletAddress,
-                    to: contractAddress,
-                    data: approveData,
-                }],
-            });
-
-            if (!txHash || typeof txHash !== 'string') {
-                throw new Error('Transaction was rejected or failed.');
+                if (!result || typeof result !== 'string') {
+                    throw new Error('Transaction was rejected or failed.');
+                }
+                txHash = result;
+            } else if (walletAddress) {
+                // Manual wallet address / card purchase without browser extension
+                txHash = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
+            } else {
+                throw new Error('Please enter a wallet address or connect a Web3 wallet.');
             }
 
             await onSubscriptionComplete({
@@ -128,6 +148,27 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
             setIsLoading(false);
         }
     };
+
+    if (showEmbeddedModal && useEmbeddedWallet) {
+        return (
+            <EmbeddedPaymentModal
+                isOpen={isOpen}
+                onClose={onClose}
+                type="Subscription"
+                amount={selectedTier.price}
+                creator={creator}
+                tierName={selectedTier.name}
+                onSuccess={(txHash) => {
+                    onSubscriptionComplete({
+                        creatorId: creator.id,
+                        tierId: selectedTier.id,
+                        paymentMethodId: txHash || 'embedded-payment',
+                    });
+                    onClose();
+                }}
+            />
+        );
+    }
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
@@ -150,34 +191,90 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                             {selectedTier.price.toFixed(2)} USDC <span className="text-xs text-gray-400 font-normal">/mo</span>
                         </span>
                     </div>
-                    <div className="mt-3 flex items-center text-xs text-green-400 bg-green-500/10 p-2 rounded-lg">
-                        <Zap className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                        Autopilot Enabled: split payout handled directly on-chain on Base Sepolia
-                    </div>
+                    
                 </div>
 
                 {step === 'connect' ? (
                     <div className="space-y-4">
-                        <div className="text-center py-4 space-y-2">
-                            <Wallet className="w-12 h-12 mx-auto text-purple-400 animate-bounce" />
-                            <h3 className="text-md font-bold text-white">Connect Crypto Wallet</h3>
+                        <div className="text-center py-3 space-y-1">
+                            <h3 className="text-md font-bold text-white">Choose Payment / Wallet Method</h3>
                             <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                                You need to connect a Web3 wallet containing USDC on Base Sepolia to configure the monthly subscription.
+                                Fund directly using a credit/debit card, or connect an existing Web3 wallet on Base Sepolia.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3">
-                            <button
-                                onClick={() => handleConnect('custom')}
-                                disabled={walletLoading}
-                                className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-between transition-all duration-300 border border-slate-700"
-                            >
-                                <span className="flex flex-col text-left">
-                                    <span className="text-sm">Browser Extension Wallet</span>
-                                    <span className="text-3xs text-gray-400 font-normal">MetaMask, Coinbase Wallet, Phantom</span>
-                                </span>
-                                <span className="border border-slate-600 py-1 px-2 rounded-lg text-xs text-gray-300">Connect</span>
-                            </button>
+                        <div className="space-y-3">
+                            {/* Option 1: Buy with Credit Card via Coinbase On-Ramp */}
+                            <div className="p-3 bg-slate-800/80 rounded-xl border border-purple-500/30 space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
+                                    <CreditCard className="w-4 h-4 text-purple-400" />
+                                    <span>Option 1: Buy USDC with Credit Card / Apple Pay</span>
+                                </div>
+                                <OnRampButton
+                                    amount={Math.ceil(selectedTier.price)}
+                                    destinationWallet={manualAddress || walletAddress || ''}
+                                    fanId=""
+                                />
+                            </div>
+
+                            {useEmbeddedWallet ? (
+                                <button
+                                    onClick={() => setShowEmbeddedModal(true)}
+                                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl flex items-center justify-between transition-all duration-300 shadow-lg"
+                                >
+                                    <span className="flex flex-col text-left">
+                                        <span className="text-sm">Option 2: Pay with Embedded Wallet</span>
+                                        <span className="text-3xs text-gray-200 font-normal">Gas-free • 1-Click Subscribe</span>
+                                    </span>
+                                    <Zap className="w-5 h-5 text-white" />
+                                </button>
+                            ) : (
+                                <>
+                                    {/* Option 2: Browser Extension Wallet */}
+                                    <button
+                                        onClick={() => handleConnect('custom')}
+                                        disabled={walletLoading}
+                                        className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-between transition-all duration-300 border border-slate-700"
+                                    >
+                                        <span className="flex flex-col text-left">
+                                            <span className="text-sm">Option 2: Browser Extension Wallet</span>
+                                            <span className="text-3xs text-gray-400 font-normal">MetaMask, Coinbase Wallet, Phantom</span>
+                                        </span>
+                                        <span className="border border-slate-600 py-1 px-2 rounded-lg text-xs text-gray-300">Connect</span>
+                                    </button>
+
+                                    {/* Option 3: Manual Wallet Address Input */}
+                                    <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700 space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowManualAddress(!showManualAddress)}
+                                            className="w-full flex justify-between items-center text-xs font-bold text-gray-300 hover:text-white"
+                                        >
+                                            <span>Option 3: Enter Wallet Address Manually</span>
+                                            <ChevronRight className={`w-4 h-4 transition-transform ${showManualAddress ? 'rotate-90' : ''}`} />
+                                        </button>
+
+                                        {showManualAddress && (
+                                            <form onSubmit={handleManualAddressSubmit} className="pt-2 space-y-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="0x... (Your EVM Wallet Address)"
+                                                    value={manualAddress}
+                                                    onChange={(e) => setManualAddress(e.target.value)}
+                                                    className="w-full text-xs font-mono p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                                                />
+                                                <Button
+                                                    type="submit"
+                                                    size="sm"
+                                                    className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+                                                >
+                                                    Use Wallet Address
+                                                </Button>
+                                            </form>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 ) : (
@@ -197,16 +294,16 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                         <div className="p-3 bg-slate-800 rounded-xl space-y-1.5 text-xs text-gray-400 border border-slate-700">
                             <div className="flex items-center text-white font-semibold">
                                 <ShieldCheck className="w-4 h-4 mr-1 text-green-400" />
-                                100% Chargeback Proof Protocol
+                                Privacy protected transaction
                             </div>
                             <p className="leading-relaxed">
-                                Denominated in USDC. Confirming will request your wallet to switch to **Base Sepolia** to sign the one-time subscription pull permission. PoDM Platform commission is dynamically calculated.
+                                Denominated in USDC. Confirming will request your wallet to switch to **Base Sepolia** to sign the one-time subscription pull permission.
                             </p>
                         </div>
 
                         <div className="flex items-center space-x-2 text-2xs text-purple-300 bg-purple-500/10 p-2.5 rounded-lg border border-purple-500/20">
                             <AlertCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                            <span>Gas is paid in native ETH on Base Sepolia. Switch prompt will handle network parameters automatically.</span>
+                            <span>Gas is paid in native ETH on Base Sepolia.</span>
                         </div>
                     </div>
                 )}

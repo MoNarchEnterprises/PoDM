@@ -19,9 +19,13 @@ export const OnRampButton = ({ amount, destinationWallet, fanId, onComplete, cla
         setIsLoading(true);
         setError(null);
         try {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
             const response = await fetch('/api/v1/payments/onramp/session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({
                     amount,
                     destinationWallet,

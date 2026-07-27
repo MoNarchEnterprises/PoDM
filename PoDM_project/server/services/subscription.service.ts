@@ -48,17 +48,28 @@ export const createSubscriptionForUser = async (
         relatedId: tier_id
     });
 
-    // 3. Save subscription to our database
-    const dbSubscription = await SubscriptionModel.createSubscription({
-        blockchain_tx_hash: txHash,
-        fan_id: fan_id,
-        creator_id: creator_id,
-        tier_id: tier_id,
-        status: 'active',
-        start_date: new Date().toISOString(),
-        end_date: undefined,
-        next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    });
+    // 3. Save or update subscription in database
+    const existingSub = await SubscriptionModel.findSubscriptionByFanAndCreator(fan_id, creator_id);
+    let dbSubscription: any = null;
+
+    if (existingSub) {
+        dbSubscription = await SubscriptionModel.updateSubscription(String(existingSub.id), {
+            tier_id: tier_id,
+            status: 'active',
+            start_date: new Date().toISOString(),
+            next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+    } else {
+        const payload: any = {
+            fan_id: fan_id,
+            creator_id: creator_id,
+            tier_id: tier_id,
+            status: 'active',
+            start_date: new Date().toISOString(),
+            next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+        dbSubscription = await SubscriptionModel.createSubscription(payload);
+    }
 
     if (!dbSubscription) {
         throw new AppError('Failed to save subscription to database.', 500);

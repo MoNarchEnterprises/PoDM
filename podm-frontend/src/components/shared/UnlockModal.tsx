@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useCryptoPayment } from '../../shared/hooks/useCryptoPayment';
+import { payFromWallet } from '../../lib/cryptoPayments';
+import { getCryptoWallet } from '../../lib/wallet';
 import { X, Lock, CheckCircle, Wallet } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
+import { useEmbeddedWalletEnabled } from '../../shared/hooks/useFeatureFlag';
+import EmbeddedPaymentModal from './EmbeddedPaymentModal';
 
 interface UnlockModalProps {
     isOpen: boolean;
@@ -14,31 +17,43 @@ interface UnlockModalProps {
     price: number;
     onUnlockSuccess: () => void;
     creatorWalletAddress?: string;
+    creatorId?: string;
 }
 
-const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess, creatorWalletAddress }: UnlockModalProps) => {
+const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess, creatorWalletAddress, creatorId }: UnlockModalProps) => {
     const { user: currentFan } = useAuth();
-    const { processPayment, isLoading, error, step, setStep, setError, setIsLoading } = useCryptoPayment();
+    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const { enabled: useEmbeddedWallet } = useEmbeddedWalletEnabled();
 
     const formattedPrice = (price / 100).toFixed(2);
-    const hasCreatorWallet = !!creatorWalletAddress;
-    const hasFanWallet = !!currentFan?.profile?.crypto_wallet_address;
+    const recipientWallet = creatorWalletAddress || getCryptoWallet({ id: creatorId });
+    const fanWalletAddress = getCryptoWallet(currentFan);
+    const hasCreatorWallet = !!recipientWallet;
+    const hasFanWallet = !!fanWalletAddress;
 
     const handleUnlock = async () => {
-        if (!creatorWalletAddress) {
-            setError('Creator has not set up their crypto wallet.');
-            return;
-        }
+        setIsLoading(true);
+        setError(null);
 
-        const success = await processPayment({
-            amount: price / 100,
-            recipientAddress: creatorWalletAddress,
-            contentId,
-            creatorId: currentFan?.id,
+        const result = await payFromWallet({
+            fromAddress: fanWalletAddress,
+            toAddress: recipientWallet,
+            creatorId: creatorId || '',
+            amountInCents: price,
+            transactionType: 'PPV Post',
+            relatedId: contentId,
         });
 
-        if (success) {
+        setIsLoading(false);
+
+        if (result.success) {
+            setStep(2);
             onUnlockSuccess();
+        } else {
+            setError(result.error || 'Unlock payment failed.');
         }
     };
 
@@ -48,6 +63,21 @@ const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess
         setIsLoading(false);
         onClose();
     };
+
+    if (useEmbeddedWallet && creatorId) {
+        return (
+            <EmbeddedPaymentModal
+                isOpen={isOpen}
+                onClose={handleClose}
+                type="PPV Post"
+                amount={price / 100}
+                creator={{ id: creatorId, profile: { name: 'Creator' } } as any}
+                contentTitle={title}
+                relatedId={contentId}
+                onSuccess={onUnlockSuccess}
+            />
+        );
+    }
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose}>
@@ -91,7 +121,7 @@ const UnlockModal = ({ isOpen, onClose, contentId, title, price, onUnlockSuccess
                         ) : (
                             <div className="p-3 bg-slate-800 rounded-md border border-slate-700 text-center">
                                 <p className="text-sm text-gray-400">Paying from:</p>
-                                <p className="font-semibold text-white text-xs truncate">{currentFan.profile.crypto_wallet_address}</p>
+                                <p className="font-semibold text-white text-xs truncate">{fanWalletAddress}</p>
                             </div>
                         )}
 

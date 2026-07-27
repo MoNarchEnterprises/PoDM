@@ -36,16 +36,22 @@ interface PostCardProps {
     lockState?: ContentLockState; // NEW: Centralized lock state from ContentLockManager
 }
 
-const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
+const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => {
     const navigate = useNavigate();
     const { isOpen: isTipModalOpen, openModal: openTipModal, closeModal: closeTipModal } = useModal();
     const { isOpen: isUnlockModalOpen, openModal: openUnlockModal, closeModal: closeUnlockModal } = useModal();
     const [isSaving, setIsSaving] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(post.inGallery || false);
-    const [localIsUnlocked, setLocalIsUnlocked] = useState(post.isUnlocked || false);
 
-    // A post is locked if forced, or if the backend says it's not unlocked.
-    // This allows supporting "Paid Unlisted" content (Message PPV) which is unlisted but locked.
+    const initialIsUnlocked = lockState ? lockState.isUnlocked : (post.isUnlocked || false);
+    const [localIsUnlocked, setLocalIsUnlocked] = useState(initialIsUnlocked);
+
+    React.useEffect(() => {
+        const nextUnlocked = lockState ? lockState.isUnlocked : (post.isUnlocked || false);
+        setLocalIsUnlocked(nextUnlocked);
+    }, [lockState?.isUnlocked, post.isUnlocked]);
+
+    // A post is locked if forced, or if the backend/lockState says it's not unlocked.
     const isLocked = forceLocked || !localIsUnlocked;
 
     const handleSaveToGallery = async () => {
@@ -67,8 +73,13 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
 
     const handleUnlockSuccess = () => {
         setLocalIsUnlocked(true);
-        // alert('Content unlocked!'); // Modal handles success message
     };
+
+    const effectiveIsSubscribed = lockState ? lockState.isSubscribedToCreator : (post.isSubscribedToCreator || false);
+    const effectiveIsLockedByTier = lockState ? (lockState.lockType === 'tier') : (post.isLockedByTier || false);
+    const effectiveMinTierLevel = lockState ? lockState.minTierLevel : post.min_tier_level;
+    const effectivePrice = lockState ? lockState.price : post.price;
+    const effectiveCreatorUsername = lockState ? lockState.creatorUsername : post.creator?.username;
 
     return (
         <>
@@ -76,7 +87,7 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
             <TipModal
                 isOpen={isTipModalOpen}
                 onClose={closeTipModal}
-                creator={post.creator} // Pass the full creator object
+                creator={post.creator}
                 onSubmit={handleTipSubmit}
             />
 
@@ -98,20 +109,14 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                         onError={(e) => {
                             const target = e.currentTarget;
 
-
-                            // If content is locked and thumbnail fails (e.g. R2 CORS), show the nice locked placeholder
                             if (isLocked) {
-                                // Prevent infinite loop if placeholder is missing
                                 if (!target.src.includes('locked-placeholder.png')) {
-
                                     target.src = '/assets/locked-placeholder.png';
-                                    // Remove blur if we are showing the clean placeholder
                                     target.classList.remove('blur-md');
                                 }
                             } else {
-                                // Standard error fallback
                                 if (post.type === 'audio') {
-                                    target.src = '/assets/audio-placeholder.png'; // Ensure this asset exists or use a generic one
+                                    target.src = '/assets/audio-placeholder.png';
                                 } else {
                                     target.src = 'https://placehold.co/600x400/1F2937/FFFFFF?text=Error';
                                 }
@@ -120,11 +125,11 @@ const PostCard = ({ post, isLocked: forceLocked }: PostCardProps) => {
                     />
                     <ContentLockOverlay
                         isUnlocked={localIsUnlocked}
-                        isLockedByTier={post.isLockedByTier}
-                        price={post.price}
-                        minTierLevel={post.min_tier_level}
-                        isSubscribedToCreator={post.isSubscribedToCreator}
-                        creatorUsername={post.creator.username}
+                        isLockedByTier={effectiveIsLockedByTier}
+                        price={effectivePrice}
+                        minTierLevel={effectiveMinTierLevel}
+                        isSubscribedToCreator={effectiveIsSubscribed}
+                        creatorUsername={effectiveCreatorUsername}
                         onUnlock={openUnlockModal}
                         variant="card"
                     />

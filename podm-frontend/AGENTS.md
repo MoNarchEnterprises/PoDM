@@ -13,7 +13,8 @@ Client-facing user interface for audience, creators, and administrators on the P
 - API client (`src/lib/apiClient.ts`) — all frontend-to-backend communication
 - Socket.IO client for real-time messaging
 - Crypto wallet payment UI (via `useCryptoPayment` hook, `window.ethereum` EIP-1193)
-- State management: React Context (ToastContext), custom hooks
+- Embedded wallet payment UI (via `EmbeddedPaymentModal`, `useEmbeddedWallet` context, feature-flagged)
+- State management: React Context (ToastContext, EmbeddedWalletContext), custom hooks
 - Global styles (Tailwind CSS) and Tailwind configuration
 - E2E tests (Playwright) in `/tests/`
 - Jest unit test configuration
@@ -27,7 +28,8 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **Styling**: Tailwind CSS 3.4 with `@tailwindcss/forms`
 - **Routing**: React Router v7 (lazy-loaded routes in `App.tsx`)
 - **Real-time**: Socket.IO client v4
-- **Payments UI**: Crypto wallet payments via `useCryptoPayment` hook (raw `window.ethereum` EIP-1193, no viem/wagmi dependency)
+- **Payments UI**: Crypto wallet payments via `useCryptoPayment` hook (raw `window.ethereum` EIP-1193, no viem/wagmi dependency); embedded wallet payments via `EmbeddedPaymentModal` (feature-flagged, gasless via ERC-4337)
+- **Feature Flags**: `useFeatureFlag` hook with env kill switch (`VITE_ENABLE_EMBEDDED_WALLET`) + backend flag resolution
 - **Charts**: Recharts 3
 - **Icons**: Lucide React
 - **HTTP client**: Axios (wrapped in `apiClient.ts`)

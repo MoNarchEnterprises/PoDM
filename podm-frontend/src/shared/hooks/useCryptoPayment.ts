@@ -1,13 +1,47 @@
 import { useState, useCallback } from 'react';
 
-const ERC20_TRANSFER_ABI = '0xa9059cbb';
+const APPROVE_SELECTOR = '0xb3886be3';      // approve(address spender, uint256 amount)
+const ALLOWANCE_SELECTOR = '0xd1ac244a';   // allowance(address owner, address spender) view returns (uint256)
+const PAY_SUB_SELECTOR   = '0x7158d140';   // paySubscription(address token, address creator, uint256 amount, bytes32 tierIdHash)
+const PAY_TIP_SELECTOR   = '0x7b6c03b7';   // payTip(address token, address creator, uint256 amount)
+const PAY_PPV_SELECTOR   = '0xf6ad20a7';   // payPPV(address token, address creator, uint256 amount, bytes32 contentIdHash)
+
+const MAX_UINT256_HEX = '0x' + 'f'.repeat(64); // unlimited allowance
+
+type PaymentType = 'Tip' | 'PPV Post' | 'PPV Message' | 'Subscription';
 
 function getUsdcAddress(chainId: number): string {
   const USDC_ADDRESSES: Record<number, string> = {
-    84532: '0x036eFd9011037348926609f2A377B6729024D914',
+    84532: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913',
   };
   return USDC_ADDRESSES[chainId] || USDC_ADDRESSES[84532];
+}
+
+function getContractAddress(): string {
+  // Vite-exposed env (VITE_BASE_TESTNET_CONTRACT_ADDRESS on Base Sepolia)
+  return import.meta.env.VITE_BASE_CONTRACT_ADDRESS
+    || import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS
+    || '';
+}
+
+function padAddress(addr: string): string {
+  return addr.slice(2).toLowerCase().padStart(64, '0');
+}
+
+function padUint(value: bigint): string {
+  return value.toString(16).padStart(64, '0');
+}
+
+function stringToBytes32Hex(str: string | undefined): string {
+  if (!str) return '0'.repeat(64);
+  const clean = str.replace(/-/g, '');
+  if (/^[0-9a-fA-F]{64}$/.test(clean)) return clean.toLowerCase();
+  let hex = '';
+  for (let i = 0; i < str.length && i < 32; i++) {
+    hex += str.charCodeAt(i).toString(16);
+  }
+  return hex.padEnd(64, '0');
 }
 
 async function ensureConnectedWallet(): Promise<string> {
@@ -18,12 +52,64 @@ async function ensureConnectedWallet(): Promise<string> {
   return accounts[0];
 }
 
+/**
+ * Read ERC-20 allowance(owner, spender) via eth_call.
+ * Returns the value as a bigint (in USDC 6-decimals units).
+ */
+async function readAllowance(usdcAddress: string, owner: string, spender: string): Promise<bigint> {
+  const eth = window.ethereum!;
+  const data = ALLOWANCE_SELECTOR + padAddress(owner) + padAddress(spender);
+  const result = await eth.request({
+    method: 'eth_call',
+    params: [{ to: usdcAddress, data }, 'latest'],
+  }) as string;
+  if (!result || result === '0x') return 0n;
+  return BigInt(result);
+}
+
+/**
+ * Send ERC-20 approve(spender, MAX_UINT256) and wait for the receipt.
+ * Returns the approve transaction hash.
+ */
+async function approveContract(usdcAddress: string, owner: string, spender: string): Promise<string> {
+  const eth = window.ethereum!;
+  const data = APPROVE_SELECTOR + padAddress(spender) + MAX_UINT256_HEX.slice(2);
+  const txHash = await eth.request({
+    method: 'eth_sendTransaction',
+    params: [{ from: owner, to: usdcAddress, data }],
+  }) as string;
+  await waitForReceipt(txHash);
+  return txHash;
+}
+
+interface EthReceipt {
+  transactionHash: string;
+  status: string;
+  blockNumber: string;
+}
+
+async function waitForReceipt(txHash: string, timeoutMs = 60000): Promise<EthReceipt> {
+  const eth = window.ethereum!;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const receipt = await eth.request({
+      method: 'eth_getTransactionReceipt',
+      params: [txHash],
+    }) as EthReceipt | null;
+    if (receipt) return receipt;
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  throw new Error(`Transaction ${txHash} not mined within ${timeoutMs}ms`);
+}
+
 export interface CryptoPaymentParams {
-  amount: number;
-  recipientAddress: string;
-  contentId?: string;
+  amount: number;            // amount in USD (e.g. 5.00 for $5)
+  recipientAddress: string;  // creator wallet address (kept for backwards compat)
+  contentId?: string;        // for PPV
   creatorId?: string;
   message?: string;
+  paymentType?: PaymentType;
+  tierId?: string;           // for subscriptions
 }
 
 export interface CryptoPaymentResult {
@@ -49,42 +135,69 @@ export function useCryptoPayment(): CryptoPaymentResult {
     setError(null);
 
     try {
-      const fromAddress = await ensureConnectedWallet();
+      const contractAddress = getContractAddress();
+      if (!contractAddress) throw new Error('Contract address not configured (VITE_BASE_TESTNET_CONTRACT_ADDRESS).');
 
+      const fromAddress = await ensureConnectedWallet();
       const eth = window.ethereum!;
       const chainId = Number(eth.chainId) || 84532;
       const usdcAddress = getUsdcAddress(chainId);
 
-      const toAddress = params.recipientAddress.startsWith('0x')
+      const creatorWallet = params.recipientAddress.startsWith('0x')
         ? params.recipientAddress
         : `0x${params.recipientAddress}`;
-      const amountInUnits = BigInt(Math.round(params.amount * 1e6));
-      const paddedAddress = toAddress.slice(2).toLowerCase().padStart(64, '0');
-      const data = ERC20_TRANSFER_ABI + paddedAddress + amountInUnits.toString(16).padStart(64, '0');
 
+      const amountInUnits = BigInt(Math.round(params.amount * 1e6)); // USDC 6 decimals
+
+      // 1. Ensure sufficient USDC allowance to the PoDM contract.
+      const currentAllowance = await readAllowance(usdcAddress, fromAddress, contractAddress);
+      if (currentAllowance < amountInUnits) {
+        const approveTx = await approveContract(usdcAddress, fromAddress, contractAddress);
+        console.log('[useCryptoPayment] USDC approve tx:', approveTx);
+      }
+
+      // 2. Build calldata for the appropriate PoDM contract function.
+      const type: PaymentType = params.paymentType
+        || (params.contentId ? 'PPV Post' : 'Tip');
+
+      let selector: string;
+      let dataHex: string;
+      if (type === 'Subscription') {
+        selector = PAY_SUB_SELECTOR;
+        const tierIdHash = stringToBytes32Hex(params.tierId);
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + tierIdHash;
+      } else if (type === 'Tip') {
+        selector = PAY_TIP_SELECTOR;
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits);
+      } else { // PPV Post or PPV Message
+        selector = PAY_PPV_SELECTOR;
+        const contentIdHash = stringToBytes32Hex(params.contentId);
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + contentIdHash;
+      }
+
+      // 3. Send the contract payX call.
       const hash = await eth.request({
         method: 'eth_sendTransaction',
-        params: [{
-          from: fromAddress,
-          to: usdcAddress,
-          data,
-        }],
+        params: [{ from: fromAddress, to: contractAddress, data: dataHex }],
       }) as string;
 
       setTxHash(hash);
+      await waitForReceipt(hash);
 
+      // 4. Verify on the backend so the DB records a verified transaction.
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       const response = await fetch('/api/v1/payments/crypto/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           txHash: hash,
           creatorId: params.creatorId,
           amountInCents: Math.round(params.amount * 100),
-          transactionType: params.contentId ? 'PPV Post' : 'Tip',
-          relatedId: params.contentId,
+          transactionType: type,
+          relatedId: params.contentId || params.tierId,
         }),
       });
 
@@ -95,8 +208,8 @@ export function useCryptoPayment(): CryptoPaymentResult {
 
       setStep(2);
       return true;
-    } catch (err: any) {
-      const message = err?.message || 'Payment failed.';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Payment failed.';
       setError(message);
       console.error('[useCryptoPayment] Error:', err);
       return false;

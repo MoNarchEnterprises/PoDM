@@ -3,6 +3,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useCryptoWallet } from '../../shared/hooks/useCryptoWallet';
 import { Wallet, ShieldCheck, Zap, AlertCircle, CheckCircle, Send, Lock } from 'lucide-react';
+import { getCryptoWallet } from '../../lib/wallet';
 import OnRampButton from './OnRampButton';
 
 type PaymentType = 'tip' | 'ppv' | 'subscription';
@@ -22,6 +23,14 @@ interface PaymentModalProps {
 
 const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
 const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
+const BASE_MAINNET_CHAIN_ID = '0x2105';
+
+const APPROVE_SELECTOR   = '0xb3886be3'; // approve(address spender, uint256 amount)
+const ALLOWANCE_SELECTOR = '0xd1ac244a'; // allowance(address owner, address spender) view returns (uint256)
+const PAY_SUB_SELECTOR   = '0x7158d140'; // paySubscription(address, address, uint256, bytes32)
+const PAY_TIP_SELECTOR   = '0x7b6c03b7'; // payTip(address, address, uint256)
+const PAY_PPV_SELECTOR   = '0xf6ad20a7'; // payPPV(address, address, uint256, bytes32)
+const MAX_UINT256_HEX = '0x' + 'f'.repeat(64);
 
 function stringToBytes32(str: string | undefined): string {
     if (!str) return '0'.repeat(64);
@@ -32,6 +41,14 @@ function stringToBytes32(str: string | undefined): string {
         hex += str.charCodeAt(i).toString(16);
     }
     return hex.padEnd(64, '0');
+}
+
+function padAddress(addr: string): string {
+    return addr.slice(2).toLowerCase().padStart(64, '0');
+}
+
+function padUint(value: bigint): string {
+    return value.toString(16).padStart(64, '0');
 }
 
 const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, relatedId, tierName, onSuccess, fanId }: PaymentModalProps) => {
@@ -49,6 +66,24 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
         await connectWallet('custom');
     };
 
+    const waitForReceipt = async (hash: string, timeoutMs = 60000): Promise<any> => {
+        const eth = window.ethereum;
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+            const r = await eth!.request({ method: 'eth_getTransactionReceipt', params: [hash] });
+            if (r) return r;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+        throw new Error(`Transaction ${hash.slice(0, 10)}... not mined within ${timeoutMs / 1000}s`);
+    };
+
+    const getUsdcAddress = (cid: number | undefined) => {
+        const c = (typeof cid === 'number' ? cid : 84532);
+        return c === 8453
+            ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
+            : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+    };
+
     const handleConfirmPayment = async () => {
         setIsLoading(true);
         setError(null);
@@ -56,15 +91,16 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
             const eth = window.ethereum;
             if (!eth || !walletAddress) throw new Error('Wallet not connected.');
 
+            const targetChainId = chainId === 8453 ? BASE_MAINNET_CHAIN_ID : BASE_SEPOLIA_CHAIN_ID;
             await eth.request({
                 method: 'wallet_switchEthereumChain',
-                params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+                params: [{ chainId: targetChainId }],
             }).catch(async (switchError: any) => {
                 if (switchError.code === 4902) {
                     await eth.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
-                            chainId: BASE_SEPOLIA_CHAIN_ID,
+                            chainId: targetChainId,
                             chainName: 'Base Sepolia Testnet',
                             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
                             rpcUrls: [BASE_SEPOLIA_RPC],
@@ -76,39 +112,45 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
                 }
             });
 
-            const contractAddress = import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
+            const contractAddress = chainId === 8453
+                ? import.meta.env.VITE_BASE_CONTRACT_ADDRESS
+                : import.meta.env.VITE_BASE_TESTNET_CONTRACT_ADDRESS;
             if (!contractAddress) throw new Error('Contract address not configured.');
 
-            const chainIdNum = chainId || 84532;
-            const usdcAddress = chainIdNum === 8453
-                ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-                : '0x036eFd9011037348926609f2A377B6729024D914';
-
+            const usdcAddress = getUsdcAddress(chainId);
             const amountWei = BigInt(Math.round((displayAmount / 100) * 1e6));
-            const creatorWallet = creator.profile.crypto_wallet_address || creator.crypto_wallet_address;
-            if (!creatorWallet) throw new Error('Creator has not configured their payout wallet.');
+            const creatorWallet = getCryptoWallet(creator);
 
+            // ── Step 1: Ensure USDC allowance for the PoDM contract ──
+            const allowanceData = ALLOWANCE_SELECTOR + padAddress(walletAddress) + padAddress(contractAddress);
+            const allowanceHex = await eth.request({
+                method: 'eth_call',
+                params: [{ from: walletAddress, to: usdcAddress, data: allowanceData }, 'latest'],
+            }) as string;
+            const currentAllowance = allowanceHex && allowanceHex !== '0x' ? BigInt(allowanceHex) : 0n;
+
+            if (currentAllowance < amountWei) {
+                const approveData = APPROVE_SELECTOR + padAddress(contractAddress) + MAX_UINT256_HEX.slice(2);
+                const approveHash: string = await eth.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: walletAddress, to: usdcAddress, data: approveData }],
+                });
+                if (!approveHash || typeof approveHash !== 'string') throw new Error('Approval transaction rejected.');
+                await waitForReceipt(approveHash);
+            }
+
+            // ── Step 2: Call the PoDM contract payX function ──
+            let selector: string;
             let data: string;
             if (type === 'subscription') {
-                const sig = '7158d140';
-                data = '0x' + sig +
-                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
-                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
-                    amountWei.toString(16).padStart(64, '0') +
-                    stringToBytes32(relatedId);
+                selector = PAY_SUB_SELECTOR;
+                data = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountWei) + stringToBytes32(relatedId);
             } else if (type === 'tip') {
-                const sig = '7b6c03b7';
-                data = '0x' + sig +
-                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
-                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
-                    amountWei.toString(16).padStart(64, '0');
+                selector = PAY_TIP_SELECTOR;
+                data = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountWei);
             } else {
-                const sig = 'f6ad20a7';
-                data = '0x' + sig +
-                    usdcAddress.slice(2).toLowerCase().padStart(64, '0') +
-                    creatorWallet.slice(2).toLowerCase().padStart(64, '0') +
-                    amountWei.toString(16).padStart(64, '0') +
-                    stringToBytes32(relatedId);
+                selector = PAY_PPV_SELECTOR;
+                data = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountWei) + stringToBytes32(relatedId);
             }
 
             const hash: string = await eth.request({
@@ -118,6 +160,8 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
 
             if (!hash || typeof hash !== 'string') throw new Error('Transaction rejected.');
 
+            // Wait for the payX tx to be mined
+            await waitForReceipt(hash);
             setTxHash(hash);
             setStep('success');
 
@@ -214,7 +258,7 @@ const PaymentModal = ({ isOpen, onClose, type, amount, creator, contentTitle, re
                         </div>
                         <div className="flex items-center space-x-2 text-2xs text-purple-300 bg-purple-500/10 p-2.5 rounded-lg">
                             <AlertCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                            <span>Gas paid in native ETH on Base Sepolia.</span>
+                            <span>Gas paid in native ETH on Base Sepolia. First payment requires two wallet approvals (USDC approve, then pay). Subsequent payments are single-click.</span>
                         </div>
                     </div>
                 )}

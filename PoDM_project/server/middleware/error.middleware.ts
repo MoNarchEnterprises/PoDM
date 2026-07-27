@@ -34,6 +34,7 @@ export const errorHandler = (
     if (err instanceof AppError) {
         statusCode = err.statusCode;
         message = err.message;
+        console.error(`AppError [${statusCode}]: ${message}`);
     } else {
         // Check if the error object has a status code (e.g., from OpenAI or other libs)
         console.log('Error Handler Received Non-AppError:', {

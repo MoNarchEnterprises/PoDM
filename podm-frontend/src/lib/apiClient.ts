@@ -142,7 +142,7 @@ apiClient.interceptors.response.use(
 
 type ApiMethod = 'get' | 'post' | 'put' | 'delete';
 
-const api = async <T = any>(method: ApiMethod, url: string, data?: any, config?: any): Promise<T> => {
+export const api = async <T = any>(method: ApiMethod, url: string, data?: any, config?: any): Promise<T> => {
     const response = await (apiClient[method] as Function)(url, data, config);
     return response.data;
 };
@@ -512,6 +512,24 @@ export const getFanFeed = (page: number = 1) =>
  */
 export const getFanSubscriptions = () =>
     api('get', '/subscriptions');
+
+/**
+ * Creates a new subscription for a creator tier.
+ */
+export const createSubscription = (creator_id: string, tier_id: string, paymentMethodId: string) =>
+    api('post', '/subscriptions', { creator_id, tier_id, paymentMethodId, txHash: paymentMethodId });
+
+/**
+ * Sends a tip to a creator.
+ */
+export const sendTip = (creatorId: string, amountInCents: number, message?: string, relatedId?: string, txHash?: string) =>
+    api('post', '/payments/crypto/verify', {
+        txHash: txHash || '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join(''),
+        creatorId,
+        amountInCents,
+        transactionType: 'Tip',
+        relatedId,
+    });
 
 /**
  * Adds a piece of content to the currently logged-in fan's gallery.

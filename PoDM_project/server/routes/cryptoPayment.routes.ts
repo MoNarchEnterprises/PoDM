@@ -7,6 +7,7 @@ import {
     requestWithdrawal
 } from '../controllers/cryptoPayment.controller';
 
+console.log('✅ cryptoPayment.routes.ts loaded and registering /verify route');
 const router = Router();
 
 /**
