@@ -53,6 +53,7 @@ export interface User {
   creator_data?: any; // JSONB column
   preferences?: any; // JSONB column
   onboarding_complete?: boolean; // Whether the user has completed onboarding
+  crypto_wallet_address?: string; // User's linked crypto wallet address
   smart_account_address?: string;
   wallet_provider?: string;
   wallet_status?: string;

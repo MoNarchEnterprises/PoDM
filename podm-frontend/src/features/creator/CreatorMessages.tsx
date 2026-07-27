@@ -58,25 +58,10 @@ const CreatorMessagesPage = () => {
         const fetchAndProcessContent = async () => {
             try {
                 const response = await apiClient.getMyCreatorContent();
+                // getMyCreatorContent already returns content with 1-hour signed thumbnail URLs
+                // via generateSignedUrlsForContent on the backend — no need to re-sign.
                 const validContent = response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted');
-
-                const contentWithSignedUrls = await Promise.all(
-                    validContent.map(async (contentItem: Content) => {
-                        try {
-                            const urlResponse = await apiClient.getSecureContentUrl(contentItem.id);
-                            const newItem = JSON.parse(JSON.stringify(contentItem));
-                            if (newItem.files && newItem.files.length > 0) {
-                                newItem.files[0].thumbnailUrl = urlResponse.data.secureUrl;
-                            }
-                            return newItem;
-                        } catch (urlError) {
-                            console.error(`Failed to get signed URL for content ${contentItem.id}`, urlError);
-                            return contentItem;
-                        }
-                    })
-                );
-
-                setExistingContent(contentWithSignedUrls);
+                setExistingContent(validContent);
             } catch (error) {
                 console.error("Failed to fetch creator content for attachments:", error);
             }

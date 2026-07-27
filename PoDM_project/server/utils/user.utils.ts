@@ -30,6 +30,7 @@ export const reshapeUserForApp = (flatUser: any): User => {
         created_at: created_at,
         role,
         status,
+        crypto_wallet_address: flatUser.crypto_wallet_address || '',
         updated_at: flatUser.updated_at,
         profile: {
             name: fullName || full_name || username || 'Unknown User',

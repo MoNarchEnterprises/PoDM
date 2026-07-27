@@ -10,6 +10,7 @@ import Button from '../../components/ui/Button';
 import { socket } from '../../lib/socket';
 import ContentViewerModal from './components/ContentViewerModal';
 import { formatMessageTimestamp, formatDate } from '../../lib/formatters';
+import { getCryptoWallet } from '../../lib/wallet';
 import MessageBubble from '../messages/components/MessageBubble';
 import ConversationListItem from '../../components/shared/ConversationListItem';
 import { Message, MessageContent } from '@common/types/Message';
@@ -75,16 +76,11 @@ const FanMessagesPage = () => {
     const activeConversation = conversations.find(c => c.creator.id === selectedCreatorId);
 
     useEffect(() => {
-        // Only connect if we have an auth token
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            console.warn('[Socket.IO] No auth token found, skipping connection');
-            return;
-        }
-
         socket.connect();
-        socket.on('connect', () => console.log('[Socket.IO] Connected to server!'));
-        socket.on('connect_error', (err) => console.error('[Socket.IO] Connection Error:', err.message));
+        socket.on('connect_error', (err) => {
+            if (err.message === 'Invalid namespace') return;
+            console.warn('[Socket.IO] Connection error (will retry):', err.message);
+        });
 
         socket.on('new_message', (newMessage: Message) => {
             setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
@@ -145,7 +141,11 @@ const FanMessagesPage = () => {
         const textToSend = newMessageText;
         setNewMessageText('');
         try {
-            await apiClient.sendMessage(activeConversation.creator.id, textToSend);
+            const response = await apiClient.sendMessage(activeConversation.creator.id, textToSend);
+            if (response.success && response.data) {
+                const newMessage = response.data;
+                setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
+            }
         } catch (error) {
             console.error("Failed to send message", error);
             setNewMessageText(textToSend);
@@ -155,7 +155,21 @@ const FanMessagesPage = () => {
     const handleUnlockContent = async (message: Message) => {
         if (!message.content) { return; }
 
-        const recipientAddress = message.content.creatorWalletAddress;
+        // Resolve recipient address via fallback chain:
+        // 1. creatorWalletAddress on the message content (set at send time)
+        // 2. crypto_wallet_address on the creator profile from the conversation
+        // 3. Fetch from backend via getUserById
+        let recipientAddress = message.content.creatorWalletAddress;
+        if (!recipientAddress) {
+            recipientAddress = getCryptoWallet(activeConversation?.creator);
+        }
+        if (!recipientAddress) {
+            try {
+                const userResp = await apiClient.getUserById(message.sender_id);
+                const creatorData = userResp.data;
+                recipientAddress = getCryptoWallet(creatorData);
+            } catch { }
+        }
         if (!recipientAddress) {
             alert('Creator has not set up their crypto wallet.');
             return;
@@ -243,7 +257,7 @@ const FanMessagesPage = () => {
                                                         onSaveToGallery={(contentId) => apiClient.addContentToGallery(contentId)}
                                                         onDelete={handleDeleteMessage}
                                                     />
-                                                    {showDateSeparator && (
+                                                    {showDateSeparator && msg.created_at && (
                                                         <div className="text-center text-xs text-gray-500 font-bold py-4">
                                                             {formatDate(msg.created_at)}
                                                         </div>

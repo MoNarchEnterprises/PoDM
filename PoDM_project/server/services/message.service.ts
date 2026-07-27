@@ -13,6 +13,7 @@ import * as UserModel from '../models/user.model';
 import { reshapeUserForApp } from '../utils/user.utils';
 import { generateSignedUrlsForContent } from '../utils/content.utils';
 import * as ContentModel from '../models/content.model';
+import { getCryptoWalletForUser } from './wallet.service';
 
 /**
  * Fetches all conversations for a specific user, with role-based sorting.
@@ -85,12 +86,16 @@ export const getConversationsForUser = async (userId: string) => {
             // Fetch that user's profile.
             const creator = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
 
-            // 3. Assemble the final object that the frontend expects.
+            // 3. Assemble the final object that the frontend expects (camelCase fields).
+            const lastMsg = (convo as any).last_message;
             return {
-                ...convo,
                 id: convo.id,
-                _id: convo.id.toString(), // FIX: Add _id for frontend compatibility
+                _id: convo.id.toString(),
                 creator: creator ? reshapeUserForApp(creator) : null,
+                lastMessage: lastMsg
+                    ? { text: (lastMsg as any)?.text, isRead: (lastMsg as any)?.is_read ?? true }
+                    : undefined,
+                updatedAt: convo.updated_at || new Date().toISOString(),
             };
         }));
     }
@@ -189,6 +194,10 @@ export const sendDirectMessage = async (sender_id: string, receiver_id: string, 
             throw new AppError('Attached content could not be found.', 404);
         }
         messageData.content.thumbnailUrl = originalContent.files[0].thumbnailUrl;
+
+        // Resolve the sender's crypto wallet address for payment
+        const walletAddress = await getCryptoWalletForUser(sender_id);
+        messageData.content.creatorWalletAddress = walletAddress;
 
         // Auto-unlock free content (price = 0)
         if (messageData.content.price === 0) {

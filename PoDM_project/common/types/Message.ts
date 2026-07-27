@@ -14,6 +14,7 @@ export interface MessageContent {
   isUnlocked: boolean;
   unlockDate?: string; // ISO 8601 date string, set when the content is unlocked
   inGallery?: boolean; // Whether the content is saved in the fan's gallery
+  creatorWalletAddress?: string; // Creator's crypto wallet address for payment
 }
 
 /**

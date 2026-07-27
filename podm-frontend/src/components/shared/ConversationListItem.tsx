@@ -67,9 +67,12 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     const participant = getParticipant(conversation);
     const { lastMessage, updatedAt } = conversation;
 
-    const formatTime = (dateStr: string) => {
+    const formatTime = (dateStr: string | undefined | null) => {
+        if (!dateStr) return '';
         try {
-            return new Date(dateStr).toLocaleTimeString([], {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
             });

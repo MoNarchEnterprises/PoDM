@@ -12,6 +12,6 @@ export const socket = io(SOCKET_URL, {
     autoConnect: false,
     // This is how we send the auth token to the backend middleware
     auth: (cb) => {
-        cb({ token: localStorage.getItem('authToken') });
+        cb({ token: localStorage.getItem('authToken') || sessionStorage.getItem('authToken') });
     }
 });
