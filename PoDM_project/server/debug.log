@@ -34629,3 +34629,259 @@
 [AUTH_DEBUG] 2026-07-27T03:42:21.437Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
 [AUTH_DEBUG] 2026-07-27T03:42:21.515Z - Full user profile found: new_fan_unj9
 [AUTH_DEBUG] 2026-07-27T03:42:21.516Z - User attached to request. Proceeding...
+[2026-07-27T03:49:54.932Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-07-27T03:53:54.197Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T03:53:54.198Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:54.230Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:54.231Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:54.234Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:54.234Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:54.938Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:54.945Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:54.948Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.455Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.456Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.458Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.459Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.463Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.463Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.467Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T03:53:55.467Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:55.470Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-07-27T03:53:55.470Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:55.474Z - --- New Request: GET /user ---
+[AUTH_DEBUG] 2026-07-27T03:53:55.474Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:55.540Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.583Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:55.583Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:55.600Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.601Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.644Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.645Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.651Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.719Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.719Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.739Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.739Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.741Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.742Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:55.825Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-07-27T03:53:55.826Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:55.896Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:55.970Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:55.971Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:56.234Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:56.234Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:56.297Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:56.367Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:56.367Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:56.665Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:56.666Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:56.669Z - --- New Request: GET /status ---
+[AUTH_DEBUG] 2026-07-27T03:53:56.670Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:56.726Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:56.736Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:56.790Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:56.791Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:56.797Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:56.798Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:56.842Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:56.842Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:56.884Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:56.885Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:56.909Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:56.949Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:56.967Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:56.967Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:57.015Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:57.015Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:53:57.399Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:53:57.400Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:53:57.461Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:53:57.525Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:53:57.526Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:05.423Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:05.424Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:05.583Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:05.683Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:05.684Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:05.967Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:05.968Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:06.034Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:06.115Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:06.116Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:11.344Z - --- New Request: PUT /conversations/9/read ---
+[AUTH_DEBUG] 2026-07-27T03:55:11.345Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:11.347Z - --- New Request: GET /conversations/9 ---
+[AUTH_DEBUG] 2026-07-27T03:55:11.348Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:11.481Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:11.491Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:11.547Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:11.548Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:11.563Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:11.564Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:18.406Z - --- New Request: POST /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:18.407Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:18.539Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:18.603Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:18.604Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:25.144Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:25.144Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:25.302Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:25.377Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:25.377Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:25.641Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:25.642Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:25.709Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:25.774Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:25.775Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:31.195Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:31.195Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:31.198Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:31.199Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:31.344Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:31.347Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:31.426Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:31.427Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:31.429Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:31.430Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:31.493Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:31.493Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:31.561Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:31.632Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:31.632Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:32.216Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:32.217Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:32.287Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:32.354Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:32.355Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:33.427Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:33.428Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:33.492Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:33.563Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:33.563Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:33.779Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:33.779Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:33.844Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:33.912Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:33.912Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:36.270Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:36.271Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:36.273Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:36.274Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:36.337Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:36.344Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:36.408Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:36.409Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:36.411Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:36.412Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:36.476Z - --- New Request: GET /feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:36.477Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:36.538Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:36.602Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:36.603Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:37.262Z - --- New Request: GET /me/feed ---
+[AUTH_DEBUG] 2026-07-27T03:55:37.262Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:37.345Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:37.421Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:37.422Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:40.769Z - --- New Request: POST /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:40.769Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:40.833Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:40.903Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:40.903Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:45.725Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:45.726Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:45.883Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:45.947Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:45.948Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:46.237Z - --- New Request: GET /me/gallery ---
+[AUTH_DEBUG] 2026-07-27T03:55:46.238Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:46.303Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:46.375Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:46.376Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:48.679Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:48.680Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:48.821Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:48.971Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:48.971Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:49.230Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:55:49.231Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:49.308Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:49.399Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:49.400Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:51.049Z - --- New Request: PUT /conversations/9/read ---
+[AUTH_DEBUG] 2026-07-27T03:55:51.050Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:51.052Z - --- New Request: GET /conversations/9 ---
+[AUTH_DEBUG] 2026-07-27T03:55:51.052Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:51.118Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:51.191Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:51.194Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:51.194Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:51.274Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:51.275Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:55:57.783Z - --- New Request: POST / ---
+[AUTH_DEBUG] 2026-07-27T03:55:57.783Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:55:57.932Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:55:58.004Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:55:58.005Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.190Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.190Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.208Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.209Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.374Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.442Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.449Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.449Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.451Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.451Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.453Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.454Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.457Z - --- New Request: GET /user ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.457Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.513Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.514Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.521Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.576Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.598Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.601Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.602Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.644Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.645Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.674Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.675Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.748Z - --- New Request: GET /me/settings ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.749Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.761Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:56:15.761Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:15.811Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.836Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:15.874Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.875Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:15.901Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:15.901Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:16.350Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:56:16.350Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:16.352Z - --- New Request: GET /status ---
+[AUTH_DEBUG] 2026-07-27T03:56:16.353Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:16.408Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:16.424Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:16.475Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:16.476Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:16.480Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:16.481Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:16.670Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T03:56:16.670Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:16.739Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:16.798Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:16.799Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:18.659Z - --- New Request: GET /conversations/9 ---
+[AUTH_DEBUG] 2026-07-27T03:56:18.659Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:18.661Z - --- New Request: PUT /conversations/9/read ---
+[AUTH_DEBUG] 2026-07-27T03:56:18.661Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T03:56:18.732Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:18.741Z - Token validated for user ID: 95f070d4-7792-4d42-a301-30991b049fc4
+[AUTH_DEBUG] 2026-07-27T03:56:18.800Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:18.801Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T03:56:18.808Z - Full user profile found: new_fan_unj9
+[AUTH_DEBUG] 2026-07-27T03:56:18.808Z - User attached to request. Proceeding...

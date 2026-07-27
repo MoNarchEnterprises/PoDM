@@ -200,11 +200,11 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
             // Check if subscribed AND tier level is sufficient
             if (isSubscribedToCreator) {
                 // Check tier level requirement
-                if (post.min_tier_level && post.min_tier_level > 1) {
+                const requiredTier = post.minTierLevel ?? post.min_tier_level ?? 1;
+                if (requiredTier > 1) {
                     const fanTierLevel = subscribedCreatorTierLevels.get(String(post.creator_id)) || 1;
-                    // console.log(`[ContentUtils] Post ${post.id} requires tier ${post.min_tier_level}, fan has tier ${fanTierLevel}`);
 
-                    if (fanTierLevel >= post.min_tier_level) {
+                    if (fanTierLevel >= requiredTier) {
                         // Fan's tier is sufficient
                         isUnlocked = true;
                     } else {
