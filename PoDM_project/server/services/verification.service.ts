@@ -3,6 +3,7 @@ import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
+import { calculateReferralFee } from './referral.service';
 
 const EVENT_TOPICS = {
     SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
@@ -174,12 +175,21 @@ export const verifyPaymentReceiptInBackground = async (
     const platformFee = Math.round(amountInCents * (commissionRate / 100));
     const creatorPayout = amountInCents - platformFee;
 
+    const { referralFee, referrerId } = await calculateReferralFee({
+        creatorId,
+        amountInCents,
+        commissionRate,
+    });
+    const adjustedPlatformFee = platformFee - referralFee;
+
     const { error: updateError } = await supabase
         .from('transactions')
         .update({
             status: 'Cleared',
-            platform_fee: platformFee,
+            platform_fee: adjustedPlatformFee,
             creator_payout: creatorPayout,
+            referral_fee: referralFee,
+            referrer_id: referrerId || null,
             payment_method: 'crypto',
             payment_currency: 'USDC',
             chain_id: chainId,

@@ -767,5 +767,8 @@ export const generateCaption = (image: string | File) => {
 export const linkWallet = (walletAddress: string) =>
     api('put', '/users/me/settings', { profile: { crypto_wallet_address: walletAddress } });
 
+export const getReferrerEarnings = () =>
+    api('get', '/referrals/earnings');
+
 // --- End of API Client ---
 export default apiClient;

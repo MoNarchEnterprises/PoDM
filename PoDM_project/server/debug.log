@@ -42592,3 +42592,63 @@
 [AUTH_DEBUG] 2026-07-27T21:56:29.783Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
 [AUTH_DEBUG] 2026-07-27T21:56:29.849Z - Full user profile found: ashleighfoxx
 [AUTH_DEBUG] 2026-07-27T21:56:29.850Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:04.463Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-07-27T22:06:04.464Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:04.831Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:05.211Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:05.212Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:07.124Z - --- New Request: GET /dashboard ---
+[AUTH_DEBUG] 2026-07-27T22:06:07.125Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:07.138Z - --- New Request: GET /my-codes ---
+[AUTH_DEBUG] 2026-07-27T22:06:07.139Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:07.140Z - --- New Request: GET /stats ---
+[AUTH_DEBUG] 2026-07-27T22:06:07.140Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:07.227Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:07.300Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:07.308Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:07.314Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:07.315Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:07.374Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:07.374Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:07.388Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:07.389Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:07.453Z - --- New Request: GET /my-codes ---
+[AUTH_DEBUG] 2026-07-27T22:06:07.453Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:07.466Z - --- New Request: GET /stats ---
+[AUTH_DEBUG] 2026-07-27T22:06:07.467Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T22:06:07.523Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:07.540Z - Token validated for user ID: e0cf39d6-9116-4090-904e-275988ce4825
+[AUTH_DEBUG] 2026-07-27T22:06:07.609Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:07.610Z - User attached to request. Proceeding...
+[AUTH_DEBUG] 2026-07-27T22:06:07.635Z - Full user profile found: ashleighfoxx
+[AUTH_DEBUG] 2026-07-27T22:06:07.636Z - User attached to request. Proceeding...
+[2026-07-27T23:55:35.323Z] --- SERVER STARTING ---
+[2026-07-27T23:55:38.788Z] --- SERVER STARTING ---
+[2026-07-27T23:55:44.428Z] --- SERVER STARTING ---
+[2026-07-27T23:55:47.648Z] --- SERVER STARTING ---
+[2026-07-27T23:55:53.003Z] --- SERVER STARTING ---
+[2026-07-27T23:55:54.534Z] --- SERVER STARTING ---
+[2026-07-27T23:56:00.514Z] --- SERVER STARTING ---
+[2026-07-27T23:56:05.642Z] --- SERVER STARTING ---
+[2026-07-27T23:56:09.351Z] --- SERVER STARTING ---
+[2026-07-27T23:56:12.121Z] --- SERVER STARTING ---
+[AUTH_DEBUG] 2026-07-27T23:56:16.016Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T23:56:16.016Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:16.766Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-27T23:56:16.781Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T23:56:16.781Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:16.933Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-27T23:56:16.975Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T23:56:16.976Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:17.010Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T23:56:17.011Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:17.132Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-27T23:56:17.143Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-27T23:56:17.144Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:17.258Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-27T23:56:17.319Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-27T23:56:17.328Z - --- New Request: GET /conversations ---
+[AUTH_DEBUG] 2026-07-27T23:56:17.330Z - Token found in header.
+[AUTH_DEBUG] 2026-07-27T23:56:17.473Z - Supabase auth error: invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired
+[AUTH_DEBUG] 2026-07-28T00:06:28.004Z - --- New Request: GET /me ---
+[AUTH_DEBUG] 2026-07-28T00:06:28.006Z - No authorization header found.

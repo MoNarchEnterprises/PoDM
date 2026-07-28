@@ -11,6 +11,7 @@ import { verifyPaymentReceiptInBackground } from './verification.service';
 import * as TransactionModel from '../models/transaction.model';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
+import { calculateReferralFee, recordReferralFee } from './referral.service';
 
 const PODM_ABI = [
     "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash)",
@@ -284,7 +285,7 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         const txHash = userOpReceipt.transactionHash;
 
-        // Calculate fee splits
+        // Calculate fee splits & referral fee
         const { data: profile } = await supabase
             .from('profiles')
             .select('commission_rate')
@@ -293,6 +294,13 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const commissionRate = profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
         const platformFee = Math.round(intent.amountInCents * (commissionRate / 100));
         const creatorPayout = intent.amountInCents - platformFee;
+
+        const { referralFee, referrerId } = await calculateReferralFee({
+            creatorId: intent.creatorId,
+            amountInCents: intent.amountInCents,
+            commissionRate,
+        });
+        const adjustedPlatformFee = platformFee - referralFee;
 
         const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message';
         const relatedContentId = isContentTransaction ? (intent.relatedId || undefined) : undefined;
@@ -304,8 +312,10 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
             creator_id: intent.creatorId,
             type: intent.type,
             amount: intent.amountInCents,
-            platform_fee: platformFee,
+            platform_fee: adjustedPlatformFee,
             creator_payout: creatorPayout,
+            referral_fee: referralFee,
+            referrer_id: referrerId || undefined,
             status: 'Cleared',
             blockchain_tx_hash: txHash,
             user_operation_hash: finalOpHash,
@@ -314,6 +324,10 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         if (!transaction) {
             throw new AppError('Failed to record transaction in the database.', 500);
+        }
+
+        if (referralFee > 0 && referrerId) {
+            recordReferralFee(referrerId, referralFee);
         }
 
         if (intent.relatedId) {

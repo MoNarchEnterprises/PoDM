@@ -8,6 +8,7 @@ const router = express.Router();
 router.get('/my-codes', protect, ReferralController.getMyReferralCodes);
 router.post('/generate', protect, ReferralController.generateReferralCodes);
 router.get('/stats', protect, ReferralController.getReferralStats);
+router.get('/earnings', protect, ReferralController.getReferrerEarnings);
 
 // Internal route for milestone checking (should be called by payment/earnings system)
 router.post('/check-milestone/:userId', ReferralController.checkMilestoneBonus);

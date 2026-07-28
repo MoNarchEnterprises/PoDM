@@ -5,6 +5,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { requireAuth } from '../utils/requestHelpers';
 import { ok } from '../utils/response';
 
+import * as ReferralService from '../services/referral.service';
+
 export const getMyReferralCodes = asyncHandler(async (req: Request, res: Response) => {
     const userId = requireAuth(req);
     const referrals = await ReferralModel.getReferralsByUserId(userId);
@@ -32,6 +34,12 @@ export const getReferralStats = asyncHandler(async (req: Request, res: Response)
     const userId = requireAuth(req);
     const stats = await ReferralModel.getReferralStats(userId);
     res.json(stats);
+});
+
+export const getReferrerEarnings = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const earnings = await ReferralService.getReferrerEarnings(userId);
+    ok(res, earnings);
 });
 
 export const validateReferralCode = asyncHandler(async (req: Request, res: Response) => {

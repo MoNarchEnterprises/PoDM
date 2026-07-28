@@ -3,7 +3,7 @@
 /**
  * Defines the possible types of financial transactions on the platform.
  */
-export type TransactionType = 'Subscription' | 'SubscriptionRenewal' | 'Tip' | 'PPV Message' | 'PPV Post' | 'Payout' | 'OnRamp';
+export type TransactionType = 'Subscription' | 'SubscriptionRenewal' | 'Tip' | 'PPV Message' | 'PPV Post' | 'Payout' | 'OnRamp' | 'ReferralBonus';
 
 /**
  * Defines the possible statuses for a transaction.
@@ -21,13 +21,15 @@ export interface Transaction {
   amount: number; // The total amount paid by the fan (in cents)
   platform_fee: number; // The portion of the amount taken by the platform (in cents)
   creator_payout: number; // The portion of the amount paid out to the creator (in cents)
+  referral_fee?: number; // Optional: cents deducted from platform_fee, owed to referrer
+  referrer_id?: string; // Optional: user ID of the referrer who receives the referral fee
   status: TransactionStatus;
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
   message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
   blockchain_tx_hash?: string;
   user_operation_hash?: string;
   gas_sponsored?: boolean;
-  payment_method?: 'stripe' | 'crypto' | 'card_onramp' | 'embedded_wallet';
+  payment_method?: 'stripe' | 'crypto' | 'card_onramp' | 'embedded_wallet' | 'referral_bonus';
   payment_currency?: 'USD' | 'USDC';
   chain_id?: number;
   created_at: string; // ISO 8601 date string

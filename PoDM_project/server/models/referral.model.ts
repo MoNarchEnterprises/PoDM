@@ -1,5 +1,6 @@
 import supabase from '../config/supabaseClient';
 import { handleQuery, handleList } from '../utils/database';
+import * as TransactionModel from './transaction.model';
 
 export interface Referral {
     id: string;
@@ -9,6 +10,7 @@ export interface Referral {
     bonus_value: number;
     uses_count: number;
     total_bonus_earned: number;
+    referral_fee_earned?: number;
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -149,6 +151,7 @@ export const getReferralStats = async (userId: string) => {
         return {
             totalUses: 0,
             totalEarned: 0,
+            referralFeeEarned: 0,
             cashReferrals: 0,
             percentageReferrals: 0
         };
@@ -157,13 +160,15 @@ export const getReferralStats = async (userId: string) => {
     const stats = {
         totalUses: 0,
         totalEarned: 0,
+        referralFeeEarned: 0,
         cashReferrals: 0,
         percentageReferrals: 0
     };
 
     referrals.forEach((ref: any) => {
         stats.totalUses += ref.uses_count;
-        stats.totalEarned += ref.total_bonus_earned;
+        stats.totalEarned += (ref.total_bonus_earned || 0) + ((ref.referral_fee_earned || 0) / 100);
+        stats.referralFeeEarned += (ref.referral_fee_earned || 0) / 100;
 
         const applications = ref.referral_applications || [];
         applications.forEach((app: any) => {
@@ -243,5 +248,18 @@ export const checkAndAwardMilestoneBonus = async (userId: string, totalEarnings:
                 total_bonus_earned: referral.total_bonus_earned + bonusAmount
             })
             .eq('id', referral.id);
+
+        // Record the milestone bonus as a platform payout transaction for the referrer
+        const bonusInCents = Math.round(bonusAmount * 100);
+        await TransactionModel.createTransaction({
+            fan_id: referral.user_id,
+            creator_id: referral.user_id,
+            type: 'ReferralBonus',
+            amount: bonusInCents,
+            platform_fee: 0,
+            creator_payout: bonusInCents,
+            status: 'Cleared',
+            payment_method: 'referral_bonus',
+        });
     }
 };

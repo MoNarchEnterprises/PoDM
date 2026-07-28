@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check, Share2, TrendingUp, DollarSign, Percent } from 'lucide-react';
-import apiClient from '../../lib/apiClient';
+import apiClient, { getReferrerEarnings } from '../../lib/apiClient';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 
@@ -17,6 +17,15 @@ interface Referral {
 interface ReferralStats {
     totalUses: number;
     totalEarned: number;
+    referralFeeEarned?: number;
+    cashReferrals: number;
+    percentageReferrals: number;
+}
+
+interface ReferrerEarningsData {
+    referralFeeEarned: number;
+    cashBonusEarned: number;
+    totalReferred: number;
     cashReferrals: number;
     percentageReferrals: number;
 }
@@ -24,6 +33,7 @@ interface ReferralStats {
 export default function ReferralCodes() {
     const [referrals, setReferrals] = useState<Referral[]>([]);
     const [stats, setStats] = useState<ReferralStats | null>(null);
+    const [earnings, setEarnings] = useState<ReferrerEarningsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [generating, setGenerating] = useState(false);
@@ -35,12 +45,16 @@ export default function ReferralCodes() {
     const fetchReferralData = async () => {
         try {
             setLoading(true);
-            const [codesRes, statsRes] = await Promise.all([
+            const [codesRes, statsRes, earningsRes] = await Promise.all([
                 apiClient.get('/referrals/my-codes'),
-                apiClient.get('/referrals/stats')
+                apiClient.get('/referrals/stats'),
+                getReferrerEarnings().catch(() => ({ data: null })),
             ]);
             setReferrals(codesRes.data.referrals || []);
             setStats(statsRes.data);
+            if (earningsRes && (earningsRes as any).data) {
+                setEarnings((earningsRes as any).data);
+            }
         } catch (error) {
             console.error('Error fetching referral data:', error);
         } finally {
@@ -98,6 +112,8 @@ export default function ReferralCodes() {
         );
     }
 
+    const totalRevenueShareFeeDollars = (earnings ? earnings.referralFeeEarned : (stats?.referralFeeEarned || 0 * 100)) / 100;
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -123,19 +139,19 @@ export default function ReferralCodes() {
                         </div>
                         <div className="text-3xl font-bold text-gray-900 dark:text-white">${stats.totalEarned.toFixed(2)}</div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800/40 border border-purple-200 dark:border-purple-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
-                        <div className="flex items-center gap-3 mb-2">
-                            <DollarSign className="w-5 h-5 text-purple-500" />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Cash Referrals</span>
-                        </div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.cashReferrals}</div>
-                    </div>
                     <div className="bg-white dark:bg-gray-800/40 border border-pink-200 dark:border-pink-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-2">
                             <Percent className="w-5 h-5 text-pink-500" />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">% Share Referrals</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">1% Fees Earned</span>
                         </div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.percentageReferrals}</div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">${totalRevenueShareFeeDollars.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800/40 border border-purple-200 dark:border-purple-500/20 rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                        <div className="flex items-center gap-3 mb-2">
+                            <DollarSign className="w-5 h-5 text-purple-500" />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Cash Bonuses</span>
+                        </div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">${(earnings ? (earnings.cashBonusEarned / 100) : (stats.totalEarned - totalRevenueShareFeeDollars)).toFixed(2)}</div>
                     </div>
                 </div>
             )}

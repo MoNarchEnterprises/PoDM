@@ -6,6 +6,7 @@ import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
+import { calculateReferralFee, recordReferralFee } from './referral.service';
 
 interface WalletConfigInput {
     walletAddress: string;
@@ -234,11 +235,18 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         throw new AppError(`Blockchain RPC connection failed: ${err.message || 'Verification service offline'}`, 503);
     }
 
-    // 5. Fee calculation from creator settings
+    // 5. Fee calculation from creator settings & referral program
     const commissionRate = await getCommissionRate(input.creatorId);
     const amount = input.amountInCents;
     const platformFee = Math.round(amount * (commissionRate / 100));
     const creatorPayout = amount - platformFee;
+
+    const { referralFee, referrerId } = await calculateReferralFee({
+        creatorId: input.creatorId,
+        amountInCents: amount,
+        commissionRate,
+    });
+    const adjustedPlatformFee = platformFee - referralFee;
 
     // 6. Record transaction (only set related_content_id for PPV content)
     const isContentTransaction = input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message';
@@ -249,8 +257,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         creator_id: input.creatorId,
         type: input.transactionType,
         amount: amount,
-        platform_fee: platformFee,
+        platform_fee: adjustedPlatformFee,
         creator_payout: creatorPayout,
+        referral_fee: referralFee,
+        referrer_id: referrerId || undefined,
         status: 'Cleared',
         blockchain_tx_hash: input.txHash,
         related_content_id: relatedContentId,
@@ -258,6 +268,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
     if (!transaction) {
         throw new AppError('Failed to record transaction in the database.', 500);
+    }
+
+    if (referralFee > 0 && referrerId) {
+        recordReferralFee(referrerId, referralFee);
     }
 
     if (input.relatedId) {
