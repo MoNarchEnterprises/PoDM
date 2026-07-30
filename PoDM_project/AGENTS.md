@@ -24,7 +24,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 - **Stack**: Node.js (CommonJS), Express 5, TypeScript 5
 - **Database**: Supabase (PostgreSQL) via `@supabase/supabase-js`
-- **Payments**: USDC on Base via PoDMPaymentProtocol smart contract (`0x454D9F55E580928876447096348E41f832d4a448` on Base Sepolia)
+- **Payments**: USDC on Base via PoDMPaymentProtocol smart contract (`0x454D9F55E580928876447096348E41f832d4a448` on Base Sepolia) with OpenZeppelin `ReentrancyGuard` protection
 - **Embedded Wallets**: Privy server-side REST API (v1) — server-controlled EOA wallets (`POST /v1/wallets`, `POST /v1/wallets/{id}/rpc` with `secp256k1_sign`). Wallet ID persisted on `profiles.crypto_wallet_provider_id`.
 - **Account Abstraction (ERC-4337 v0.7)**: Pimlico bundler + paymaster on Base Sepolia, EntryPoint `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, SimpleAccountFactory `0x91E60e0613810449d098b0b5Ec8b51A0FE8c8985`. Privy EOA signs the EntryPoint's `getUserOpHash` via `secp256k1_sign`. `userOperation.service.ts` polls `eth_getUserOperationReceipt` and records the real tx hash via `verifyAndRecordBasePayment`.
 - **Verification Policy**: A crypto transaction is NEVER marked Cleared without an on-chain receipt (`cryptoPayment.service.ts` retries 5×3s = 15s; background verification inspects contract event logs so ERC-4337 UserOps through the EntryPoint pass cleanly).
@@ -34,8 +34,9 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - **Browser Wallet UI**: MetaMask/Coinbase Wallet flow hits the contract directly — `useCryptoPayment` hook and `PaymentModal` perform `USDC.approve(contract, MAX_UINT256)` then `payX(...)` (one-time approve, then single-click)
 - **Storage**: Cloudflare R2 (S3-compatible) via AWS SDK v3
 - **Real-time**: Socket.IO v4
-- **Auth**: JWT with refresh tokens
-- **AI**: OpenAI SDK
+- **Auth**: JWT with `HttpOnly; SameSite=Lax` cookie + `Authorization: Bearer` header fallback
+- **Body Limits**: `express.json` limited to 10MB for API endpoints; media uploads stream up to 1GB via Multer `uploadContent`
+- **AI**: OpenAI SDK with multi-provider support (`openrouter`, `nvidia`, `openai`). Dynamic provider (`ai_provider`) and model (`ai_model_id`) resolution order: 1) DB `platform_settings`, 2) `AI_MODEL_ID` env var, 3) provider default model. API keys loaded exclusively from `.env` (`AI_API_KEY`/`OPENROUTER_API_KEY`, `NVIDIA_API_KEY`, `OPENAI_API_KEY`).
 - **Media**: `sharp` (images), `fluent-ffmpeg` (video), watermarking
 - **Pattern**: Controller → Service → Model; routes defined separately per resource
 - **Route prefix**: `/api/v1/{resource}`

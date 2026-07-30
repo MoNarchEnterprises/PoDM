@@ -59,7 +59,7 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
             <header className="p-6 border-b border-gray-700 bg-gradient-to-r from-purple-900/30 to-pink-900/30">
                 <h2 className="text-xl font-bold text-white">Subscribe to {creator.profile.name}</h2>
                 <p className="text-xs text-gray-400 mt-1">
-                    You're getting the <span className="font-semibold text-purple-400">{selectedTier.name}</span> for <span className="font-semibold text-purple-400">{selectedTier.price.toFixed(2)} USDC/month</span>.
+                    You're getting the <span className="font-semibold text-purple-400">{selectedTier.name}</span> for <span className="font-semibold text-purple-400">{Number(selectedTier.price).toFixed(2)} USDC/month</span>.
                 </p>
             </header>
 

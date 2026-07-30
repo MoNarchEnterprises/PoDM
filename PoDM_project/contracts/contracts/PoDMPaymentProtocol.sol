@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
@@ -11,7 +12,7 @@ interface IERC20 {
     function allowance(address owner, address spender) external view returns (uint256);
 }
 
-contract PoDMPaymentProtocol is Ownable, Pausable {
+contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
     address public platformTreasury;
     uint256 public platformFeeBps;
 
@@ -106,7 +107,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable {
         address creator,
         uint256 amount,
         bytes32 tierIdHash
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
@@ -124,7 +125,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable {
         address tokenAddress,
         address creator,
         uint256 amount
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
@@ -143,7 +144,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable {
         address creator,
         uint256 amount,
         bytes32 contentIdHash
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
@@ -190,7 +191,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable {
         address fan,
         address creator,
         uint256 amount
-    ) external whenNotPaused returns (bool) {
+    ) external whenNotPaused nonReentrant returns (bool) {
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
         require(amount > 0 && amount <= allowance.maxAmountPerPeriod, "Amount exceeds allowance");
@@ -216,7 +217,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable {
         address tokenAddress,
         address creator,
         uint256 amount
-    ) external onlyOwner whenNotPaused {
+    ) external onlyOwner whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 

@@ -28,7 +28,7 @@ const TierCard = ({ tier, onSelect, isSelected }: TierCardProps) => {
         >
             <h3 className="text-md font-bold text-purple-600 dark:text-purple-400">{tier.name}</h3>
             <p className="text-2xl font-extrabold my-2 text-gray-900 dark:text-white">
-                ${tier.price.toFixed(2)}
+                ${Number(tier.price).toFixed(2)}
                 <span className="text-sm font-medium text-gray-500">/month</span>
             </p>
             <ul className="space-y-1 mt-2 text-xs flex-grow">

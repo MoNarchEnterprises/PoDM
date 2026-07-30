@@ -236,7 +236,7 @@ const CreatorProfilePage = ({ creator, content, isSubscribed }: CreatorProfilePa
                                         isLoading={isPreparing}
                                         disabled={!selectedTierForDisplay || isPreparing}
                                     >
-                                        {isPreparing ? 'Preparing...' : `Subscribe for $${selectedTierForDisplay?.price.toFixed(2)}/month`}
+                                        {isPreparing ? 'Preparing...' : `Subscribe for $${Number(selectedTierForDisplay?.price).toFixed(2)}/month`}
                                     </Button>
                                 </div>
                             </div>

@@ -85,37 +85,15 @@ export const findAdmins = async (): Promise<User[] | null> => {
 
 export const getNewUsersOverTime = async (months: number): Promise<{ name: string; Users: number }[]> => {
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
+    startDate.setMonth(startDate.getMonth() - (months - 1));
     startDate.setDate(1);
+    startDate.setHours(0, 0, 0, 0);
 
-    const allUsers: any[] = [];
-    let page = 1;
-    let hasMore = true;
-    const PER_PAGE = 50;
-
-    while (hasMore) {
-        const { data, error } = await supabase.auth.admin.listUsers({
-            page: page,
-            perPage: PER_PAGE
-        });
-
-        if (error) {
-            console.error('Error fetching users from auth admin:', error.message);
-            hasMore = false;
-            break;
-        }
-
-        if (data && data.users.length > 0) {
-            allUsers.push(...data.users);
-            if (data.users.length < PER_PAGE) {
-                hasMore = false;
-            } else {
-                page++;
-            }
-        } else {
-            hasMore = false;
-        }
-    }
+    // Efficiently query created_at timestamps from profiles table using database helper
+    const profiles = await handleList<{ created_at: string }>(
+        supabase.from('profiles').select('created_at').gte('created_at', startDate.toISOString()),
+        'get new users created dates'
+    );
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const statsMap = new Map<string, number>();
@@ -124,20 +102,20 @@ export const getNewUsersOverTime = async (months: number): Promise<{ name: strin
         const d = new Date();
         d.setMonth(d.getMonth() - (months - 1 - i));
         const key = monthNames[d.getMonth()];
-        if (!statsMap.has(key)) {
-            statsMap.set(key, 0);
-        }
+        statsMap.set(key, 0);
     }
 
-    allUsers.forEach(u => {
-        const createdAt = new Date(u.created_at);
-        if (createdAt >= startDate) {
-            const key = monthNames[createdAt.getMonth()];
-            if (statsMap.has(key)) {
-                statsMap.set(key, (statsMap.get(key) || 0) + 1);
+    if (profiles) {
+        profiles.forEach(p => {
+            const createdAt = new Date(p.created_at);
+            if (createdAt >= startDate) {
+                const key = monthNames[createdAt.getMonth()];
+                if (statsMap.has(key)) {
+                    statsMap.set(key, (statsMap.get(key) || 0) + 1);
+                }
             }
-        }
-    });
+        });
+    }
 
     const result: { name: string; Users: number }[] = [];
     for (let i = 0; i < months; i++) {

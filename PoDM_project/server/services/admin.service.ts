@@ -324,23 +324,57 @@ export const getAdminUsers = async () => {
  * Fetches platform-wide settings.
  */
 export const getPlatformSettings = async () => {
-    const commissionRateSetting = await SettingsModel.getSetting('platform_commission_rate');
+    const [commissionRateSetting, aiProviderSetting, aiModelIdSetting] = await Promise.all([
+        SettingsModel.getSetting('platform_commission_rate'),
+        SettingsModel.getSetting('ai_provider'),
+        SettingsModel.getSetting('ai_model_id'),
+    ]);
     return {
         commissionRate: commissionRateSetting?.value || DEFAULT_COMMISSION_RATE,
+        aiProvider: aiProviderSetting?.value || 'openrouter',
+        aiModelId: aiModelIdSetting?.value || process.env.AI_MODEL_ID || 'google/gemma-3-27b-it:free',
+        hasAiApiKey: Boolean(process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY),
+        hasNvidiaApiKey: Boolean(process.env.NVIDIA_API_KEY),
+        hasOpenaiApiKey: Boolean(process.env.OPENAI_API_KEY),
     };
 };
 
 /**
  * Updates platform-wide settings.
  */
-export const updatePlatformSettings = async (settings: { commissionRate: number }) => {
-    const { commissionRate } = settings;
-    if (typeof commissionRate !== 'number') {
-        throw new AppError('Commission rate must be a number.', 400);
+export const updatePlatformSettings = async (settings: {
+    commissionRate?: number;
+    aiProvider?: string;
+    aiModelId?: string;
+}) => {
+    const updates: Promise<any>[] = [];
+
+    if (settings.commissionRate !== undefined) {
+        if (typeof settings.commissionRate !== 'number') {
+            throw new AppError('Commission rate must be a number.', 400);
+        }
+        updates.push(SettingsModel.updateSetting('platform_commission_rate', settings.commissionRate));
     }
 
-    await SettingsModel.updateSetting('platform_commission_rate', commissionRate);
+    if (settings.aiProvider !== undefined) {
+        if (typeof settings.aiProvider !== 'string' || !settings.aiProvider.trim()) {
+            throw new AppError('AI provider must be a non-empty string.', 400);
+        }
+        updates.push(SettingsModel.updateSetting('ai_provider', settings.aiProvider.trim()));
+    }
 
+    if (settings.aiModelId !== undefined) {
+        if (typeof settings.aiModelId !== 'string' || !settings.aiModelId.trim()) {
+            throw new AppError('AI model ID must be a non-empty string.', 400);
+        }
+        updates.push(SettingsModel.updateSetting('ai_model_id', settings.aiModelId.trim()));
+    }
+
+    if (updates.length === 0) {
+        throw new AppError('No valid settings provided.', 400);
+    }
+
+    await Promise.all(updates);
     return { success: true, message: 'Platform settings updated.' };
 };
 

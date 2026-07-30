@@ -252,19 +252,23 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     const isContentTransaction = input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message';
     const relatedContentId = isContentTransaction ? (input.relatedId || undefined) : undefined;
 
-    const transaction = await TransactionModel.createTransaction({
+    const transactionPayload: Record<string, any> = {
         fan_id: input.fanId,
         creator_id: input.creatorId,
         type: input.transactionType,
         amount: amount,
         platform_fee: adjustedPlatformFee,
         creator_payout: creatorPayout,
-        referral_fee: referralFee,
-        referrer_id: referrerId || undefined,
         status: 'Cleared',
         blockchain_tx_hash: input.txHash,
         related_content_id: relatedContentId,
-    });
+    };
+    if (referralFee > 0) {
+        transactionPayload.referral_fee = referralFee;
+        transactionPayload.referrer_id = referrerId;
+    }
+
+    const transaction = await TransactionModel.createTransaction(transactionPayload);
 
     if (!transaction) {
         throw new AppError('Failed to record transaction in the database.', 500);

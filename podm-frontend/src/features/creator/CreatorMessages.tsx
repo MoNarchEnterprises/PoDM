@@ -1,4 +1,4 @@
-﻿// src/features/creator/CreatorMessages.tsx
+// src/features/creator/CreatorMessages.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -208,6 +208,10 @@ const CreatorMessagesPage = () => {
             if (response.success && response.data) {
                 const newMessage = response.data;
                 setMessages(prev => prev.some(msg => msg.id === newMessage.id) ? prev : [...prev, newMessage]);
+                if (!activeConversation._id && newMessage.conversation_id) {
+                    const newConvoId = String(newMessage.conversation_id);
+                    setConversations(prev => prev.map(c => c.fan._id === activeConversation.fan._id ? { ...c, _id: newConvoId } : c));
+                }
             }
         } catch (error) {
             console.error("Failed to send message", error);

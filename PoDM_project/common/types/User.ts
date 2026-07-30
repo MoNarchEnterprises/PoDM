@@ -57,5 +57,6 @@ export interface User {
   smart_account_address?: string;
   wallet_provider?: string;
   wallet_status?: string;
-  wallet_created_at?: string;
+  crypto_wallet_type?: string;
+  crypto_wallet_provider_id?: string;
 }

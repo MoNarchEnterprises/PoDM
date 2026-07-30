@@ -132,7 +132,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                     <div className="flex justify-between items-baseline mt-1">
                         <span className="text-lg font-bold text-white">{selectedTier.name} Tier</span>
                         <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                            {selectedTier.price.toFixed(2)} USDC <span className="text-xs text-gray-400 font-normal">/mo</span>
+                            {Number(selectedTier.price).toFixed(2)} USDC <span className="text-xs text-gray-400 font-normal">/mo</span>
                         </span>
                     </div>
                     
@@ -270,7 +270,7 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                         isLoading={isLoading}
                         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-none shadow-lg text-white font-bold"
                     >
-                        Sign & Authorize ${selectedTier.price.toFixed(2)} / month
+                        Sign & Authorize ${Number(selectedTier.price).toFixed(2)} / month
                     </Button>
                 )}
             </footer>

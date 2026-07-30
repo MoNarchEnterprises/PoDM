@@ -76,7 +76,10 @@ export const reshapeUserForApp = (flatUser: any): User => {
 
             // The remaining data stays in the nested creatorData object
             creator_data: {
-                subscriptionTiers,
+                subscriptionTiers: (subscriptionTiers || []).map((tier: any) => ({
+                    ...tier,
+                    price: typeof tier.price === 'string' ? parseFloat(tier.price) : tier.price,
+                })),
                 welcomeMessage,
                 payoutSettings,
                 contentSettings,

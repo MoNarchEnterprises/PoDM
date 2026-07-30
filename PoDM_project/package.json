@@ -6,9 +6,10 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server/Server.js",
-    "dev": "ts-node-dev --respawn --transpile-only server/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only server/Server.ts",
     "dev:server": "ts-node-dev --respawn --transpile-only server/Server.ts",
     "seed": "ts-node-dev --transpile-only server/scripts/seed.ts",
+    "migrate:referral-fees": "ts-node-dev --transpile-only server/scripts/add-referral-fee-columns.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -21,6 +22,7 @@
     "@supabase/supabase-js": "^2.86.0",
     "axios": "^1.11.0",
     "body-parser": "^2.2.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "ethers": "^6.17.0",
@@ -48,6 +50,7 @@
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
     "@types/chai": "^5.2.2",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/fluent-ffmpeg": "^2.1.27",
     "@types/jest": "^30.0.0",

@@ -13,7 +13,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import * as apiClient from '../../../lib/apiClient'; // Import the api client
 
 // --- Local Types ---
-interface AdminUser extends User { }
+type AdminUser = User;
 
 // --- Reusable Sub-Components ---
 
@@ -98,8 +98,9 @@ const AdminProfileSettings = () => {
 
             setSuccess("Profile updated successfully!");
 
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to update profile.");
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update profile.";
+            setError(msg);
         } finally {
             setIsLoading(false);
             // Clear success message and reset the avatar file state
@@ -189,18 +190,33 @@ const AdminProfileSettings = () => {
 // --- Main Settings Panel Component ---
 const SettingsPanel = () => {
     const { data } = useAdminData();
-    // 1. ADD STATE FOR FINANCIAL SETTINGS
+    // State for financial settings
     const [commissionRate, setCommissionRate] = useState('');
     const [isSaving, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    // 2. FETCH CURRENT SETTINGS ON LOAD
+    // State for AI settings
+    const [aiProvider, setAiProvider] = useState('openrouter');
+    const [aiModelId, setAiModelId] = useState('');
+    const [hasAiApiKey, setHasAiApiKey] = useState(false);
+    const [hasNvidiaApiKey, setHasNvidiaApiKey] = useState(false);
+    const [hasOpenaiApiKey, setHasOpenaiApiKey] = useState(false);
+    const [isAiSaving, setIsAiSaving] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
+    const [aiSuccess, setAiSuccess] = useState<string | null>(null);
+
+    // FETCH CURRENT SETTINGS ON LOAD
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const response = await apiClient.getPlatformSettings();
                 setCommissionRate(response.data.commissionRate.toString());
+                setAiProvider(response.data.aiProvider || 'openrouter');
+                setAiModelId(response.data.aiModelId || '');
+                setHasAiApiKey(Boolean(response.data.hasAiApiKey));
+                setHasNvidiaApiKey(Boolean(response.data.hasNvidiaApiKey));
+                setHasOpenaiApiKey(Boolean(response.data.hasOpenaiApiKey));
             } catch (err) {
                 console.error("Failed to fetch settings:", err);
                 setError("Could not load current settings.");
@@ -209,7 +225,7 @@ const SettingsPanel = () => {
         fetchSettings();
     }, []);
 
-    // 3. CREATE HANDLER FOR SAVING
+    // HANDLER FOR SAVING FINANCIAL SETTINGS
     const handleSaveFinancialSettings = async () => {
         setIsLoading(true);
         setError(null);
@@ -222,19 +238,61 @@ const SettingsPanel = () => {
             await apiClient.updatePlatformSettings({ commissionRate: rate });
             setSuccess("Settings saved successfully!");
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err: any) {
-            setError(err.message || "Failed to save settings.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Failed to save settings.");
         } finally {
             setIsLoading(false);
         }
     };
 
+    // HANDLER FOR SAVING AI MODEL SETTINGS
+    const handleSaveAiSettings = async () => {
+        setIsAiSaving(true);
+        setAiError(null);
+        setAiSuccess(null);
+        try {
+            if (!aiModelId.trim()) {
+                throw new Error("AI Model ID cannot be empty.");
+            }
+            await apiClient.updatePlatformSettings({
+                aiProvider,
+                aiModelId: aiModelId.trim(),
+            });
+            setAiSuccess("AI settings updated!");
+            setTimeout(() => setAiSuccess(null), 3000);
+        } catch (err: unknown) {
+            setAiError((err as Error).message || "Failed to update AI settings.");
+        } finally {
+            setIsAiSaving(false);
+        }
+    };
 
     if (!data || !data.settings) {
         return <div className="p-8 text-center text-gray-500">Loading settings data...</div>;
     }
 
     const admins = data.settings.admins as AdminUser[];
+
+    const providerPlaceholder =
+        aiProvider === 'nvidia'
+            ? 'meta/llama-3.2-11b-vision-instruct'
+            : aiProvider === 'openai'
+            ? 'gpt-4o-mini'
+            : 'google/gemma-3-27b-it:free';
+
+    const currentKeyConfigured =
+        aiProvider === 'nvidia'
+            ? hasNvidiaApiKey
+            : aiProvider === 'openai'
+            ? hasOpenaiApiKey
+            : hasAiApiKey;
+
+    const currentEnvVarName =
+        aiProvider === 'nvidia'
+            ? 'NVIDIA_API_KEY'
+            : aiProvider === 'openai'
+            ? 'OPENAI_API_KEY'
+            : 'AI_API_KEY';
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -271,6 +329,64 @@ const SettingsPanel = () => {
                         </div>
                     </div>
                 </Card>
+
+                <Card noPadding>
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold">AI Captioning</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Provider
+                            </label>
+                            <select
+                                value={aiProvider}
+                                onChange={(e) => setAiProvider(e.target.value)}
+                                className="w-full md:w-1/3 px-4 py-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+                            >
+                                <option value="openrouter">OpenRouter</option>
+                                <option value="nvidia">NVIDIA</option>
+                                <option value="openai">OpenAI Direct</option>
+                            </select>
+                        </div>
+
+                        <Input
+                            id="ai-model-id"
+                            label="Model ID"
+                            type="text"
+                            value={aiModelId}
+                            onChange={(e) => setAiModelId(e.target.value)}
+                            containerClassName="md:w-1/2"
+                            placeholder={providerPlaceholder}
+                        />
+
+                        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 md:w-1/2 flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-300">
+                                Environment key (<code className="font-mono text-purple-600 dark:text-purple-400">{currentEnvVarName}</code>)
+                            </span>
+                            <span className={`font-semibold px-2 py-0.5 rounded ${currentKeyConfigured ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'}`}>
+                                {currentKeyConfigured ? 'Configured' : 'Missing in .env'}
+                            </span>
+                        </div>
+
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Provider and model changes apply immediately — no server restart needed. API keys are loaded from environment variables in <code className="font-mono">.env</code>.
+                        </p>
+
+                        <div className="flex justify-end items-center gap-4">
+                            {aiSuccess && <p className="text-sm text-green-600">{aiSuccess}</p>}
+                            {aiError && <p className="text-sm text-red-600">{aiError}</p>}
+                            <Button
+                                leftIcon={Save}
+                                onClick={handleSaveAiSettings}
+                                isLoading={isAiSaving}
+                            >
+                                Save AI Settings
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+
                 <Card noPadding>
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                         <h3 className="text-lg font-semibold">Admin Accounts</h3>

@@ -182,19 +182,23 @@ export const verifyPaymentReceiptInBackground = async (
     });
     const adjustedPlatformFee = platformFee - referralFee;
 
+    const updatePayload: Record<string, any> = {
+        status: 'Cleared',
+        platform_fee: adjustedPlatformFee,
+        creator_payout: creatorPayout,
+        payment_method: 'crypto',
+        payment_currency: 'USDC',
+        chain_id: chainId,
+        verified_at: new Date().toISOString(),
+    };
+    if (referralFee > 0) {
+        updatePayload.referral_fee = referralFee;
+        updatePayload.referrer_id = referrerId;
+    }
+
     const { error: updateError } = await supabase
         .from('transactions')
-        .update({
-            status: 'Cleared',
-            platform_fee: adjustedPlatformFee,
-            creator_payout: creatorPayout,
-            referral_fee: referralFee,
-            referrer_id: referrerId || null,
-            payment_method: 'crypto',
-            payment_currency: 'USDC',
-            chain_id: chainId,
-            verified_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', transactionId);
 
     if (updateError) {

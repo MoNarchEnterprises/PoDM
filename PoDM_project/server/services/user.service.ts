@@ -12,6 +12,7 @@ import * as SubscriptionModel from '../models/subscription.model';
 import { syncTiers } from '../../server/utils/tier.utils';
 import { reshapePostForFeed, generateSignedUrlsForContent, enrichContentWithUnlockStatus } from '../../server/utils/content.utils';
 import * as StorageService from './storage.service';
+import { ensureEmbeddedWalletForUser } from './wallet.service';
 
 
 /**
@@ -182,7 +183,10 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
     // 1. Fetch the user's existing profile to not overwrite anything
     const existingProfile = await requireUser(userId);
 
-    // 2. Prepare the updates
+    // 2. Ensure embedded wallet is provisioned as default for new creators
+    await ensureEmbeddedWalletForUser(userId);
+
+    // 3. Prepare the updates
     // Update top-level fields like bio
     const profileUpdates: Partial<UserProfile> = {
         bio: profile.bio,
@@ -197,18 +201,19 @@ export const onboardCreator = async (userId: string, onboardingData: { profile: 
         subscriptionTiers: syncedTiers, // Save the corrected, complete tier data
     };
 
-    // 3. Save the updates to the database
+    // 4. Save the updates to the database
     const updatedUser = await UserModel.updateProfile(userId, {
         ...profileUpdates,
         creator_data: creator_dataUpdate,
-        onboarding_complete: true, // <-- ADD THIS FLAG
+        onboarding_complete: true,
+        crypto_wallet_type: existingProfile.crypto_wallet_type || 'embedded',
     });
 
     if (!updatedUser) {
         throw new AppError('Failed to update profile during onboarding.', 500);
     }
 
-    // 4. Reshape and return the full user object
+    // 5. Reshape and return the full user object
 
     return reshapeUserForApp(updatedUser);
 };

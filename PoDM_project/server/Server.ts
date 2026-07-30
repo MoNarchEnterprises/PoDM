@@ -18,17 +18,18 @@ if (fs.existsSync(envPath)) {
 }
 
 function logToFile(message: string) {
-    const logPath = path.resolve(__dirname, 'debug.log');
-    const timestamp = new Date().toISOString();
-    fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
+    if (process.env.NODE_ENV !== 'production') {
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] ${message}`);
+    }
 }
 
 logToFile("--- SERVER STARTING ---");
-console.log("--- SERVER STARTING ---");
 
 // Use the standard "hybrid" import now that Express is updated.
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { createServer } from 'http'; // 1. Import http
 import { initSocketServer } from './config/socket'; // 2. Import our socket initializer
 import bodyParser from 'body-parser';
@@ -88,14 +89,15 @@ app.use(cors({
     credentials: true
 }));
 
+app.use(cookieParser());
 
 
-// This middleware is for all other routes
-// Increase the body limit for JSON and URL-encoded requests.
-// This must be large enough to accommodate the base64/multipart encoding of large files.
-// We'll set it slightly larger than the multer limit as a safeguard.
-app.use(express.json({ limit: '1100mb' }));
-app.use(express.urlencoded({ limit: '1100mb', extended: true }));
+
+// Body parser middleware for standard JSON and URL-encoded API payloads.
+// Set to 10MB to protect server memory against DoS.
+// Media uploads (images/videos up to 1GB) use multipart/form-data handled independently by Multer.
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 
 // Register all other API routes

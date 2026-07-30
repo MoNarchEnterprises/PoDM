@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft } from 'lucide-react';
+import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft, Wallet } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { SubscriptionTier } from '@common/types/Creator';
 import { UserProfile } from '@common/types/User';
@@ -67,7 +67,7 @@ const CreatorOnboardingPage = () => {
         const { id, value } = e.target;
         const field = id.split('-')[1] as keyof SubscriptionTier;
         const newTiers = [...formData.tiers];
-        (newTiers[index] as any)[field] = value;
+        (newTiers[index] as Record<string, unknown>)[field] = value;
         setFormData(prev => ({ ...prev, tiers: newTiers }));
     };
     
@@ -83,7 +83,7 @@ const CreatorOnboardingPage = () => {
         try {
             await apiClient.completeCreatorOnboarding(formData);
             navigate('/verification');
-        } catch (err: any) {
+        } catch {
             setIsLoading(false);
         }
     };
@@ -153,6 +153,15 @@ const CreatorOnboardingPage = () => {
                 <OnboardingStep>
                     <h2 className="text-xl font-semibold mb-4 flex items-center"><CheckCircle className="w-5 h-5 mr-2 text-purple-500"/> Step 4: Final Steps</h2>
                     <div className="space-y-6">
+                        <div className="p-4 bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800 rounded-lg">
+                            <div className="flex items-center space-x-2 text-purple-800 dark:text-purple-200 font-semibold mb-1">
+                                <Wallet className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                <h3>Default Payout Wallet Assigned</h3>
+                            </div>
+                            <p className="text-sm text-purple-700 dark:text-purple-300">
+                                A secure Embedded Wallet has been automatically created for your earnings. You can view your wallet address or link a custom wallet address anytime in your <strong>Payout Settings</strong>.
+                            </p>
+                        </div>
                         <div className="p-4 bg-blue-50 dark:bg-blue-900/50 rounded-lg">
                             <h3 className="font-semibold text-blue-800 dark:text-blue-200">Age Verification Required</h3>
                             <p className="text-sm text-blue-600 dark:text-blue-300 mt-1">For the safety of our community, all creators must complete age verification before they can start earning. You will be prompted to do this after setup.</p>

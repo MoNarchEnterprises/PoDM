@@ -9,6 +9,7 @@ import { ethers, Interface } from 'ethers';
 import supabase from '../config/supabaseClient';
 import { verifyPaymentReceiptInBackground } from './verification.service';
 import * as TransactionModel from '../models/transaction.model';
+import * as SubscriptionModel from '../models/subscription.model';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, recordReferralFee } from './referral.service';
@@ -305,24 +306,29 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message';
         const relatedContentId = isContentTransaction ? (intent.relatedId || undefined) : undefined;
 
-        // Optimistically mark as Cleared — the bundler already simulated and
-        // included the op. Content access gates check status = 'Cleared'.
-        const transaction = await TransactionModel.createTransaction({
+        // Build insert payload — conditionally include referral fields
+        // to avoid column-not-found errors if the migration hasn't run yet.
+        const transactionPayload: Record<string, any> = {
             fan_id: userId,
             creator_id: intent.creatorId,
             type: intent.type,
             amount: intent.amountInCents,
             platform_fee: adjustedPlatformFee,
             creator_payout: creatorPayout,
-            referral_fee: referralFee,
-            referrer_id: referrerId || undefined,
             status: 'Cleared',
             blockchain_tx_hash: txHash,
             user_operation_hash: finalOpHash,
             related_content_id: relatedContentId,
-        });
+        };
+        if (referralFee > 0) {
+            transactionPayload.referral_fee = referralFee;
+            transactionPayload.referrer_id = referrerId;
+        }
+
+        const transaction = await TransactionModel.createTransaction(transactionPayload);
 
         if (!transaction) {
+            console.error('[UserOpService] createTransaction returned null. Check DB logs above for column/constraint errors. Payload keys:', Object.keys(transactionPayload));
             throw new AppError('Failed to record transaction in the database.', 500);
         }
 
@@ -337,6 +343,33 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
             } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
                 incrementContentPpvEarningsStats(intent.relatedId, creatorPayout)
                     .catch(err => console.error('[UserOpService] Error updating content PPV stats:', err));
+            }
+        }
+
+        // Create or update subscription record for Subscription-type payments
+        if (intent.type === 'Subscription') {
+            try {
+                const existingSub = await SubscriptionModel.findSubscriptionByFanAndCreator(userId, intent.creatorId);
+                const subPayload: any = {
+                    fan_id: userId,
+                    creator_id: intent.creatorId,
+                    tier_id: intent.relatedId || 'default',
+                    price: intent.amountInCents,
+                    billing_cycle: 'monthly',
+                    status: 'active',
+                    start_date: new Date().toISOString(),
+                    next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    blockchain_tx_hash: txHash,
+                    fan_wallet_address: smartAccount.address,
+                };
+
+                if (existingSub) {
+                    await SubscriptionModel.updateSubscription(String(existingSub.id), subPayload);
+                } else {
+                    await SubscriptionModel.createSubscription(subPayload);
+                }
+            } catch (err) {
+                console.error('[UserOpService] Error creating subscription record:', err);
             }
         }
 

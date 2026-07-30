@@ -202,7 +202,7 @@ export const updateApplicationStatus = asyncHandler(async (req: Request, res: Re
 
     try {
         if (status === 'accepted') {
-            const signupLink = `${process.env.CLIENT_URL}/signup?email=${encodeURIComponent(application.email)}&enclave=true`;
+            const signupLink = `${process.env.CLIENT_URL}/signup?email=${encodeURIComponent(application.email)}&ref=${application.referral_code}&enclave=true`;
             const discordInvite = process.env.DISCORD_ENCLAVE_INVITE_URL;
 
             if (!discordInvite || discordInvite === 'https://discord.gg/your-invite-code') {

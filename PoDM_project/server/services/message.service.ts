@@ -24,56 +24,146 @@ export const getConversationsForUser = async (userId: string) => {
     const user = await requireUser(userId);
 
     if (user.role === 'creator') {
-        // Fetch ALL conversations for this user (including admin support conversations)
-        const allConversations = await ConversationModel.findConversationsByUserId(userId);
+        // 1. Fetch all active subscriptions for this creator with fan details
+        const { data: subscriptionsData, error: subErr } = await supabase
+            .from('subscriptions')
+            .select('*, fan:fan_id(*)')
+            .eq('creator_id', userId)
+            .eq('status', 'active');
+        if (subErr) {
+            console.error('Error fetching creator subscriptions:', subErr);
+        }
 
-        // CRITICAL: Filter to only include conversations where the user is actually a participant
+        // 2. Fetch all existing conversations for this creator
+        const allConversations = await ConversationModel.findConversationsByUserId(userId);
         const userConversations = (allConversations || []).filter((convo: any) =>
             convo.participants && convo.participants.includes(userId)
         );
 
-        // Use the RPC for subscriber enrichment data
-        const { data: subscriberData, error } = await supabase.rpc('get_creator_subscribers_for_messaging', { creator_uuid: userId });
-        if (error) {
-            console.error('Error fetching sorted creator conversations:', error);
+        // 3. Fetch cleared transactions for this creator to compute fan spend
+        const { data: txData, error: txErr } = await supabase
+            .from('transactions')
+            .select('fan_id, amount')
+            .eq('creator_id', userId)
+            .eq('status', 'Cleared');
+        if (txErr) {
+            console.error('Error fetching transactions for spend calculation:', txErr);
         }
 
-        // Create a map of subscriber conversation data (using string keys)
-        const subscriberConvoMap = new Map((subscriberData || []).map((convo: any) => [String(convo.conversation_id), convo]));
+        const fanSpendMap = new Map<string, number>();
+        (txData || []).forEach((tx: any) => {
+            if (tx.fan_id) {
+                const current = fanSpendMap.get(tx.fan_id) || 0;
+                fanSpendMap.set(tx.fan_id, current + (Number(tx.amount || 0) / 100));
+            }
+        });
 
-        // Process ONLY the filtered conversations
-        const result = await Promise.all(userConversations.map(async (convo: any) => {
-            const conversationId = String(convo.id);
+        // 4. Map existing conversations by fan ID
+        const convoByFanMap = new Map<string, any>();
+        userConversations.forEach((convo: any) => {
             const otherParticipantId = convo.participants.find((pid: string) => pid !== userId);
-            const otherUser = otherParticipantId ? await UserModel.findUserById(otherParticipantId) : null;
-            const shapedUser = otherUser ? reshapeUserForApp(otherUser) : null;
+            if (otherParticipantId) {
+                convoByFanMap.set(otherParticipantId, convo);
+            }
+        });
 
-            // Check if we have subscriber data for this conversation
-            const subData = subscriberConvoMap.get(conversationId) as any;
+        // 5. Gather all unique fan/participant IDs (subscribers + existing conversation partners)
+        const fanMap = new Map<string, { fanObj?: any; sub?: any; convo?: any }>();
+
+        // Add subscribers
+        (subscriptionsData || []).forEach((sub: any) => {
+            const fanId = sub.fan_id;
+            if (fanId) {
+                fanMap.set(fanId, {
+                    fanObj: sub.fan,
+                    sub: sub,
+                    convo: convoByFanMap.get(fanId)
+                });
+            }
+        });
+
+        // Add non-subscriber conversation participants (e.g. past subscribers or support)
+        userConversations.forEach((convo: any) => {
+            const otherParticipantId = convo.participants.find((pid: string) => pid !== userId);
+            if (otherParticipantId && !fanMap.has(otherParticipantId)) {
+                fanMap.set(otherParticipantId, {
+                    convo: convo
+                });
+            }
+        });
+
+        // 6. Build the response list
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+        const result = await Promise.all(Array.from(fanMap.entries()).map(async ([fanId, entry]) => {
+            let fanUser = entry.fanObj;
+            if (!fanUser) {
+                const rawUser = await UserModel.findUserById(fanId);
+                if (rawUser) {
+                    fanUser = reshapeUserForApp(rawUser);
+                }
+            } else if (!fanUser.profile) {
+                fanUser = reshapeUserForApp(fanUser);
+            }
+
+            const convo = entry.convo;
+            const sub = entry.sub;
+            const conversationId = convo ? String(convo.id) : null;
+
+            // Determine last message text & read status if conversation exists
+            let lastMsgText = 'No messages yet';
+            let lastMsgIsRead = true;
+            let lastMsgAt = convo?.updated_at || sub?.created_at || new Date().toISOString();
+
+            if (convo) {
+                if (convo.last_message) {
+                    lastMsgText = convo.last_message.text || 'No messages yet';
+                    lastMsgIsRead = convo.last_message.is_read ?? true;
+                } else {
+                    const recentMsgs = await MessageModel.findMessagesByConversationId(convo.id);
+                    if (recentMsgs && recentMsgs.length > 0) {
+                        const lastMsg = recentMsgs[recentMsgs.length - 1];
+                        lastMsgText = lastMsg.text || ((lastMsg as any).voice_message_url || (lastMsg as any).voiceMessageUrl ? 'Voice message' : 'Content attachment');
+                        lastMsgIsRead = lastMsg.is_read;
+                        lastMsgAt = lastMsg.created_at || lastMsgAt;
+                    }
+                }
+            }
+
+            const totalSpent = fanSpendMap.get(fanId) || 0;
+            const isNewSubscriber = sub ? (new Date(sub.created_at || sub.start_date) > sevenDaysAgo) : false;
+
+            const fanName = fanUser?.profile?.name || fanUser?.username || 'Fan';
+            const fanAvatar = fanUser?.profile?.avatar || fanUser?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fanName)}&background=random`;
 
             return {
                 id: conversationId,
                 _id: conversationId,
                 fan: {
-                    _id: otherParticipantId,
-                    id: otherParticipantId,
+                    _id: fanId,
+                    id: fanId,
                     profile: {
-                        name: subData?.fan_username || shapedUser?.profile?.name || 'Support',
-                        avatar: subData?.fan_avatar_url || shapedUser?.profile?.avatar || 'https://placehold.co/150x150/7E22CE/FFFFFF?text=S'
+                        name: fanName,
+                        avatar: fanAvatar,
                     },
-                    totalSpent: subData?.total_spent || 0,
-                    isNewSubscriber: subData?.is_new_subscriber || false,
+                    totalSpent: totalSpent,
+                    isNewSubscriber: isNewSubscriber,
                 },
                 lastMessage: {
-                    text: subData?.last_message_text || 'No messages yet',
-                    isRead: subData?.is_read ?? true,
+                    text: lastMsgText,
+                    isRead: lastMsgIsRead,
                 },
-                updatedAt: convo.updated_at || new Date().toISOString(),
+                updatedAt: lastMsgAt,
             };
         }));
 
-        // Sort by most recent
-        return result.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        // 7. Sort ORDER BY SPEND DESC, then by updatedAt DESC
+        return result.sort((a, b) => {
+            if (b.fan.totalSpent !== a.fan.totalSpent) {
+                return b.fan.totalSpent - a.fan.totalSpent;
+            }
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        });
     } else {
         // Standard logic for fans
         const conversations = await ConversationModel.findConversationsByUserId(userId);

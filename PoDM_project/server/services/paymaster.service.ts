@@ -51,19 +51,12 @@ export class PimlicoPaymasterService implements IPaymasterService {
             signature: op.signature || '0x',
         };
 
-        // Convert initCode (factoryAddress + factoryData) into separate fields
-        // initCode format: 0x{address_40_hex_chars}{data}
-        if (op.initCode && op.initCode !== '0x' && op.initCode.length > 42) {
-            const raw = op.initCode.slice(2);
-            const factoryAddr = '0x' + raw.slice(0, 40);
-            console.log('[PaymasterService] Parsing initCode: length=%d, rawFactory=%s, rawFactoryData.length=%d',
-                op.initCode.length, factoryAddr, raw.length - 40);
-            paymasterOp.factory = ethers.getAddress(factoryAddr);
-            paymasterOp.factoryData = '0x' + raw.slice(40);
+        if (op.factory && op.factoryData) {
+            paymasterOp.factory = ethers.getAddress(op.factory);
+            paymasterOp.factoryData = op.factoryData;
         } else {
-            console.log('[PaymasterService] initCode is empty/deployed (value=%s, length=%d)', op.initCode, op.initCode?.length);
-            paymasterOp.factory = undefined;
-            paymasterOp.factoryData = undefined;
+            delete paymasterOp.factory;
+            delete paymasterOp.factoryData;
         }
 
         console.log('[PaymasterService] Sending pm_sponsorUserOperation: factory=%s, factoryData.length=%d, sender=%s, nonce=%s, sig.length=%d',
@@ -78,10 +71,7 @@ export class PimlicoPaymasterService implements IPaymasterService {
     }
 
     async isEligibleForSponsorship(amountInCents: number, userId: string): Promise<boolean> {
-        // Policy check: all transactions sponsored, minimum tip $5 (500 cents)
-        if (amountInCents >= 500) {
-            return true;
-        }
-        return false;
+        // Sponsor all UserOperations — smart accounts have no ETH to pay prefund
+        return true;
     }
 }

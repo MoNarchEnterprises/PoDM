@@ -18,8 +18,9 @@ declare global {
 }
 
 function logAuthDebug(message: string) {
-    const logPath = path.resolve(__dirname, '../debug.log');
-    fs.appendFileSync(logPath, `[AUTH_DEBUG] ${new Date().toISOString()} - ${message}\n`);
+    if (process.env.NODE_ENV !== 'production' && process.env.DEBUG_AUTH === 'true') {
+        console.log(`[AUTH_DEBUG] ${new Date().toISOString()} - ${message}`);
+    }
 }
 
 /**
@@ -28,7 +29,9 @@ function logAuthDebug(message: string) {
  * This is useful for public routes that should show different content for logged-in users.
  */
 export const optionalProtect = async (req: Request, res: Response, next: NextFunction) => {
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    const hasHeaderToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer');
+    const hasCookieToken = Boolean(req.cookies?.authToken);
+    if (hasHeaderToken || hasCookieToken) {
         // If a token exists, run the full 'protect' logic
         return protect(req, res, next);
     } else {
@@ -39,17 +42,23 @@ export const optionalProtect = async (req: Request, res: Response, next: NextFun
 
 /**
  * @desc    Middleware to protect routes by verifying a JWT token.
- * It checks for a token, verifies it with Supabase, and attaches the
- * full user profile to the request object.
+ * It checks for a token in cookies or Authorization header, verifies it with Supabase,
+ * and attaches the full user profile to the request object.
  */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
     logAuthDebug(`--- New Request: ${req.method} ${req.path} ---`);
-    let token;
+    let token: string | undefined;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.cookies?.authToken) {
+        token = req.cookies.authToken;
+        logAuthDebug('Token found in HttpOnly cookie.');
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+        logAuthDebug('Token found in header.');
+    }
+
+    if (token) {
         try {
-            token = req.headers.authorization.split(' ')[1];
-            logAuthDebug('Token found in header.');
 
             // Use the admin client to validate the user's token
             const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);

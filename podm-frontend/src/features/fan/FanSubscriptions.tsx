@@ -42,7 +42,7 @@ const ResubscribeModal = ({ isOpen, onClose, onConfirm, subscription }: { isOpen
                 <RefreshCw className="w-12 h-12 mx-auto text-green-500 mb-4" />
                 <h2 className="text-xl font-bold">Resubscribe to {subscription.creator.profile.name}?</h2>
                 <p className="text-gray-400 mt-2">
-                    You will be charged <span className="font-bold text-white">${(subscription.price || 0).toFixed(2)}</span> for the <span className="font-bold text-white">{subscription.tierName}</span> tier and your subscription will be active immediately.
+                    You will be charged <span className="font-bold text-white">${Number(subscription.price || 0).toFixed(2)}</span> for the <span className="font-bold text-white">{subscription.tierName}</span> tier and your subscription will be active immediately.
                 </p>
                 <div className="flex justify-center space-x-4 mt-6">
                     <Button variant="secondary" onClick={onClose}>Cancel</Button>
@@ -65,7 +65,7 @@ const ChangeTierModal = ({ isOpen, onClose, onConfirm, subscription, isLoading }
                     <div key={tier.id} onClick={() => setSelectedTierId(tier.id)} className={`p-4 rounded-lg border-2 cursor-pointer flex justify-between items-center ${selectedTierId === tier.id ? 'border-purple-500 bg-purple-900/50' : 'border-gray-600'}`}>
                         <div>
                             <p className="font-semibold">{tier.name}</p>
-                            <p className="text-sm text-gray-400">${(tier.price || 0).toFixed(2)}/month</p>
+                            <p className="text-sm text-gray-400">${Number(tier.price || 0).toFixed(2)}/month</p>
                         </div>
                         {selectedTierId === tier.id && <CheckCircle className="w-6 h-6 text-purple-500" />}
                     </div>
@@ -94,7 +94,7 @@ const SubscriptionCard = ({ subscription, isSelected, onClick }: { subscription:
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="font-bold text-lg text-white">${(subscription.price || 0).toFixed(2)}<span className="text-sm font-bold text-gray-500">/mo</span></p>
+                    <p className="font-bold text-lg text-white">${Number(subscription.price || 0).toFixed(2)}<span className="text-sm font-bold text-gray-500">/mo</span></p>
                     <div className={`flex items-center justify-end text-xs font-bold mt-1 ${statusStyle}`}>
                         {subscription.status === 'active' ? <CheckCircle className="w-5 h-3 mr-1" /> : <XCircle className="w-5 h-3 mr-1" />}
                         <span className="capitalize">{subscription.status}</span>
@@ -137,7 +137,7 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
             </div>
             <div className="p-6 space-y-4 flex-grow">
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Tier</span><span className="font-semibold text-gray-800 dark:text-gray-200">{subscription.tierName}</span></div>
-                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Price</span><span className="font-semibold text-gray-800 dark:text-gray-200">${(subscription.price || 0).toFixed(2)}</span></div>
+                <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Price</span><span className="font-semibold text-gray-800 dark:text-gray-200">${Number(subscription.price || 0).toFixed(2)}</span></div>
                 {subscription.status === 'active' && subscription.next_billing_date && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(subscription.next_billing_date).toLocaleDateString()}</span></div>}
                 <div className="pt-4">
                     {subscription.status === 'active' ? (

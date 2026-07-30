@@ -6,6 +6,19 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { requireAuth } from '../utils/requestHelpers';
 import { ok, created, okMsg, createdMsg } from '../utils/response';
 
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
+const setAuthCookie = (res: Response, token?: string) => {
+    if (token && typeof res.cookie === 'function') {
+        res.cookie('authToken', token, COOKIE_OPTIONS);
+    }
+};
+
 export const signupAndSubscribe = asyncHandler(async (req: Request, res: Response) => {
     const { email, password, fullName, creatorId, tierId, paymentMethodId } = req.body;
 
@@ -13,6 +26,7 @@ export const signupAndSubscribe = asyncHandler(async (req: Request, res: Respons
         email, password, fullName, creatorId, tierId, paymentMethodId
     );
 
+    setAuthCookie(res, token);
     createdMsg(res, "User created and subscribed successfully.", { user, token });
 });
 
@@ -22,6 +36,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
         const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole, referralCode);
 
+        setAuthCookie(res, token);
         createdMsg(res, "User registered successfully.", { user, token });
     } catch (error: any) {
         console.error('--- DETAILED SIGNUP ERROR ---');
@@ -42,10 +57,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const { user, token } = await AuthService.loginUser(email, password);
+    setAuthCookie(res, token);
     okMsg(res, "User logged in successfully.", { user, token });
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
+    if (typeof res.clearCookie === 'function') {
+        res.clearCookie('authToken', COOKIE_OPTIONS);
+    }
     okMsg(res, "User logged out successfully.");
 });
 

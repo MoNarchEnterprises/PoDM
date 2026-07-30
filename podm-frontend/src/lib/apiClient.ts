@@ -16,10 +16,17 @@ interface GetContentParams {
  */
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
-// --- Axios Instance Creation ---
+export const getAuthToken = (): string | null => {
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+};
+
+export const getImpersonatingUserId = (): string | null => {
+    return localStorage.getItem('impersonating_user_id') || sessionStorage.getItem('impersonating_user_id');
+};
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -29,15 +36,13 @@ const apiClient = axios.create({
 
 /**
  * Request Interceptor:
- * This function runs before every single request is sent.
- * Its primary job is to get the user's authentication token and add it
- * to the 'Authorization' header.
+ * Runs before every request is sent.
+ * Attaches credentials/cookies automatically, plus Authorization header fallback if token is present in storage.
  */
 apiClient.interceptors.request.use(
     (config) => {
-        // Check localStorage first (persistent), then sessionStorage (temporary)
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        const impersonatingUserId = localStorage.getItem('impersonating_user_id') || sessionStorage.getItem('impersonating_user_id');
+        const token = getAuthToken();
+        const impersonatingUserId = getImpersonatingUserId();
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -55,7 +60,6 @@ apiClient.interceptors.request.use(
         return config;
     },
     (error) => {
-        // Handle request errors (e.g., network issues)
         return Promise.reject(error);
     }
 );
@@ -272,7 +276,7 @@ export const getPlatformSettings = () =>
  * Sends a request to update the platform settings.
  * @param settings - The settings object to update.
  */
-export const updatePlatformSettings = (settings: { commissionRate: number }) =>
+export const updatePlatformSettings = (settings: { commissionRate?: number; aiProvider?: string; aiModelId?: string }) =>
     api('put', '/admin/settings/platform', settings);
 
 /**

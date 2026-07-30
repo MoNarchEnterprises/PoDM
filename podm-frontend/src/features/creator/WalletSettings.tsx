@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useCryptoWallet from '../../shared/hooks/useCryptoWallet';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { Wallet, Copy, Check } from 'lucide-react';
 
 const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -17,6 +18,14 @@ const getAuthHeaders = (): Record<string, string> => {
     return headers;
 };
 
+interface WithdrawalStatus {
+    amount?: number | string;
+    recipientCard?: string;
+    estimatedArrival?: string;
+    transferId?: string;
+    error?: string;
+}
+
 export const WalletSettings: React.FC = () => {
     const {
         isConnected,
@@ -29,15 +38,24 @@ export const WalletSettings: React.FC = () => {
 
     const [walletType, setWalletType] = useState<'embedded' | 'custom'>('embedded');
     const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain' | 'base'>('debit_card');
+    const [embeddedAddress, setEmbeddedAddress] = useState<string>('');
     const [customAddress, setCustomAddress] = useState<string>('');
     const [commissionRate, setCommissionRate] = useState<number>(DEFAULT_COMMISSION_RATE);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
+    const [copied, setCopied] = useState<boolean>(false);
 
     const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
     const [withdrawAmount, setWithdrawAmount] = useState<string>('');
     const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
-    const [withdrawalStatus, setWithdrawalStatus] = useState<any>(null);
+    const [withdrawalStatus, setWithdrawalStatus] = useState<WithdrawalStatus | null>(null);
+
+    const handleCopyAddress = (addr: string) => {
+        if (!addr) return;
+        navigator.clipboard.writeText(addr);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     useEffect(() => {
         const loadConfigs = async () => {
@@ -48,13 +66,18 @@ export const WalletSettings: React.FC = () => {
                 if (response.ok) {
                     const result = await response.json();
                     if (result.data) {
-                        setWalletType(result.data.walletType || 'embedded');
+                        const loadedType = result.data.walletType || 'embedded';
+                        setWalletType(loadedType);
                         setPayoutPreference(result.data.payoutPreference || 'debit_card');
                         if (result.data.commissionRate !== undefined && result.data.commissionRate !== null) {
                             setCommissionRate(result.data.commissionRate);
                         }
-                        if (result.data.walletType === 'custom') {
-                            setCustomAddress(result.data.walletAddress || '');
+                        if (result.data.walletAddress) {
+                            if (loadedType === 'embedded') {
+                                setEmbeddedAddress(result.data.walletAddress);
+                            } else {
+                                setCustomAddress(result.data.walletAddress);
+                            }
                         }
                     }
                 }
@@ -77,8 +100,16 @@ export const WalletSettings: React.FC = () => {
         setSaveMessage(null);
 
         try {
+            const addressToSave = walletType === 'embedded'
+                ? (walletAddress || embeddedAddress)
+                : customAddress;
+
+            if (walletType === 'custom' && (!customAddress || !customAddress.trim())) {
+                throw new Error('Please enter a valid custom wallet address.');
+            }
+
             const payload = {
-                walletAddress: walletType === 'embedded' ? walletAddress : customAddress,
+                walletAddress: addressToSave,
                 walletType,
                 payoutPreference: walletType === 'embedded' ? 'debit_card' : payoutPreference,
             };
@@ -95,8 +126,9 @@ export const WalletSettings: React.FC = () => {
             }
 
             setSaveMessage('Payout settings saved successfully!');
-        } catch (err: any) {
-            setSaveMessage('Failed to save settings: ' + err.message);
+        } catch (err: unknown) {
+            const error = err as Error;
+            setSaveMessage('Failed to save settings: ' + error.message);
         } finally {
             setIsSaving(false);
         }
@@ -123,8 +155,9 @@ export const WalletSettings: React.FC = () => {
 
             setWithdrawalStatus(result.data);
             setWithdrawAmount('');
-        } catch (err: any) {
-            setWithdrawalStatus({ error: err.message || 'Withdrawal request failed.' });
+        } catch (err: unknown) {
+            const error = err as Error;
+            setWithdrawalStatus({ error: error.message || 'Withdrawal request failed.' });
         } finally {
             setIsWithdrawing(false);
         }
@@ -214,8 +247,10 @@ export const WalletSettings: React.FC = () => {
                                             {walletType === 'embedded' && <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>}
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-white">Embedded Wallet (Easiest)</h4>
-                                            <p className="text-xs text-gray-400 mt-1">Automatic setup. One-click withdraw to debit card.</p>
+                                            <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                                                Embedded Wallet <span className="text-[10px] bg-purple-900/60 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded font-normal">Default</span>
+                                            </h4>
+                                            <p className="text-xs text-gray-400 mt-1">Automatic setup. Instant off-ramp payouts.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -246,20 +281,34 @@ export const WalletSettings: React.FC = () => {
 
                             {walletType === 'embedded' ? (
                                 <div className="p-4 rounded-xl bg-gray-950/60 border border-gray-900 space-y-3">
-                                    <p className="text-xs font-semibold text-purple-400">Embedded Payout Profile</p>
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-xs font-semibold text-purple-400 flex items-center gap-1.5">
+                                            <Wallet className="w-4 h-4" /> Default Embedded Payout Profile
+                                        </p>
+                                        <span className="text-[10px] bg-purple-950/60 border border-purple-500/30 text-purple-300 font-semibold px-2 py-0.5 rounded-full">
+                                            Active Default
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                                         <div>
-                                            <span className="text-gray-400">Your Wallet Address:</span>
-                                            <code className="text-gray-300 ml-2 bg-gray-900 px-2 py-0.5 rounded text-[10px]">
-                                                {isWalletLoading ? 'Connecting...' : walletAddress}
+                                            <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Your Wallet Address</span>
+                                            <code className="text-purple-200 font-mono select-all text-xs break-all">
+                                                {isWalletLoading ? 'Connecting...' : (walletAddress || embeddedAddress || 'Provisioning wallet...')}
                                             </code>
                                         </div>
-                                        <div className="text-gray-400">
-                                            Status: <span className="text-green-400 font-bold">Linked</span>
-                                        </div>
+                                        {(walletAddress || embeddedAddress) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopyAddress(walletAddress || embeddedAddress)}
+                                                className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 bg-purple-950/30 hover:bg-purple-950/50 px-3 py-1.5 rounded-lg border border-purple-500/20 transition-colors self-start md:self-auto"
+                                            >
+                                                {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                                <span>{copied ? 'Copied' : 'Copy'}</span>
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="text-[10px] text-gray-500 border-t border-gray-900 pt-3">
-                                        * Fees are fractions of a cent. Withdrawals to linked debit cards occur immediately via our secure off-ramp engine.
+                                        * Automatically assigned during creator setup. Earnings settle directly to this address. Withdrawals to linked debit cards occur immediately via our secure off-ramp engine.
                                     </div>
                                 </div>
                             ) : (
