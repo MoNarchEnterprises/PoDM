@@ -12,6 +12,34 @@ import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import supabase from '../config/supabaseClient';
 import { reshapeUserForApp } from '../utils/user.utils';
 import * as StorageService from './storage.service';
+import axios from 'axios';
+import { ethers } from 'ethers';
+
+function getRpcUrl(): string {
+    return process.env.NODE_ENV === 'production'
+        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
+        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
+}
+
+async function getPlatformWalletBalance(address: string): Promise<number> {
+    try {
+        const usdcAddress = ethers.getAddress(process.env.NODE_ENV === 'production'
+            ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
+            : '0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+        const iface = new ethers.Interface(["function balanceOf(address owner) view returns (uint256)"]);
+        const calldata = iface.encodeFunctionData("balanceOf", [address]);
+        const response = await axios.post(getRpcUrl(), {
+            jsonrpc: '2.0',
+            method: 'eth_call',
+            params: [{ to: usdcAddress, data: calldata }, 'latest'],
+            id: 1
+        });
+        return Number(BigInt(response.data.result)) / 1e6;
+    } catch (err) {
+        console.error(`Failed to fetch platform wallet balance for ${address}:`, err);
+        return 0;
+    }
+}
 
 // --- Local Type Definitions ---
 type UserGrowthData = {
@@ -329,6 +357,10 @@ export const getPlatformSettings = async () => {
         SettingsModel.getSetting('ai_provider'),
         SettingsModel.getSetting('ai_model_id'),
     ]);
+
+    const platformWalletAddress = process.env.PLATFORM_TREASURY_ADDRESS || '0x71c3a2891A15245d2416C77eb460B274AB1C7903';
+    const platformWalletBalance = await getPlatformWalletBalance(platformWalletAddress);
+
     return {
         commissionRate: commissionRateSetting?.value || DEFAULT_COMMISSION_RATE,
         aiProvider: aiProviderSetting?.value || 'openrouter',
@@ -336,6 +368,8 @@ export const getPlatformSettings = async () => {
         hasAiApiKey: Boolean(process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY),
         hasNvidiaApiKey: Boolean(process.env.NVIDIA_API_KEY),
         hasOpenaiApiKey: Boolean(process.env.OPENAI_API_KEY),
+        platformWalletAddress,
+        platformWalletBalance,
     };
 };
 

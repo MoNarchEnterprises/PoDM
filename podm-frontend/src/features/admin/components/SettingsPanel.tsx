@@ -192,6 +192,8 @@ const SettingsPanel = () => {
     const { data } = useAdminData();
     // State for financial settings
     const [commissionRate, setCommissionRate] = useState('');
+    const [platformWalletAddress, setPlatformWalletAddress] = useState('');
+    const [platformWalletBalance, setPlatformWalletBalance] = useState(0);
     const [isSaving, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -212,6 +214,8 @@ const SettingsPanel = () => {
             try {
                 const response = await apiClient.getPlatformSettings();
                 setCommissionRate(response.data.commissionRate.toString());
+                setPlatformWalletAddress(response.data.platformWalletAddress || '');
+                setPlatformWalletBalance(response.data.platformWalletBalance || 0);
                 setAiProvider(response.data.aiProvider || 'openrouter');
                 setAiModelId(response.data.aiModelId || '');
                 setHasAiApiKey(Boolean(response.data.hasAiApiKey));
@@ -316,6 +320,25 @@ const SettingsPanel = () => {
                             onChange={(e) => setCommissionRate(e.target.value)}
                             containerClassName="md:w-1/3"
                         />
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Platform Wallet</h4>
+                            <div className="space-y-2 md:w-1/2">
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Address</span>
+                                    <span className="text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                        {platformWalletAddress
+                                            ? `${platformWalletAddress.slice(0, 6)}...${platformWalletAddress.slice(-4)}`
+                                            : 'Not configured'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">USDC Balance</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        {platformWalletBalance.toFixed(2)} USDC
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                         <div className="flex justify-end items-center gap-4">
                             {success && <p className="text-sm text-green-600">{success}</p>}
                             {error && <p className="text-sm text-red-600">{error}</p>}
