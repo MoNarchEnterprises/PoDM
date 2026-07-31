@@ -17,6 +17,7 @@ import { useModal } from '../../hooks/useModal';
 import TipModal from './TipModal';
 import UnlockModal from './UnlockModal'; // Import the UnlockModal
 import { ContentLockState } from './ContentLockManager';
+import { formatDate } from '../../lib/formatters';
 
 // --- Local Types ---
 // This interface represents the shape of the data this component expects.
@@ -142,7 +143,7 @@ const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => 
                         <img className="w-10 h-10 rounded-full mr-3" src={post.creator.profile.avatar} alt={post.creator.profile.name} />
                         <div>
                             <p className="font-semibold ...">{post.creator.profile.name}</p>
-                            <p className="text-xs ...">{new Date(post.created_at).toLocaleDateString()}</p>
+                            <p className="text-xs ...">{formatDate(post.created_at)}</p>
                         </div>
                     </div>
                     <p className="text-gray-700 ...">{post.title}</p>

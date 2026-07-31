@@ -27,93 +27,88 @@ export const slugify = (text: string): string => {
 };
 
 /**
- * A constant for a fallback date to be used when a valid date is not available.
+ * Parses a date string (typically from the database) into a Date object.
+ * Normalizes Supabase's space-separated timestamps (e.g., "2025-08-15 05:43:39.618559+00")
+ * to a reliable ISO 8601 format. Returns null for missing or unparseable input.
+ * @param dbString - The date string to parse.
+ * @returns A valid Date, or null if the input is missing or invalid.
  */
-const LOWDATE = new Date('1801-01-01T00:00:00Z');
+const parseDbDate = (dbString: string | null | undefined): Date | null => {
+    if (!dbString) return null;
+    try {
+        const date = new Date(dbString.replace(' ', 'T'));
+        return isNaN(date.getTime()) ? null : date;
+    } catch {
+        return null;
+    }
+};
 
 /**
- * Formats a date string from Supabase into a more readable format.
+ * Formats a date string from the database into a readable date (in the viewer's local timezone).
  * @param dbString - The date string to format (e.g., "2025-08-15 05:43:39.618559+00").
- * @returns A formatted date string (e.g., "August 15, 2025").
+ * @returns A formatted date string (e.g., "August 15, 2025"), or "—" when unparseable.
  */
-export const formatDate = (dbString: string): string => {
-    let dateToFormat = LOWDATE; // Default to the fallback date
-
-    if (dbString) {
-        try {
-            // Convert Supabase timestamp to a reliable ISO 8601 format by replacing the space with a 'T'.
-            const isoString = dbString.replace(' ', 'T');
-            const parsedDate = new Date(isoString);
-            
-            // Check if the parsed date is valid
-            if (!isNaN(parsedDate.getTime())) {
-                dateToFormat = parsedDate;
-            }
-        } catch (error) {
-            console.error("Error parsing date:", error);
-            // If parsing fails, it will fall back to LOWDATE
-        }
-    }
-
+export const formatDate = (dbString: string | null | undefined): string => {
+    const date = parseDbDate(dbString);
+    if (!date) return '—';
     return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-    }).format(dateToFormat);
+    }).format(date);
 };
 
 /**
- * Formats a date string into a short time string (e.g., "3:45 PM").
- * This function is robust and handles non-standard date strings from the database.
+ * Formats a date string from the database into a date and time (in the viewer's local timezone).
  * @param dbString - The date string to format.
- * @returns A formatted time string.
+ * @returns A formatted date-time string (e.g., "August 15, 2025, 3:45 PM"), or "—" when unparseable.
  */
-export const formatMessageTimestamp = (dbString: string): string => {
-    if (!dbString) return '';
-    try {
-        // The most reliable way to parse potentially non-standard timestamp strings
-        // is to replace the space between the date and time with a 'T'.
-        const isoString = dbString.replace(' ', 'T');
-        const date = new Date(isoString);
-        if (isNaN(date.getTime())) return 'Invalid Date';
+export const formatDateTime = (dbString: string | null | undefined): string => {
+    const date = parseDbDate(dbString);
+    if (!date) return '—';
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date);
+};
 
-        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    } catch (e) {
-        return 'Invalid Date';
-    }
+/**
+ * Formats a date string into a short time string in the viewer's local timezone (e.g., "3:45 PM").
+ * @param dbString - The date string to format.
+ * @returns A formatted time string, or '' when unparseable.
+ */
+export const formatMessageTimestamp = (dbString: string | null | undefined): string => {
+    const date = parseDbDate(dbString);
+    if (!date) return '';
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 };
 
 /**
  * Calculates a relative time string from a date string.
  * @param dbString - The date string to compare against the current time.
- * @returns A relative time string (e.g., "2 hours ago", "3 days ago").
+ * @returns A relative time string (e.g., "2 hours ago", "3 days ago"), or "—" when unparseable.
  */
-export const timeAgo = (dbString: string): string => {
-    if (!dbString) return formatDate(LOWDATE.toISOString()); // Return formatted LOWDATE if no string
-    
-    try {
-        const isoString = dbString.replace(' ', 'T');
-        const date = new Date(isoString);
-        if (isNaN(date.getTime())) return formatDate(LOWDATE.toISOString());
-        
-        const now = new Date();
-        const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
-        const minutes = Math.round(seconds / 60);
-        const hours = Math.round(minutes / 60);
-        const days = Math.round(hours / 24);
+export const timeAgo = (dbString: string | null | undefined): string => {
+    const date = parseDbDate(dbString);
+    if (!date) return '—';
 
-        if (seconds < 60) {
-            return "Just now";
-        } else if (minutes < 60) {
-            return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-        } else if (hours < 24) {
-            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-        } else {
-            return `${days} day${days > 1 ? 's' : ''} ago`;
-        }
-    } catch (error) {
-        console.error("Error calculating time ago:", error);
-        return formatDate(LOWDATE.toISOString());
+    const now = new Date();
+    const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+    const minutes = Math.round(seconds / 60);
+    const hours = Math.round(minutes / 60);
+    const days = Math.round(hours / 24);
+
+    if (seconds < 60) {
+        return "Just now";
+    } else if (minutes < 60) {
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (hours < 24) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+        return `${days} day${days > 1 ? 's' : ''} ago`;
     }
 };
 

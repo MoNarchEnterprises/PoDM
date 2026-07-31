@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
 import apiClient from '../../lib/apiClient';
+import { formatDate, formatDateTime } from '../../lib/formatters';
 
 interface EnclaveApplication {
     id: string;
@@ -253,7 +254,7 @@ export default function EnclaveApplications() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{app.follower_count}</td>
                                             <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(app.status)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                                {new Date(app.created_at).toLocaleDateString()}
+                                                {formatDate(app.created_at)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <button
@@ -416,7 +417,7 @@ function ApplicationDetailModal({
                         <div className="p-4 bg-gray-800/50 rounded-lg">
                             <p className="text-gray-400">
                                 This application was {application.status} on{' '}
-                                {application.reviewed_at ? new Date(application.reviewed_at).toLocaleString() : 'N/A'}
+                                {application.reviewed_at ? formatDateTime(application.reviewed_at) : 'N/A'}
                             </p>
                         </div>
                     )}

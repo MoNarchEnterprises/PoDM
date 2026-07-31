@@ -7,6 +7,7 @@ import { Creator, SubscriptionTier } from '@common/types/Creator';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import { useModal } from '../../hooks/useModal';
+import { formatDate } from '../../lib/formatters';
 
 // --- Local Types ---
 interface SubscriptionWithCreator extends Subscription {
@@ -138,7 +139,7 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
             <div className="p-6 space-y-4 flex-grow">
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Tier</span><span className="font-semibold text-gray-800 dark:text-gray-200">{subscription.tierName}</span></div>
                 <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Price</span><span className="font-semibold text-gray-800 dark:text-gray-200">${Number(subscription.price || 0).toFixed(2)}</span></div>
-                {subscription.status === 'active' && subscription.next_billing_date && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(subscription.next_billing_date).toLocaleDateString()}</span></div>}
+                {subscription.status === 'active' && subscription.next_billing_date && <div className="flex justify-between items-center"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Next Billing Date</span><span className="font-semibold text-gray-800 dark:text-gray-200">{formatDate(subscription.next_billing_date)}</span></div>}
                 <div className="pt-4">
                     {subscription.status === 'active' ? (
                         <div className="flex items-center justify-between">

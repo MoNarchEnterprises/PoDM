@@ -26,7 +26,6 @@ import * as apiClient from '../../lib/apiClient';
 import Modal from '../../components/ui/Modal';
 import { useModal } from '../../hooks/useModal';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
-import { formatDate } from '../../lib/formatters';
 import { useAdminData } from '../admin/AdminPanel';
 import SettingsCard from '../../components/shared/SettingsCard';
 import ToggleSwitch from '../../components/shared/ToggleSwitch';

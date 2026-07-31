@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 // --- Import Reusable Components & Hooks ---
 import StatCard from '../../../components/shared/StatCard';
-import { formatCurrency } from '../../../lib/formatters';
+import { formatCurrency, formatDate } from '../../../lib/formatters';
 import { useAdminData } from '../AdminPanel'; // Import the custom hook
 import apiClient from '../../../lib/apiClient';
 
@@ -146,7 +146,7 @@ const DashboardPanel = () => {
                                             </div>
                                             <p className="text-sm text-gray-400 mb-2">{app.email}</p>
                                             <p className="text-xs text-gray-500">
-                                                {app.follower_count} followers • Applied {new Date(app.created_at).toLocaleDateString()}
+                                                {app.follower_count} followers • Applied {formatDate(app.created_at)}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">

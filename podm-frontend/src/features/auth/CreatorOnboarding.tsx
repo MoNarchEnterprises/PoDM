@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft, Wallet } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import * as apiClient from '../../lib/apiClient';
 import { SubscriptionTier } from '@common/types/Creator';
 import { UserProfile } from '@common/types/User';
@@ -44,6 +45,8 @@ const StepTracker = ({ totalSteps, step }: { totalSteps: number; step: number; }
 
 const CreatorOnboardingPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const creatorName = user?.profile?.name || 'Creator';
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<OnboardingData>({
         profile: { name: '', bio: '' },
@@ -91,7 +94,7 @@ const CreatorOnboardingPage = () => {
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-4 font-sans">
             <div className="text-purple-500 font-bold text-3xl mb-4">PoDM</div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome, Creator!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome, {creatorName}!</h1>
             <p className="text-gray-500 dark:text-gray-400 mb-8">Let's get your account set up for success.</p>
             
             <div className="mb-8 w-full max-w-2xl">
@@ -102,7 +105,7 @@ const CreatorOnboardingPage = () => {
                 <OnboardingStep>
                     <h2 className="text-xl font-semibold text-center mb-4">Step 1: Welcome to the Platform</h2>
                     <p className="text-center text-gray-600 dark:text-gray-300">
-                        We're thrilled to have you join our community! This short setup process will help you get your profile ready for your audience. 
+                        We're thrilled to have you, {creatorName}! This short setup process will help you get your profile ready for your audience. 
                         You'll set up your public profile, create subscription tiers, and learn about our verification process.
                     </p>
                 </OnboardingStep>

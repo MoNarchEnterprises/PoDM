@@ -5,6 +5,7 @@ import { Contest } from '@common/types/Contest';
 import Button from '../../components/ui/Button';
 import CreateContestModal from './CreateContestModal';
 import { Plus, Trophy, Calendar, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react';
+import { formatDate } from '../../lib/formatters';
 
 const CreatorContestList = () => {
     const navigate = useNavigate();
@@ -82,7 +83,7 @@ const CreatorContestList = () => {
                                 <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                                     <div className="flex items-center gap-1">
                                         <Calendar className="w-3 h-3" />
-                                        <span>Ends: {new Date(contest.end_date).toLocaleDateString()}</span>
+                                        <span>Ends: {formatDate(contest.end_date)}</span>
                                     </div>
                                     {contest.entry_type === 'weighted_spend' && (
                                         <span className="text-purple-600 dark:text-purple-400 font-medium">Weighted Entry ({contest.entry_multiplier}x)</span>

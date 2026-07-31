@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { DollarSign } from 'lucide-react';
+import { formatMessageTimestamp } from '../../lib/formatters';
 
 // --- Types ---
 
@@ -67,20 +68,6 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     const participant = getParticipant(conversation);
     const { lastMessage, updatedAt } = conversation;
 
-    const formatTime = (dateStr: string | undefined | null) => {
-        if (!dateStr) return '';
-        try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return '';
-            return d.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-        } catch {
-            return '';
-        }
-    };
-
     const name = participant?.profile?.name || 'Unknown';
     const avatar = participant?.profile?.avatar || 'https://via.placeholder.com/150';
 
@@ -112,7 +99,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
                     >
                         {name}
                     </p>
-                    <p className="text-xs text-gray-500">{formatTime(updatedAt)}</p>
+                    <p className="text-xs text-gray-500">{formatMessageTimestamp(updatedAt)}</p>
                 </div>
                 <p className="text-sm text-gray-400 truncate">
                     {lastMessage?.text || emptyMessage}
