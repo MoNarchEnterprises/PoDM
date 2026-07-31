@@ -1,5 +1,6 @@
 import supabase from '../config/supabaseClient';
 import * as ReferralModel from '../models/referral.model';
+import { getCryptoWalletForUser } from './wallet.service';
 
 export interface PercentageReferralInfo {
     referrerId: string;
@@ -62,6 +63,8 @@ export async function getPercentageReferralInfo(creatorId: string): Promise<Perc
  * Calculates the referral fee for a transaction.
  * The fee is 1% of the gross transaction payment (amountInCents) and is deducted
  * from the platform's commission, ensuring the referred creator's payout is never altered.
+ * If the referrer has no configured crypto wallet, the fee is zeroed so the database
+ * never records a referral payout that could not have been paid on-chain.
  */
 export async function calculateReferralFee(params: {
     creatorId: string;
@@ -83,10 +86,28 @@ export async function calculateReferralFee(params: {
         referralFee = platformFee;
     }
 
+    // Referral fee is paid on-chain to the referrer's wallet in the same transaction.
+    // Without a configured wallet the split cannot happen, so the fee stays at the platform.
+    const referrerWallet = await getCryptoWalletForUser(refInfo.referrerId);
+    if (!referrerWallet) {
+        referralFee = 0;
+    }
+
     return {
         referralFee,
         referrerId: refInfo.referrerId,
     };
+}
+
+/**
+ * Resolves the referrer's crypto wallet address for a referred creator.
+ * Returns '' when the creator has no active percentage referral or the
+ * referrer has not configured a wallet.
+ */
+export async function getReferrerWalletForCreator(creatorId: string): Promise<string> {
+    const refInfo = await getPercentageReferralInfo(creatorId);
+    if (!refInfo) return '';
+    return getCryptoWalletForUser(refInfo.referrerId);
 }
 
 /**

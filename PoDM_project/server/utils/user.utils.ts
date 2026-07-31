@@ -20,7 +20,6 @@ export const reshapeUserForApp = (flatUser: any): User => {
         creator_data
     } = flatUser;
 
-
     // --- ADD THIS LOGIC BLOCK ---
     // The baseUser object now ONLY contains fields common to ALL roles.
     const baseUser: User = {
@@ -30,6 +29,8 @@ export const reshapeUserForApp = (flatUser: any): User => {
         created_at: created_at,
         role,
         status,
+        onboarding_complete: onboarding_complete || false,
+        is_enclave_member: Boolean(flatUser.is_enclave_member),
         crypto_wallet_address: flatUser.crypto_wallet_address || '',
         updated_at: flatUser.updated_at,
         profile: {

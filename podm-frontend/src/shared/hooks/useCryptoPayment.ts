@@ -2,10 +2,11 @@ import { useState, useCallback } from 'react';
 
 const APPROVE_SELECTOR = '0xb3886be3';      // approve(address spender, uint256 amount)
 const ALLOWANCE_SELECTOR = '0xd1ac244a';   // allowance(address owner, address spender) view returns (uint256)
-const PAY_SUB_SELECTOR   = '0x7158d140';   // paySubscription(address token, address creator, uint256 amount, bytes32 tierIdHash)
-const PAY_TIP_SELECTOR   = '0x7b6c03b7';   // payTip(address token, address creator, uint256 amount)
-const PAY_PPV_SELECTOR   = '0xf6ad20a7';   // payPPV(address token, address creator, uint256 amount, bytes32 contentIdHash)
+const PAY_SUB_SELECTOR   = '0xe87c1a59';   // paySubscription(address token, address creator, uint256 amount, bytes32 tierIdHash, address referrer, uint256 customPlatformFeeBps)
+const PAY_TIP_SELECTOR   = '0x7a02b81c';   // payTip(address token, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)
+const PAY_PPV_SELECTOR   = '0x33f2ab62';   // payPPV(address token, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)
 
+const ZERO_ADDRESS_HEX = '0'.repeat(64);
 const MAX_UINT256_HEX = '0x' + 'f'.repeat(64); // unlimited allowance
 
 type PaymentType = 'Tip' | 'PPV Post' | 'PPV Message' | 'Subscription';
@@ -110,6 +111,14 @@ export interface CryptoPaymentParams {
   message?: string;
   paymentType?: PaymentType;
   tierId?: string;           // for subscriptions
+  referrerAddress?: string;  // referrer wallet for the on-chain referral split ('' = none)
+  platformFeeBps?: number;   // platform fee BPS (e.g. 1250 = 12.5%, 1000 = 10%)
+}
+
+export interface CryptoPaymentOutcome {
+  success: boolean;
+  txHash?: string;
+  error?: string;
 }
 
 export interface CryptoPaymentResult {
@@ -117,7 +126,7 @@ export interface CryptoPaymentResult {
   isLoading: boolean;
   error: string | null;
   txHash: string | null;
-  processPayment: (params: CryptoPaymentParams) => Promise<boolean>;
+  processPayment: (params: CryptoPaymentParams) => Promise<CryptoPaymentOutcome>;
   reset: () => void;
   setStep: React.Dispatch<React.SetStateAction<number>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -130,7 +139,7 @@ export function useCryptoPayment(): CryptoPaymentResult {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const processPayment = useCallback(async (params: CryptoPaymentParams): Promise<boolean> => {
+  const processPayment = useCallback(async (params: CryptoPaymentParams): Promise<CryptoPaymentOutcome> => {
     setIsLoading(true);
     setError(null);
 
@@ -160,19 +169,25 @@ export function useCryptoPayment(): CryptoPaymentResult {
       const type: PaymentType = params.paymentType
         || (params.contentId ? 'PPV Post' : 'Tip');
 
+      const referrerHex = params.referrerAddress && params.referrerAddress.startsWith('0x')
+        ? padAddress(params.referrerAddress)
+        : ZERO_ADDRESS_HEX;
+
+      const feeBpsHex = padUint(BigInt(params.platformFeeBps ?? 1250));
+
       let selector: string;
       let dataHex: string;
       if (type === 'Subscription') {
         selector = PAY_SUB_SELECTOR;
         const tierIdHash = stringToBytes32Hex(params.tierId);
-        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + tierIdHash;
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + tierIdHash + referrerHex + feeBpsHex;
       } else if (type === 'Tip') {
         selector = PAY_TIP_SELECTOR;
-        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits);
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + referrerHex + feeBpsHex;
       } else { // PPV Post or PPV Message
         selector = PAY_PPV_SELECTOR;
         const contentIdHash = stringToBytes32Hex(params.contentId);
-        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + contentIdHash;
+        dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + contentIdHash + referrerHex + feeBpsHex;
       }
 
       // 3. Send the contract payX call.
@@ -207,12 +222,12 @@ export function useCryptoPayment(): CryptoPaymentResult {
       }
 
       setStep(2);
-      return true;
+      return { success: true, txHash: hash };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Payment failed.';
       setError(message);
       console.error('[useCryptoPayment] Error:', err);
-      return false;
+      return { success: false, error: message };
     } finally {
       setIsLoading(false);
     }

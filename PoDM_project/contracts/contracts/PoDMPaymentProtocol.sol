@@ -15,6 +15,7 @@ interface IERC20 {
 contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
     address public platformTreasury;
     uint256 public platformFeeBps;
+    uint256 public referralFeeBps;
 
     struct RecurringAllowance {
         uint256 maxAmountPerPeriod;
@@ -32,7 +33,9 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         uint256 totalAmount,
         bytes32 tierIdHash,
         uint256 platformFee,
-        uint256 creatorAmount
+        uint256 referralFee,
+        uint256 creatorAmount,
+        address referrer
     );
 
     event TipPaid(
@@ -41,7 +44,9 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         address indexed token,
         uint256 totalAmount,
         uint256 platformFee,
-        uint256 creatorAmount
+        uint256 referralFee,
+        uint256 creatorAmount,
+        address referrer
     );
 
     event PPVPaid(
@@ -51,7 +56,9 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         uint256 totalAmount,
         bytes32 contentIdHash,
         uint256 platformFee,
-        uint256 creatorAmount
+        uint256 referralFee,
+        uint256 creatorAmount,
+        address referrer
     );
 
     event SubscriptionApproved(
@@ -74,12 +81,14 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
 
     event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
     event FeeUpdated(uint256 oldFee, uint256 newFee);
+    event ReferralFeeUpdated(uint256 oldFee, uint256 newFee);
 
     constructor(address _platformTreasury, uint256 _platformFeeBps) Ownable(msg.sender) {
         require(_platformTreasury != address(0), "Invalid treasury address");
         require(_platformFeeBps <= 3000, "Fee cannot exceed 30%");
         platformTreasury = _platformTreasury;
         platformFeeBps = _platformFeeBps;
+        referralFeeBps = 100; // 1% default referral revenue share
     }
 
     function pause() external onlyOwner {
@@ -102,60 +111,106 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         platformFeeBps = _newFeeBps;
     }
 
+    function setReferralFeeBps(uint256 _newFeeBps) external onlyOwner {
+        require(_newFeeBps <= platformFeeBps, "Referral fee cannot exceed platform fee");
+        emit ReferralFeeUpdated(referralFeeBps, _newFeeBps);
+        referralFeeBps = _newFeeBps;
+    }
+
+    /**
+     * Compute the fee split for a payment. The referral fee is taken from the
+     * platform commission, so the creator's payout is never reduced.
+     * If customPlatformFeeBps is 0, defaults to contract platformFeeBps.
+     * Returns (treasuryFee, referralFee, creatorAmount).
+     */
+    function _computeFeeSplit(
+        uint256 amount,
+        address referrer,
+        uint256 customPlatformFeeBps
+    ) internal view returns (uint256, uint256, uint256) {
+        uint256 feeBps = customPlatformFeeBps;
+        if (feeBps == 0) {
+            feeBps = platformFeeBps;
+        }
+        require(feeBps <= 3000, "Fee cannot exceed 30%");
+
+        uint256 platformFee = (amount * feeBps) / 10000;
+        uint256 referralFee = 0;
+        if (referrer != address(0)) {
+            referralFee = (amount * referralFeeBps) / 10000;
+            if (referralFee > platformFee) {
+                referralFee = platformFee;
+            }
+        }
+        return (platformFee - referralFee, referralFee, amount - platformFee);
+    }
+
     function paySubscription(
         address tokenAddress,
         address creator,
         uint256 amount,
-        bytes32 tierIdHash
+        bytes32 tierIdHash,
+        address referrer,
+        uint256 customPlatformFeeBps
     ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
-        uint256 platformFee = (amount * platformFeeBps) / 10000;
-        uint256 creatorAmount = amount - platformFee;
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, platformFee), "Platform fee transfer failed");
+        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
         require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        if (referralFee > 0) {
+            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+        }
 
-        emit SubscriptionPaid(msg.sender, creator, tokenAddress, amount, tierIdHash, platformFee, creatorAmount);
+        emit SubscriptionPaid(msg.sender, creator, tokenAddress, amount, tierIdHash, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
     }
 
     function payTip(
         address tokenAddress,
         address creator,
-        uint256 amount
+        uint256 amount,
+        address referrer,
+        uint256 customPlatformFeeBps
     ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
-        uint256 platformFee = (amount * platformFeeBps) / 10000;
-        uint256 creatorAmount = amount - platformFee;
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, platformFee), "Platform fee transfer failed");
+        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
         require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        if (referralFee > 0) {
+            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+        }
 
-        emit TipPaid(msg.sender, creator, tokenAddress, amount, platformFee, creatorAmount);
+        emit TipPaid(msg.sender, creator, tokenAddress, amount, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
     }
 
     function payPPV(
         address tokenAddress,
         address creator,
         uint256 amount,
-        bytes32 contentIdHash
+        bytes32 contentIdHash,
+        address referrer,
+        uint256 customPlatformFeeBps
     ) external whenNotPaused nonReentrant {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
-        uint256 platformFee = (amount * platformFeeBps) / 10000;
-        uint256 creatorAmount = amount - platformFee;
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, platformFee), "Platform fee transfer failed");
+        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
         require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        if (referralFee > 0) {
+            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+        }
 
-        emit PPVPaid(msg.sender, creator, tokenAddress, amount, contentIdHash, platformFee, creatorAmount);
+        emit PPVPaid(msg.sender, creator, tokenAddress, amount, contentIdHash, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
     }
 
     function approveRecurringSubscription(
@@ -190,7 +245,9 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         address tokenAddress,
         address fan,
         address creator,
-        uint256 amount
+        uint256 amount,
+        address referrer,
+        uint256 customPlatformFeeBps
     ) external whenNotPaused nonReentrant returns (bool) {
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
@@ -200,12 +257,14 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
             "Renewal period has not elapsed"
         );
 
-        uint256 platformFee = (amount * platformFeeBps) / 10000;
-        uint256 creatorAmount = amount - platformFee;
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(fan, platformTreasury, platformFee), "Platform fee transfer failed");
+        require(token.transferFrom(fan, platformTreasury, treasuryFee), "Platform fee transfer failed");
         require(token.transferFrom(fan, creator, creatorAmount), "Creator payout transfer failed");
+        if (referralFee > 0) {
+            require(token.transferFrom(fan, referrer, referralFee), "Referrer payout transfer failed");
+        }
 
         allowance.lastRenewalAt = block.timestamp;
 

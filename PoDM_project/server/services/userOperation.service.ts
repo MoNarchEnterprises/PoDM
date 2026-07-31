@@ -10,14 +10,14 @@ import supabase from '../config/supabaseClient';
 import { verifyPaymentReceiptInBackground } from './verification.service';
 import * as TransactionModel from '../models/transaction.model';
 import * as SubscriptionModel from '../models/subscription.model';
-import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
-import { calculateReferralFee, recordReferralFee } from './referral.service';
+import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
 
 const PODM_ABI = [
-    "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash)",
-    "function payTip(address tokenAddress, address creator, uint256 amount)",
-    "function payPPV(address tokenAddress, address creator, uint256 amount, bytes32 contentIdHash)"
+    "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash, address referrer, uint256 customPlatformFeeBps)",
+    "function payTip(address tokenAddress, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)",
+    "function payPPV(address tokenAddress, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)"
 ];
 
 const ERC20_ABI = [
@@ -179,6 +179,15 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         const smartAccount = await getOrCreateSmartAccount(userId, wallet.address);
         const creatorWallet = await getCryptoWalletForUser(intent.creatorId);
+        const referrerWallet = (await getReferrerWalletForCreator(intent.creatorId)) || '0x0000000000000000000000000000000000000000';
+
+        const { data: creatorProfile } = await supabase
+            .from('profiles')
+            .select('commission_rate, is_enclave_member')
+            .eq('id', intent.creatorId)
+            .single();
+        const commissionRate = getEffectiveCommissionRate(creatorProfile);
+        const platformFeeBps = Math.round(commissionRate * 100);
 
         // Encode calldata: batch(USDC.approve(contractAddress, amount), contract.payX(...))
         const podmInterface = new Interface(PODM_ABI);
@@ -191,12 +200,12 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         let paymentData: string;
         if (intent.type === 'Subscription') {
             const tierId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("default");
-            paymentData = podmInterface.encodeFunctionData("paySubscription", [usdcAddress, creatorWallet, amountInUnits, tierId]);
+            paymentData = podmInterface.encodeFunctionData("paySubscription", [usdcAddress, creatorWallet, amountInUnits, tierId, referrerWallet, platformFeeBps]);
         } else if (intent.type === 'Tip') {
-            paymentData = podmInterface.encodeFunctionData("payTip", [usdcAddress, creatorWallet, amountInUnits]);
+            paymentData = podmInterface.encodeFunctionData("payTip", [usdcAddress, creatorWallet, amountInUnits, referrerWallet, platformFeeBps]);
         } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
             const contentId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("content");
-            paymentData = podmInterface.encodeFunctionData("payPPV", [usdcAddress, creatorWallet, amountInUnits, contentId]);
+            paymentData = podmInterface.encodeFunctionData("payPPV", [usdcAddress, creatorWallet, amountInUnits, contentId, referrerWallet, platformFeeBps]);
         } else {
             throw new AppError('Invalid payment intent type', 400);
         }
@@ -286,13 +295,7 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         const txHash = userOpReceipt.transactionHash;
 
-        // Calculate fee splits & referral fee
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('commission_rate')
-            .eq('id', intent.creatorId)
-            .single();
-        const commissionRate = profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
+        // Calculate fee splits & referral fee using resolved commissionRate
         const platformFee = Math.round(intent.amountInCents * (commissionRate / 100));
         const creatorPayout = intent.amountInCents - platformFee;
 

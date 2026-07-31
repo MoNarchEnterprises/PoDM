@@ -1,15 +1,17 @@
 import supabase from '../config/supabaseClient';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { getEffectiveCommissionRate } from './commission.utils';
 
 /**
  * Get platform fee percentage for a creator.
- * Uses the creator's per-profile commission_rate if set,
- * otherwise falls back to the DEFAULT_COMMISSION_RATE.
+ * Enclave members are locked at ENCLAVE_COMMISSION_RATE; otherwise the
+ * creator's per-profile commission_rate is used, falling back to the
+ * DEFAULT_COMMISSION_RATE.
  */
 export const getCommissionRateForCreator = async (creatorId: string): Promise<number> => {
     const { data: profile, error } = await supabase
         .from('profiles')
-        .select('commission_rate')
+        .select('commission_rate, is_enclave_member')
         .eq('id', creatorId)
         .single();
 
@@ -18,15 +20,5 @@ export const getCommissionRateForCreator = async (creatorId: string): Promise<nu
         return DEFAULT_COMMISSION_RATE;
     }
 
-    return profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
-};
-
-/**
- * Calculate platform fee amount in cents
- * @param amountInCents - Transaction amount in cents
- * @param feePercentage - Platform fee percentage (e.g., 15 for 15%)
- * @returns Platform fee in cents
- */
-export const calculatePlatformFee = (amountInCents: number, feePercentage: number): number => {
-    return Math.round(amountInCents * (feePercentage / 100));
+    return getEffectiveCommissionRate(profile);
 };

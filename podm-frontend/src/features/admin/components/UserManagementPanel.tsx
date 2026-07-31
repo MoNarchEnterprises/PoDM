@@ -15,7 +15,7 @@ import { useAdminData } from '../AdminPanel';
 import * as apiClient from '../../../lib/apiClient';
 import Input from '../../../components/ui/Input'; // Add Input import
 import Button from '../../../components/ui/Button'; // Add Button import
-import { DEFAULT_COMMISSION_RATE } from '../../../lib/constants'; // Import default rate
+import { DEFAULT_COMMISSION_RATE, ENCLAVE_COMMISSION_RATE } from '../../../lib/constants'; // Import default rate
 import { useAuth } from '../../../hooks/useAuth';
 import { Creator } from '@common/types/Creator';
 
@@ -25,13 +25,16 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
     const [rate, setRate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const isEnclaveMember = Boolean(user?.is_enclave_member);
+
     useEffect(() => {
         // When the modal opens, set the input value to the user's current rate
         // or the platform default if they don't have a custom one.
+        // Enclave members are locked at their Enclave rate.
         if (user) {
-            setRate((user as Creator).commission_rate?.toString() || DEFAULT_COMMISSION_RATE.toString());
+            setRate(isEnclaveMember ? ENCLAVE_COMMISSION_RATE.toString() : (user as Creator).commission_rate?.toString() || DEFAULT_COMMISSION_RATE.toString());
         }
-    }, [user]);
+    }, [user, isEnclaveMember]);
 
     if (!isOpen || !user) return null;
 
@@ -59,6 +62,11 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
                         Set a custom commission rate for <span className="font-bold">{user.profile.name}</span>.
                         The platform default is {DEFAULT_COMMISSION_RATE}%.
                     </p>
+                    {isEnclaveMember && (
+                        <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800 text-sm text-purple-800 dark:text-purple-200">
+                            <span className="font-bold">Enclave member</span> — locked at {ENCLAVE_COMMISSION_RATE}% commission as part of the 90/10 revenue split.
+                        </div>
+                    )}
                     <Input
                         id="commission-rate"
                         label="Custom Rate (%)"
@@ -67,13 +75,16 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
                         onChange={(e) => setRate(e.target.value)}
                         leftIcon={Percent}
                         placeholder={`${DEFAULT_COMMISSION_RATE}`}
+                        disabled={isEnclaveMember}
                     />
-                    <Button variant="ghost" size="sm" onClick={handleResetToDefault}>
-                        Reset to Default
-                    </Button>
+                    {!isEnclaveMember && (
+                        <Button variant="ghost" size="sm" onClick={handleResetToDefault}>
+                            Reset to Default
+                        </Button>
+                    )}
                 </main>
                 <footer className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <Button onClick={handleSave} isLoading={isLoading}>Save Commission Rate</Button>
+                    <Button onClick={handleSave} isLoading={isLoading} disabled={isEnclaveMember}>Save Commission Rate</Button>
                 </footer>
             </div>
         </div>
@@ -398,7 +409,7 @@ const UserManagementPanel = () => {
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {filteredUsers.map(user => (
                                     <tr key={user.id}>
-                                        <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><span className="font-medium">{user.profile.name}</span></div></td>
+                                        <td className="px-4 py-3"><div className="flex items-center"><img src={user.profile.avatar} alt={user.profile.name} className="w-8 h-8 rounded-full mr-3" /><div><span className="font-medium">{user.profile.name}</span>{user.is_enclave_member && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">Enclave</span>}</div></div></td>
                                         <td className="px-4 py-3 text-center"><StatusBadge status={user.status} /></td>
                                         <td className="px-4 py-3 text-center text-sm">{formatDate(user.created_at)}</td>
                                         <td className="px-4 py-3 text-center">

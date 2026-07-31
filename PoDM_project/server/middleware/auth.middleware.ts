@@ -27,13 +27,22 @@ function logAuthDebug(message: string) {
  * @desc    Optionally attaches the user to the request if a valid token is provided.
  * Unlike 'protect', this does NOT throw an error if no token is found.
  * This is useful for public routes that should show different content for logged-in users.
+ * If a token is present but invalid/expired, it continues as a guest instead of failing
+ * the request with 401 — otherwise stale browser tokens would break public pages.
  */
 export const optionalProtect = async (req: Request, res: Response, next: NextFunction) => {
     const hasHeaderToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer');
     const hasCookieToken = Boolean(req.cookies?.authToken);
     if (hasHeaderToken || hasCookieToken) {
-        // If a token exists, run the full 'protect' logic
-        return protect(req, res, next);
+        // Validate the token with 'protect', but never let an invalid/expired token
+        // fail an optional-auth route. A valid token still attaches the user
+        // (including admin impersonation) exactly as before.
+        return protect(req, res, (err?: any) => {
+            if (err) {
+                logAuthDebug(`[optionalProtect] Token rejected; continuing as guest: ${err.message}`);
+            }
+            return next();
+        });
     } else {
         // If no token, just continue to the next middleware without a user object.
         next();

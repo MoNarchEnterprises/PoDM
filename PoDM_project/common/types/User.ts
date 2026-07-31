@@ -53,6 +53,7 @@ export interface User {
   creator_data?: any; // JSONB column
   preferences?: any; // JSONB column
   onboarding_complete?: boolean; // Whether the user has completed onboarding
+  is_enclave_member?: boolean; // Whether the user is an Enclave member (locked at ENCLAVE_COMMISSION_RATE)
   crypto_wallet_address?: string; // User's linked crypto wallet address
   smart_account_address?: string;
   wallet_provider?: string;

@@ -67,3 +67,14 @@ export const requestWithdrawal = asyncHandler(async (req: Request, res: Response
     const result = await CryptoPaymentService.processDebitCardOffRamp(creatorId, amountInCents, debitCardToken);
     okMsg(res, 'Withdrawal processed successfully.', result);
 });
+
+export const getReferrerInfo = asyncHandler(async (req: Request, res: Response) => {
+    const { creatorId } = req.params;
+
+    if (!creatorId) {
+        throw new AppError('creatorId is required.', 400);
+    }
+
+    const info = await CryptoPaymentService.getPaymentReferrerInfo(creatorId);
+    ok(res, info);
+});

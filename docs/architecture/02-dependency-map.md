@@ -343,7 +343,7 @@ user.controller
 
 | Model File | Table(s) | RPCs | Notes |
 |---|---|---|---|
-| `user.model.ts` | `profiles` | `get_user_details`, `get_all_users_details` | Also calls `supabase.auth.admin.listUsers()` for analytics |
+| `user.model.ts` | `profiles` | `get_user_details` | Also calls `supabase.auth.admin.listUsers()` for analytics; `findAll` selects `profiles` directly (service-role client) to include all columns (e.g. `is_enclave_member`) |
 | `content.model.ts` | `content` | — | |
 | `subscription.model.ts` | `subscriptions` | — | |
 | `transaction.model.ts` | `transactions`, `saved_reports` | — | Cross-table: reads from both |

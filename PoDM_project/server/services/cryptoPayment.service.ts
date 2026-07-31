@@ -1,12 +1,13 @@
 import supabase from '../config/supabaseClient';
 import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
-import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { DEFAULT_COMMISSION_RATE, REFERRAL_FEE_BPS } from '../../lib/constants';
+import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
-import { calculateReferralFee, recordReferralFee } from './referral.service';
+import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
 
 interface WalletConfigInput {
     walletAddress: string;
@@ -28,9 +29,9 @@ function computeEventTopic(eventSignature: string): string {
 }
 
 const EVENT_TOPICS = {
-    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
-    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256)'),
-    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
+    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
+    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256,uint256,address)'),
+    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
 };
 
 function getRpcConfig(): { rpcUrl: string; contractAddress: string; usdcContract: string; chainId: number } {
@@ -56,7 +57,7 @@ function getRpcConfig(): { rpcUrl: string; contractAddress: string; usdcContract
 async function getCommissionRate(creatorId: string): Promise<number> {
     const { data: profile, error } = await supabase
         .from('profiles')
-        .select('commission_rate')
+        .select('commission_rate, is_enclave_member')
         .eq('id', creatorId)
         .single();
 
@@ -65,13 +66,28 @@ async function getCommissionRate(creatorId: string): Promise<number> {
         return DEFAULT_COMMISSION_RATE;
     }
 
-    return profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
+    return getEffectiveCommissionRate(profile);
 }
 
-export const getUserWalletConfig = async (userId: string) => {
-    const { data: profile, error } = await supabase
+/**
+ * Resolves the referrer payment details a fan must pass to the contract for a
+ * creator payment. Returns the referrer's wallet address ('' when the creator
+ * has no active percentage referral) and the on-chain referral fee basis points.
+ */
+export const getPaymentReferrerInfo = async (creatorId: string) => {
+    const referrerAddress = await getReferrerWalletForCreator(creatorId);
+    const commissionRate = await getCommissionRate(creatorId);
+    const platformFeeBps = Math.round(commissionRate * 100);
+    return {
+        referrerAddress,
+        referralFeeBps: REFERRAL_FEE_BPS,
+        platformFeeBps,
+    };
+};
+
+export const getUserWalletConfig = async (userId: string) => {    const { data: profile, error } = await supabase
         .from('profiles')
-        .select('crypto_wallet_address, crypto_wallet_type, crypto_wallet_payout_preference')
+        .select('crypto_wallet_address, crypto_wallet_type, crypto_wallet_payout_preference, commission_rate, is_enclave_member')
         .eq('id', userId)
         .single();
 
@@ -82,7 +98,9 @@ export const getUserWalletConfig = async (userId: string) => {
     return {
         walletAddress: profile.crypto_wallet_address || null,
         walletType: profile.crypto_wallet_type || 'none',
-        payoutPreference: profile.crypto_wallet_payout_preference || 'debit_card'
+        payoutPreference: profile.crypto_wallet_payout_preference || 'debit_card',
+        commissionRate: getEffectiveCommissionRate(profile),
+        isEnclaveMember: Boolean(profile.is_enclave_member),
     };
 };
 
@@ -135,6 +153,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
     // 3. Fetch creator's configured wallet address via canonical service
     const creatorWalletAddress = await getCryptoWalletForUser(input.creatorId);
+
+    // Fee settings & referrer resolution (needed for on-chain referral validation)
+    const commissionRate = await getCommissionRate(input.creatorId);
+    const expectedReferrerWallet = await getReferrerWalletForCreator(input.creatorId);
 
     // 4. Strict on-chain verification via Base JSON-RPC
     const { rpcUrl, contractAddress, chainId } = getRpcConfig();
@@ -215,7 +237,10 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Transaction recipient does not match the creator\'s configured wallet address.', 400);
         }
 
-        // Decode log data: totalAmount (first 32 bytes)
+        // Decode log data: totalAmount (first 32 bytes), plus referral fee & referrer
+        // for the v2 contract. Slots vary by event type:
+        //   SubscriptionPaid / PPVPaid: [0] total, [1] idHash, [2] platformFee, [3] referralFee, [4] creatorAmount, [5] referrer
+        //   TipPaid:                    [0] total, [1] platformFee, [2] referralFee, [3] creatorAmount, [4] referrer
         const dataHex = contractLog.data;
         if (dataHex && dataHex.startsWith('0x')) {
             const totalAmountHex = '0x' + dataHex.slice(2, 66);
@@ -228,6 +253,32 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
                     400
                 );
             }
+
+            const referralFeeSlot = input.transactionType === 'Tip' ? 2 : 3;
+            const referrerSlot = input.transactionType === 'Tip' ? 4 : 5;
+            const referralFeeRaw = parseInt('0x' + dataHex.slice(2 + referralFeeSlot * 64, 2 + (referralFeeSlot + 1) * 64), 16);
+            const referralFeeInCents = Math.round(referralFeeRaw / 10000);
+            const referrerHex = ('0x' + dataHex.slice(2 + referrerSlot * 64 + 24, 2 + (referrerSlot + 1) * 64)).toLowerCase();
+
+            if (expectedReferrerWallet) {
+                // The fan must have directed the referral fee to the DB-resolved referrer wallet.
+                if (!referrerHex || referrerHex !== expectedReferrerWallet.toLowerCase()) {
+                    throw new AppError('Transaction referrer does not match the referred creator\'s referrer wallet.', 400);
+                }
+                const { referralFee } = await calculateReferralFee({
+                    creatorId: input.creatorId,
+                    amountInCents: input.amountInCents,
+                    commissionRate,
+                });
+                if (Math.abs(referralFeeInCents - referralFee) > 2) {
+                    throw new AppError(
+                        `Referral fee mismatch. Blockchain: $${referralFeeInCents / 100}, Expected: $${referralFee / 100}`,
+                        400
+                    );
+                }
+            } else if (referrerHex && referrerHex !== '0x0000000000000000000000000000000000000000') {
+                throw new AppError('Transaction includes an unexpected referrer for a creator without an active referral.', 400);
+            }
         }
     } catch (err: any) {
         if (err instanceof AppError) throw err;
@@ -236,7 +287,6 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     }
 
     // 5. Fee calculation from creator settings & referral program
-    const commissionRate = await getCommissionRate(input.creatorId);
     const amount = input.amountInCents;
     const platformFee = Math.round(amount * (commissionRate / 100));
     const creatorPayout = amount - platformFee;

@@ -28,7 +28,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **Styling**: Tailwind CSS 3.4 with `@tailwindcss/forms`
 - **Routing**: React Router v7 (lazy-loaded routes in `App.tsx`)
 - **Real-time**: Socket.IO client v4
-- **Payments UI**: Consolidated payment orchestrator (`PaymentOrchestrator` in `src/shared/lib/PaymentOrchestrator.ts`) handles address resolution, browser-wallet payments (via `useCryptoPayment`), and embedded-wallet payments (via `EmbeddedPaymentModal` / ERC-4337 gasless user ops across Tips, PPV Posts, PPV Messages, and Subscriptions)
+- **Payments UI**: Consolidated payment orchestrator (`PaymentOrchestrator` in `src/shared/lib/PaymentOrchestrator.ts`) handles address resolution, browser-wallet payments (via `useCryptoPayment`), and embedded-wallet payments (via `EmbeddedPaymentModal` / ERC-4337 gasless user ops across Tips, PPV Posts, PPV Messages, and Subscriptions). `useCryptoPayment.processPayment` returns `{ success, txHash, error }` with the freshly minted tx hash (never stale hook state); `PaymentOrchestrator.payWithBrowserWallet` passes that hash through for downstream calls. Browser-wallet calldata builders append the referrer address and creator `platformFeeBps` (v2 contract: `paySubscription`/`payTip`/`payPPV` take `address referrer, uint256 customPlatformFeeBps`); `PaymentOrchestrator` resolves both via `GET /payments/crypto/referrer/:creatorId` before paying. Selectors in `useCryptoPayment.ts` MUST match the deployed contract ABI (`0xe87c1a59`/`0x7a02b81c`/`0x33f2ab62`).
 - **Feature Flags**: `useFeatureFlag` hook with env kill switch (`VITE_ENABLE_EMBEDDED_WALLET`) + backend flag resolution
 - **Charts**: Recharts 3
 - **Icons**: Lucide React

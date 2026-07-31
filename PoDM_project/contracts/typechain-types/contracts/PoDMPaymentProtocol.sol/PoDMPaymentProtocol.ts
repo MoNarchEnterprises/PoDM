@@ -60,10 +60,12 @@ export interface PoDMPaymentProtocolInterface extends Interface {
       | "platformTreasury"
       | "processPayout"
       | "processRenewal"
+      | "referralFeeBps"
       | "renounceOwnership"
       | "revokeRecurringSubscription"
       | "setPlatformFeeBps"
       | "setPlatformTreasury"
+      | "setReferralFeeBps"
       | "transferOwnership"
       | "unpause"
   ): FunctionFragment;
@@ -75,6 +77,7 @@ export interface PoDMPaymentProtocolInterface extends Interface {
       | "PPVPaid"
       | "Paused"
       | "PayoutCompleted"
+      | "ReferralFeeUpdated"
       | "SubscriptionApproved"
       | "SubscriptionPaid"
       | "SubscriptionRenewed"
@@ -101,15 +104,29 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "payPPV",
-    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
+    values: [
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BytesLike,
+      AddressLike,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "paySubscription",
-    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
+    values: [
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BytesLike,
+      AddressLike,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "payTip",
-    values: [AddressLike, AddressLike, BigNumberish]
+    values: [AddressLike, AddressLike, BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "platformFeeBps",
@@ -125,7 +142,18 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "processRenewal",
-    values: [AddressLike, AddressLike, AddressLike, BigNumberish]
+    values: [
+      AddressLike,
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      AddressLike,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "referralFeeBps",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -142,6 +170,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setPlatformTreasury",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setReferralFeeBps",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -184,6 +216,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "referralFeeBps",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
@@ -197,6 +233,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setPlatformTreasury",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setReferralFeeBps",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -240,7 +280,9 @@ export namespace PPVPaidEvent {
     totalAmount: BigNumberish,
     contentIdHash: BytesLike,
     platformFee: BigNumberish,
-    creatorAmount: BigNumberish
+    referralFee: BigNumberish,
+    creatorAmount: BigNumberish,
+    referrer: AddressLike
   ];
   export type OutputTuple = [
     fan: string,
@@ -249,7 +291,9 @@ export namespace PPVPaidEvent {
     totalAmount: bigint,
     contentIdHash: string,
     platformFee: bigint,
-    creatorAmount: bigint
+    referralFee: bigint,
+    creatorAmount: bigint,
+    referrer: string
   ];
   export interface OutputObject {
     fan: string;
@@ -258,7 +302,9 @@ export namespace PPVPaidEvent {
     totalAmount: bigint;
     contentIdHash: string;
     platformFee: bigint;
+    referralFee: bigint;
     creatorAmount: bigint;
+    referrer: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -284,6 +330,19 @@ export namespace PayoutCompletedEvent {
   export interface OutputObject {
     creator: string;
     amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ReferralFeeUpdatedEvent {
+  export type InputTuple = [oldFee: BigNumberish, newFee: BigNumberish];
+  export type OutputTuple = [oldFee: bigint, newFee: bigint];
+  export interface OutputObject {
+    oldFee: bigint;
+    newFee: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -324,7 +383,9 @@ export namespace SubscriptionPaidEvent {
     totalAmount: BigNumberish,
     tierIdHash: BytesLike,
     platformFee: BigNumberish,
-    creatorAmount: BigNumberish
+    referralFee: BigNumberish,
+    creatorAmount: BigNumberish,
+    referrer: AddressLike
   ];
   export type OutputTuple = [
     fan: string,
@@ -333,7 +394,9 @@ export namespace SubscriptionPaidEvent {
     totalAmount: bigint,
     tierIdHash: string,
     platformFee: bigint,
-    creatorAmount: bigint
+    referralFee: bigint,
+    creatorAmount: bigint,
+    referrer: string
   ];
   export interface OutputObject {
     fan: string;
@@ -342,7 +405,9 @@ export namespace SubscriptionPaidEvent {
     totalAmount: bigint;
     tierIdHash: string;
     platformFee: bigint;
+    referralFee: bigint;
     creatorAmount: bigint;
+    referrer: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -395,7 +460,9 @@ export namespace TipPaidEvent {
     token: AddressLike,
     totalAmount: BigNumberish,
     platformFee: BigNumberish,
-    creatorAmount: BigNumberish
+    referralFee: BigNumberish,
+    creatorAmount: BigNumberish,
+    referrer: AddressLike
   ];
   export type OutputTuple = [
     fan: string,
@@ -403,7 +470,9 @@ export namespace TipPaidEvent {
     token: string,
     totalAmount: bigint,
     platformFee: bigint,
-    creatorAmount: bigint
+    referralFee: bigint,
+    creatorAmount: bigint,
+    referrer: string
   ];
   export interface OutputObject {
     fan: string;
@@ -411,7 +480,9 @@ export namespace TipPaidEvent {
     token: string;
     totalAmount: bigint;
     platformFee: bigint;
+    referralFee: bigint;
     creatorAmount: bigint;
+    referrer: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -527,7 +598,9 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       creator: AddressLike,
       amount: BigNumberish,
-      contentIdHash: BytesLike
+      contentIdHash: BytesLike,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [void],
     "nonpayable"
@@ -538,14 +611,22 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       creator: AddressLike,
       amount: BigNumberish,
-      tierIdHash: BytesLike
+      tierIdHash: BytesLike,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [void],
     "nonpayable"
   >;
 
   payTip: TypedContractMethod<
-    [tokenAddress: AddressLike, creator: AddressLike, amount: BigNumberish],
+    [
+      tokenAddress: AddressLike,
+      creator: AddressLike,
+      amount: BigNumberish,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
@@ -565,11 +646,15 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       fan: AddressLike,
       creator: AddressLike,
-      amount: BigNumberish
+      amount: BigNumberish,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [boolean],
     "nonpayable"
   >;
+
+  referralFeeBps: TypedContractMethod<[], [bigint], "view">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -587,6 +672,12 @@ export interface PoDMPaymentProtocol extends BaseContract {
 
   setPlatformTreasury: TypedContractMethod<
     [_newTreasury: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setReferralFeeBps: TypedContractMethod<
+    [_newFeeBps: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -651,7 +742,9 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       creator: AddressLike,
       amount: BigNumberish,
-      contentIdHash: BytesLike
+      contentIdHash: BytesLike,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [void],
     "nonpayable"
@@ -663,7 +756,9 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       creator: AddressLike,
       amount: BigNumberish,
-      tierIdHash: BytesLike
+      tierIdHash: BytesLike,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [void],
     "nonpayable"
@@ -671,7 +766,13 @@ export interface PoDMPaymentProtocol extends BaseContract {
   getFunction(
     nameOrSignature: "payTip"
   ): TypedContractMethod<
-    [tokenAddress: AddressLike, creator: AddressLike, amount: BigNumberish],
+    [
+      tokenAddress: AddressLike,
+      creator: AddressLike,
+      amount: BigNumberish,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
@@ -695,11 +796,16 @@ export interface PoDMPaymentProtocol extends BaseContract {
       tokenAddress: AddressLike,
       fan: AddressLike,
       creator: AddressLike,
-      amount: BigNumberish
+      amount: BigNumberish,
+      referrer: AddressLike,
+      customPlatformFeeBps: BigNumberish
     ],
     [boolean],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "referralFeeBps"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -712,6 +818,9 @@ export interface PoDMPaymentProtocol extends BaseContract {
   getFunction(
     nameOrSignature: "setPlatformTreasury"
   ): TypedContractMethod<[_newTreasury: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setReferralFeeBps"
+  ): TypedContractMethod<[_newFeeBps: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
@@ -753,6 +862,13 @@ export interface PoDMPaymentProtocol extends BaseContract {
     PayoutCompletedEvent.InputTuple,
     PayoutCompletedEvent.OutputTuple,
     PayoutCompletedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ReferralFeeUpdated"
+  ): TypedContractEvent<
+    ReferralFeeUpdatedEvent.InputTuple,
+    ReferralFeeUpdatedEvent.OutputTuple,
+    ReferralFeeUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "SubscriptionApproved"
@@ -827,7 +943,7 @@ export interface PoDMPaymentProtocol extends BaseContract {
       OwnershipTransferredEvent.OutputObject
     >;
 
-    "PPVPaid(address,address,address,uint256,bytes32,uint256,uint256)": TypedContractEvent<
+    "PPVPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)": TypedContractEvent<
       PPVPaidEvent.InputTuple,
       PPVPaidEvent.OutputTuple,
       PPVPaidEvent.OutputObject
@@ -860,6 +976,17 @@ export interface PoDMPaymentProtocol extends BaseContract {
       PayoutCompletedEvent.OutputObject
     >;
 
+    "ReferralFeeUpdated(uint256,uint256)": TypedContractEvent<
+      ReferralFeeUpdatedEvent.InputTuple,
+      ReferralFeeUpdatedEvent.OutputTuple,
+      ReferralFeeUpdatedEvent.OutputObject
+    >;
+    ReferralFeeUpdated: TypedContractEvent<
+      ReferralFeeUpdatedEvent.InputTuple,
+      ReferralFeeUpdatedEvent.OutputTuple,
+      ReferralFeeUpdatedEvent.OutputObject
+    >;
+
     "SubscriptionApproved(address,address,uint256,uint256)": TypedContractEvent<
       SubscriptionApprovedEvent.InputTuple,
       SubscriptionApprovedEvent.OutputTuple,
@@ -871,7 +998,7 @@ export interface PoDMPaymentProtocol extends BaseContract {
       SubscriptionApprovedEvent.OutputObject
     >;
 
-    "SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256)": TypedContractEvent<
+    "SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)": TypedContractEvent<
       SubscriptionPaidEvent.InputTuple,
       SubscriptionPaidEvent.OutputTuple,
       SubscriptionPaidEvent.OutputObject
@@ -904,7 +1031,7 @@ export interface PoDMPaymentProtocol extends BaseContract {
       SubscriptionRevokedEvent.OutputObject
     >;
 
-    "TipPaid(address,address,address,uint256,uint256,uint256)": TypedContractEvent<
+    "TipPaid(address,address,address,uint256,uint256,uint256,uint256,address)": TypedContractEvent<
       TipPaidEvent.InputTuple,
       TipPaidEvent.OutputTuple,
       TipPaidEvent.OutputObject

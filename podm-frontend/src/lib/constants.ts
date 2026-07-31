@@ -9,6 +9,11 @@ import { NavItem } from '../components/layout/MainLayout'; // Assuming MainLayou
  */
 export const DEFAULT_COMMISSION_RATE = 12.5;
 
+/**
+ * The locked commission rate for Enclave members (90/10 revenue split).
+ */
+export const ENCLAVE_COMMISSION_RATE = 10;
+
 // --- Navigation ---
 
 export const FAN_NAV_ITEMS: NavItem[] = [

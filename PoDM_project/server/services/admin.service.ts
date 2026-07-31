@@ -421,6 +421,10 @@ export const updateCreatorCommission = async (creatorId: string, commissionRate:
         throw new AppError('Creator not found.', 404);
     }
 
+    if (user.is_enclave_member) {
+        throw new AppError('Enclave members are locked at 10% commission.', 400);
+    }
+
     if (commissionRate !== null && (commissionRate < 0 || commissionRate > 100)) {
         throw new AppError('Commission rate must be between 0 and 100.', 400);
     }

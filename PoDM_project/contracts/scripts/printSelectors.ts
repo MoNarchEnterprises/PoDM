@@ -2,12 +2,12 @@ import { ethers } from 'hardhat';
 
 async function main() {
     const functions = [
-        'paySubscription(address,address,uint256,bytes32)',
-        'payTip(address,address,uint256)',
-        'payPPV(address,address,uint256,bytes32)',
+        'paySubscription(address,address,uint256,bytes32,address,uint256)',
+        'payTip(address,address,uint256,address,uint256)',
+        'payPPV(address,address,uint256,bytes32,address,uint256)',
         'approveRecurringSubscription(address,uint256,uint256)',
         'revokeRecurringSubscription(address)',
-        'processRenewal(address,address,address,uint256)',
+        'processRenewal(address,address,address,uint256,address,uint256)',
         'processPayout(address,address,uint256)'
     ];
 

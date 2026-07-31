@@ -1,14 +1,15 @@
 import supabase from '../config/supabaseClient';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
+import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
-import { calculateReferralFee } from './referral.service';
+import { calculateReferralFee, getReferrerWalletForCreator } from './referral.service';
 
 const EVENT_TOPICS = {
-    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
-    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256)'),
-    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256)'),
+    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
+    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256,uint256,address)'),
+    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
 };
 
 function computeEventTopic(eventSignature: string): string {
@@ -28,7 +29,7 @@ function getRpcConfig(): { rpcUrl: string; contractAddress: string; chainId: num
 async function getCommissionRate(creatorId: string): Promise<number> {
     const { data: profile, error } = await supabase
         .from('profiles')
-        .select('commission_rate')
+        .select('commission_rate, is_enclave_member')
         .eq('id', creatorId)
         .single();
 
@@ -37,7 +38,7 @@ async function getCommissionRate(creatorId: string): Promise<number> {
         return DEFAULT_COMMISSION_RATE;
     }
 
-    return profile?.commission_rate ?? DEFAULT_COMMISSION_RATE;
+    return getEffectiveCommissionRate(profile);
 }
 
 function getExpectedTopic(transactionType: string): string {
@@ -163,6 +164,45 @@ export const verifyPaymentReceiptInBackground = async (
 
         if (Math.abs(blockchainAmountInCents - amountInCents) > 1) {
             console.warn('[VerificationService] Amount mismatch. Blockchain:', blockchainAmountInCents, 'Expected:', amountInCents);
+            await supabase
+                .from('transactions')
+                .update({ status: 'Failed' })
+                .eq('id', transactionId);
+            return;
+        }
+
+        // Referrer & referral-fee on-chain validation (v2 contract split).
+        // Slots vary by event type:
+        //   SubscriptionPaid / PPVPaid: [0] total, [1] idHash, [2] platformFee, [3] referralFee, [4] creatorAmount, [5] referrer
+        //   TipPaid:                    [0] total, [1] platformFee, [2] referralFee, [3] creatorAmount, [4] referrer
+        const expectedReferrerWallet = await getReferrerWalletForCreator(creatorId);
+        const referralFeeSlot = transactionType === 'Tip' ? 2 : 3;
+        const referrerSlot = transactionType === 'Tip' ? 4 : 5;
+        const referralFeeRaw = parseInt('0x' + dataHex.slice(2 + referralFeeSlot * 64, 2 + (referralFeeSlot + 1) * 64), 16);
+        const referralFeeInCents = Math.round(referralFeeRaw / 10000);
+        const referrerHex = ('0x' + dataHex.slice(2 + referrerSlot * 64 + 24, 2 + (referrerSlot + 1) * 64)).toLowerCase();
+
+        if (expectedReferrerWallet) {
+            if (!referrerHex || referrerHex !== expectedReferrerWallet.toLowerCase()) {
+                console.warn('[VerificationService] Referrer mismatch. Expected:', expectedReferrerWallet, 'Got:', referrerHex);
+                await supabase
+                    .from('transactions')
+                    .update({ status: 'Failed' })
+                    .eq('id', transactionId);
+                return;
+            }
+            const commissionRate = await getCommissionRate(creatorId);
+            const { referralFee } = await calculateReferralFee({ creatorId, amountInCents, commissionRate });
+            if (Math.abs(referralFeeInCents - referralFee) > 2) {
+                console.warn('[VerificationService] Referral fee mismatch. Blockchain:', referralFeeInCents, 'Expected:', referralFee);
+                await supabase
+                    .from('transactions')
+                    .update({ status: 'Failed' })
+                    .eq('id', transactionId);
+                return;
+            }
+        } else if (referrerHex && referrerHex !== '0x0000000000000000000000000000000000000000') {
+            console.warn('[VerificationService] Unexpected referrer on tx with no active referral:', referrerHex);
             await supabase
                 .from('transactions')
                 .update({ status: 'Failed' })

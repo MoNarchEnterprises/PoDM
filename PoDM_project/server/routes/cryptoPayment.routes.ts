@@ -4,7 +4,8 @@ import {
     getWalletConfig,
     updateWalletConfig,
     verifyCryptoPayment,
-    requestWithdrawal
+    requestWithdrawal,
+    getReferrerInfo
 } from '../controllers/cryptoPayment.controller';
 
 console.log('✅ cryptoPayment.routes.ts loaded and registering /verify route');
@@ -37,5 +38,13 @@ router.post('/verify', protect, verifyCryptoPayment);
  * @access  Private (Creators only)
  */
 router.post('/withdraw', protect, requestWithdrawal);
+
+/**
+ * @route   GET /api/v1/payments/crypto/referrer/:creatorId
+ * @desc    Get the referrer wallet + referral fee bps a fan must pass to the
+ *          contract when paying a referred creator ('' referrerAddress = no referral)
+ * @access  Private
+ */
+router.get('/referrer/:creatorId', protect, getReferrerInfo);
 
 export default router;

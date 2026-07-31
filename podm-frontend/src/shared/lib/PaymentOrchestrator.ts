@@ -1,7 +1,7 @@
 import { getCryptoWallet } from '../../lib/wallet';
 import * as apiClient from '../../lib/apiClient';
 import { signPaymentOperation, PaymentIntent } from '../../lib/embeddedWalletApi';
-import { CryptoPaymentParams } from '../hooks/useCryptoPayment';
+import { CryptoPaymentOutcome, CryptoPaymentParams } from '../hooks/useCryptoPayment';
 
 export type PaymentType = 'Tip' | 'PPV Post' | 'PPV Message' | 'Subscription';
 
@@ -32,7 +32,7 @@ export interface EmbeddedWalletContextType {
 }
 
 export interface CryptoPaymentHookType {
-    processPayment: (params: CryptoPaymentParams) => Promise<boolean>;
+    processPayment: (params: CryptoPaymentParams) => Promise<CryptoPaymentOutcome>;
     txHash: string | null;
     error: string | null;
 }
@@ -105,7 +105,21 @@ export class PaymentOrchestrator {
             }
 
             if (this.cryptoPayment) {
-                const success = await this.cryptoPayment.processPayment({
+                // Resolve the referrer wallet and creator custom platform fee BPS
+                // so the on-chain payment splits correctly in a single transaction.
+                let referrerAddress = '';
+                let platformFeeBps: number | undefined;
+                if (params.creatorId) {
+                    try {
+                        const referrerResp = await apiClient.getPaymentReferrerInfo(params.creatorId);
+                        referrerAddress = referrerResp?.data?.referrerAddress || '';
+                        platformFeeBps = referrerResp?.data?.platformFeeBps;
+                    } catch (err) {
+                        console.warn('[PaymentOrchestrator] Failed to resolve referrer info:', err);
+                    }
+                }
+
+                const paymentResult = await this.cryptoPayment.processPayment({
                     amount: params.amount,
                     recipientAddress,
                     creatorId: params.creatorId,
@@ -113,12 +127,20 @@ export class PaymentOrchestrator {
                     tierId: params.tierId,
                     message: params.message,
                     paymentType: params.paymentType,
+                    referrerAddress,
+                    platformFeeBps,
                 });
 
+                if (paymentResult.success) {
+                    return {
+                        success: true,
+                        txHash: paymentResult.txHash || undefined,
+                    };
+                }
+
                 return {
-                    success,
-                    txHash: this.cryptoPayment.txHash || undefined,
-                    error: this.cryptoPayment.error || (success ? undefined : 'Browser wallet payment failed.'),
+                    success: false,
+                    error: paymentResult.error || this.cryptoPayment.error || 'Browser wallet payment failed.',
                 };
             }
 

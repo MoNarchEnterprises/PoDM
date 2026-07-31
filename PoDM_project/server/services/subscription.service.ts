@@ -38,15 +38,21 @@ export const createSubscriptionForUser = async (
         throw new AppError('Selected subscription tier is invalid.', 400);
     }
 
-    // 2. Verify on-chain payment transfer and record transaction in local ledger
-    const verification = await CryptoPaymentService.verifyAndRecordBasePayment({
-        txHash: txHash,
-        fanId: fan_id,
-        creatorId: creator_id,
-        amountInCents: Math.round(tier.price * 100),
-        transactionType: 'Subscription',
-        relatedId: tier_id
-    });
+    // 2. Verify on-chain payment transfer and record transaction in local ledger.
+    // The payment may already have been verified and recorded by the payment
+    // verification endpoint (/payments/crypto/verify) or the userOperation service.
+    // Reusing the existing Cleared transaction avoids a 409 duplicate-hash error.
+    const existingPaymentTx = await TransactionModel.findClearedSubscriptionByTxHash(txHash, fan_id, creator_id);
+    if (!existingPaymentTx) {
+        await CryptoPaymentService.verifyAndRecordBasePayment({
+            txHash: txHash,
+            fanId: fan_id,
+            creatorId: creator_id,
+            amountInCents: Math.round(tier.price * 100),
+            transactionType: 'Subscription',
+            relatedId: tier_id
+        });
+    }
 
     // 3. Save or update subscription in database
     const existingSub = await SubscriptionModel.findSubscriptionByFanAndCreator(fan_id, creator_id);

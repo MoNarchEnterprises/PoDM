@@ -37,6 +37,19 @@ export const findTransactionByBlockchainTxHash = async (blockchainTxHash: string
     );
 };
 
+export const findClearedSubscriptionByTxHash = async (blockchainTxHash: string, fanId: string, creatorId: string): Promise<Transaction | null> => {
+    return handleQuery<Transaction>(
+        supabase.from('transactions').select('*')
+            .eq('blockchain_tx_hash', blockchainTxHash)
+            .eq('fan_id', fanId)
+            .eq('creator_id', creatorId)
+            .eq('type', 'Subscription')
+            .eq('status', 'Cleared')
+            .maybeSingle(),
+        'find cleared subscription transaction by hash'
+    );
+};
+
 export const sumPlatformFeeForPeriod = async (days: number): Promise<number> => {
     const date = new Date();
     date.setDate(date.getDate() - days);

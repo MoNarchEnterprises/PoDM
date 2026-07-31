@@ -62,8 +62,11 @@ export const countActiveUsers = async (): Promise<number> => {
 };
 
 export const findAll = async (): Promise<User[] | null> => {
+    // Select directly from profiles (service-role client bypasses RLS).
+    // The get_all_users_details RPC omits columns like is_enclave_member,
+    // which the admin panel needs for the Enclave badge and locked commission.
     const data = await handleList<User>(
-        supabase.rpc('get_all_users_details'),
+        supabase.from('profiles').select('*'),
         'find all users'
     );
     return data || [];

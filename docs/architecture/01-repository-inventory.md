@@ -614,7 +614,7 @@ All models use the `handleQuery<T>`, `handleCount`, `handleList<T>` database wra
 
 | Model | Lines | Table(s) | Key Functions |
 |---|---|---|---|
-| `user.model.ts` | 132 | `profiles` | `findUserById` (via RPC `get_user_details`), `findUserByUsername`, `findUserByEmail`, `findUsersByIds`, `createProfile`, `updateProfile`, `countAllUsers`, `findAll` (via RPC `get_all_users_details`), `getNewUsersOverTime` (via `auth.admin.listUsers`) |
+| `user.model.ts` | 132 | `profiles` | `findUserById` (via RPC `get_user_details`), `findUserByUsername`, `findUserByEmail`, `findUsersByIds`, `createProfile`, `updateProfile`, `countAllUsers`, `findAll` (direct `select('*')` from `profiles` to include all columns such as `is_enclave_member`), `getNewUsersOverTime` (via `auth.admin.listUsers`) |
 | `content.model.ts` | 190 | `content` | CRUD, list by creator, search/filter, content stats, bulk operations |
 | `subscription.model.ts` | 84 | `subscriptions` | CRUD, find by fan/creator |
 | `transaction.model.ts` | 211 | `transactions` | CRUD, earning aggregation, payout queries, analytics |
@@ -755,7 +755,6 @@ Managed via Supabase PostgreSQL. 12+ tables defined across 17 SQL migration file
 #### DB Functions (referenced in code)
 
 - `get_user_details(user_id)` — RPC returning shaped user object
-- `get_all_users_details()` — RPC returning all users
 - Various Supabase built-in auth functions
 
 ## AI Components

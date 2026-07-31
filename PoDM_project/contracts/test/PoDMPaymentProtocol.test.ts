@@ -100,7 +100,7 @@ describe('PoDMPaymentProtocol', function () {
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
       await expect(
         contract.connect(fan).processRenewal(
-          ethers.ZeroAddress, fan.address, creator.address, amount
+          ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Renewal period has not elapsed');
     });
@@ -115,7 +115,7 @@ describe('PoDMPaymentProtocol', function () {
 
       await expect(
         contract.connect(fan).processRenewal(
-          ethers.ZeroAddress, fan.address, creator.address, excessive
+          ethers.ZeroAddress, fan.address, creator.address, excessive, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Amount exceeds allowance');
     });
@@ -172,7 +172,7 @@ describe('PoDMPaymentProtocol', function () {
       await contract.pause();
       await expect(
         contract.connect(fan).paySubscription(
-          ethers.ZeroAddress, creator.address, ethers.parseUnits('10', 6), ethers.ZeroHash
+          ethers.ZeroAddress, creator.address, ethers.parseUnits('10', 6), ethers.ZeroHash, ethers.ZeroAddress, 0
         )
       ).to.be.reverted;
     });
@@ -183,6 +183,99 @@ describe('PoDMPaymentProtocol', function () {
       await expect(
         contract.connect(fan).approveRecurringSubscription(creator.address, 100, 86400)
       ).to.be.reverted;
+    });
+  });
+
+  describe('Referral fee split & custom platform fee BPS', function () {
+    async function referralFixture() {
+      const base = await deployFixture();
+      const [owner] = await ethers.getSigners();
+      const referrer = (await ethers.getSigners())[4];
+
+      const MockUSDC = await ethers.getContractFactory('MockUSDC');
+      const usdc = await MockUSDC.deploy();
+      await usdc.waitForDeployment();
+
+      const fan = (await ethers.getSigners())[3];
+      const creator = (await ethers.getSigners())[2];
+
+      return { ...base, usdc, fan, creator, referrer, owner };
+    }
+
+    it('should default referral fee to 1%', async () => {
+      const { contract } = await referralFixture();
+      expect(await contract.referralFeeBps()).to.equal(100n);
+    });
+
+    it('should allow owner to update referral fee', async () => {
+      const { contract } = await referralFixture();
+      await contract.setReferralFeeBps(200);
+      expect(await contract.referralFeeBps()).to.equal(200n);
+    });
+
+    it('should reject referral fee above platform fee', async () => {
+      const { contract } = await referralFixture();
+      await expect(contract.setReferralFeeBps(2000)).to.be.revertedWith('Referral fee cannot exceed platform fee');
+    });
+
+    it('should split platform fee between treasury and referrer with default platform fee when 0 is passed', async () => {
+      const { contract, usdc, fan, creator, referrer, treasury } = await referralFixture();
+      const amount = ethers.parseUnits('10', 6); // $10 USDC
+      await usdc.mint(fan.address, amount);
+      await usdc.connect(fan).approve(await contract.getAddress(), amount);
+
+      await expect(
+        contract.connect(fan).paySubscription(
+          await usdc.getAddress(), creator.address, amount, ethers.ZeroHash, referrer.address, 0
+        )
+      )
+        .to.emit(contract, 'SubscriptionPaid')
+        .withArgs(fan.address, creator.address, await usdc.getAddress(), amount, ethers.ZeroHash, 1250000n, 100000n, 8750000n, referrer.address);
+
+      // Treasury receives platform fee (12.5%) minus referral fee (1%)
+      expect(await usdc.balanceOf(treasury.address)).to.equal(1150000n);
+      // Referrer receives 1%
+      expect(await usdc.balanceOf(referrer.address)).to.equal(100000n);
+      // Creator receives 87.5%
+      expect(await usdc.balanceOf(creator.address)).to.equal(8750000n);
+    });
+
+    it('should calculate splits with custom platform fee (e.g. 10% for Enclave creator)', async () => {
+      const { contract, usdc, fan, creator, referrer, treasury } = await referralFixture();
+      const amount = ethers.parseUnits('10', 6); // $10 USDC
+      await usdc.mint(fan.address, amount);
+      await usdc.connect(fan).approve(await contract.getAddress(), amount);
+
+      // Pass 1000 (10% platform fee) and referrer
+      await expect(
+        contract.connect(fan).paySubscription(
+          await usdc.getAddress(), creator.address, amount, ethers.ZeroHash, referrer.address, 1000
+        )
+      )
+        .to.emit(contract, 'SubscriptionPaid')
+        .withArgs(fan.address, creator.address, await usdc.getAddress(), amount, ethers.ZeroHash, 1000000n, 100000n, 9000000n, referrer.address);
+
+      // Treasury receives platform fee (10%) minus referral fee (1%) = 9% ($0.90)
+      expect(await usdc.balanceOf(treasury.address)).to.equal(900000n);
+      // Referrer receives 1% ($0.10)
+      expect(await usdc.balanceOf(referrer.address)).to.equal(100000n);
+      // Enclave Creator receives 90% ($9.00)
+      expect(await usdc.balanceOf(creator.address)).to.equal(9000000n);
+    });
+
+    it('should not pay a referrer when referrer is zero with custom fee BPS', async () => {
+      const { contract, usdc, fan, creator, treasury } = await referralFixture();
+      const amount = ethers.parseUnits('10', 6);
+      await usdc.mint(fan.address, amount);
+      await usdc.connect(fan).approve(await contract.getAddress(), amount);
+
+      await contract.connect(fan).payTip(
+        await usdc.getAddress(), creator.address, amount, ethers.ZeroAddress, 1000
+      );
+
+      // Full 10% stays with treasury when no referrer
+      expect(await usdc.balanceOf(treasury.address)).to.equal(1000000n);
+      expect(await usdc.balanceOf(creator.address)).to.equal(9000000n);
     });
   });
 });

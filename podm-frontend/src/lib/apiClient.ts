@@ -543,6 +543,14 @@ export const sendTip = (creatorId: string, amountInCents: number, message?: stri
     });
 
 /**
+ * Resolves the referrer details (wallet address + referral fee bps) a fan must
+ * pass to the PoDM contract when paying a creator. referrerAddress is '' when
+ * the creator has no active percentage referral.
+ */
+export const getPaymentReferrerInfo = (creatorId: string) =>
+    api<{ success: boolean; data: { referrerAddress: string; referralFeeBps: number; platformFeeBps: number } }>('get', `/payments/crypto/referrer/${creatorId}`);
+
+/**
  * Adds a piece of content to the currently logged-in fan's gallery.
  * @param contentId The ID of the content to add.
  */
