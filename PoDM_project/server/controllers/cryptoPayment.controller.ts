@@ -56,18 +56,6 @@ export const verifyCryptoPayment = asyncHandler(async (req: Request, res: Respon
     okMsg(res, 'Crypto transaction verified and recorded successfully.', result);
 });
 
-export const requestWithdrawal = asyncHandler(async (req: Request, res: Response) => {
-    const creatorId = requireAuth(req);
-    const { amountInCents, debitCardToken } = req.body;
-
-    if (!amountInCents || amountInCents <= 0) {
-        throw new AppError('Invalid withdrawal amount.', 400);
-    }
-
-    const result = await CryptoPaymentService.processDebitCardOffRamp(creatorId, amountInCents, debitCardToken);
-    okMsg(res, 'Withdrawal processed successfully.', result);
-});
-
 export const getReferrerInfo = asyncHandler(async (req: Request, res: Response) => {
     const { creatorId } = req.params;
 

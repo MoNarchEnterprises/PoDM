@@ -14,7 +14,7 @@
     {"id": "backend", "label": "Backend API (Express)", "type": "api", "description": "Express server handling payment verification and DB recording"}
   ],
   "modules": [
-    {"id": "cryptoPaymentController", "label": "Crypto Payment Controller", "type": "api", "description": "Handles verifyCryptoPayment and requestWithdrawal endpoints"},
+    {"id": "cryptoPaymentController", "label": "Crypto Payment Controller", "type": "api", "description": "Handles verifyCryptoPayment and wallet config endpoints"},
     {"id": "cryptoPaymentService", "label": "Crypto Payment Service", "type": "service", "description": "Core 11-step verifyAndRecordBasePayment and wallet config management"}
   ],
   "services": [

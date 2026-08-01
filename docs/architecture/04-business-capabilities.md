@@ -248,7 +248,7 @@
 
 **Database entities**: `transactions` (type, amount, fee, platform_fee, status, creator_id, fan_id, content_id).
 
-**APIs**: `POST /api/v1/payments/crypto/verify`, `GET /api/v1/payments/crypto/wallet`, `POST /api/v1/payments/crypto/wallet`, `POST /api/v1/payments/crypto/withdraw`.
+**APIs**: `POST /api/v1/payments/crypto/verify`, `GET /api/v1/payments/crypto/wallet`, `POST /api/v1/payments/crypto/wallet`.
 
 **External services**: Stripe, BaseScan API, Ethereum RPC, Coinbase API (gas estimation).
 

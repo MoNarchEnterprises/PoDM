@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft, Wallet } from 'lucide-react';
+import { User, DollarSign, CheckCircle, UploadCloud, ArrowRight, ArrowLeft, Wallet, Building2, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import * as apiClient from '../../lib/apiClient';
 import { SubscriptionTier } from '@common/types/Creator';
 import { UserProfile } from '@common/types/User';
 import Button from '../../components/ui/Button';
+import CexGuidanceModal from '../creator/components/CexGuidanceModal';
 
 // --- Local Types ---
 interface OnboardingData {
@@ -53,7 +54,8 @@ const CreatorOnboardingPage = () => {
         tiers: [{ name: 'Default Tier', price: 9.99, features: ["All content access", "Direct Messages (DMs)"] }]
     });
     const [isLoading, setIsLoading] = useState(false);
-    const totalSteps = 4;
+    const [isCexModalOpen, setIsCexModalOpen] = useState(false);
+    const totalSteps = 5;
 
     const nextStep = () => setStep(prev => Math.min(prev + 1, totalSteps));
     const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
@@ -154,7 +156,7 @@ const CreatorOnboardingPage = () => {
 
             {step === 4 && (
                 <OnboardingStep>
-                    <h2 className="text-xl font-semibold mb-4 flex items-center"><CheckCircle className="w-5 h-5 mr-2 text-purple-500"/> Step 4: Final Steps</h2>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center"><CheckCircle className="w-5 h-5 mr-2 text-purple-500"/> Step 4: Verification & Account Security</h2>
                     <div className="space-y-6">
                         <div className="p-4 bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800 rounded-lg">
                             <div className="flex items-center space-x-2 text-purple-800 dark:text-purple-200 font-semibold mb-1">
@@ -162,7 +164,7 @@ const CreatorOnboardingPage = () => {
                                 <h3>Default Payout Wallet Assigned</h3>
                             </div>
                             <p className="text-sm text-purple-700 dark:text-purple-300">
-                                A secure Embedded Wallet has been automatically created for your earnings. You can view your wallet address or link a custom wallet address anytime in your <strong>Payout Settings</strong>.
+                                A secure Embedded Wallet has been automatically created for your earnings. You can view your wallet address or link a custom exchange wallet address anytime in your <strong>Payout Settings</strong>.
                             </p>
                         </div>
                         <div className="p-4 bg-blue-50 dark:bg-blue-900/50 rounded-lg">
@@ -171,9 +173,44 @@ const CreatorOnboardingPage = () => {
                         </div>
                          <div className="p-4 bg-green-50 dark:bg-green-900/50 rounded-lg text-center">
                             <UploadCloud className="w-8 h-8 mx-auto text-green-500 mb-2"/>
-                            <h3 className="font-semibold text-green-800 dark:text-green-200">You're All Set!</h3>
-                            <p className="text-sm text-green-600 dark:text-green-300 mt-1">After completing setup, you'll be taken to your dashboard to upload your first piece of content.</p>
+                            <h3 className="font-semibold text-green-800 dark:text-green-200">Profile Ready!</h3>
+                            <p className="text-sm text-green-600 dark:text-green-300 mt-1">In the final step, you can optionally connect your bank cashout exchange account.</p>
                         </div>
+                    </div>
+                </OnboardingStep>
+            )}
+
+            {step === 5 && (
+                <OnboardingStep>
+                    <h2 className="text-xl font-semibold mb-2 flex items-center">
+                        <Building2 className="w-5 h-5 mr-2 text-purple-500"/> Step 5: Set Up Fiat Cashout Account (Optional)
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        Learn how to withdraw your USDC earnings to your local bank account via a Centralized Exchange (Coinbase, Kraken, Binance, Bitso).
+                    </p>
+
+                    <div className="p-5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl space-y-4 shadow-sm">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2.5 bg-purple-600/20 text-purple-600 dark:text-purple-400 rounded-xl">
+                                <Building2 className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Centralized Exchange (CEX) Setup</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Direct cashouts to checking accounts, ACH, SEPA, SPEI, or Pix</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            You can walk through our quick 3-step wizard now to select an exchange and link your deposit address, or click <strong>Skip for now</strong> and complete it anytime under <strong>Settings $\rightarrow$ Payouts & Wallet</strong>.
+                        </p>
+                        <Button
+                            type="button"
+                            onClick={() => setIsCexModalOpen(true)}
+                            leftIcon={Building2}
+                            rightIcon={ExternalLink}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3"
+                        >
+                            Launch CEX Cashout Setup Guide
+                        </Button>
                     </div>
                 </OnboardingStep>
             )}
@@ -187,16 +224,30 @@ const CreatorOnboardingPage = () => {
                         Next Step
                     </Button>
                 ) : (
-                    <Button 
-                        onClick={handleSubmit} 
-                        isLoading={isLoading} 
-                        className="bg-green-600 hover:bg-green-700" 
-                        rightIcon={CheckCircle}
-                    >
-                        Finish Setup & Proceed to Verification
-                    </Button>
+                    <div className="flex items-center space-x-3">
+                        <Button
+                            onClick={handleSubmit}
+                            isLoading={isLoading}
+                            variant="secondary"
+                        >
+                            Skip for Now
+                        </Button>
+                        <Button 
+                            onClick={handleSubmit} 
+                            isLoading={isLoading} 
+                            className="bg-green-600 hover:bg-green-700" 
+                            rightIcon={CheckCircle}
+                        >
+                            Finish Setup & Proceed to Verification
+                        </Button>
+                    </div>
                 )}
             </div>
+
+            <CexGuidanceModal
+                isOpen={isCexModalOpen}
+                onClose={() => setIsCexModalOpen(false)}
+            />
         </div>
     );
 };

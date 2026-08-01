@@ -4,7 +4,6 @@ import {
     getWalletConfig,
     updateWalletConfig,
     verifyCryptoPayment,
-    requestWithdrawal,
     getReferrerInfo
 } from '../controllers/cryptoPayment.controller';
 
@@ -31,13 +30,6 @@ router.post('/wallet', protect, updateWalletConfig);
  * @access  Private (Fans only)
  */
 router.post('/verify', protect, verifyCryptoPayment);
-
-/**
- * @route   POST /api/v1/payments/crypto/withdraw
- * @desc    Request a payout to the creator's configured wallet (on-chain USDC on Base)
- * @access  Private (Creators only)
- */
-router.post('/withdraw', protect, requestWithdrawal);
 
 /**
  * @route   GET /api/v1/payments/crypto/referrer/:creatorId

@@ -14,6 +14,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - Socket.IO client for real-time messaging
 - Crypto wallet payment UI (via `useCryptoPayment` hook, `window.ethereum` EIP-1193)
 - Embedded wallet payment UI (via `EmbeddedPaymentModal`, `useEmbeddedWallet` context, feature-flagged)
+- CEX Fiat Cashout Guidance UI (`CexGuidanceModal` in creator onboarding Step 5 & wallet settings for offramping USDC to local bank accounts)
 - State management: React Context (ToastContext, EmbeddedWalletContext), custom hooks
 - Global styles (Tailwind CSS) and Tailwind configuration
 - E2E tests (Playwright) in `/tests/`

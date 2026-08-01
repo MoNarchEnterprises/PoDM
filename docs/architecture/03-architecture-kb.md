@@ -1042,7 +1042,6 @@ Every controller function has the signature: `(req: AuthRequest | Request, res: 
 - `getWalletConfig` — get wallet settings
 - `updateWalletConfig` — update wallet address/preferences
 - `verifyCryptoPayment` — verify Base transaction hash
-- `requestWithdrawal` — request fiat off-ramp
 
 **Dependencies**: `cryptoPayment.service`, `response.ts`, `asyncHandler.ts`.
 
@@ -3439,7 +3438,7 @@ All models are functional modules exporting named async functions. Each function
 - Content: `createContent`, `getContent`, `updateContent`, `deleteContent`, `reportContent`, `getContentForFeed`
 - Subscriptions: `createSubscription`, `cancelSubscription`, `getMySubscriptions`
 - Messages: `getConversations`, `getMessages`, `sendMessage`, `deleteMessage`
-- Payments: `verifyPayment`, `getWalletConfig`, `updateWalletConfig`, `requestWithdrawal`
+- Payments: `verifyPayment`, `getWalletConfig`, `updateWalletConfig`
 - Creator: `getDashboard`, `getAnalytics`, `getEarnings`, `updateSettings`, `broadcastMessage`
 - Admin: `getUsers`, `updateUserStatus`, `getFlaggedContent`, `updateContentStatus`, `getSupportTickets`
 - AI: `generateCaption`

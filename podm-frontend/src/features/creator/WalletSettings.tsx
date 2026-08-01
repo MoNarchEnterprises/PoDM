@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useCryptoWallet from '../../shared/hooks/useCryptoWallet';
 import { useEmbeddedWallet } from '../../context/EmbeddedWalletContext';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
-import { Wallet, Copy, Check } from 'lucide-react';
+import { Wallet, Copy, Check, Building2, ExternalLink } from 'lucide-react';
+import CexGuidanceModal from './components/CexGuidanceModal';
 
 const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -19,14 +20,6 @@ const getAuthHeaders = (): Record<string, string> => {
     return headers;
 };
 
-interface WithdrawalStatus {
-    amount?: number | string;
-    recipientCard?: string;
-    estimatedArrival?: string;
-    transferId?: string;
-    error?: string;
-}
-
 export const WalletSettings: React.FC = () => {
     const {
         balance,
@@ -42,11 +35,7 @@ export const WalletSettings: React.FC = () => {
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const [copied, setCopied] = useState<boolean>(false);
-
-    const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
-    const [withdrawAmount, setWithdrawAmount] = useState<string>('');
-    const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
-    const [withdrawalStatus, setWithdrawalStatus] = useState<WithdrawalStatus | null>(null);
+    const [isCexModalOpen, setIsCexModalOpen] = useState<boolean>(false);
 
     const handleCopyAddress = (addr: string) => {
         if (!addr) return;
@@ -126,35 +115,6 @@ export const WalletSettings: React.FC = () => {
         }
     };
 
-    const handleWithdraw = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsWithdrawing(true);
-        setWithdrawalStatus(null);
-
-        try {
-            const amountInCents = Math.round(parseFloat(withdrawAmount) * 100);
-
-            const response = await fetch('/api/v1/payments/crypto/withdraw', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ amountInCents }),
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.message || 'Withdrawal failed.');
-            }
-
-            setWithdrawalStatus(result.data);
-            setWithdrawAmount('');
-        } catch (err: unknown) {
-            const error = err as Error;
-            setWithdrawalStatus({ error: error.message || 'Withdrawal request failed.' });
-        } finally {
-            setIsWithdrawing(false);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 font-sans p-6 md:p-12">
             <div className="max-w-4xl mx-auto space-y-8">
@@ -185,24 +145,6 @@ export const WalletSettings: React.FC = () => {
                                 ${(walletType === 'embedded' ? embeddedBalance : balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </h2>
                             <p className="text-xs text-gray-500 mt-1">1 USDC = $1.00 USD</p>
-
-                            {payoutPreference === 'debit_card' && walletType === 'embedded' ? (
-                                <button
-                                    onClick={() => setShowWithdrawModal(true)}
-                                    className="w-full mt-6 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-primary to-secondary hover:from-primary-dark hover:to-pink-600 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all duration-150"
-                                >
-                                    Withdraw to Bank
-                                </button>
-                            ) : (
-                                <div className="mt-6 p-4 rounded-xl border border-gray-800 bg-gray-950/40 text-center">
-                                    <p className="text-xs text-pink-400 font-semibold">
-                                        ⚡ Auto-routed to Custom Wallet
-                                    </p>
-                                    <p className="text-[10px] text-gray-500 mt-1">
-                                        Payouts go directly to your address in real-time.
-                                    </p>
-                                </div>
-                            )}
                         </div>
 
                         <div className="rounded-xl border border-gray-900 bg-gray-900/30 p-4 space-y-3">
@@ -214,6 +156,25 @@ export const WalletSettings: React.FC = () => {
                                 <span className="text-gray-400">Platform Commission</span>
                                 <span className="font-bold text-purple-400">{commissionRate}%</span>
                             </div>
+                        </div>
+
+                        {/* CEX Bank Cashout Setup Card */}
+                        <div className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-5 space-y-3 shadow-lg">
+                            <div className="flex items-center space-x-2 text-purple-300 font-bold text-xs">
+                                <Building2 className="w-4 h-4 text-purple-400" />
+                                <span>Fiat Bank Cashout Guide</span>
+                            </div>
+                            <p className="text-xs text-gray-400 leading-relaxed">
+                                Connect your USDC payout address to a Centralized Exchange (Coinbase, Kraken, Binance, Bitso) to withdraw funds directly to your local bank account.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setIsCexModalOpen(true)}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple-500/20"
+                            >
+                                <span>Set Up Bank Cashout</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
                         </div>
                     </div>
 
@@ -299,7 +260,7 @@ export const WalletSettings: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="text-[10px] text-gray-500 border-t border-gray-900 pt-3">
-                                        * Automatically assigned during creator setup. Earnings settle directly to this address. Withdrawals to linked debit cards occur immediately via our secure off-ramp engine.
+                                        * Automatically assigned during creator setup. Earnings settle directly to this address.
                                     </div>
                                 </div>
                             ) : (
@@ -377,105 +338,16 @@ export const WalletSettings: React.FC = () => {
                 </div>
             </div>
 
-            {showWithdrawModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                    <div className="relative w-full max-w-md rounded-2xl border border-purple-500/20 bg-gray-900 p-6 md:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
-
-                        <div>
-                            <h3 className="text-xl font-extrabold text-white">Withdraw settled USDC</h3>
-                            <p className="text-gray-400 text-xs mt-1">Convert your USDC instantly and cash out to bank.</p>
-                        </div>
-
-                        {withdrawalStatus && !withdrawalStatus.error ? (
-                            <div className="space-y-6 text-center py-4">
-                                <div className="w-12 h-12 rounded-full bg-green-950/20 border border-green-500/20 text-green-400 flex items-center justify-center mx-auto text-xl font-bold">
-                                    ✓
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-gray-400">Withdrawal Initiated!</p>
-                                    <h4 className="text-2xl font-black text-white">${withdrawalStatus.amount} USD</h4>
-                                </div>
-                                <div className="p-4 rounded-xl bg-gray-950 border border-gray-800 text-left text-xs space-y-2">
-                                    <div className="flex justify-between"><span className="text-gray-500">Destination:</span><span className="text-gray-300 font-bold">{withdrawalStatus.recipientCard}</span></div>
-                                    <div className="flex justify-between"><span className="text-gray-500">Processing Time:</span><span className="text-gray-300 font-bold">{withdrawalStatus.estimatedArrival}</span></div>
-                                    <div className="flex justify-between"><span className="text-gray-500">Transaction ID:</span><span className="text-[10px] text-gray-500 font-mono">{withdrawalStatus.transferId}</span></div>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setShowWithdrawModal(false);
-                                        setWithdrawalStatus(null);
-                                    }}
-                                    className="w-full py-2.5 rounded-xl text-xs font-bold bg-gray-800 text-white hover:bg-gray-700 transition-colors"
-                                >
-                                    Done
-                                </button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleWithdraw} className="space-y-6">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Amount to Withdraw</label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">$</span>
-                                        <input
-                                            type="number"
-                                            value={withdrawAmount}
-                                            onChange={(e) => setWithdrawAmount(e.target.value)}
-                                            placeholder="Max: 1250.00"
-                                            max="1250"
-                                            step="0.01"
-                                            className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-16 py-3 text-lg font-bold text-white focus:outline-none focus:border-purple-500"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">USDC</span>
-                                    </div>
-                                    <div className="flex justify-between text-[10px] text-gray-500 pt-1">
-                                        <span>Instant cash-out fee: 1.5%</span>
-                                        <span className="cursor-pointer text-purple-400 hover:underline" onClick={() => setWithdrawAmount('1250.00')}>Use Max</span>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Linked Payout Destination</p>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded bg-gray-900 border border-gray-800 flex items-center justify-center text-xs font-bold text-purple-400">
-                                            Visa
-                                        </div>
-                                        <div className="text-xs">
-                                            <p className="text-gray-300 font-bold">Visa debit ending in 4321</p>
-                                            <p className="text-[10px] text-gray-500 mt-0.5">Linked via Coinbase Off-Ramp API</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {withdrawalStatus?.error && (
-                                    <div className="p-3 rounded-lg text-xs font-semibold bg-red-950/20 border border-red-500/20 text-red-400">
-                                        {withdrawalStatus.error}
-                                    </div>
-                                )}
-
-                                <div className="flex gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowWithdrawModal(false);
-                                            setWithdrawalStatus(null);
-                                        }}
-                                        className="w-1/2 py-2.5 rounded-xl text-xs font-bold bg-gray-800 hover:bg-gray-700 text-white transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isWithdrawing || !withdrawAmount}
-                                        className="w-1/2 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-primary to-secondary hover:from-primary-dark hover:to-pink-600 text-white disabled:opacity-50 transition-colors shadow-lg shadow-purple-500/20"
-                                    >
-                                        {isWithdrawing ? 'Withdrawing...' : 'Confirm'}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            )}
+            <CexGuidanceModal
+                isOpen={isCexModalOpen}
+                onClose={() => setIsCexModalOpen(false)}
+                initialAddress={customAddress}
+                onAddressSaved={(newAddress) => {
+                    setCustomAddress(newAddress);
+                    setWalletType('custom');
+                    setPayoutPreference('on_chain');
+                }}
+            />
         </div>
     );
 };

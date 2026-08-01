@@ -115,7 +115,6 @@
 | GET | `/payments/crypto/wallet` | `getWalletConfig` | `protect` |
 | POST | `/payments/crypto/wallet` | `updateWalletConfig` | `protect` |
 | POST | `/payments/crypto/verify` | `verifyCryptoPayment` | `protect` |
-| POST | `/payments/crypto/withdraw` | `requestWithdrawal` | `protect` |
 
 **File**: `cryptoPayment.routes.ts`  
 **Controller**: `cryptoPayment.controller`  

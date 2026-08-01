@@ -546,7 +546,6 @@ Despite the AGENTS.md mandate that all API calls go through `apiClient.ts`, the 
 | File | Endpoint | Method |
 |---|---|---|
 | `features/creator/WalletSettings.tsx` | `/api/v1/payments/crypto/wallet` | GET |
-| `features/creator/WalletSettings.tsx` | `/api/v1/payments/crypto/withdraw` | POST |
 | `shared/hooks/useCryptoWallet.ts` | `/api/v1/payments/crypto/verify` | POST |
 | `features/admin/EnclaveApplications.tsx` | `/api/v1/enclave/applications/:id` | PATCH |
 | `features/admin/EnclaveApplications.tsx` | `apiClient.patch(...)` — uses apiClient but bypasses typed function | — |

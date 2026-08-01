@@ -259,7 +259,6 @@ All mounted at `/api/v1/payments/crypto`:
 | `/wallet` | GET | `protect` | `getWalletConfig` | Read user's wallet configuration |
 | `/wallet` | POST | `protect` | `updateWalletConfig` | Update wallet address/type/preference |
 | `/verify` | POST | `protect` | `verifyCryptoPayment` | Verify on-chain transaction and record |
-| `/withdraw` | POST | `protect` | `requestWithdrawal` | Request crypto withdrawal (mock) |
 
 ### 3.2 Request/Response Shapes
 
@@ -506,7 +505,6 @@ Located at `src/features/creator/WalletSettings.tsx` (480 LOC)
 - Embedded vs custom wallet selection
 - Payout network selector (Base/Monad/MegaETH)
 - USDC balance display (from mock hook)
-- Withdrawal modal with debit card off-ramp
 - Also uses raw `fetch()` for crypto endpoints
 
 ### 7.3 Subscription Modal (Crypto Flow)
