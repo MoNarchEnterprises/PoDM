@@ -325,9 +325,9 @@ const SettingsPanel = () => {
                             <div className="space-y-2 md:w-1/2">
                                 <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
                                     <span className="text-sm text-gray-600 dark:text-gray-400">Address</span>
-                                    <span className="text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    <span className="text-sm font-mono font-medium text-gray-900 dark:text-white break-all">
                                         {platformWalletAddress
-                                            ? `${platformWalletAddress.slice(0, 6)}...${platformWalletAddress.slice(-4)}`
+                                            ? platformWalletAddress
                                             : 'Not configured'}
                                     </span>
                                 </div>

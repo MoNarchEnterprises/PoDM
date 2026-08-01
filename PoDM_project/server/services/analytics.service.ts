@@ -20,6 +20,22 @@ export const logAnalyticsEvent = async (event: AnalyticsEvent) => {
         }
     }
 
+    if (eventType === 'post_view' && viewerId && contentId) {
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const { data: recentViews, error: dedupeError } = await supabase
+            .from('analytics_events')
+            .select('id')
+            .eq('event_type', 'post_view')
+            .eq('viewer_id', viewerId)
+            .eq('content_id', contentId)
+            .gte('created_at', fiveMinutesAgo)
+            .limit(1);
+
+        if (!dedupeError && recentViews && recentViews.length > 0) {
+            return { success: true, message: 'View deduplicated (within 5 minutes).' };
+        }
+    }
+
     const { error } = await supabase.from('analytics_events').insert({
         event_type: eventType,
         creator_id: creatorId,

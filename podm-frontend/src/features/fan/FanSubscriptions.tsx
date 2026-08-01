@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { XCircle, CheckCircle, CreditCard, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
+import { XCircle, CheckCircle, RefreshCw, AlertTriangle, MessageSquare } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { Subscription } from '@common/types/Subscription';
 import { Creator, SubscriptionTier } from '@common/types/Creator';
@@ -149,13 +149,6 @@ const SubscriptionDetails = ({ subscription, onCancelClick, onResubscribeClick, 
                     ) : (
                         <Button className="w-full bg-green-500 hover:bg-green-600" leftIcon={RefreshCw} onClick={() => onResubscribeClick(subscription)}>Resubscribe</Button>
                     )}
-                </div>
-            </div>
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Payment Method</h4>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3"><CreditCard className="w-6 h-6 text-gray-500 dark:text-gray-400" /><p className="text-sm text-gray-600 dark:text-gray-300">Visa ending in 4242</p></div>
-                    <Button variant="ghost">Update</Button>
                 </div>
             </div>
         </div>

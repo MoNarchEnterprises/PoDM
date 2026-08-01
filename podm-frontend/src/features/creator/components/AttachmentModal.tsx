@@ -74,7 +74,10 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                 <main className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left Side: Content Selection */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-gray-400">Select From Your Vault</h3>
+                        <div>
+                            <h3 className="font-semibold text-gray-400">Select From Your Vault</h3>
+                            <p className="text-xs text-gray-500 mt-0.5">Showing unlisted vault items not yet in this fan's gallery.</p>
+                        </div>
                         <div className="grid grid-cols-3 sm:grid-cols-1 gap-2 max-h-96 overflow-y-auto pr-2 rounded-lg bg-gray-900/50 p-2">
                             {contentItems.length > 0 ? contentItems.map(item => (
                                 <div
@@ -100,8 +103,8 @@ const AttachmentModal = ({ isOpen, onClose, contentItems, onSend }: AttachmentMo
                                     <div className="absolute inset-0 bg-black/30"></div>
                                 </div>
                             )) : (
-                                <p className="col-span-full text-center text-gray-400 py-12">
-                                    You have no published or unlisted content to attach.
+                                <p className="col-span-full text-center text-gray-400 py-12 text-sm">
+                                    No new vault content available for this fan.
                                 </p>
                             )}
                         </div>

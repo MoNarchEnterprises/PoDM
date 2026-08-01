@@ -460,6 +460,13 @@ export const getMyConversations = () =>
     api('get', '/messages/conversations');
 
 /**
+ * Fetches vault content attachable to a specific fan (excludes items already in fan's gallery).
+ * @param fanId - The ID of the target fan.
+ */
+export const getAttachableVaultContent = (fanId: string) =>
+    api<Content[]>('get', `/messages/fans/${fanId}/attachable-content`);
+
+/**
  * Fetches all messages for a specific conversation.
  * @param conversationId - The ID of the conversation.
  */

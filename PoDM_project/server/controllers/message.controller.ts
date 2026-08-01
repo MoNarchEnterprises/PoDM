@@ -83,3 +83,10 @@ export const unlockMessageContent = asyncHandler(async (req: Request, res: Respo
     const updatedMessage = await MessageService.unlockMessageContent(messageId, userId);
     ok(res, updatedMessage);
 });
+
+export const getAttachableVaultContent = asyncHandler(async (req: Request, res: Response) => {
+    const creatorId = requireAuth(req);
+    const { fanId } = req.params;
+    const content = await MessageService.getAttachableVaultContent(creatorId, fanId);
+    ok(res, content);
+});

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera } from 'lucide-react';
+import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera, Copy, Check } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User as FanUser } from '@common/types/User';
@@ -13,8 +13,6 @@ import { useModal } from '../../hooks/useModal';
 import * as apiClient from '../../lib/apiClient';
 import { getCryptoWallet } from '../../lib/wallet';
 import { useEmbeddedWallet } from '../../context/EmbeddedWalletContext';
-import { transferUsdcToSmartAccount } from '../../lib/embeddedWalletApi';
-import { Loader2 } from 'lucide-react';
 
 import SettingsCard from '../../components/shared/SettingsCard';
 import ToggleSwitch from '../../components/shared/ToggleSwitch';
@@ -113,6 +111,30 @@ const WalletLinkModal = ({ isOpen, onClose, onUpdateSuccess }: { isOpen: boolean
 
 // --- Settings Panels ---
 
+const CopyAddressButton = ({ address }: { address: string }) => {
+    const [copied, setCopied] = useState(false);
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(address);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            setCopied(false);
+        }
+    };
+    return (
+        <button
+            type="button"
+            onClick={handleCopy}
+            title="Copy address to clipboard"
+            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-purple-500 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 hover:border-purple-500/50 transition-colors shrink-0"
+        >
+            {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+    );
+};
+
 const AccountSettingsPanel = ({ profile, onProfileChange }: { profile: any; onProfileChange: (field: string, value: string) => void; }) => (<SettingsCard title="Profile Information" subtitle="Update your account details."><div className="flex items-center space-x-4"><div className="relative"><img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" /><Button variant="primary" size="sm" className="absolute bottom-0 right-0 p-1.5 h-auto rounded-full"><Camera className="w-4 h-4" /></Button></div><Input id="name" label="Display Name" value={profile.name || ''} onChange={(e) => onProfileChange('name', e.target.value)} containerClassName="flex-grow" /></div><Input id="username" label="Username" value={profile.username || ''} readOnly disabled /><Input id="email" label="Email Address" type="email" value={profile.email || ''} readOnly disabled /></SettingsCard>);
 const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['notifications']; onSettingsChange: (category: 'notifications', key: string, value: boolean) => void; }) => (
     <SettingsCard title="Notifications" subtitle="Choose how you want to be notified.">
@@ -126,22 +148,6 @@ const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: F
 );
 const PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => (<SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard>);
 const PaymentsSettingsPanel = ({ walletAddress, onLinkClick, embeddedWallet, embeddedBalance }: { walletAddress?: string | null, onLinkClick: () => void, embeddedWallet?: { walletAddress?: string | null, smartAccountAddress?: string | null } | null, embeddedBalance?: number }) => {
-    const [isTransferring, setIsTransferring] = useState(false);
-    const [transferResult, setTransferResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-    const handleTransferToSmartAccount = async () => {
-        setIsTransferring(true);
-        setTransferResult(null);
-        try {
-            const res = await transferUsdcToSmartAccount();
-            setTransferResult({ type: 'success', message: `Transferred $${res.data.amount.toFixed(2)} USDC to smart account! Tx: ${res.data.txHash.slice(0, 10)}...` });
-        } catch (err: any) {
-            setTransferResult({ type: 'error', message: err.response?.data?.message || err.message || 'Transfer failed' });
-        } finally {
-            setIsTransferring(false);
-        }
-    };
-
     return (
         <>
             <SettingsCard title="Browser Wallet" subtitle="Your linked EVM wallet for browser-based payments.">
@@ -152,7 +158,10 @@ const PaymentsSettingsPanel = ({ walletAddress, onLinkClick, embeddedWallet, emb
                             {walletAddress ? (
                                 <>
                                     <p className="font-semibold">Wallet Connected</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-mono truncate max-w-[200px]">{walletAddress}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-mono truncate max-w-[200px]">{walletAddress}</p>
+                                        <CopyAddressButton address={walletAddress} />
+                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -170,40 +179,27 @@ const PaymentsSettingsPanel = ({ walletAddress, onLinkClick, embeddedWallet, emb
             {embeddedWallet && (embeddedWallet.walletAddress || embeddedWallet.smartAccountAddress) && (
                 <SettingsCard title="Embedded Wallet" subtitle="Your gasless smart wallet on Base (ERC-4337).">
                     <div className="space-y-3">
-                        {embeddedWallet.walletAddress && (
+                        {embeddedWallet.smartAccountAddress ? (
                             <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">EOA Address (Signer)</p>
-                                <p className="text-sm font-mono text-gray-900 dark:text-white break-all bg-gray-50 dark:bg-gray-700/50 p-2 rounded">{embeddedWallet.walletAddress}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Wallet Address</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-mono text-gray-900 dark:text-white break-all bg-gray-50 dark:bg-gray-700/50 p-2 rounded flex-1">{embeddedWallet.smartAccountAddress}</p>
+                                    <CopyAddressButton address={embeddedWallet.smartAccountAddress} />
+                                </div>
                             </div>
-                        )}
-                        {embeddedWallet.smartAccountAddress && (
+                        ) : embeddedWallet.walletAddress ? (
                             <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Smart Account (Holds Funds)</p>
-                                <p className="text-sm font-mono text-gray-900 dark:text-white break-all bg-gray-50 dark:bg-gray-700/50 p-2 rounded">{embeddedWallet.smartAccountAddress}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Wallet Address</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-mono text-gray-900 dark:text-white break-all bg-gray-50 dark:bg-gray-700/50 p-2 rounded flex-1">{embeddedWallet.walletAddress}</p>
+                                    <CopyAddressButton address={embeddedWallet.walletAddress} />
+                                </div>
                             </div>
-                        )}
+                        ) : null}
                         <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
                             <span className="text-sm text-gray-500 dark:text-gray-400">USDC Balance</span>
                             <span className="text-sm font-semibold text-gray-900 dark:text-white">${(embeddedBalance ?? 0).toFixed(2)}</span>
                         </div>
-                        {(embeddedBalance ?? 0) > 0 && (
-                            <Button
-                                onClick={handleTransferToSmartAccount}
-                                disabled={isTransferring}
-                                className="w-full mt-2"
-                            >
-                                {isTransferring ? (
-                                    <><Loader2 className="w-4 h-4 animate-spin mr-2" />Transferring...</>
-                                ) : (
-                                    'Send USDC to Smart Account'
-                                )}
-                            </Button>
-                        )}
-                        {transferResult && (
-                            <p className={`text-sm text-center ${transferResult.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-                                {transferResult.message}
-                            </p>
-                        )}
                     </div>
                 </SettingsCard>
             )}

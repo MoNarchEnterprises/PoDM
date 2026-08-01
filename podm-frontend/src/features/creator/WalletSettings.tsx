@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useCryptoWallet from '../../shared/hooks/useCryptoWallet';
+import { useEmbeddedWallet } from '../../context/EmbeddedWalletContext';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
 import { Wallet, Copy, Check } from 'lucide-react';
 
@@ -28,13 +29,10 @@ interface WithdrawalStatus {
 
 export const WalletSettings: React.FC = () => {
     const {
-        isConnected,
-        walletAddress,
         balance,
-        isLoading: isWalletLoading,
-        connectWallet,
         disconnectWallet
     } = useCryptoWallet();
+    const { usdcBalance: embeddedBalance } = useEmbeddedWallet();
 
     const [walletType, setWalletType] = useState<'embedded' | 'custom'>('embedded');
     const [payoutPreference, setPayoutPreference] = useState<'debit_card' | 'on_chain' | 'base'>('debit_card');
@@ -66,7 +64,7 @@ export const WalletSettings: React.FC = () => {
                 if (response.ok) {
                     const result = await response.json();
                     if (result.data) {
-                        const loadedType = result.data.walletType || 'embedded';
+                        const loadedType = result.data.walletType === 'custom' ? 'custom' : 'embedded';
                         setWalletType(loadedType);
                         setPayoutPreference(result.data.payoutPreference || 'debit_card');
                         if (result.data.commissionRate !== undefined && result.data.commissionRate !== null) {
@@ -88,12 +86,6 @@ export const WalletSettings: React.FC = () => {
         loadConfigs();
     }, []);
 
-    useEffect(() => {
-        if (!isConnected && walletType === 'embedded') {
-            connectWallet('embedded');
-        }
-    }, [isConnected, walletType, connectWallet]);
-
     const handleSaveSettings = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
@@ -101,7 +93,7 @@ export const WalletSettings: React.FC = () => {
 
         try {
             const addressToSave = walletType === 'embedded'
-                ? (walletAddress || embeddedAddress)
+                ? embeddedAddress
                 : customAddress;
 
             if (walletType === 'custom' && (!customAddress || !customAddress.trim())) {
@@ -190,7 +182,7 @@ export const WalletSettings: React.FC = () => {
 
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">USDC Wallet Balance</p>
                             <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mt-2">
-                                ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                ${(walletType === 'embedded' ? embeddedBalance : balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </h2>
                             <p className="text-xs text-gray-500 mt-1">1 USDC = $1.00 USD</p>
 
@@ -234,7 +226,6 @@ export const WalletSettings: React.FC = () => {
                                     onClick={() => {
                                         setWalletType('embedded');
                                         setPayoutPreference('debit_card');
-                                        connectWallet('embedded');
                                     }}
                                     className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
                                         walletType === 'embedded'
@@ -293,13 +284,13 @@ export const WalletSettings: React.FC = () => {
                                         <div>
                                             <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Your Wallet Address</span>
                                             <code className="text-purple-200 font-mono select-all text-xs break-all">
-                                                {isWalletLoading ? 'Connecting...' : (walletAddress || embeddedAddress || 'Provisioning wallet...')}
+                                                {embeddedAddress || 'Provisioning wallet...'}
                                             </code>
                                         </div>
-                                        {(walletAddress || embeddedAddress) && (
+                                        {embeddedAddress && (
                                             <button
                                                 type="button"
-                                                onClick={() => handleCopyAddress(walletAddress || embeddedAddress)}
+                                                onClick={() => handleCopyAddress(embeddedAddress)}
                                                 className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 bg-purple-950/30 hover:bg-purple-950/50 px-3 py-1.5 rounded-lg border border-purple-500/20 transition-colors self-start md:self-auto"
                                             >
                                                 {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -317,13 +308,25 @@ export const WalletSettings: React.FC = () => {
 
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Wallet Address (ERC-20)</label>
-                                        <input
-                                            type="text"
-                                            value={customAddress}
-                                            onChange={(e) => setCustomAddress(e.target.value)}
-                                            placeholder="0x..."
-                                            className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors"
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={customAddress}
+                                                onChange={(e) => setCustomAddress(e.target.value)}
+                                                placeholder="0x..."
+                                                className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors"
+                                            />
+                                            {customAddress && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleCopyAddress(customAddress)}
+                                                    className="flex items-center gap-1 text-xs text-pink-400 hover:text-pink-300 bg-pink-950/30 hover:bg-pink-950/50 px-3 py-2.5 rounded-xl border border-pink-500/20 transition-colors shrink-0"
+                                                >
+                                                    {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="space-y-2 pt-2">

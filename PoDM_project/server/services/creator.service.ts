@@ -58,7 +58,7 @@ export const getDashboardData = async (creator_id: string) => {
         TransactionModel.sumCreatorEarningsForPeriod(creator_id, startOfLastMonth, startOfThisMonth),
         ContentModel.findContentByCreatorId(creator_id).then(content => content?.slice(0, 5) || []),
         AnalyticsService.countEventsForCreator(creator_id, 'profile_visit'),
-        AnalyticsService.countEventsForCreator(creator_id, 'post_view')
+        ContentModel.sumCreatorContentViews(creator_id)
     ]);
 
     // --- 2. Fetch Recent Activity ---
@@ -145,7 +145,7 @@ export const getAnalyticsData = async (creator_id: string) => {
         SubscriptionModel.countNewSubscribersInPeriod(creator_id, thirtyDaysAgo),
         TransactionModel.sumCreatorEarningsForPeriod(creator_id, thirtyDaysAgo, today),
         TransactionModel.sumCreatorEarningsForPeriod(creator_id, sixtyDaysAgo, thirtyDaysAgo),
-        AnalyticsService.countEventsForCreator(creator_id, 'post_view'), // Total Lifetime
+        ContentModel.sumCreatorContentViews(creator_id), // Total Lifetime views from content.stats.views
         AnalyticsService.countEventsForCreator(creator_id, 'post_view', thirtyDaysAgo, today), // Last 30 Days
         AnalyticsService.countEventsForCreator(creator_id, 'gallery_add', thirtyDaysAgo, today), // New Metric
         supabase.from('content').select('stats').eq('creator_id', creator_id),

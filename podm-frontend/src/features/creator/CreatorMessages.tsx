@@ -56,18 +56,20 @@ const CreatorMessagesPage = () => {
 
     useEffect(() => {
         const fetchAndProcessContent = async () => {
+            if (!selectedFanId) {
+                setExistingContent([]);
+                return;
+            }
             try {
-                const response = await apiClient.getMyCreatorContent();
-                // getMyCreatorContent already returns content with 1-hour signed thumbnail URLs
-                // via generateSignedUrlsForContent on the backend — no need to re-sign.
-                const validContent = response.data.filter((c: Content) => c.status === 'published' || c.visibility === 'unlisted');
-                setExistingContent(validContent);
+                const response = await apiClient.getAttachableVaultContent(selectedFanId);
+                setExistingContent(response.data || []);
             } catch (error) {
-                console.error("Failed to fetch creator content for attachments:", error);
+                console.error("Failed to fetch attachable vault content for fan:", error);
+                setExistingContent([]);
             }
         };
         fetchAndProcessContent();
-    }, []);
+    }, [selectedFanId, isAttachmentModalOpen]);
 
     useEffect(() => {
         // Handle pre-filled text
@@ -229,6 +231,12 @@ const CreatorMessagesPage = () => {
             isUnlocked: false,
         };
         await handleSendMessage(text, contentPayload);
+        if (selectedFanId) {
+            try {
+                const response = await apiClient.getAttachableVaultContent(selectedFanId);
+                setExistingContent(response.data || []);
+            } catch { }
+        }
     };
 
     const handleSendTextMessage = async (e: React.FormEvent) => {

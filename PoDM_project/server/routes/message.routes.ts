@@ -1,10 +1,17 @@
 import { Router } from 'express';
 // --- Import Controllers & Middleware ---
-import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead, sendVoiceMessage, unlockMessageContent } from '../controllers/message.controller';
+import { getConversations, getMessagesInConversation, sendMessage, sendMassMessage, deleteMessage, markConversationAsRead, sendVoiceMessage, unlockMessageContent, getAttachableVaultContent } from '../controllers/message.controller';
 import { protect, creatorOnly, protectAndCreator } from '../middleware/auth.middleware';
 import { uploadVoiceMessage } from '../middleware/upload.middleware';
 
 const router = Router();
+
+/**
+ * @route   GET /api/v1/messages/fans/:fanId/attachable-content
+ * @desc    Get vault content attachable to a specific fan (excludes items already in fan's gallery)
+ * @access  Private (Creators only)
+ */
+router.get('/fans/:fanId/attachable-content', ...protectAndCreator, getAttachableVaultContent);
 
 /**
  * @route   GET /api/v1/messages/conversations

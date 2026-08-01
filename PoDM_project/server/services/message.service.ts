@@ -5,6 +5,7 @@ import { io } from '../config/socket';
 import * as ConversationModel from '../models/conversation.model';
 import * as MessageModel from '../models/message.model';
 import * as SubscriptionModel from '../models/subscription.model';
+import * as GalleryModel from '../models/gallery.model';
 import { AppError } from '../middleware/error.middleware';
 import { requireUser } from '../utils/entityGuards';
 import { Message } from '@common/types/Message';
@@ -554,4 +555,53 @@ export const unlockMessageContent = async (messageId: string, userId: string) =>
     io.to(roomName).emit('message_updated', finalMessage);
 
     return finalMessage;
+};
+
+/**
+ * Retrieves unlisted vault content for a creator that has not been saved in the target fan's gallery.
+ * @param creatorId - The ID of the creator attaching content.
+ * @param fanId - The ID of the recipient fan.
+ * @returns Array of attachable vault content items with signed thumbnail URLs.
+ */
+export const getAttachableVaultContent = async (creatorId: string, fanId: string) => {
+    await requireUser(creatorId);
+    await requireUser(fanId);
+
+    // Verify relationship: either an existing conversation or an active subscription
+    const conversation = await ConversationModel.findConversationByParticipants(creatorId, fanId);
+    const subscription = await SubscriptionModel.findSubscriptionByFanAndCreator(fanId, creatorId);
+    if (!conversation && !subscription) {
+        throw new AppError('User is not a subscriber or conversation participant.', 403);
+    }
+
+    // 1. Fetch creator content
+    const allContent = await ContentModel.findContentByCreatorId(creatorId);
+    if (!allContent || allContent.length === 0) {
+        return [];
+    }
+
+    // 2. Filter to unlisted vault items only
+    const vaultItems = allContent.filter((item: any) => item.visibility === 'unlisted');
+    if (vaultItems.length === 0) {
+        return [];
+    }
+
+    // 3. Fetch fan's gallery items
+    const gallery = await GalleryModel.findGalleryByFanId(fanId);
+    const savedContentIds = new Set<string>();
+    if (gallery?.content && Array.isArray(gallery.content)) {
+        gallery.content.forEach((item: any) => {
+            if (item.contentId) savedContentIds.add(String(item.contentId));
+        });
+    }
+
+    // 4. Exclude items already in fan's gallery
+    const attachableItems = vaultItems.filter((item: any) => !savedContentIds.has(String(item.id)));
+
+    // 5. Sign thumbnail URLs
+    const signedItems = await Promise.all(
+        attachableItems.map((item: any) => generateSignedUrlsForContent(item))
+    );
+
+    return signedItems;
 };
