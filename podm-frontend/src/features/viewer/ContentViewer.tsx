@@ -129,7 +129,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     return (
         <>
             <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={handleReportSubmit} />
-            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} onSubmit={handleTipSubmit} />
+            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} contentId={content.id} onSubmit={handleTipSubmit} />
             <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
                 <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 w-full">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">

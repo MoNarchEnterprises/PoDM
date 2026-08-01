@@ -15,10 +15,11 @@ interface TipModalProps {
     isOpen: boolean;
     onClose: () => void;
     creator: Creator;
-    onSubmit: (amount: number, message: string) => Promise<void>;
+    contentId?: string;
+    onSubmit?: (amount: number, message: string) => Promise<void>;
 }
 
-const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
+const TipModal = ({ isOpen, onClose, creator, contentId, onSubmit }: TipModalProps) => {
     const { user: currentFan } = useAuth();
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState(10);
@@ -56,9 +57,11 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
     };
 
     const handleEmbeddedSuccess = async () => {
-        try {
-            await onSubmit(finalAmount, message);
-        } catch { }
+        if (onSubmit) {
+            try {
+                await onSubmit(finalAmount, message);
+            } catch { }
+        }
         handleClose();
     };
 
@@ -84,6 +87,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
             creatorId: creator.id,
             creatorWalletAddress: recipientAddress,
             creatorProfile: creator,
+            contentId,
             message,
             fromAddress: resolvedAddress,
         });
@@ -92,9 +96,6 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
 
         if (result.success) {
             setStep(2);
-            try {
-                await onSubmit(finalAmount, message);
-            } catch { }
         } else {
             setError(result.error || 'Failed to send tip.');
         }
@@ -119,6 +120,7 @@ const TipModal = ({ isOpen, onClose, creator, onSubmit }: TipModalProps) => {
                 type="Tip"
                 amount={finalAmount}
                 creator={creator}
+                relatedId={contentId}
                 onSuccess={handleEmbeddedSuccess}
             />
         );

@@ -14,15 +14,13 @@ import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
 
-const PODM_ABI = [
-    "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash, address referrer, uint256 customPlatformFeeBps)",
-    "function payTip(address tokenAddress, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)",
-    "function payPPV(address tokenAddress, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)"
-];
-
-const ERC20_ABI = [
-    "function approve(address spender, uint256 amount) returns (bool)"
-];
+import {
+    getContractConfig,
+    encodePaySubscription,
+    encodePayTip,
+    encodePayPPV,
+    encodeApprove
+} from '../utils/contract.utils';
 
 // EntryPoint v0.7 ABI used to compute getUserOpHash on-chain (avoid replicating packing in JS).
 // Full PackedUserOperation struct includes signature (9 fields).
@@ -57,6 +55,15 @@ function packUints(high: bigint, low: bigint): string {
     const paddedHigh = high.toString(16).padStart(32, '0');
     const paddedLow = low.toString(16).padStart(32, '0');
     return '0x' + paddedHigh + paddedLow;
+}
+
+function unpackUints(hex32: string): { high: bigint; low: bigint } {
+    const hex = hex32.startsWith('0x') ? hex32.slice(2) : hex32;
+    const padded = hex.padStart(64, '0');
+    return {
+        high: BigInt('0x' + padded.slice(0, 32)),
+        low: BigInt('0x' + padded.slice(32, 64)),
+    };
 }
 
 /**
@@ -164,12 +171,17 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const bundler = new PimlicoBundlerService();
         const paymaster = new PimlicoPaymasterService();
 
-        const isProd = process.env.NODE_ENV === 'production';
-        const usdcAddress = isProd ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913' : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
-        const contractAddress = isProd ? process.env.BASE_CONTRACT_ADDRESS : process.env.BASE_TESTNET_CONTRACT_ADDRESS;
+        const { contractAddress, usdcAddress, rpcUrl } = getContractConfig();
 
         if (!contractAddress) {
             throw new AppError('Contract address not configured', 500);
+        }
+
+        // Verify contract bytecode exists on chain before attempting simulation
+        const provider = new ethers.JsonRpcProvider(rpcUrl);
+        const code = await provider.getCode(contractAddress);
+        if (!code || code === '0x' || code === '0x0') {
+            throw new AppError(`Contract address ${contractAddress} is not deployed or has no bytecode on RPC network. Please check contract env configuration.`, 500);
         }
 
         const wallet = await walletProvider.getWallet(userId);
@@ -189,23 +201,19 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const commissionRate = getEffectiveCommissionRate(creatorProfile);
         const platformFeeBps = Math.round(commissionRate * 100);
 
-        // Encode calldata: batch(USDC.approve(contractAddress, amount), contract.payX(...))
-        const podmInterface = new Interface(PODM_ABI);
-        const erc20Interface = new Interface(ERC20_ABI);
-
         const amountInUnits = ethers.parseUnits((intent.amountInCents / 100).toString(), 6); // USDC has 6 decimals
 
-        const approveData = erc20Interface.encodeFunctionData("approve", [contractAddress, amountInUnits]);
+        const approveData = encodeApprove(contractAddress, amountInUnits);
 
         let paymentData: string;
         if (intent.type === 'Subscription') {
             const tierId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("default");
-            paymentData = podmInterface.encodeFunctionData("paySubscription", [usdcAddress, creatorWallet, amountInUnits, tierId, referrerWallet, platformFeeBps]);
+            paymentData = encodePaySubscription(usdcAddress, creatorWallet, amountInUnits, tierId, referrerWallet, platformFeeBps);
         } else if (intent.type === 'Tip') {
-            paymentData = podmInterface.encodeFunctionData("payTip", [usdcAddress, creatorWallet, amountInUnits, referrerWallet, platformFeeBps]);
+            paymentData = encodePayTip(usdcAddress, creatorWallet, amountInUnits, referrerWallet, platformFeeBps);
         } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
             const contentId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("content");
-            paymentData = podmInterface.encodeFunctionData("payPPV", [usdcAddress, creatorWallet, amountInUnits, contentId, referrerWallet, platformFeeBps]);
+            paymentData = encodePayPPV(usdcAddress, creatorWallet, amountInUnits, contentId, referrerWallet, platformFeeBps);
         } else {
             throw new AppError('Invalid payment intent type', 400);
         }
@@ -306,7 +314,7 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         });
         const adjustedPlatformFee = platformFee - referralFee;
 
-        const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message';
+        const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message' || intent.type === 'Tip';
         const relatedContentId = isContentTransaction ? (intent.relatedId || undefined) : undefined;
 
         // Build insert payload — conditionally include referral fields

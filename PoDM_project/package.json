@@ -10,6 +10,9 @@
     "dev:server": "ts-node-dev --respawn --transpile-only server/Server.ts",
     "seed": "ts-node-dev --transpile-only server/scripts/seed.ts",
     "migrate:referral-fees": "ts-node-dev --transpile-only server/scripts/add-referral-fee-columns.ts",
+    "generate:contract-config": "ts-node scripts/generateContractConfig.ts",
+    "check:contract": "ts-node scripts/check-contract-sync.ts",
+    "sync:contract-env": "ts-node scripts/sync-contract-env.ts",
     "test": "jest"
   },
   "keywords": [],

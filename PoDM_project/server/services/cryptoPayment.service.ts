@@ -24,34 +24,11 @@ interface PaymentVerificationInput {
     relatedId?: string;
 }
 
-function computeEventTopic(eventSignature: string): string {
-    return keccak256(toUtf8Bytes(eventSignature));
-}
-
-const EVENT_TOPICS = {
-    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
-    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256,uint256,address)'),
-    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
-};
+import { getContractConfig, EVENT_TOPICS } from '../utils/contract.utils';
 
 function getRpcConfig(): { rpcUrl: string; contractAddress: string; usdcContract: string; chainId: number } {
-    const isProd = process.env.NODE_ENV === 'production';
-
-    const rpcUrl = isProd
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
-
-    const contractAddress = isProd
-        ? (process.env.BASE_CONTRACT_ADDRESS || '')
-        : (process.env.BASE_TESTNET_CONTRACT_ADDRESS || '');
-
-    const usdcContract = isProd
-        ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-        : '0x036CbD53842c5426634e7929541eC2318F3dCF7e';
-
-    const chainId = isProd ? 8453 : 84532;
-
-    return { rpcUrl, contractAddress, usdcContract, chainId };
+    const { rpcUrl, contractAddress, usdcAddress, chainId } = getContractConfig();
+    return { rpcUrl, contractAddress, usdcContract: usdcAddress, chainId };
 }
 
 async function getCommissionRate(creatorId: string): Promise<number> {
@@ -298,8 +275,8 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     });
     const adjustedPlatformFee = platformFee - referralFee;
 
-    // 6. Record transaction (only set related_content_id for PPV content)
-    const isContentTransaction = input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message';
+    // 6. Record transaction (set related_content_id for PPV and Tip content)
+    const isContentTransaction = input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message' || input.transactionType === 'Tip';
     const relatedContentId = isContentTransaction ? (input.relatedId || undefined) : undefined;
 
     const transactionPayload: Record<string, any> = {

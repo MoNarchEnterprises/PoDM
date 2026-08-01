@@ -4,19 +4,12 @@ import * as TransactionModel from '../models/transaction.model';
 import axios from 'axios';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from '../services/referral.service';
+import { getContractConfig, encodeProcessRenewal } from '../utils/contract.utils';
 
-const RPC_URL = process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org';
-const CONTRACT_ADDRESS = process.env.BASE_TESTNET_CONTRACT_ADDRESS || process.env.BASE_CONTRACT_ADDRESS || '';
 const KEEPER_PRIVATE_KEY = process.env.KEEPER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || '';
 
 function computeAmountInUSDC(amountInCents: number): string {
     return '0x' + BigInt(Math.round(amountInCents / 100) * 1_000_000).toString(16);
-}
-
-function getUsdcAddress(): string {
-    return process.env.NODE_ENV === 'production'
-        ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-        : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 }
 
 async function sendRenewalTransaction(
@@ -31,25 +24,28 @@ async function sendRenewalTransaction(
         return null;
     }
 
+    const { contractAddress, rpcUrl, usdcAddress } = getContractConfig();
+    if (!contractAddress) {
+        console.error('[RenewSubscriptions] Contract address not configured.');
+        return null;
+    }
+
     const { ethers } = await import('ethers');
-    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(KEEPER_PRIVATE_KEY, provider);
 
-    const iface = new ethers.Interface([
-        'function processRenewal(address tokenAddress, address fan, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)',
-    ]);
-    const data = iface.encodeFunctionData('processRenewal', [
-        getUsdcAddress(),
+    const data = encodeProcessRenewal(
+        usdcAddress,
         fanWallet,
         creatorWallet,
         amountInUSDC,
         referrerWallet,
-        platformFeeBps,
-    ]);
+        platformFeeBps
+    );
 
     try {
         const tx = await wallet.sendTransaction({
-            to: CONTRACT_ADDRESS,
+            to: contractAddress,
             data,
             gasLimit: 200000,
         });
@@ -62,7 +58,8 @@ async function sendRenewalTransaction(
 }
 
 export async function renewSubscriptions(): Promise<void> {
-    if (!CONTRACT_ADDRESS) {
+    const { contractAddress } = getContractConfig();
+    if (!contractAddress) {
         console.warn('[RenewSubscriptions] Contract address not configured. Skipping.');
         return;
     }

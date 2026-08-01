@@ -52,6 +52,10 @@ const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => 
         setLocalIsUnlocked(nextUnlocked);
     }, [lockState?.isUnlocked, post.isUnlocked]);
 
+    React.useEffect(() => {
+        setIsBookmarked(post.inGallery || false);
+    }, [post.inGallery]);
+
     // A post is locked if forced, or if the backend/lockState says it's not unlocked.
     const isLocked = forceLocked || !localIsUnlocked;
 
@@ -89,6 +93,7 @@ const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => 
                 isOpen={isTipModalOpen}
                 onClose={closeTipModal}
                 creator={post.creator}
+                contentId={post.id}
                 onSubmit={handleTipSubmit}
             />
 

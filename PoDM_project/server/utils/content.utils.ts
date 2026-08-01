@@ -5,6 +5,7 @@ import { reshapeUserForApp } from './user.utils';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
 import * as UserModel from '../models/user.model';
+import * as GalleryModel from '../models/gallery.model';
 import * as StorageService from '../services/storage.service';
 import supabase from '../config/supabaseClient';
 
@@ -135,13 +136,22 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
     // 2. Fetch Viewer's Access Data
     // We fetch this ONCE for the whole list to avoid N+1 queries
-    const [activeSubs, transactions] = await Promise.all([
+    const [activeSubs, transactions, gallery] = await Promise.all([
         SubscriptionModel.findActiveSubscriptionsByFan(viewerId),
-        TransactionModel.findTransactionsByUser(viewerId)
+        TransactionModel.findTransactionsByUser(viewerId),
+        GalleryModel.findGalleryByFanId(viewerId)
     ]);
+
+    const savedContentIds = new Set<string>();
+    if (gallery?.content && Array.isArray(gallery.content)) {
+        gallery.content.forEach((item: any) => {
+            if (item.contentId) savedContentIds.add(String(item.contentId));
+        });
+    }
+
     // console.log("[ContentUtils] activeSubs: ", activeSubs);
     // console.log("[ContentUtils] transactions: ", transactions);
-    const subscribedCreatorIds = new Set(activeSubs?.map(sub => String(sub.creator_id)));
+    const subscribedCreatorIds = new Set(activeSubs?.map((sub: any) => String(sub.creator_id)));
     // console.log("[ContentUtils] subscribedCreatorIds: ", Array.from(subscribedCreatorIds));
 
     // 2b. Build a map of creator IDs to the fan's tier level for that creator
@@ -149,15 +159,15 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
     const subscribedCreatorTierLevels = new Map<string, number>();
     if (activeSubs && activeSubs.length > 0) {
         // Get all unique creator IDs from subscriptions
-        const creatorIds = [...new Set(activeSubs.map(sub => String(sub.creator_id)))];
+        const creatorIds = [...new Set(activeSubs.map((sub: any) => String(sub.creator_id)))];
 
         // Fetch creator data for all subscribed creators
         const creators = await Promise.all(
-            creatorIds.map(creatorId => UserModel.findUserById(creatorId))
+            creatorIds.map((creatorId: string) => UserModel.findUserById(creatorId))
         );
 
         // For each subscription, find the tier level
-        activeSubs.forEach(sub => {
+        activeSubs.forEach((sub: any) => {
             const creator = creators.find(c => c?.id === sub.creator_id);
             if (creator?.creator_data?.subscriptionTiers) {
                 const tier = creator.creator_data.subscriptionTiers.find((t: any) => t.id === sub.tier_id);
@@ -170,7 +180,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
     const unlockedContentIds = new Set<string>();
     if (transactions) {
-        transactions.forEach(tx => {
+        transactions.forEach((tx: any) => {
             if (tx.status === 'Cleared' &&
                 (tx.type === 'PPV Post' || tx.type === 'PPV Message') &&
                 tx.related_content_id) {
@@ -230,26 +240,7 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
         }
 
         // C. Check if content is in the viewer's gallery
-        let inGallery = false;
-        if (viewerId && post.id) {
-            try {
-                const { data: galleryData } = await supabase
-                    .from('galleries')
-                    .select('content')
-                    .eq('fan_id', viewerId)
-                    .single();
-
-                if (galleryData?.content && Array.isArray(galleryData.content)) {
-                    inGallery = galleryData.content.some((item: any) =>
-                        item.contentId === post.id?.toString() ||
-                        item.contentId === parseInt(post.id)
-                    );
-                }
-            } catch (error) {
-                // Gallery doesn't exist yet or other error - that's okay
-                inGallery = false;
-            }
-        }
+        const inGallery = savedContentIds.has(String(post.id));
 
         // console.log(`[ContentUtils] About to return post ${post.id} with isUnlocked=${isUnlocked}, isSubscribedToCreator=${isSubscribedToCreator}, isLockedByTier=${isLockedByTier}, inGallery=${inGallery}`);
         return {

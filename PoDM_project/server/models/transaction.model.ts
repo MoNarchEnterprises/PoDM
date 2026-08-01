@@ -76,7 +76,7 @@ export const sumCreatorEarningsForPeriod = async (creatorId: string, startDate: 
 
 export const findSuccessfulTransactionByFanAndContent = async (fanId: string, contentId: string): Promise<Transaction | null> => {
     return handleQuery<Transaction>(
-        supabase.from('transactions').select('*').eq('fan_id', fanId).eq('related_content_id', contentId).eq('status', 'Cleared').limit(1).maybeSingle(),
+        supabase.from('transactions').select('*').eq('fan_id', fanId).eq('related_content_id', contentId).in('type', ['PPV Post', 'PPV Message']).eq('status', 'Cleared').limit(1).maybeSingle(),
         'find successful transaction by fan and content'
     );
 }

@@ -6,23 +6,10 @@ import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
 import { calculateReferralFee, getReferrerWalletForCreator } from './referral.service';
 
-const EVENT_TOPICS = {
-    SubscriptionPaid: computeEventTopic('SubscriptionPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
-    TipPaid: computeEventTopic('TipPaid(address,address,address,uint256,uint256,uint256,uint256,address)'),
-    PPVPaid: computeEventTopic('PPVPaid(address,address,address,uint256,bytes32,uint256,uint256,uint256,address)'),
-};
-
-function computeEventTopic(eventSignature: string): string {
-    return keccak256(toUtf8Bytes(eventSignature));
-}
+import { getContractConfig, EVENT_TOPICS } from '../utils/contract.utils';
 
 function getRpcConfig(): { rpcUrl: string; contractAddress: string; chainId: number } {
-    const isProd = process.env.NODE_ENV === 'production';
-    const rpcUrl = isProd
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
-    const contractAddress = (isProd ? process.env.BASE_CONTRACT_ADDRESS : process.env.BASE_TESTNET_CONTRACT_ADDRESS) || '';
-    const chainId = isProd ? 8453 : 84532;
+    const { rpcUrl, contractAddress, chainId } = getContractConfig();
     return { rpcUrl, contractAddress, chainId };
 }
 

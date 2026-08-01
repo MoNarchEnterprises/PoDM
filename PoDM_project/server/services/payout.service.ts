@@ -2,9 +2,8 @@ import supabase from '../config/supabaseClient';
 import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
+import { getContractConfig, encodeProcessPayout } from '../utils/contract.utils';
 
-const RPC_URL = process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org';
-const CONTRACT_ADDRESS = process.env.BASE_TESTNET_CONTRACT_ADDRESS || process.env.BASE_CONTRACT_ADDRESS || '';
 const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || '';
 const MIN_PAYOUT_CENTS = parseInt(process.env.MIN_PAYOUT_CENTS || '1000', 10);
 
@@ -38,10 +37,12 @@ export async function processPayout(
     creatorId: string,
     amountInCents: number
 ): Promise<{ txHash: string }> {
+    const { contractAddress, rpcUrl } = getContractConfig();
+
     if (!TREASURY_PRIVATE_KEY || TREASURY_PRIVATE_KEY.length < 64) {
         throw new AppError('Treasury wallet not configured. Set TREASURY_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY.', 500);
     }
-    if (!CONTRACT_ADDRESS) {
+    if (!contractAddress) {
         throw new AppError('Contract address not configured. Set BASE_TESTNET_CONTRACT_ADDRESS or BASE_CONTRACT_ADDRESS.', 500);
     }
 
@@ -78,16 +79,13 @@ export async function processPayout(
         const amountUSDC = BigInt(Math.round(amountInCents / 100) * 1_000_000);
 
         const { ethers } = await import('ethers');
-        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const provider = new ethers.JsonRpcProvider(rpcUrl);
         const wallet = new ethers.Wallet(TREASURY_PRIVATE_KEY, provider);
 
-        const iface = new ethers.Interface([
-            'function processPayout(address creator, uint256 amount)',
-        ]);
-        const data = iface.encodeFunctionData('processPayout', [profile.crypto_wallet_address, amountUSDC]);
+        const data = encodeProcessPayout(profile.crypto_wallet_address, amountUSDC);
 
         const tx = await wallet.sendTransaction({
-            to: CONTRACT_ADDRESS,
+            to: contractAddress,
             data,
             gasLimit: 200000,
         });

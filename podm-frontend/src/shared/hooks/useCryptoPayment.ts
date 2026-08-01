@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 
-const APPROVE_SELECTOR = '0xb3886be3';      // approve(address spender, uint256 amount)
-const ALLOWANCE_SELECTOR = '0xd1ac244a';   // allowance(address owner, address spender) view returns (uint256)
+// Canonical selectors derived from contract ABI
+const APPROVE_SELECTOR   = '0x095ea7b3';   // approve(address spender, uint256 amount)
+const ALLOWANCE_SELECTOR = '0xdd62ed3e';   // allowance(address owner, address spender) view returns (uint256)
 const PAY_SUB_SELECTOR   = '0xe87c1a59';   // paySubscription(address token, address creator, uint256 amount, bytes32 tierIdHash, address referrer, uint256 customPlatformFeeBps)
 const PAY_TIP_SELECTOR   = '0x7a02b81c';   // payTip(address token, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)
 const PAY_PPV_SELECTOR   = '0x33f2ab62';   // payPPV(address token, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)

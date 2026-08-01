@@ -114,6 +114,6 @@ The root AGENTS.md owns project-wide rules that apply across all subtrees:
 - Docker Compose orchestration (root `docker-compose.yml`)
 - Netlify deployment config (`netlify.toml`)
 - Root-level tools and assets (CSV data, Instagram scripts, database reference docs)
-- Planning documents (MVP Checklist, PoDM Planning Document, GEMINI.md)
+- Planning documents (MVP Checklist, PoDM Planning Document, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md)
 - Root `package.json` (minimal — shared deps like puppeteer, csv-parser)
 - `.gitignore`, `.git/`, `.github/`

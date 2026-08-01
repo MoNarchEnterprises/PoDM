@@ -16,22 +16,33 @@ export const createGallery = async (fanId: string): Promise<Gallery | null> => {
     );
 };
 
-export const addItemToGallery = async (fanId: string, newItem: GalleryItem): Promise<Gallery | null> => {
+export const addItemToGallery = async (fanId: string, newItem: GalleryItem): Promise<{ gallery: Gallery | null; added: boolean }> => {
     const existingGallery = await findGalleryByFanId(fanId);
     if (!existingGallery) {
         const newGalleryData = { fan_id: fanId, content: [newItem] };
-        return handleQuery<Gallery>(
+        const gallery = await handleQuery<Gallery>(
             supabase.from('galleries').insert(newGalleryData).select().single(),
             'create gallery with item'
         );
+        return { gallery, added: !!gallery };
+    }
+
+    const alreadyExists = existingGallery.content && Array.isArray(existingGallery.content) && existingGallery.content.some((item: GalleryItem) =>
+        String(item.contentId) === String(newItem.contentId)
+    );
+
+    if (alreadyExists) {
+        return { gallery: existingGallery, added: false };
     }
 
     const updatedContent = [...existingGallery.content, newItem];
 
-    return handleQuery<Gallery>(
+    const gallery = await handleQuery<Gallery>(
         supabase.from('galleries').update({ content: updatedContent, updated_at: new Date().toISOString() }).eq('fan_id', fanId).select().single(),
         'add item to gallery'
     );
+
+    return { gallery, added: !!gallery };
 };
 
 export const removeItemFromGallery = async (fanId: string, contentId: string): Promise<Gallery | null> => {

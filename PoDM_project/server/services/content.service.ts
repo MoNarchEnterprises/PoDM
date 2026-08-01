@@ -4,6 +4,7 @@ import * as ReportModel from '../models/report.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as UserModel from '../models/user.model';
 import * as TransactionModel from '../models/transaction.model';
+import * as GalleryModel from '../models/gallery.model';
 import { AppError } from '../middleware/error.middleware';
 import { requireUser, requireContent, requireContentOwnership } from '../utils/entityGuards';
 import { Content, MediaFile } from '@common/types/Content';
@@ -516,15 +517,24 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
         return [];
     }
 
-    // Fetch all successful PPV transactions for this viewer if they exist
+    // Fetch all successful PPV transactions and gallery for this viewer if they exist
     let unlockedContentIds = new Set<string>();
+    let savedContentIds = new Set<string>();
     if (viewerId) {
-        const transactions = await TransactionModel.findTransactionsByUser(viewerId);
+        const [transactions, gallery] = await Promise.all([
+            TransactionModel.findTransactionsByUser(viewerId),
+            GalleryModel.findGalleryByFanId(viewerId)
+        ]);
         if (transactions) {
             transactions.forEach(tx => {
                 if (tx.status === 'Cleared' && (tx.type === 'PPV Post' || tx.type === 'PPV Message') && tx.related_content_id) {
                     unlockedContentIds.add(tx.related_content_id);
                 }
+            });
+        }
+        if (gallery?.content && Array.isArray(gallery.content)) {
+            gallery.content.forEach((item: any) => {
+                if (item.contentId) savedContentIds.add(String(item.contentId));
             });
         }
     }
@@ -533,6 +543,7 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
     const processedContent = await Promise.all(content.map(async (post) => {
         // Determine if the post is unlocked for this viewer
         const isUnlocked = viewerId ? unlockedContentIds.has(post.id.toString()) : false;
+        const inGallery = viewerId ? savedContentIds.has(String(post.id)) : false;
 
         // If it's PPV and unlocked, or Subscribers Only and subscribed, show the content.
         // Otherwise, show the placeholder.
@@ -546,12 +557,14 @@ export const getContentForPublicProfile = async (username: string, viewerId?: st
             const signedPost = await generateSignedUrlsForContent(post);
             return {
                 ...signedPost,
-                isUnlocked: true // Explicitly mark as unlocked for frontend
+                isUnlocked: true, // Explicitly mark as unlocked for frontend
+                inGallery
             };
         } else {
             return {
                 ...post,
                 isUnlocked: false,
+                inGallery,
                 files: post.files.map((file: any) => ({
                     ...file,
                     url: 'https://placehold.co/600x400/1F2937/FFFFFF?text=Locked',
@@ -611,7 +624,13 @@ export const getContentForFan = async (contentId: string, fanId: string) => {
         }
     }
 
-    return content;
+    const gallery = await GalleryModel.findGalleryByFanId(fanId);
+    const inGallery = gallery?.content?.some((item: any) => String(item.contentId) === String(contentId)) || false;
+
+    return {
+        ...content,
+        inGallery
+    };
 };
 
 /**
