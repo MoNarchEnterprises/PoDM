@@ -56,11 +56,6 @@ export const errorHandler = (
             statusCode = (err as any).error.code;
         }
 
-        // Use the error message if available, or fallback
-        if (err.message) {
-            message = err.message;
-        }
-
         console.error('UNHANDLED ERROR:', err);
     }
 

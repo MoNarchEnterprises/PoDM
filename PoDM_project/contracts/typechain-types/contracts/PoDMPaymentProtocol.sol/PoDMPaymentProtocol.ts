@@ -47,9 +47,12 @@ export declare namespace PoDMPaymentProtocol {
 export interface PoDMPaymentProtocolInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "UPGRADE_INTERFACE_VERSION"
       | "allowances"
       | "approveRecurringSubscription"
       | "getAllowance"
+      | "initialize"
+      | "keepers"
       | "owner"
       | "pause"
       | "paused"
@@ -60,19 +63,24 @@ export interface PoDMPaymentProtocolInterface extends Interface {
       | "platformTreasury"
       | "processPayout"
       | "processRenewal"
+      | "proxiableUUID"
       | "referralFeeBps"
       | "renounceOwnership"
       | "revokeRecurringSubscription"
+      | "setKeeper"
       | "setPlatformFeeBps"
       | "setPlatformTreasury"
       | "setReferralFeeBps"
       | "transferOwnership"
       | "unpause"
+      | "upgradeToAndCall"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "FeeUpdated"
+      | "Initialized"
+      | "KeeperUpdated"
       | "OwnershipTransferred"
       | "PPVPaid"
       | "Paused"
@@ -85,8 +93,13 @@ export interface PoDMPaymentProtocolInterface extends Interface {
       | "TipPaid"
       | "TreasuryUpdated"
       | "Unpaused"
+      | "Upgraded"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "allowances",
     values: [AddressLike, AddressLike]
@@ -98,6 +111,14 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getAllowance",
     values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "keepers",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
@@ -152,6 +173,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "referralFeeBps",
     values?: undefined
   ): string;
@@ -162,6 +187,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
   encodeFunctionData(
     functionFragment: "revokeRecurringSubscription",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setKeeper",
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setPlatformFeeBps",
@@ -180,7 +209,15 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "upgradeToAndCall",
+    values: [AddressLike, BytesLike]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowances", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approveRecurringSubscription",
@@ -190,6 +227,8 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     functionFragment: "getAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "keepers", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -216,6 +255,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "referralFeeBps",
     data: BytesLike
   ): Result;
@@ -227,6 +270,7 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     functionFragment: "revokeRecurringSubscription",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setKeeper", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setPlatformFeeBps",
     data: BytesLike
@@ -244,6 +288,10 @@ export interface PoDMPaymentProtocolInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeToAndCall",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace FeeUpdatedEvent {
@@ -252,6 +300,31 @@ export namespace FeeUpdatedEvent {
   export interface OutputObject {
     oldFee: bigint;
     newFee: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace InitializedEvent {
+  export type InputTuple = [version: BigNumberish];
+  export type OutputTuple = [version: bigint];
+  export interface OutputObject {
+    version: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace KeeperUpdatedEvent {
+  export type InputTuple = [keeper: AddressLike, active: boolean];
+  export type OutputTuple = [keeper: string, active: boolean];
+  export interface OutputObject {
+    keeper: string;
+    active: boolean;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -515,6 +588,18 @@ export namespace UnpausedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UpgradedEvent {
+  export type InputTuple = [implementation: AddressLike];
+  export type OutputTuple = [implementation: string];
+  export interface OutputObject {
+    implementation: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface PoDMPaymentProtocol extends BaseContract {
   connect(runner?: ContractRunner | null): PoDMPaymentProtocol;
   waitForDeployment(): Promise<this>;
@@ -558,6 +643,8 @@ export interface PoDMPaymentProtocol extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  UPGRADE_INTERFACE_VERSION: TypedContractMethod<[], [string], "view">;
+
   allowances: TypedContractMethod<
     [arg0: AddressLike, arg1: AddressLike],
     [
@@ -586,6 +673,14 @@ export interface PoDMPaymentProtocol extends BaseContract {
     [PoDMPaymentProtocol.RecurringAllowanceStructOutput],
     "view"
   >;
+
+  initialize: TypedContractMethod<
+    [_platformTreasury: AddressLike, _platformFeeBps: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  keepers: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
 
@@ -654,12 +749,20 @@ export interface PoDMPaymentProtocol extends BaseContract {
     "nonpayable"
   >;
 
+  proxiableUUID: TypedContractMethod<[], [string], "view">;
+
   referralFeeBps: TypedContractMethod<[], [bigint], "view">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   revokeRecurringSubscription: TypedContractMethod<
     [creator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setKeeper: TypedContractMethod<
+    [_keeper: AddressLike, _active: boolean],
     [void],
     "nonpayable"
   >;
@@ -690,10 +793,19 @@ export interface PoDMPaymentProtocol extends BaseContract {
 
   unpause: TypedContractMethod<[], [void], "nonpayable">;
 
+  upgradeToAndCall: TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "UPGRADE_INTERFACE_VERSION"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "allowances"
   ): TypedContractMethod<
@@ -726,6 +838,16 @@ export interface PoDMPaymentProtocol extends BaseContract {
     [PoDMPaymentProtocol.RecurringAllowanceStructOutput],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "initialize"
+  ): TypedContractMethod<
+    [_platformTreasury: AddressLike, _platformFeeBps: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "keepers"
+  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
@@ -804,6 +926,9 @@ export interface PoDMPaymentProtocol extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "proxiableUUID"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "referralFeeBps"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -812,6 +937,13 @@ export interface PoDMPaymentProtocol extends BaseContract {
   getFunction(
     nameOrSignature: "revokeRecurringSubscription"
   ): TypedContractMethod<[creator: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setKeeper"
+  ): TypedContractMethod<
+    [_keeper: AddressLike, _active: boolean],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "setPlatformFeeBps"
   ): TypedContractMethod<[_newFeeBps: BigNumberish], [void], "nonpayable">;
@@ -827,6 +959,13 @@ export interface PoDMPaymentProtocol extends BaseContract {
   getFunction(
     nameOrSignature: "unpause"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "upgradeToAndCall"
+  ): TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
 
   getEvent(
     key: "FeeUpdated"
@@ -834,6 +973,20 @@ export interface PoDMPaymentProtocol extends BaseContract {
     FeeUpdatedEvent.InputTuple,
     FeeUpdatedEvent.OutputTuple,
     FeeUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Initialized"
+  ): TypedContractEvent<
+    InitializedEvent.InputTuple,
+    InitializedEvent.OutputTuple,
+    InitializedEvent.OutputObject
+  >;
+  getEvent(
+    key: "KeeperUpdated"
+  ): TypedContractEvent<
+    KeeperUpdatedEvent.InputTuple,
+    KeeperUpdatedEvent.OutputTuple,
+    KeeperUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "OwnershipTransferred"
@@ -919,6 +1072,13 @@ export interface PoDMPaymentProtocol extends BaseContract {
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
   >;
+  getEvent(
+    key: "Upgraded"
+  ): TypedContractEvent<
+    UpgradedEvent.InputTuple,
+    UpgradedEvent.OutputTuple,
+    UpgradedEvent.OutputObject
+  >;
 
   filters: {
     "FeeUpdated(uint256,uint256)": TypedContractEvent<
@@ -930,6 +1090,28 @@ export interface PoDMPaymentProtocol extends BaseContract {
       FeeUpdatedEvent.InputTuple,
       FeeUpdatedEvent.OutputTuple,
       FeeUpdatedEvent.OutputObject
+    >;
+
+    "Initialized(uint64)": TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
+    >;
+    Initialized: TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
+    >;
+
+    "KeeperUpdated(address,bool)": TypedContractEvent<
+      KeeperUpdatedEvent.InputTuple,
+      KeeperUpdatedEvent.OutputTuple,
+      KeeperUpdatedEvent.OutputObject
+    >;
+    KeeperUpdated: TypedContractEvent<
+      KeeperUpdatedEvent.InputTuple,
+      KeeperUpdatedEvent.OutputTuple,
+      KeeperUpdatedEvent.OutputObject
     >;
 
     "OwnershipTransferred(address,address)": TypedContractEvent<
@@ -1062,6 +1244,17 @@ export interface PoDMPaymentProtocol extends BaseContract {
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
+    >;
+
+    "Upgraded(address)": TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
+    >;
+    Upgraded: TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
     >;
   };
 }

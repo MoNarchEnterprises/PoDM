@@ -29,7 +29,7 @@ export interface Transaction {
   blockchain_tx_hash?: string;
   user_operation_hash?: string;
   gas_sponsored?: boolean;
-  payment_method?: 'stripe' | 'crypto' | 'card_onramp' | 'embedded_wallet' | 'referral_bonus';
+  payment_method?: 'crypto' | 'card_onramp' | 'embedded_wallet' | 'referral_bonus';
   payment_currency?: 'USD' | 'USDC';
   chain_id?: number;
   created_at: string; // ISO 8601 date string

@@ -1,3 +1,5 @@
+> **Note**: All Stripe references in this document are historical. PoDM uses crypto-only payments (USDC on Base) as of v2.
+
 # Architecture Diagrams
 
 This directory contains Mermaid diagram source files for the PoDM platform architecture.

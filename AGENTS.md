@@ -95,6 +95,7 @@ When the user requests a durable behavior change, record it here or in the relev
 | Path | Contents |
 |---|---|
 | `docs/` | Project documentation — future-features specs, marketing collateral, maintenance guides, **architecture knowledge base** |
+| `docs/legal/` | Legal documentation and policies — DMCA, Terms of Service brainstorm, data retention |
 | `docs/architecture/` | 00-session-notes, 01-documentation-plan, 01-repository-inventory, 02-dependency-map, 03-architecture-kb, 04-business-capabilities, 05-user-journeys, 06-frontend-architecture, 07-cross-cutting-concerns, 08-crypto-deep-dive, 08-diagram-index, 09-testing-monitoring, 09-quality-report, 10-internal-workflows, 07-data-flow, 12-maintenance |
 | `docs/diagrams/` | 11 Mermaid diagrams: C4 system context, ER diagram, auth seq, payment flow, request lifecycle, real-time messaging, impersonation, component tree, deployment/CI, service deps + README |
 | `docs/diagram-specifications/` | 59 JSON diagram specification files (001–059): structured machine-readable specs for all architecture diagrams across 8+ categories — system, auth, payments, content, real-time, data, admin, frontend, infrastructure, crypto, testing, monitoring |
@@ -114,6 +115,6 @@ The root AGENTS.md owns project-wide rules that apply across all subtrees:
 - Docker Compose orchestration (root `docker-compose.yml`)
 - Netlify deployment config (`netlify.toml`)
 - Root-level tools and assets (CSV data, Instagram scripts, database reference docs)
-- Planning documents (MVP Checklist, PoDM Planning Document, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md, ppv_attach_modal_fix.md, creator_views_fix.md)
+- Planning documents (MVP Checklist, PoDM Planning Document, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md, ppv_attach_modal_fix.md, creator_views_fix.md, session_refresh_fix.md)
 - Root `package.json` (minimal — shared deps like puppeteer, csv-parser)
 - `.gitignore`, `.git/`, `.github/`

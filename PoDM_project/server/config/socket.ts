@@ -17,8 +17,9 @@ export const initSocketServer = (httpServer: any) => {
                 // Allow requests with no origin (like mobile apps)
                 if (!origin) return callback(null, true);
 
-                // Allow all Cloudflare Pages preview deployments
-                if (origin.endsWith('.pages.dev')) {
+                // Allow Cloudflare Pages preview deployments for the configured project
+                const cfProject = process.env.CLOUDFLARE_PAGES_PROJECT;
+                if (cfProject && origin.endsWith(`.${cfProject}.pages.dev`)) {
                     return callback(null, true);
                 }
 

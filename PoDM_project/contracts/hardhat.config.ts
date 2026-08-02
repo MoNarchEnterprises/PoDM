@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@openzeppelin/hardhat-upgrades';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
@@ -9,7 +10,7 @@ const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || '00000000000000
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.20',
+    version: '0.8.28',
     settings: {
       optimizer: { enabled: true, runs: 200 },
     },

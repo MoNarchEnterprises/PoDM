@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IERC20 {
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function balanceOf(address account) external view returns (uint256);
-    function allowance(address owner, address spender) external view returns (uint256);
-}
-
-contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
+contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
     address public platformTreasury;
     uint256 public platformFeeBps;
     uint256 public referralFeeBps;
@@ -25,6 +21,21 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
     }
 
     mapping(address => mapping(address => RecurringAllowance)) public allowances;
+
+    mapping(address => bool) public keepers;
+
+    event KeeperUpdated(address indexed keeper, bool active);
+
+    modifier onlyKeeper() {
+        require(keepers[msg.sender] || msg.sender == owner(), "Not authorized keeper");
+        _;
+    }
+
+    function setKeeper(address _keeper, bool _active) external onlyOwner {
+        require(_keeper != address(0), "Invalid keeper address");
+        keepers[_keeper] = _active;
+        emit KeeperUpdated(_keeper, _active);
+    }
 
     event SubscriptionPaid(
         address indexed fan,
@@ -83,13 +94,22 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
     event FeeUpdated(uint256 oldFee, uint256 newFee);
     event ReferralFeeUpdated(uint256 oldFee, uint256 newFee);
 
-    constructor(address _platformTreasury, uint256 _platformFeeBps) Ownable(msg.sender) {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _platformTreasury, uint256 _platformFeeBps) public initializer {
         require(_platformTreasury != address(0), "Invalid treasury address");
         require(_platformFeeBps <= 3000, "Fee cannot exceed 30%");
+        __Ownable_init(msg.sender);
+        __Pausable_init();
         platformTreasury = _platformTreasury;
         platformFeeBps = _platformFeeBps;
-        referralFeeBps = 100; // 1% default referral revenue share
+        referralFeeBps = 100;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function pause() external onlyOwner {
         _pause();
@@ -248,7 +268,7 @@ contract PoDMPaymentProtocol is Ownable, Pausable, ReentrancyGuard {
         uint256 amount,
         address referrer,
         uint256 customPlatformFeeBps
-    ) external whenNotPaused nonReentrant returns (bool) {
+    ) external whenNotPaused nonReentrant onlyKeeper returns (bool) {
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
         require(amount > 0 && amount <= allowance.maxAmountPerPeriod, "Amount exceeds allowance");

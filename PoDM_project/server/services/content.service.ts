@@ -63,6 +63,9 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
 
         // 3. Use Sharp to composite the watermark text onto the image
         // Increased font size and opacity for better visibility
+        // Escape XML special characters to prevent SVG injection via username
+        const escapeXml = (str: string) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+        const safeWatermarkText = escapeXml(watermarkText);
         const watermarkedBuffer = await sharp(fileBuffer)
             .composite([{
                 input: Buffer.from(
@@ -70,7 +73,7 @@ const createWatermarkedImage = async (content: Content, fan: User) => {
                         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
                               font-size="10" fill="rgba(255, 255, 255, 0.25)" 
                               font-family="sans-serif" font-weight="bold">
-                            ${watermarkText}
+                            ${safeWatermarkText}
                         </text>
                     </svg>`
                 ),

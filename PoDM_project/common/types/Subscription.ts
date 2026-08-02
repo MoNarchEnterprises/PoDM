@@ -45,6 +45,8 @@ export interface Subscription {
   fan_wallet_address?: string; // Fan's wallet that approved the recurring allowance
   max_allowance?: number; // Max USDC allowance approved by fan (in USDC units, not cents)
   payment_method: PaymentMethod;
+  renewal_attempts?: number; // Number of consecutive failed renewal attempts (0 = healthy)
+  renewal_locked_at?: string | null; // ISO 8601 timestamp when content was locked due to failed renewal
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string
 }

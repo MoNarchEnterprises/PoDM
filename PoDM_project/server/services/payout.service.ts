@@ -4,7 +4,9 @@ import { AppError } from '../middleware/error.middleware';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { getContractConfig, encodeProcessPayout } from '../utils/contract.utils';
 
-const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || '';
+// Key isolation: TREASURY_PRIVATE_KEY must be explicitly configured in production.
+// DO NOT fall back to DEPLOYER_PRIVATE_KEY — it should be in cold storage after deployment.
+const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY || '';
 const MIN_PAYOUT_CENTS = parseInt(process.env.MIN_PAYOUT_CENTS || '1000', 10);
 
 async function getAvailableBalance(creatorId: string): Promise<number> {

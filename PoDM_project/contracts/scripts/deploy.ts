@@ -1,4 +1,4 @@
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 
 async function main() {
   const platformTreasury = process.env.PLATFORM_TREASURY_ADDRESS;
@@ -16,10 +16,14 @@ async function main() {
   console.log('Platform Fee (BPS):', platformFeeBps);
 
   const PoDMPaymentProtocol = await ethers.getContractFactory('PoDMPaymentProtocol');
-  const contract = await PoDMPaymentProtocol.deploy(platformTreasury, platformFeeBps);
-  await contract.waitForDeployment();
+  const proxy = await upgrades.deployProxy(
+      PoDMPaymentProtocol,
+      [platformTreasury, platformFeeBps],
+      { kind: 'uups', unsafeAllow: ['constructor'] }
+  );
+  await proxy.waitForDeployment();
 
-  const contractAddress = await contract.getAddress();
+  const contractAddress = await proxy.getAddress();
   console.log('PoDMPaymentProtocol deployed to:', contractAddress);
 
   const network = await ethers.provider.getNetwork();

@@ -1,3 +1,5 @@
+> **Note**: All Stripe references in this document are historical. PoDM uses crypto-only payments (USDC on Base) as of v2.
+
 # Dependency Map
 
 **Purpose**: Complete inter-module dependency graph for the PoDM platform — trace every import, every call, every external API, every database dependency, and every architectural anomaly across all layers.

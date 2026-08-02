@@ -1,12 +1,16 @@
 import supabase from '../config/supabaseClient';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
-import axios from 'axios';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from '../services/referral.service';
 import { getContractConfig, encodeProcessRenewal } from '../utils/contract.utils';
 
-const KEEPER_PRIVATE_KEY = process.env.KEEPER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || '';
+// --- Key isolation: KEEPER_PRIVATE_KEY must be explicitly set in production ---
+// DO NOT fall back to DEPLOYER_PRIVATE_KEY in production — it should be in cold storage
+const KEEPER_PRIVATE_KEY = process.env.KEEPER_PRIVATE_KEY || '';
+
+// Grace period: max retry attempts before expiring
+const MAX_RENEWAL_ATTEMPTS = 3;
 
 function computeAmountInUSDC(amountInCents: number): string {
     return '0x' + BigInt(Math.round(amountInCents / 100) * 1_000_000).toString(16);
@@ -20,7 +24,7 @@ async function sendRenewalTransaction(
     platformFeeBps: number
 ): Promise<string | null> {
     if (!KEEPER_PRIVATE_KEY || KEEPER_PRIVATE_KEY.length < 64) {
-        console.error('[RenewSubscriptions] KEEPER_PRIVATE_KEY not configured.');
+        console.error('[RenewSubscriptions] KEEPER_PRIVATE_KEY not configured. Set a dedicated keeper wallet for production.');
         return null;
     }
 
@@ -54,6 +58,36 @@ async function sendRenewalTransaction(
     } catch (err) {
         console.error('[RenewSubscriptions] Failed to process renewal:', err);
         return null;
+    }
+}
+
+/**
+ * Lock content access for a subscription that has failed renewal.
+ * Sets renewal_locked_at if not already set, and increments renewal_attempts.
+ * After MAX_RENEWAL_ATTEMPTS, the subscription is fully expired.
+ */
+async function handleFailedRenewal(sub: any): Promise<void> {
+    const currentAttempts = (sub.renewal_attempts || 0) + 1;
+
+    if (currentAttempts >= MAX_RENEWAL_ATTEMPTS) {
+        // Max retries exhausted — expire the subscription
+        console.warn(`[RenewSubscriptions] Sub ${sub.id} failed ${currentAttempts} attempts. Marking expired.`);
+        await SubscriptionModel.updateSubscription(String(sub.id), {
+            status: 'expired',
+            end_date: new Date().toISOString(),
+            renewal_attempts: currentAttempts,
+        });
+    } else {
+        // Lock content access but keep subscription active for retry
+        console.warn(`[RenewSubscriptions] Sub ${sub.id} renewal failed (attempt ${currentAttempts}/${MAX_RENEWAL_ATTEMPTS}). Locking content.`);
+        const updatePayload: Record<string, any> = {
+            renewal_attempts: currentAttempts,
+        };
+        // Only set renewal_locked_at on first failure
+        if (!sub.renewal_locked_at) {
+            updatePayload.renewal_locked_at = new Date().toISOString();
+        }
+        await SubscriptionModel.updateSubscription(String(sub.id), updatePayload);
     }
 }
 
@@ -106,11 +140,12 @@ export async function renewSubscriptions(): Promise<void> {
         );
 
         if (!txHash) {
-            console.warn(`[RenewSubscriptions] Renewal failed for sub ${sub.id}. Marking expired.`);
-            await SubscriptionModel.updateSubscription(String(sub.id), { status: 'expired', end_date: new Date().toISOString() });
+            // Renewal failed — lock content and increment attempts
+            await handleFailedRenewal(sub);
             continue;
         }
 
+        // Success — record transaction and reset grace period
         const transactionPayload: Record<string, any> = {
             fan_id: sub.fan_id,
             creator_id: sub.creator_id,
@@ -132,8 +167,11 @@ export async function renewSubscriptions(): Promise<void> {
             recordReferralFee(referrerId, referralFee);
         }
 
+        // Reset grace period and extend billing date
         await SubscriptionModel.updateSubscription(String(sub.id), {
             next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            renewal_attempts: 0,
+            renewal_locked_at: null,
         });
 
         console.log(`[RenewSubscriptions] Renewed sub ${sub.id}, tx: ${txHash}`);

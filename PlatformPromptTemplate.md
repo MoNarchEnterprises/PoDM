@@ -8,8 +8,8 @@ Create a comprehensive prompt that can be given to an AI model (e.g., GPT, Claud
 ### 1. Project Scope
 - **Goal**: Build a web application where creators can publish content, fans can subscribe, purchase pay‑per‑view (PPV) items, and interact via messages.
 - **Core Modules**:
-  1. **Backend** – Node.js, Express, TypeScript, Supabase (PostgreSQL), Stripe integration, WebSocket (Socket.IO) for real‑time messaging.
-  2. **Frontend** – React, Vite, TypeScript, Tailwind CSS, Stripe Elements, Socket.IO client.
+  1. **Backend** – Node.js, Express, TypeScript, Supabase (PostgreSQL), USDC on Base (PoDMPaymentProtocol smart contract) integration, WebSocket (Socket.IO) for real‑time messaging.
+  2. **Frontend** – React, Vite, TypeScript, Tailwind CSS, Crypto wallet (MetaMask/Coinbase Wallet/Embedded wallet), Socket.IO client.
   3. **Content Delivery** – Media storage (Supabase storage or Cloudflare R2), FFmpeg for video thumbnail generation, watermarking.
   4. **Admin Dashboard** – Analytics, user management, content moderation.
   5. **Creator Dashboard** – Content creation, contest management, messaging, earnings view.
@@ -27,14 +27,14 @@ flowchart LR
         BE[Express + TS]
         DB[(Supabase PostgreSQL)]
         Storage[(Supabase Storage / R2)]
-        Stripe[Stripe API]
+        Blockchain[Base L2 / USDC]
         WS[Socket.IO]
     end
     FE -->|REST API| BE
     FE -->|WebSocket| WS
     BE --> DB
     BE --> Storage
-    BE --> Stripe
+    BE --> Blockchain
     WS --> BE
 ```
 ---
@@ -59,8 +59,8 @@ flowchart LR
 - Attach paid content to messages.
 - **Question**: *Should fans be able to send attachments, or only creators?*
 
-#### 3.5. Payments & Stripe Integration
-- Customer creation, payment intents, 3‑D Secure handling.
+#### 3.5. Payments & USDC on Base (PoDMPaymentProtocol smart contract) Integration
+- Wallet connection, smart contract interactions, transaction verification.
 - **Question**: *Do you need support for multiple currencies?*
 
 #### 3.6. Admin Analytics
@@ -76,8 +76,8 @@ flowchart LR
 ### 4. Tech Stack Summary
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React, Vite, TypeScript, Tailwind CSS, @stripe/react‑stripe‑js, socket.io-client |
-| **Backend** | Node.js, Express, TypeScript, Supabase client, Stripe SDK, socket.io |
+| **Frontend** | React, Vite, TypeScript, Tailwind CSS, socket.io-client |
+| **Backend** | Node.js, Express, TypeScript, Supabase client, ethers.js v6, socket.io |
 | **Database** | Supabase (PostgreSQL) |
 | **Storage** | Supabase Storage (or Cloudflare R2) |
 | **Media Tools** | FFmpeg, Sharp |
@@ -98,7 +98,7 @@ You are an AI software engineer tasked with building a **PoDM‑style creator‑
 3. Fan dashboard (subscriptions, PPV, messaging)
 4. Admin analytics (revenue, top creators, custom date ranges)
 5. Real‑time messaging (Socket.IO, attach paid content?)
-6. Payments (Stripe integration, multi‑currency?)
+6. Payments (USDC on Base (PoDMPaymentProtocol smart contract) integration, multi‑currency?)
 7. Media processing (FFmpeg thumbnails, optional watermarking?)
 
 **Technical Stack**:
@@ -106,7 +106,7 @@ You are an AI software engineer tasked with building a **PoDM‑style creator‑
 - Backend: Node.js + Express + TypeScript
 - Database: Supabase (PostgreSQL)
 - Storage: Supabase Storage (or Cloudflare R2)
-- Payments: Stripe
+- Payments: USDC on Base (PoDMPaymentProtocol smart contract)
 - Real‑time: Socket.IO
 - Media: FFmpeg, Sharp
 
@@ -130,7 +130,7 @@ You are an AI software engineer tasked with building a **PoDM‑style creator‑
 2. Set up Supabase project, create tables for users, creators, fans, content, subscriptions, contests, messages, transactions.
 3. Implement authentication flow.
 4. Build core APIs (content CRUD, subscription management, contest entry, messaging endpoints).
-5. Wire Stripe payment intents and webhook handling.
+5. Wire USDC on Base (PoDMPaymentProtocol smart contract) smart contract interactions and event listening.
 6. Create React pages for creator and fan dashboards.
 7. Add Socket.IO client/server integration for real‑time chat.
 8. Implement admin analytics UI.

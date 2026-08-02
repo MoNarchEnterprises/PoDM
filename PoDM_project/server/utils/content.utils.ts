@@ -151,7 +151,9 @@ export const enrichContentWithUnlockStatus = async (contentList: any[], viewerId
 
     // console.log("[ContentUtils] activeSubs: ", activeSubs);
     // console.log("[ContentUtils] transactions: ", transactions);
-    const subscribedCreatorIds = new Set(activeSubs?.map((sub: any) => String(sub.creator_id)));
+    // Filter out subscriptions with failed renewal (content locked until renewal succeeds)
+    const unlockedSubs = activeSubs?.filter((sub: any) => !sub.renewal_locked_at) || [];
+    const subscribedCreatorIds = new Set(unlockedSubs.map((sub: any) => String(sub.creator_id)));
     // console.log("[ContentUtils] subscribedCreatorIds: ", Array.from(subscribedCreatorIds));
 
     // 2b. Build a map of creator IDs to the fan's tier level for that creator

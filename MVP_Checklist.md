@@ -18,7 +18,7 @@
     - [x] Watermarking (Backend logic)
     - [x] Content Moderation Panel
 - [x] **Subscriptions & Payments**
-    - [x] Stripe Integration (Connect, PaymentIntents)
+    - [x] ~~Stripe Integration (Connect, PaymentIntents)~~ [REMOVED — crypto-only]
     - [x] Subscription Tiers
     - [x] Tipping
     - [x] Pay-Per-View (PPV)
@@ -49,5 +49,5 @@
     - [x] Loading States
 
 ## 5. Known Issues / Blockers
-- **Stripe Webhooks**: Signature verification is currently bypassed for local development due to a persistent environment mismatch. The endpoint is functional and ready for production with proper secret configuration.
+- ~~**Stripe Webhooks**: Signature verification is currently bypassed for local development due to a persistent environment mismatch. The endpoint is functional and ready for production with proper secret configuration.~~ [REMOVED — crypto-only]
 - **E2E Login Test**: The form accessibility is fully working (2/3 tests passing), but the actual authentication flow test times out. This may be due to backend authentication configuration or CORS issues. The core accessibility requirement is met.

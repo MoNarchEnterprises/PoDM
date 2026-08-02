@@ -1,3 +1,5 @@
+> **Note**: All Stripe references in this document are historical. PoDM uses crypto-only payments (USDC on Base) as of v2.
+
 # Repository Inventory
 
 **Purpose**: Complete inventory of every file, module, service, controller, model, route, component, configuration, and integration in the PoDM platform.

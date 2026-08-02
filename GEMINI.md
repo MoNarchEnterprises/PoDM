@@ -9,7 +9,7 @@ The project is structured as a monorepo with two main parts:
 *   **Backend (`PoDM_project`):** A Node.js application using Express and TypeScript. It handles business logic, API endpoints, and database interactions.
 *   **Frontend (`podm-frontend`):** A React application built with Vite and TypeScript. It provides the user interface for fans, creators, and administrators.
 
-The database is powered by Supabase (PostgreSQL), and payments are handled through Stripe.
+The database is powered by Supabase (PostgreSQL), and payments are handled through USDC on Base (EVM blockchain) via the PoDMPaymentProtocol smart contract, with Coinbase On-Ramp for fiat-to-crypto conversion.
 
 ## Building and Running
 

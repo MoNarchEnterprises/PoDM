@@ -1,16 +1,19 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import { time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 
 describe('PoDMPaymentProtocol', function () {
   async function deployFixture() {
     const [owner, treasury, creator, fan] = await ethers.getSigners();
-
     const PoDMPaymentProtocol = await ethers.getContractFactory('PoDMPaymentProtocol');
-    const contract = await PoDMPaymentProtocol.deploy(treasury.address, 1250);
-    await contract.waitForDeployment();
-    const contractAddress = await contract.getAddress();
-
+    const proxy = await upgrades.deployProxy(
+        PoDMPaymentProtocol,
+        [treasury.address, 1250],
+        { kind: 'uups', unsafeAllow: ['constructor'] }
+    );
+    await proxy.waitForDeployment();
+    const contract = PoDMPaymentProtocol.attach(await proxy.getAddress()) as any;
+    const contractAddress = await proxy.getAddress();
     return { contract, contractAddress, owner, treasury, creator, fan };
   }
 
@@ -99,7 +102,7 @@ describe('PoDMPaymentProtocol', function () {
 
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
       await expect(
-        contract.connect(fan).processRenewal(
+        contract.processRenewal(
           ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Renewal period has not elapsed');
@@ -114,7 +117,7 @@ describe('PoDMPaymentProtocol', function () {
       const excessive = ethers.parseUnits('10', 6);
 
       await expect(
-        contract.connect(fan).processRenewal(
+        contract.processRenewal(
           ethers.ZeroAddress, fan.address, creator.address, excessive, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Amount exceeds allowance');
@@ -276,6 +279,99 @@ describe('PoDMPaymentProtocol', function () {
       // Full 10% stays with treasury when no referrer
       expect(await usdc.balanceOf(treasury.address)).to.equal(1000000n);
       expect(await usdc.balanceOf(creator.address)).to.equal(9000000n);
+    });
+  });
+  describe('Keeper Management', function () {
+    it('should allow owner to set a keeper', async () => {
+        const { contract, fan } = await deployFixture();
+        await contract.setKeeper(fan.address, true);
+        expect(await contract.keepers(fan.address)).to.equal(true);
+    });
+
+    it('should reject non-owner setting a keeper', async () => {
+        const { contract, fan, creator } = await deployFixture();
+        await expect(contract.connect(fan).setKeeper(creator.address, true)).to.be.reverted;
+    });
+
+    it('should reject zero address as keeper', async () => {
+        const { contract } = await deployFixture();
+        await expect(contract.setKeeper(ethers.ZeroAddress, true)).to.be.revertedWith('Invalid keeper address');
+    });
+
+    it('should allow owner to revoke a keeper', async () => {
+        const { contract, fan } = await deployFixture();
+        await contract.setKeeper(fan.address, true);
+        await contract.setKeeper(fan.address, false);
+        expect(await contract.keepers(fan.address)).to.equal(false);
+    });
+  });
+
+  describe('processRenewal access control', function () {
+    it('should reject processRenewal from non-keeper', async () => {
+        const { contract, creator, fan } = await deployFixture();
+        const amount = ethers.parseUnits('10', 6);
+        const period = 30 * 24 * 60 * 60;
+        await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
+        
+        // Try calling processRenewal from a random address (not keeper, not owner)
+        const [,,, , randomUser] = await ethers.getSigners();
+        await expect(
+            contract.connect(randomUser).processRenewal(
+                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+            )
+        ).to.be.revertedWith('Not authorized keeper');
+    });
+
+    it('should allow owner to call processRenewal', async () => {
+        const { contract, creator, fan } = await deployFixture();
+        const amount = ethers.parseUnits('10', 6);
+        const period = 24 * 60 * 60; // 1 day
+        await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
+        
+        await time.increase(period + 1);
+
+        // Owner should pass the keeper check (will fail on ERC20 transfer but NOT on access control)
+        await expect(
+            contract.processRenewal(
+                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+            )
+        ).to.not.be.revertedWith('Not authorized keeper');
+    });
+
+    it('should allow registered keeper to call processRenewal', async () => {
+        const { contract, creator, fan } = await deployFixture();
+        const [,,,,keeperUser] = await ethers.getSigners();
+        await contract.setKeeper(keeperUser.address, true);
+        const amount = ethers.parseUnits('10', 6);
+        const period = 24 * 60 * 60;
+        await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
+        
+        await time.increase(period + 1);
+
+        // Keeper should pass the keeper check
+        await expect(
+            contract.connect(keeperUser).processRenewal(
+                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+            )
+        ).to.not.be.revertedWith('Not authorized keeper');
+    });
+  });
+
+  describe('UUPS Upgradeability', function () {
+    it('should be upgradeable by owner', async () => {
+        const { contract } = await deployFixture();
+        const PoDMV2 = await ethers.getContractFactory('PoDMPaymentProtocol');
+        // This just verifies the upgrade mechanism works
+        const upgraded = await upgrades.upgradeProxy(await contract.getAddress(), PoDMV2, { unsafeAllow: ['constructor'] });
+        expect(await upgraded.getAddress()).to.equal(await contract.getAddress());
+    });
+
+    it('should reject upgrade by non-owner', async () => {
+        const { contract, fan } = await deployFixture();
+        const PoDMV2 = await ethers.getContractFactory('PoDMPaymentProtocol', fan);
+        await expect(
+            upgrades.upgradeProxy(await contract.getAddress(), PoDMV2, { unsafeAllow: ['constructor'] })
+        ).to.be.reverted;
     });
   });
 });
