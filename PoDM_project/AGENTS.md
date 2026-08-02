@@ -6,10 +6,10 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 ## Ownership
 
-- All `/api/v1/*` REST endpoints (auth, users, creator, content, subscriptions, messages, payments/crypto, admin, analytics, support, ai, notifications, contests, enclave, referrals, wallet, feature-flags)
-- Business logic in `/server/services/` (21 service modules)
+- All `/api/v1/*` REST endpoints (auth, users, creator, content, subscriptions, messages, payments/crypto, payments/onramp, wallet/embeddedWallet, admin, analytics, support, ai, notifications, contests, enclave, referrals, feature-flags, health) — 19 route files, ~115 endpoints
+- Business logic in `/server/services/` (26 service modules)
 - Data models and DB interfaces in `/server/models/` (13 models)
-- Express middleware: auth, error, upload, validation, rateLimiter, sanitize
+- Express middleware: auth, error, upload, validation, rateLimiter, sanitize, requestId
 - Database migrations (`/migrations/`) and seed scripts
 - Supabase PostgreSQL client config
 - Cloudflare R2 storage client config
@@ -78,7 +78,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 - `npm test` — Jest with ts-jest (unit + integration tests in `/server/tests/`)
 - CI pipeline (`.github/workflows/ci.yml`) runs tests on push/PR to main/master
-- Existing tests: `auth.controller.test.ts`, `integration/auth.integration.test.ts`, `integration/ppv_subscription.test.ts`
+- Existing tests: `auth.controller.test.ts`, `admin.ai_settings.test.ts`, `commission.utils.test.ts`, `content_gallery_fix.test.ts`, `paymaster.test.ts`, `integration/auth.integration.test.ts`, `integration/ppv_subscription.test.ts`
 
 ## Child DOX Index
 

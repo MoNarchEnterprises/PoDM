@@ -8,7 +8,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 
 - All React UI components and pages
 - Feature modules: auth, fan, creator, admin, profile, viewer, messages, contests, enclave
-- Reusable components: `components/ui/` (primitives), `components/layout/` (shell), `components/shared/` (domain)
+- Reusable components: `components/ui/` (primitives), `components/layout/` (shell), `components/shared/` (18 domain components incl. PaymentModal, EmbeddedPaymentModal, OnRampButton)
 - Routing and lazy loading via React Router v7
 - API client (`src/lib/apiClient.ts`) — all frontend-to-backend communication
 - Socket.IO client for real-time messaging
@@ -36,7 +36,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **HTTP client**: Axios (wrapped in `apiClient.ts`). 401 response interceptor performs single-flight `POST /auth/refresh` with `withCredentials: true` before retrying original request or executing logout flow. `socket.ts` provides `refreshSocketToken()` helper for live WebSocket re-authentication with updated access tokens.
 - **Organization**: Feature-based (`src/features/{feature}/`); components split into `ui/`, `layout/`, `shared/`
 - **Component style**: Functional components with hooks; TypeScript strict
-- **API calls**: Centralized in `src/lib/apiClient.ts` (~800 lines); use `api(method, url, data?, config?)` helper for single-line calls that unwrap `response.data`; keep `apiClient.get/post/put/delete` for requests needing custom config or multi-step logic
+- **API calls**: Centralized in `src/lib/apiClient.ts` (872 lines); use `api(method, url, data?, config?)` helper for single-line calls that unwrap `response.data`; keep `apiClient.get/post/put/delete` for requests needing custom config or multi-step logic
 - **Data fetching pattern**: `useAsyncData<T>(fetchFn, deps, opts?)` hook eliminates `useState/useEffect/isLoading/error` boilerplate; `useAsyncAction()` for mutation loading states; `useFeedback()` for auto-clearing success/error messages
 - **Build output**: `dist/` (Vite default)
 
@@ -54,7 +54,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - Shared/domain components go in `src/components/shared/` (SettingsCard, ToggleSwitch, ConfirmModal, ConversationListItem)
 - Primitive UI components go in `src/components/ui/`
 - Layout shell components go in `src/components/layout/`
-- Custom hooks go in `src/hooks/` (or `src/shared/hooks/` for cross-feature: useAsyncData, useFeedback, useAsyncAction)
+- Custom hooks go in `src/hooks/` (feature-level: useAuth, useCreatorData, useModal, useOnClickOutside, useVoiceRecorder) or `src/shared/hooks/` (cross-feature: useAsyncData/useFeedback/useAsyncAction, useCryptoPayment, useCryptoWallet, useFeatureFlag, useFormSubmission)
 - API calls go through `src/lib/apiClient.ts` — do not use raw Axios elsewhere; prefer `api()` helper for simple calls
 - Auth guards: use `withAuthGuard(Component, requiredRole?)` HOC instead of inline role checks
 - Status badges: use `statusBadgeMap` from `src/lib/statusBadgeMap.ts` instead of inline color mappings
