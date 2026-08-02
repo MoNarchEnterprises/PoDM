@@ -83,4 +83,41 @@ describe('Auth Controller', () => {
             });
         });
     });
+
+    describe('refreshSession', () => {
+        it('should return 200 and updated tokens when refresh is successful', async () => {
+            req.cookies = { authRefreshToken: 'mock-refresh-token' };
+            const mockUser = { id: '1', email: 'test@example.com', role: 'fan' };
+            const mockToken = 'new-access-token';
+            const mockRefreshToken = 'rotated-refresh-token';
+
+            (AuthService.refreshUserSession as jest.Mock).mockResolvedValue({
+                user: mockUser,
+                token: mockToken,
+                refreshToken: mockRefreshToken
+            });
+
+            await AuthController.refreshSession(req as Request, res as Response, next);
+
+            expect(AuthService.refreshUserSession).toHaveBeenCalledWith('mock-refresh-token');
+            expect(res.cookie).toHaveBeenCalledWith('authToken', mockToken, expect.any(Object));
+            expect(res.cookie).toHaveBeenCalledWith('authRefreshToken', mockRefreshToken, expect.any(Object));
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                message: "Session refreshed successfully.",
+                data: { user: mockUser, token: mockToken, refreshToken: mockRefreshToken }
+            });
+        });
+
+        it('should call next with 401 error if no refresh token provided', async () => {
+            req.cookies = {};
+            req.body = {};
+
+            await AuthController.refreshSession(req as Request, res as Response, next);
+            await new Promise(resolve => process.nextTick(resolve));
+
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
+        });
+    });
 });

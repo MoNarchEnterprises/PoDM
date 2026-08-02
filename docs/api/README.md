@@ -12,13 +12,14 @@
 | POST | `/auth/signup` | `signup` | — |
 | POST | `/auth/forgot-password` | `forgotPassword` | — |
 | POST | `/auth/login` | `login` | — |
+| POST | `/auth/refresh` | `refreshSession` | — |
 | POST | `/auth/logout` | `logout` | — |
 | GET | `/auth/me` | `getMe` | `protect` |
 | PUT | `/auth/change-password` | `changePassword` | `protect` |
 
 **File**: `auth.routes.ts`  
 **Controller**: `auth.controller`  
-**7 endpoints**
+**8 endpoints**
 
 ## Users — `/users`
 

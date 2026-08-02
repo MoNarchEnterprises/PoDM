@@ -58,12 +58,12 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     logAuthDebug(`--- New Request: ${req.method} ${req.path} ---`);
     let token: string | undefined;
 
-    if (req.cookies?.authToken) {
-        token = req.cookies.authToken;
-        logAuthDebug('Token found in HttpOnly cookie.');
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
         logAuthDebug('Token found in header.');
+    } else if (req.cookies?.authToken) {
+        token = req.cookies.authToken;
+        logAuthDebug('Token found in HttpOnly cookie.');
     }
 
     if (token) {

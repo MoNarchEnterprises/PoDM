@@ -91,7 +91,11 @@ export const signupAndSubscribe = async (
         const fullUser = await UserModel.findUserById(userId);
         if (!fullUser) throw new AppError('Could not retrieve final user profile.', 500);
 
-        return { user: reshapeUserForApp(fullUser), token: authData.session?.access_token };
+        return {
+            user: reshapeUserForApp(fullUser),
+            token: authData.session?.access_token,
+            refreshToken: authData.session?.refresh_token
+        };
 
     } catch (error) {
         // --- CRITICAL CLEANUP ---
@@ -205,6 +209,7 @@ export const signupUser = async (email: string, password: string, username: stri
 
     // **FIX:** Use the session token directly from Supabase
     const token = authData.session?.access_token;
+    const refreshToken = authData.session?.refresh_token;
     if (!token) {
         throw new AppError('Could not create a session token for the new user.', 500);
     }
@@ -214,7 +219,7 @@ export const signupUser = async (email: string, password: string, username: stri
     }
 
     const userForFrontend = reshapeUserForApp(fullProfile);
-    return { user: userForFrontend, token };
+    return { user: userForFrontend, token, refreshToken };
 };
 
 /**
@@ -234,11 +239,12 @@ export const loginUser = async (email: string, password: string) => {
     if (!userProfile) throw new AppError('Could not find user profile.', 404);
 
     const token = data.session.access_token;
+    const refreshToken = data.session.refresh_token;
 
     // Reshaping is still needed, but it's now a single, clean step
     const userForFrontend = reshapeUserForApp(userProfile);
 
-    return { user: userForFrontend, token };
+    return { user: userForFrontend, token, refreshToken };
 };
 
 /**
@@ -297,5 +303,30 @@ export const requestPasswordReset = async (email: string) => {
 
     // The function resolves successfully regardless of whether the email existed.
     return;
+};
+
+/**
+ * Refreshes an expired access token using a valid Supabase refresh token.
+ */
+export const refreshUserSession = async (refreshToken: string) => {
+    const { data, error } = await authSupabase.auth.refreshSession({
+        refresh_token: refreshToken,
+    });
+
+    if (error || !data.user || !data.session) {
+        throw new AppError('Invalid or expired refresh token.', 401);
+    }
+
+    const userProfile = await findUserById(data.user.id);
+    if (!userProfile) {
+        throw new AppError('Could not find user profile.', 404);
+    }
+
+    const userForFrontend = reshapeUserForApp(userProfile);
+    return {
+        user: userForFrontend,
+        token: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+    };
 };
 

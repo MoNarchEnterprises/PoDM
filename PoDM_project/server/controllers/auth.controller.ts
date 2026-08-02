@@ -9,35 +9,40 @@ import { ok, created, okMsg, createdMsg } from '../utils/response';
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
+    sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 };
 
-const setAuthCookie = (res: Response, token?: string) => {
-    if (token && typeof res.cookie === 'function') {
-        res.cookie('authToken', token, COOKIE_OPTIONS);
+const setAuthCookies = (res: Response, token?: string, refreshToken?: string) => {
+    if (typeof res.cookie === 'function') {
+        if (token) {
+            res.cookie('authToken', token, COOKIE_OPTIONS);
+        }
+        if (refreshToken) {
+            res.cookie('authRefreshToken', refreshToken, COOKIE_OPTIONS);
+        }
     }
 };
 
 export const signupAndSubscribe = asyncHandler(async (req: Request, res: Response) => {
     const { email, password, fullName, creatorId, tierId, paymentMethodId } = req.body;
 
-    const { user, token } = await AuthService.signupAndSubscribe(
+    const { user, token, refreshToken } = await AuthService.signupAndSubscribe(
         email, password, fullName, creatorId, tierId, paymentMethodId
     );
 
-    setAuthCookie(res, token);
-    createdMsg(res, "User created and subscribed successfully.", { user, token });
+    setAuthCookies(res, token, refreshToken);
+    createdMsg(res, "User created and subscribed successfully.", { user, token, refreshToken });
 });
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password, username, role, referralCode } = req.body;
 
-        const { user, token } = await AuthService.signupUser(email, password, username, role as UserRole, referralCode);
+        const { user, token, refreshToken } = await AuthService.signupUser(email, password, username, role as UserRole, referralCode);
 
-        setAuthCookie(res, token);
-        createdMsg(res, "User registered successfully.", { user, token });
+        setAuthCookies(res, token, refreshToken);
+        createdMsg(res, "User registered successfully.", { user, token, refreshToken });
     } catch (error: any) {
         console.error('--- DETAILED SIGNUP ERROR ---');
         console.error('Message:', error.message);
@@ -56,14 +61,27 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
         throw new AppError('Please provide an email and password.', 400);
     }
 
-    const { user, token } = await AuthService.loginUser(email, password);
-    setAuthCookie(res, token);
-    okMsg(res, "User logged in successfully.", { user, token });
+    const { user, token, refreshToken } = await AuthService.loginUser(email, password);
+    setAuthCookies(res, token, refreshToken);
+    okMsg(res, "User logged in successfully.", { user, token, refreshToken });
+});
+
+export const refreshSession = asyncHandler(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.authRefreshToken || req.body?.refreshToken;
+
+    if (!refreshToken) {
+        throw new AppError('No refresh token provided.', 401);
+    }
+
+    const { user, token, refreshToken: newRefreshToken } = await AuthService.refreshUserSession(refreshToken);
+    setAuthCookies(res, token, newRefreshToken);
+    okMsg(res, "Session refreshed successfully.", { user, token, refreshToken: newRefreshToken });
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
     if (typeof res.clearCookie === 'function') {
         res.clearCookie('authToken', COOKIE_OPTIONS);
+        res.clearCookie('authRefreshToken', COOKIE_OPTIONS);
     }
     okMsg(res, "User logged out successfully.");
 });

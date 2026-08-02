@@ -27,8 +27,15 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     if (req.body) {
         req.body = sanitizeValue(req.body);
     }
+    // Express 5 defines req.query as a getter-only property (re-parsed on each
+    // access). Assignment throws; override it with a sanitized snapshot instead.
     if (req.query) {
-        req.query = sanitizeValue(req.query);
+        Object.defineProperty(req, 'query', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: sanitizeValue(req.query),
+        });
     }
     if (req.params) {
         req.params = sanitizeValue(req.params);

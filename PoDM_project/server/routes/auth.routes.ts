@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // --- Import Controllers ---
 // We will create these controller functions in the next step
-import { signup, login, logout, getMe, changePassword, forgotPassword, signupAndSubscribe } from '../controllers/auth.controller';
+import { signup, login, logout, getMe, changePassword, forgotPassword, signupAndSubscribe, refreshSession } from '../controllers/auth.controller';
 import { protect } from '../middleware/auth.middleware';
 
 console.log('✅ auth.routes.ts file has been loaded and is running.');
@@ -37,6 +37,13 @@ router.post('/forgot-password', forgotPassword);
  * @access  Public
  */
 router.post('/login', login);
+
+/**
+ * @route   POST /api/v1/auth/refresh
+ * @desc    Refresh an expired access token using a refresh token cookie or body
+ * @access  Public
+ */
+router.post('/refresh', refreshSession);
 
 /**
  * @route   POST /api/v1/auth/logout

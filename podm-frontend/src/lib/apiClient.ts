@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { User, UserRole, UserProfile } from '@common/types/User';
+import { Content } from '@common/types/Content';
+import { refreshSocketToken } from './socket';
 
 // --- Configuration ---
 interface GetContentParams {
@@ -31,6 +33,45 @@ const apiClient = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+// --- Single-Flight Token Refresh ---
+let refreshPromise: Promise<string> | null = null;
+
+export const performTokenRefresh = async (): Promise<string> => {
+    if (!refreshPromise) {
+        refreshPromise = (async () => {
+            try {
+                // Request refresh token exchange from backend.
+                // HttpOnly cookie 'authRefreshToken' will be sent automatically via withCredentials: true.
+                const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+                const token = response.data?.data?.token || response.data?.token;
+                if (!token) {
+                    throw new Error('No access token returned from refresh endpoint.');
+                }
+
+                // Update storage in whichever storage tier previously stored authToken
+                if (localStorage.getItem('authToken')) {
+                    localStorage.setItem('authToken', token);
+                } else if (sessionStorage.getItem('authToken')) {
+                    sessionStorage.setItem('authToken', token);
+                } else {
+                    localStorage.setItem('authToken', token);
+                }
+
+                // Update default header for future requests
+                apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+                // Re-authenticate active WebSockets if connected
+                refreshSocketToken();
+
+                return token;
+            } finally {
+                refreshPromise = null;
+            }
+        })();
+    }
+    return refreshPromise;
+};
 
 // --- Interceptors ---
 
@@ -91,7 +132,7 @@ apiClient.interceptors.response.use(
         // If the response is successful (status 2xx), just return it.
         return response;
     },
-    (error) => {
+    async (error) => {
         // Determine the error message
         let errorMessage = 'An unexpected error occurred';
 
@@ -101,29 +142,55 @@ apiClient.interceptors.response.use(
             errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
 
             if (error.response?.status === 401) {
-                // Check if the request explicitly asked to skip auth redirect
-                // We cast config to any because 'skipAuthRedirect' is a custom property
-                if ((error.config as any)?.skipAuthRedirect) {
+                const originalRequest = error.config;
+
+                // Check if the request explicitly asked to skip auth redirect or is the refresh endpoint itself
+                if (originalRequest?.skipAuthRedirect || originalRequest?.url?.includes('/auth/refresh')) {
                     return Promise.reject(error);
                 }
 
-                // Handle unauthorized errors, e.g., redirect to login
-                console.error("Unauthorized request. Redirecting to login.");
-                localStorage.removeItem('authToken');
-                sessionStorage.removeItem('authToken');
-                errorMessage = "Your session has expired. Please log in again.";
+                // If request was already retried, perform full logout flow
+                if (originalRequest?._retry) {
+                    console.error("Unauthorized request after refresh retry. Redirecting to login.");
+                    localStorage.removeItem('authToken');
+                    sessionStorage.removeItem('authToken');
+                    errorMessage = "Your session has expired. Please log in again.";
 
-                // Call the registered error handler if it exists
-                if (errorHandlerCallback) {
-                    errorHandlerCallback(errorMessage, 'error');
+                    if (errorHandlerCallback) {
+                        errorHandlerCallback(errorMessage, 'error');
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+
+                    return Promise.reject(error);
                 }
 
-                // Delay redirect to allow toast to show
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
+                // Mark request as retried
+                originalRequest._retry = true;
 
-                return Promise.reject(error);
+                try {
+                    const newToken = await performTokenRefresh();
+                    originalRequest.headers = originalRequest.headers || {};
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    return apiClient(originalRequest);
+                } catch (refreshErr) {
+                    console.error("Silent token refresh failed. Redirecting to login.");
+                    localStorage.removeItem('authToken');
+                    sessionStorage.removeItem('authToken');
+                    errorMessage = "Your session has expired. Please log in again.";
+
+                    if (errorHandlerCallback) {
+                        errorHandlerCallback(errorMessage, 'error');
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+
+                    return Promise.reject(error);
+                }
             }
         } else if (error.request) {
             // The request was made but no response was received
@@ -165,13 +232,14 @@ interface AuthResponse {
 /**
  * Sends a signup request to the backend.
  */
-export const signup = async (username: string, email: string, password: string, role: UserRole) => {
+export const signup = async (username: string, email: string, password: string, role: UserRole, referralCode?: string) => {
     console.log("API Client: Signing up user with role:", role);
     const response = await apiClient.post<AuthResponse>('/auth/signup', {
         username,
         email,
         password,
         role,
+        referralCode,
     });
     return response.data;
 };
@@ -195,6 +263,17 @@ export const forgotPassword = (email: string) =>
  */
 export const getMe = () =>
     api<AuthResponse>('get', '/auth/me');
+
+/**
+ * Sends a logout request to the backend to clear server-side HttpOnly cookies.
+ */
+export const logout = () =>
+    api<{ success: boolean; message: string }>('post', '/auth/logout', {}, { skipAuthRedirect: true });
+
+/**
+ * Triggers a token refresh using the HttpOnly refresh token cookie.
+ */
+export const refreshToken = () => performTokenRefresh();
 
 /**
  * Sends a request to update the current user's profile information.
@@ -464,7 +543,7 @@ export const getMyConversations = () =>
  * @param fanId - The ID of the target fan.
  */
 export const getAttachableVaultContent = (fanId: string) =>
-    api<Content[]>('get', `/messages/fans/${fanId}/attachable-content`);
+    api<{ success: boolean; message?: string; data: Content[] }>('get', `/messages/fans/${fanId}/attachable-content`);
 
 /**
  * Fetches all messages for a specific conversation.

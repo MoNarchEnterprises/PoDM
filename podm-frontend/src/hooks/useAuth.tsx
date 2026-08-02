@@ -158,10 +158,10 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const signup = async (username: string, email: string, password: string, userType: UserRole) => {
+    const signup = async (username: string, email: string, password: string, userType: UserRole, referralCode?: string) => {
         try {
             // The API returns { success, data: { user, token } }
-            const response = await api.signup(username, email, password, userType);
+            const response = await api.signup(username, email, password, userType, referralCode);
             localStorage.setItem('authToken', response.data.token);
             setUser(response.data.user);
         } catch (error) {
@@ -172,12 +172,14 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
 
     const logout = () => {
         setUser(null);
+        setImpersonatedUser(null);
         setPaymentMethod(null);
         localStorage.removeItem('authToken');
         sessionStorage.removeItem('authToken');
         localStorage.removeItem('impersonating_user_id');
         sessionStorage.removeItem('impersonating_user_id');
-        // Add Supabase sign out for consistency
+        // Clear server-side HttpOnly cookies
+        api.logout().catch((err) => console.warn("Backend logout cookie clear failed:", err));
         supabase.auth.signOut();
         navigate('/');
     };

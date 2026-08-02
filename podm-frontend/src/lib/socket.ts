@@ -15,3 +15,10 @@ export const socket = io(SOCKET_URL, {
         cb({ token: localStorage.getItem('authToken') || sessionStorage.getItem('authToken') });
     }
 });
+
+export const refreshSocketToken = () => {
+    if (socket.connected) {
+        socket.disconnect();
+        socket.connect();
+    }
+};

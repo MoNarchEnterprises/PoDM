@@ -37,7 +37,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - **Browser Wallet UI**: MetaMask/Coinbase Wallet flow hits the contract directly — `useCryptoPayment` hook and `PaymentModal` perform `USDC.approve(contract, MAX_UINT256)` then `payX(...)` (one-time approve, then single-click)
 - **Storage**: Cloudflare R2 (S3-compatible) via AWS SDK v3
 - **Real-time**: Socket.IO v4
-- **Auth**: JWT with `HttpOnly; SameSite=Lax` cookie + `Authorization: Bearer` header fallback. `optionalProtect` (public routes) never fails on a present-but-invalid/expired token — it continues as a guest so stale browser tokens can't break public pages.
+- **Auth**: JWT with `HttpOnly` `authToken` & `authRefreshToken` cookies (`SameSite=Lax` in dev, `SameSite=None; Secure` in prod) + `Authorization: Bearer` header fallback. `POST /api/v1/auth/refresh` exchanges refresh token cookie for renewed session tokens. `protect` middleware prefers `Authorization` header over cookie token. `optionalProtect` (public routes) never fails on a present-but-invalid/expired token — it continues as a guest so stale browser tokens can't break public pages.
 - **Body Limits**: `express.json` limited to 10MB for API endpoints; media uploads stream up to 1GB via Multer `uploadContent`
 - **AI**: OpenAI SDK with multi-provider support (`openrouter`, `nvidia`, `openai`). Dynamic provider (`ai_provider`) and model (`ai_model_id`) resolution order: 1) DB `platform_settings`, 2) `AI_MODEL_ID` env var, 3) provider default model. API keys loaded exclusively from `.env` (`AI_API_KEY`/`OPENROUTER_API_KEY`, `NVIDIA_API_KEY`, `OPENAI_API_KEY`).
 - **Media**: `sharp` (images), `fluent-ffmpeg` (video), watermarking

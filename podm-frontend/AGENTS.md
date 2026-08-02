@@ -33,7 +33,7 @@ Client-facing user interface for audience, creators, and administrators on the P
 - **Feature Flags**: `useFeatureFlag` hook with env kill switch (`VITE_ENABLE_EMBEDDED_WALLET`) + backend flag resolution
 - **Charts**: Recharts 3
 - **Icons**: Lucide React
-- **HTTP client**: Axios (wrapped in `apiClient.ts`)
+- **HTTP client**: Axios (wrapped in `apiClient.ts`). 401 response interceptor performs single-flight `POST /auth/refresh` with `withCredentials: true` before retrying original request or executing logout flow. `socket.ts` provides `refreshSocketToken()` helper for live WebSocket re-authentication with updated access tokens.
 - **Organization**: Feature-based (`src/features/{feature}/`); components split into `ui/`, `layout/`, `shared/`
 - **Component style**: Functional components with hooks; TypeScript strict
 - **API calls**: Centralized in `src/lib/apiClient.ts` (~800 lines); use `api(method, url, data?, config?)` helper for single-line calls that unwrap `response.data`; keep `apiClient.get/post/put/delete` for requests needing custom config or multi-step logic
