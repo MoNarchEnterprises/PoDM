@@ -2,18 +2,24 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 
-// --- Load Environment Variables ---
-// --- Load Environment Variables ---
-const envPath = path.resolve(__dirname, '.env');
-const parentEnvPath = path.resolve(__dirname, '../.env'); // In case running from dist/server or server/
+const envPaths = [
+    path.resolve(process.cwd(), 'server/.env'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(__dirname, '.env'),
+    path.resolve(__dirname, '../.env'),
+    path.resolve(__dirname, '../../server/.env'),
+];
 
-if (fs.existsSync(envPath)) {
-    console.log(`Loading .env from ${envPath}`);
-    dotenv.config({ path: envPath });
-} else if (fs.existsSync(parentEnvPath)) {
-    console.log(`Loading .env from ${parentEnvPath}`);
-    dotenv.config({ path: parentEnvPath });
-} else {
+let loadedEnv = false;
+for (const p of envPaths) {
+    if (fs.existsSync(p)) {
+        console.log(`Loading .env from ${p}`);
+        dotenv.config({ path: p });
+        loadedEnv = true;
+        break;
+    }
+}
+if (!loadedEnv) {
     console.warn("WARNING: No .env file found in server directory or parent.");
 }
 

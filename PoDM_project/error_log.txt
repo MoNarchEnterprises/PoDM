@@ -1,6 +1,6 @@
 {
-  "message": "TypeError: fetch failed",
-  "details": "TypeError: fetch failed\n\nCaused by: AggregateError:  (EACCES)\nAggregateError: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)",
-  "hint": "",
-  "code": ""
+  "code": "23502",
+  "details": "Failing row contains (162, null, Integration Test PPV, Test Description, video, [{\"url\": \"test.mp4\", \"type\": \"video/mp4\", \"thumbnailUrl\": \"thumb..., pay_per_view, 500, null, null, null, published, 2026-08-10 10:36:38.203276+00, 2026-08-10 10:36:38.203276+00, 1).",
+  "hint": null,
+  "message": "null value in column \"creator_id\" of relation \"content\" violates not-null constraint"
 }

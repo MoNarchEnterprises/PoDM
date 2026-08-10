@@ -1,11 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Creator Workflow', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, request }) => {
         // Listen for console logs
         page.on('console', msg => console.log(`[Browser Console] ${msg.text()}`));
         page.on('pageerror', err => console.log(`[Browser Error] ${err.message}`));
         page.on('requestfailed', request => console.log(`[Request Failed] ${request.url()} ${request.failure()?.errorText}`));
+
+        // Ensure creator account exists
+        await request.post('http://localhost:5000/api/v1/auth/signup', {
+            data: {
+                username: 'creator_e2e_user',
+                email: 'creator@example.com',
+                password: 'password123',
+                role: 'creator'
+            }
+        }).catch(() => {});
 
         // Login as creator before each test
         await page.goto('/');

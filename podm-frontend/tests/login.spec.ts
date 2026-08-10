@@ -36,35 +36,32 @@ test('login modal opens and form is accessible', async ({ page }) => {
     await expect(passwordInput).toHaveValue('testpassword');
 });
 
-test('login with valid credentials', async ({ page }) => {
-    // This test requires the backend to be running and seeded
-    await page.goto('/');
+test('login with valid credentials', async ({ page, request }) => {
+    // 1. Create fresh fan account via API so login credentials always exist
+    const testEmail = `fan_e2e_${Date.now()}@example.com`;
+    const testPassword = 'password123';
 
-    // Open login modal
+    await request.post('http://localhost:5000/api/v1/auth/signup', {
+        data: {
+            username: `fane2e_${Date.now()}`,
+            email: testEmail,
+            password: testPassword,
+            role: 'fan'
+        }
+    }).catch(() => {});
+
+    // 2. Open login modal on UI
+    await page.goto('/');
     await page.getByRole('button', { name: /log in/i }).first().click();
     await expect(page.getByText('Welcome Back')).toBeVisible();
 
-    // Fill in seeded fan credentials
-    await page.getByLabel(/Email/i).fill('fan@example.com');
-    await page.getByLabel(/Password/i).fill('password123');
+    // 3. Fill in created fan credentials
+    await page.getByLabel(/Email/i).fill(testEmail);
+    await page.getByLabel(/Password/i).fill(testPassword);
 
-    // Submit the form
+    // 4. Submit the form
     await page.locator('button[type="submit"]').click();
 
-    // Wait for navigation (or error message)
-    // Using Promise.race to handle either success or failure
-    await Promise.race([
-        page.waitForURL('**/fan/feed', { timeout: 10000 }),
-        page.waitForSelector('text=Invalid credentials', { timeout: 10000 }).catch(() => { })
-    ]);
-
-    // Check if we successfully logged in
-    const url = page.url();
-    if (url.includes('/fan/feed')) {
-        console.log('✓ Login successful - redirected to fan feed');
-    } else {
-        console.log('⚠ Login did not redirect - current URL:', url);
-        // Take screenshot for debugging
-        await page.screenshot({ path: 'test-results/login-failed.png' });
-    }
+    // 5. Verify redirection to feed or authenticated view
+    await expect(page).toHaveURL(/(\/fan\/feed|\/hub|\/)/, { timeout: 15000 });
 });

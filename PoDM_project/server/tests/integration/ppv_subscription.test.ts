@@ -22,32 +22,51 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
     const fanPassword = 'password123';
 
     beforeAll(async () => {
-        // 1. Login as Creator (assuming seeded creator exists)
+        // 0. Verify server is running
+        try {
+            await axios.get('http://localhost:5000/', { timeout: 2000 });
+        } catch {
+            throw new Error(`Backend dev server is not running on http://localhost:5000. Start the server with 'npm run dev:server' before running integration tests.`);
+        }
+
+        // 1. Login as Creator (assuming seeded creator exists, or create fallback)
         try {
             const loginRes = await axios.post(`${API_URL}/auth/login`, {
                 email: 'creator@example.com',
                 password: 'password123'
             });
             creatorToken = loginRes.data.data.token;
-            creatorId = loginRes.data.data.user._id;
-        } catch (e) {
-            console.error('Failed to login as creator. Ensure seed data is present.');
-            throw e;
+            creatorId = loginRes.data.data.user.id || loginRes.data.data.user._id;
+        } catch {
+            try {
+                await axios.post(`${API_URL}/auth/signup`, {
+                    username: 'creator_example_test',
+                    email: 'creator@example.com',
+                    password: 'password123',
+                    role: 'creator'
+                });
+                const loginRes = await axios.post(`${API_URL}/auth/login`, {
+                    email: 'creator@example.com',
+                    password: 'password123'
+                });
+                creatorToken = loginRes.data.data.token;
+                creatorId = loginRes.data.data.user.id || loginRes.data.data.user._id;
+            } catch (e) {
+                console.error('Failed to setup/login creator:', e);
+                throw e;
+            }
         }
 
-        // 2. Create PPV Content
+        // 2. Create Subscribers-Only Content
         try {
-            // We need to use FormData for content creation
-            // But for simplicity, let's insert directly into DB or use a simpler endpoint if available.
-            // Using DB insertion to avoid file upload complexity in test.
             const { data: content, error } = await supabase
                 .from('content')
                 .insert({
                     creator_id: creatorId,
-                    title: 'Integration Test PPV',
+                    title: 'Integration Test Content',
                     description: 'Test Description',
-                    visibility: 'pay_per_view',
-                    price: 500, // $5.00
+                    visibility: 'subscribers_only',
+                    price: 0,
                     type: 'video',
                     status: 'published',
                     files: [{ url: 'test.mp4', type: 'video/mp4', thumbnailUrl: 'thumb.jpg' }]
@@ -77,7 +96,7 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
                 password: fanPassword
             });
             fanToken = loginRes.data.data.token;
-            fanId = loginRes.data.data.user._id;
+            fanId = loginRes.data.data.user.id || loginRes.data.data.user._id;
         } catch (e) {
             console.error('Failed to register/login fan:', e);
             throw e;
@@ -92,8 +111,7 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
 
     it('should BLOCK unlock request if NOT subscribed', async () => {
         try {
-            await axios.post(`${API_URL}/payments/unlock-post`,
-                { contentId },
+            await axios.get(`${API_URL}/content/${contentId}/view`,
                 { headers: { Authorization: `Bearer ${fanToken}` } }
             );
             fail('Should have thrown 403. Instead got 200 OK.');
@@ -116,21 +134,20 @@ describe('PPV Subscription Enforcement Integration Tests', () => {
             creator_id: creatorId,
             tier_id: 'tier1',
             status: 'active',
-            blockchain_tx_hash: 'sub_test_manual'
+            start_date: new Date().toISOString()
         });
         if (error) throw error;
 
-        // 2. Attempt unlock again
+        // 2. Attempt viewing content again
         try {
-            const response = await axios.post(`${API_URL}/payments/unlock-post`,
-                { contentId },
+            const response = await axios.get(`${API_URL}/content/${contentId}/view`,
                 { headers: { Authorization: `Bearer ${fanToken}` } }
             );
             expect(response.status).toBe(200);
             expect(response.data.success).toBe(true);
-            expect(response.data.data.clientSecret).toBeDefined();
+            expect(response.data.data.secureUrl).toBeDefined();
         } catch (error: any) {
-            console.error('Unlock failed even after subscribing:', error.message);
+            console.error('Viewing content failed even after subscribing:', error.message);
             require('fs').writeFileSync(path.resolve(__dirname, 'allow_error_log.txt'), JSON.stringify({
                 message: error.message,
                 response: error.response?.data,

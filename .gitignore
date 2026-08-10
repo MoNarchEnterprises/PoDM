@@ -13,3 +13,7 @@ scrape_ig.js
 cookies.json
 *.csv
 secret.txt
+
+# Autonomous QA Suite Output
+qa-results/
+

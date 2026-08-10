@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test:autonomous": "npx ts-node scripts/run-autonomous-suite.ts"
+  },
   "devDependencies": {
     "@types/react": "^19.1.12"
   },

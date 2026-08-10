@@ -8,35 +8,6 @@ FOR SELECT
 TO authenticated
 USING (creator_id = auth.uid());
 
--- Enable RLS for saved_reports
-ALTER TABLE public.saved_reports ENABLE ROW LEVEL SECURITY;
-
--- Allow admins to view all saved reports
-CREATE POLICY "Admins can view saved reports"
-ON public.saved_reports
-FOR SELECT
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE profiles.id = auth.uid()
-    AND profiles.role = 'admin'
-  )
-);
-
--- Allow admins to insert saved reports
-CREATE POLICY "Admins can insert saved reports"
-ON public.saved_reports
-FOR INSERT
-TO authenticated
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE profiles.id = auth.uid()
-    AND profiles.role = 'admin'
-  )
-);
-
 -- Enable RLS for notifications
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 

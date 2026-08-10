@@ -65,6 +65,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 | `npm run check:contract` | Run contract sync & bytecode verification gate |
 | `npm run generate:contract-config` | Generate `common/contractConfig.ts` from compiled contract artifact |
 | `npm run sync:contract-env <0xAddr>` | Synchronize contract address across all 3 environment files |
+| `npm run test:autonomous` | Run Autonomous QA Test Suite (`scripts/run-autonomous-suite.ts --all`) |
 
 - Use `async/await` throughout; avoid raw callbacks
 - Controllers handle request/response; services hold business logic; models define DB shape
@@ -77,7 +78,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 ## Verification
 
-- `npm test` — Jest with ts-jest (unit + integration tests in `/server/tests/`)
+- `npm test` — Jest with ts-jest (unit + integration tests in `/server/tests/`). Integration tests under `server/tests/integration/` require `npm run dev:server` to be running on port 5000 with seed data.
 - CI pipeline (`.github/workflows/ci.yml`) runs tests on push/PR to main/master
 - Existing tests: `auth.controller.test.ts`, `admin.ai_settings.test.ts`, `commission.utils.test.ts`, `content_gallery_fix.test.ts`, `paymaster.test.ts`, `integration/auth.integration.test.ts`, `integration/ppv_subscription.test.ts`
 
