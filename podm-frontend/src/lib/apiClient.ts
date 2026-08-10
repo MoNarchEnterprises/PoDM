@@ -737,9 +737,10 @@ export const getContentViewerData = (contentId: string) =>
  * Reports a piece of content.
  * @param contentId The ID of the content to report.
  * @param reason The reason for reporting.
+ * @param details Additional details about the report (optional).
  */
-export const reportContent = (contentId: string, reason: string) =>
-    api('post', `/content/${contentId}/report`, { reason });
+export const reportContent = (contentId: string, reason: string, details?: string) =>
+    api('post', `/content/${contentId}/report`, { reason, details });
 
 
 

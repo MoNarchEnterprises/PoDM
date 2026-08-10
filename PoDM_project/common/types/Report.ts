@@ -5,6 +5,7 @@ export interface Report {
     reporterId: string; // UUID of the user who reported
     contentId: string; // ID of the content being reported
     reason: string;
+    details?: string;
     status: ReportStatus;
     createdAt: string; // ISO Date string
 }

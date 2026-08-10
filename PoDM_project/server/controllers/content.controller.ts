@@ -115,12 +115,12 @@ export const getContentViewerData = asyncHandler(async (req: Request, res: Respo
 export const reportContent = asyncHandler(async (req: Request, res: Response) => {
     const userId = requireAuth(req);
     const { id: contentId } = req.params;
-    const { reason } = req.body;
+    const { reason, details } = req.body;
 
     if (!reason) {
         throw new AppError('Reason is required.', 400);
     }
 
-    await ContentService.reportContent(userId, contentId, reason);
+    await ContentService.reportContent(userId, contentId, reason, details);
     okMsg(res, 'Content reported successfully.');
 });

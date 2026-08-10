@@ -2,12 +2,13 @@ import supabase from '../config/supabaseClient';
 import { Report, ReportStatus } from '@common/types/Report';
 import { handleQuery, handleList } from '../utils/database';
 
-export const createReport = async (reporterId: string, contentId: string, reason: string): Promise<Report | null> => {
+export const createReport = async (reporterId: string, contentId: string, reason: string, details?: string): Promise<Report | null> => {
     const data = await handleQuery<any>(
-        supabase.from('reports').insert([{
+        supabase.from('content_reports').insert([{
             reporter_id: reporterId,
             content_id: parseInt(contentId),
             reason,
+            details: details || null,
             status: 'pending'
         }]).select().single(),
         'create report'
@@ -19,7 +20,7 @@ export const createReport = async (reporterId: string, contentId: string, reason
 
 export const getReportsByContentId = async (contentId: string): Promise<Report[] | null> => {
     const data = await handleList<any>(
-        supabase.from('reports').select('*').eq('content_id', parseInt(contentId)),
+        supabase.from('content_reports').select('*').eq('content_id', parseInt(contentId)),
         'get reports by content ID'
     );
     if (!data) return null;
@@ -29,7 +30,7 @@ export const getReportsByContentId = async (contentId: string): Promise<Report[]
 
 export const dismissReportsForContent = async (contentId: string): Promise<boolean> => {
     const { error } = await supabase
-        .from('reports')
+        .from('content_reports')
         .update({ status: 'dismissed' })
         .eq('content_id', parseInt(contentId));
 
@@ -46,6 +47,7 @@ const mapToReport = (data: any): Report => {
         reporterId: data.reporter_id,
         contentId: data.content_id.toString(),
         reason: data.reason,
+        details: data.details ?? undefined,
         status: data.status,
         createdAt: data.created_at
     };

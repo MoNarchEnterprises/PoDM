@@ -91,9 +91,9 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
         return apiClient.sendTip(creator.id, amount, message, content.id, paymentMethodId);
     };
 
-    const handleReportSubmit = async (reason: string) => {
+    const handleReportSubmit = async (reason: string, details: string) => {
         try {
-            await apiClient.reportContent(content.id, reason);
+            await apiClient.reportContent(content.id, reason, details);
             alert('Content reported successfully. Thank you for keeping the community safe.');
             closeReportModal();
         } catch (error) {

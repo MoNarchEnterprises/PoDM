@@ -347,8 +347,17 @@ export const getContentByCreatorId = async (creator_id: string, query: ContentQu
         queryBuilder = queryBuilder.ilike('title', `%${searchTerm}%`);
     }
 
-    // Apply sorting
-    queryBuilder = queryBuilder.order(sortKey, { ascending: sortDirection === 'asc' });
+    // Stats (views, galleryAdds, tips, ppvEarnings) are a mix of stored JSONB
+    // and runtime-computed values from `enrichContentWithEarnings`, so they
+    // cannot be ordered at the DB layer. Only `created_at` is a real column we
+    // can order by in the query; stat-based sorts are applied in-memory after
+    // enrichment to avoid PostgREST errors (which returned null and made the
+    // frontend's "sort by Tips" wipe the list).
+    if (sortKey === 'created_at') {
+        queryBuilder = queryBuilder.order('created_at', { ascending: sortDirection === 'asc' });
+    } else {
+        queryBuilder = queryBuilder.order('created_at', { ascending: false });
+    }
 
     // Execute the final query
     const { data, error } = await queryBuilder;
@@ -368,7 +377,23 @@ export const getContentByCreatorId = async (creator_id: string, query: ContentQu
         };
     }));
 
-    return await enrichContentWithEarnings(contentWithUrls, creator_id);
+    const enriched = await enrichContentWithEarnings(contentWithUrls, creator_id);
+
+    // Apply in-memory sorting for stats-based keys (created_at is already
+    // handled by the DB order above).
+    if (sortKey !== 'created_at') {
+        const statField = sortKey.startsWith('stats->>')
+            ? sortKey.slice('stats->>'.length)
+            : sortKey;
+        const dir = sortDirection === 'asc' ? 1 : -1;
+        enriched.sort((a: any, b: any) => {
+            const av = Number(a?.stats?.[statField] ?? 0);
+            const bv = Number(b?.stats?.[statField] ?? 0);
+            return (av - bv) * dir;
+        });
+    }
+
+    return enriched;
 };
 
 /**
@@ -881,9 +906,9 @@ export const getViewData = async (contentId: string, viewerId?: string) => {
  * Reports a piece of content.
  * Auto-flags the content if the report count exceeds a threshold.
  */
-export const reportContent = async (userId: string, contentId: string, reason: string): Promise<boolean> => {
+export const reportContent = async (userId: string, contentId: string, reason: string, details?: string): Promise<boolean> => {
     // 1. Create the report
-    const report = await ReportModel.createReport(userId, contentId, reason);
+    const report = await ReportModel.createReport(userId, contentId, reason, details);
     if (!report) {
         throw new AppError('Failed to create report.', 500);
     }
