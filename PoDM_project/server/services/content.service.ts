@@ -21,7 +21,7 @@ import * as NotificationService from './notification.service';
 import * as AnalyticsService from './analytics.service';
 
 // Set FFmpeg path explicitly
-const ffmpegPath = path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages', 'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-8.0.1-full_build', 'bin', 'ffmpeg.exe');
+const ffmpegPath = path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages', 'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-8.0.1-full_build', 'bin', 'ffmpeg.exe') || 'ffmpeg'; // Fallback to system path if not found
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 

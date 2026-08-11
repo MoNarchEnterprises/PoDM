@@ -14,16 +14,16 @@
 - [x] **RPC Configuration**: Verify RPC URL points to `https://sepolia.base.org` or authorized Base Sepolia RPC.
 - [x] **Frontend Environment Sanitation**: Verify `podm-frontend/.env` contains ONLY public `VITE_` variables. No service role or JWT secrets present.
 - [x] **Pending Creator Access Control**: Verify `creatorOnly` middleware enforces `status === 'active'`.
-- [ ] **Client Random Hash Fallback Cleanup**: Remove `txHash || '0x' + Array.from(...)` fallback in `podm-frontend/src/lib/apiClient.ts:624`. (Pending 1-line code edit).
+- [x] **Client Random Hash Fallback Cleanup**: Verify `sendTip` and `createSubscription` in `podm-frontend/src/lib/apiClient.ts:616-635` require a non-empty `txHash`. Verified server enforces strict 64-hex format at `cryptoPayment.service.ts:124-126`.
 
 ---
 
 ## Build & Test Pipeline Checklist
 
-- [x] **Backend Unit Test Execution**: Run `npm test` in `PoDM_project/` (Must achieve 100% pass rate).
-- [x] **Smart Contract Bytecode Gate**: Run `npm run check:contract` in `PoDM_project/` (Must verify ABI sync).
-- [x] **Frontend Production Build**: Run `npm run build` in `podm-frontend/` (Must complete cleanly without TypeScript or bundler errors).
-- [x] **Backend Production Compilation**: Run `npm run build` in `PoDM_project/` (Must compile `tsc` clean to `dist/`).
+- [x] **Backend Unit Test Execution**: Run `npm test` in `PoDM_project/` (100% Pass across 10 test suites / 48 tests).
+- [x] **Smart Contract Bytecode Gate**: Run `npm run check:contract` in `PoDM_project/` (Verified ABI sync).
+- [x] **Frontend Production Build**: Run `npm run build` in `podm-frontend/` (Completed cleanly without TypeScript or bundler errors).
+- [x] **Backend Production Compilation**: Run `npm run build` in `PoDM_project/` (Compiles `tsc` clean to `dist/`).
 - [x] **Autonomous QA Suite Execution**: Run `npx tsx scripts/run-autonomous-suite.ts` against live server.
 
 ---

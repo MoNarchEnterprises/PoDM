@@ -1,16 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './App'; // Adjust path if needed
+import App from './App';
 
 describe('Frontend App Component', () => {
-  it('should render the App component without crashing', () => {
+  it('should render the App component without crashing', async () => {
     render(<App />);
 
-    // Jest's `expect` is available globally.
-    // We are looking for the "PoDM" logo text.
-    const logoElements = screen.getAllByText(/PoDM/i);
-    
-    // Assert that the logo is present on the screen.
+    // React Router lazy routes render Suspense loading spinner first.
+    // Use findByText to wait for lazy component resolution.
+    const logoElements = await screen.findAllByText(/PoDM/i);
     expect(logoElements.length).toBeGreaterThan(0);
   });
 });
