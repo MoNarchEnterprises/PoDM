@@ -11,7 +11,7 @@ const USDC_ADDRESSES: Record<number, string> = {
 const ERC20_BALANCE_OF_ABI = '0x70a08231';
 
 function getRpcUrl(): string {
-    return import.meta.env.VITE_BASE_TESTNET_RPC_URL || 'https://sepolia.base.org';
+    return import.meta.env.VITE_BASE_RPC_URL || import.meta.env.VITE_BASE_TESTNET_RPC_URL || 'https://sepolia.base.org';
 }
 
 function getUsdcAddress(): string {
@@ -70,14 +70,15 @@ export const useCryptoWallet = () => {
         }
     }, []);
 
-    const switchToBaseSepolia = useCallback(async (eth: any): Promise<void> => {
+    const switchToBaseSepolia = useCallback(async (eth: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> }): Promise<void> => {
         try {
             await eth.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
             });
-        } catch (switchError: any) {
-            if (switchError.code === 4902) {
+        } catch (switchError: unknown) {
+            const err = switchError as { code?: number; message?: string };
+            if (err.code === 4902) {
                 await eth.request({
                     method: 'wallet_addEthereumChain',
                     params: [{
@@ -100,7 +101,7 @@ export const useCryptoWallet = () => {
         try {
             if (customAddress && customAddress.startsWith('0x') && customAddress.length === 42) {
                 setWalletAddress(customAddress);
-                setChainId(84532);
+                setChainId(Number(import.meta.env.VITE_CHAIN_ID) || 84532);
                 setIsConnected(true);
                 const usdcBalance = await fetchUsdcBalance(customAddress);
                 setBalance(usdcBalance);
@@ -115,14 +116,14 @@ export const useCryptoWallet = () => {
                 return;
             }
 
-            const accounts = await eth.request({ method: 'eth_requestAccounts' });
+            const accounts = (await eth.request({ method: 'eth_requestAccounts' })) as string[];
             if (!accounts || accounts.length === 0) {
                 throw new Error('No accounts returned from wallet.');
             }
 
             await switchToBaseSepolia(eth);
 
-            const hexChainId = await eth.request({ method: 'eth_chainId' });
+            const hexChainId = (await eth.request({ method: 'eth_chainId' })) as string;
             const currentChainId = Number(hexChainId);
 
             setWalletAddress(accounts[0]);
@@ -131,8 +132,9 @@ export const useCryptoWallet = () => {
 
             const usdcBalance = await fetchUsdcBalance(accounts[0]);
             setBalance(usdcBalance);
-        } catch (err: any) {
-            setError(err.message || 'Failed to connect wallet.');
+        } catch (err: unknown) {
+            const errorObj = err as { message?: string };
+            setError(errorObj.message || 'Failed to connect wallet.');
         } finally {
             setIsLoading(false);
         }
@@ -175,8 +177,9 @@ export const useCryptoWallet = () => {
                 throw new Error(result.message || 'Payment verification failed.');
             }
             return result.data;
-        } catch (err: any) {
-            setError(err.message || 'An error occurred during verification.');
+        } catch (err: unknown) {
+            const errorObj = err as { message?: string };
+            setError(errorObj.message || 'An error occurred during verification.');
             throw err;
         } finally {
             setIsLoading(false);

@@ -129,29 +129,48 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 };
 
 /**
- * @desc    Middleware to restrict access to creator-only routes.
+ * @desc    Middleware to restrict access to active creator routes.
  * Should be used after the 'protect' middleware.
  */
 export const creatorOnly = (req: Request, res: Response, next: NextFunction) => {
     if (process.env.NODE_ENV !== 'production') {
-        console.log('[CreatorOnly] Checking user role...');
-        console.log(`[CreatorOnly] req.user.role: ${req.user?.role}`);
+        console.log('[CreatorOnly] Checking user role & status...');
+        console.log(`[CreatorOnly] req.user.role: ${req.user?.role}, status: ${req.user?.status}`);
         console.log(`[CreatorOnly] req.originalUser: ${req.originalUser?.email || 'none'}`);
     }
 
-    // Allow if user is a creator, or if admin is impersonating a creator
-    const isCreator = req.user && req.user.role === 'creator';
+    const isActiveCreator = req.user && req.user.role === 'creator' && req.user.status === 'active';
     const isAdminImpersonatingCreator = req.originalUser && req.originalUser.role === 'admin' && req.user && req.user.role === 'creator';
 
-    if (isCreator || isAdminImpersonatingCreator) {
+    if (isActiveCreator || isAdminImpersonatingCreator) {
         if (process.env.NODE_ENV !== 'production') {
-            console.log(`[CreatorOnly] Access granted. isCreator: ${isCreator}, isAdminImpersonatingCreator: ${isAdminImpersonatingCreator}`);
+            console.log(`[CreatorOnly] Access granted. isActiveCreator: ${isActiveCreator}, isAdminImpersonatingCreator: ${isAdminImpersonatingCreator}`);
         }
         next();
+    } else if (req.user && req.user.role === 'creator' && req.user.status !== 'active') {
+        if (process.env.NODE_ENV !== 'production') {
+            console.error(`[CreatorOnly] Access denied. Creator status is: ${req.user.status}`);
+        }
+        return next(new AppError('Access denied. Active creator account required.', 403));
     } else {
         if (process.env.NODE_ENV !== 'production') {
             console.error(`[CreatorOnly] Access denied. User role is: ${req.user?.role}`);
         }
+        return next(new AppError('Access denied. Creator role required.', 403));
+    }
+};
+
+/**
+ * @desc    Middleware to restrict access to creator role routes regardless of verification status (e.g. upload media during onboarding).
+ * Should be used after the 'protect' middleware.
+ */
+export const anyCreator = (req: Request, res: Response, next: NextFunction) => {
+    const isCreator = req.user && req.user.role === 'creator';
+    const isAdminImpersonatingCreator = req.originalUser && req.originalUser.role === 'admin' && req.user && req.user.role === 'creator';
+
+    if (isCreator || isAdminImpersonatingCreator) {
+        next();
+    } else {
         return next(new AppError('Access denied. Creator role required.', 403));
     }
 };
@@ -182,4 +201,5 @@ export const requireRole = (...roles: string[]) => {
 };
 
 export const protectAndCreator = [protect, creatorOnly];
+export const protectAndAnyCreator = [protect, anyCreator];
 export const protectAndAdmin = [protect, adminOnly];

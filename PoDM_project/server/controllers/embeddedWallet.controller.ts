@@ -10,13 +10,9 @@ import supabase from '../config/supabaseClient';
 import axios from 'axios';
 import { ethers } from 'ethers';
 
-const walletProvider = new PrivyWalletProvider();
+import { getRpcUrl, getUsdcAddress } from '../utils/contract.utils';
 
-function getRpcUrl(): string {
-    return process.env.NODE_ENV === 'production'
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
-}
+const walletProvider = new PrivyWalletProvider();
 
 export const createWallet = asyncHandler(async (req: Request, res: Response) => {
     const userId = requireAuth(req);
@@ -67,9 +63,7 @@ export const getWalletStatus = asyncHandler(async (req: Request, res: Response) 
 
     let usdcBalance = 0;
     if (profile?.wallet_status === 'active') {
-    const usdcAddress = ethers.getAddress(process.env.NODE_ENV === 'production' 
-        ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913' 
-        : '0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+        const usdcAddress = ethers.getAddress(getUsdcAddress());
         const iface = new ethers.Interface(["function balanceOf(address owner) view returns (uint256)"]);
         const addressesToCheck = [profile.smart_account_address, profile.crypto_wallet_address].filter(Boolean) as string[];
         for (const address of addressesToCheck) {
@@ -107,9 +101,7 @@ export const getBalance = asyncHandler(async (req: Request, res: Response) => {
         throw new AppError('No wallet found', 404);
     }
     
-    const usdcAddress = process.env.NODE_ENV === 'production' 
-        ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913' 
-        : ethers.getAddress('0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+    const usdcAddress = ethers.getAddress(getUsdcAddress());
 
     const iface = new ethers.Interface(["function balanceOf(address owner) view returns (uint256)"]);
     const addressesToCheck = [profile.smart_account_address, profile.crypto_wallet_address].filter(Boolean) as string[];
@@ -166,9 +158,7 @@ export const transferUsdcToSmartAccount = asyncHandler(async (req: Request, res:
         throw new AppError('Both EOA and smart account must exist', 400);
     }
 
-    const usdcAddress = process.env.NODE_ENV === 'production' 
-        ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913' 
-        : ethers.getAddress('0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+    const usdcAddress = ethers.getAddress(getUsdcAddress());
 
     const iface = new ethers.Interface(["function balanceOf(address owner) view returns (uint256)"]);
     const calldata = iface.encodeFunctionData("balanceOf", [profile.crypto_wallet_address]);

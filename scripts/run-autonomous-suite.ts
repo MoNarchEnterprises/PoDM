@@ -5,6 +5,7 @@
  *   npx ts-node scripts/run-autonomous-suite.ts --category=Payments
  *   npx ts-node scripts/run-autonomous-suite.ts --priority=P0
  *   npx ts-node scripts/run-autonomous-suite.ts --id=PAY-013
+ *   npx ts-node scripts/run-autonomous-suite.ts --target-url=http://localhost:5000/api/v1
  */
 
 import * as path from 'path';
@@ -23,6 +24,7 @@ import { integrationScenarios } from '../tests/autonomous/integrations/integrati
 async function main() {
   const args = process.argv.slice(2);
   const opts: TestFilterOpts = {};
+  let targetUrl = process.env.TARGET_API_URL || 'http://localhost:5000/api/v1';
 
   for (const arg of args) {
     if (arg === '--all') {
@@ -33,6 +35,9 @@ async function main() {
       opts.priority = arg.split('=')[1] as ScenarioPriority;
     } else if (arg.startsWith('--id=')) {
       opts.id = arg.split('=')[1];
+    } else if (arg.startsWith('--target-url=')) {
+      targetUrl = arg.split('=')[1];
+      process.env.TARGET_API_URL = targetUrl;
     }
   }
 
@@ -57,9 +62,13 @@ async function main() {
 
   const resultsBaseDir = path.resolve(__dirname, '..', 'qa-results');
 
+  const isLive = await runner.checkServerHealth(targetUrl);
+
   console.log(`=======================================================`);
   console.log(`🤖 PoDM Autonomous QA Test Suite Execution Engine`);
-  console.log(`Network Target: Base Sepolia Testnet (84532) & Local Harness`);
+  console.log(`Execution Mode : ${isLive ? 'LIVE UN-MOCKED API & BLOCKCHAIN' : 'OFFLINE (SERVER UNREACHABLE)'}`);
+  console.log(`Target REST API: ${targetUrl}`);
+  console.log(`Network Target : Base Sepolia Testnet (84532)`);
   console.log(`=======================================================\n`);
 
   const { summary } = await runner.executeSuite(opts, resultsBaseDir);

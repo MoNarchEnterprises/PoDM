@@ -2,7 +2,7 @@ import supabase from '../config/supabaseClient';
 import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
-import { getContractConfig, encodeProcessPayout } from '../utils/contract.utils';
+import { getContractConfig, getChainId, encodeProcessPayout } from '../utils/contract.utils';
 
 // Key isolation: TREASURY_PRIVATE_KEY must be explicitly configured in production.
 // DO NOT fall back to DEPLOYER_PRIVATE_KEY — it should be in cold storage after deployment.
@@ -114,7 +114,7 @@ export async function processPayout(
                 blockchain_tx_hash: receipt.hash,
                 payment_method: 'crypto',
                 payment_currency: 'USDC',
-                chain_id: 84532,
+                chain_id: getChainId(),
             })
             .eq('blockchain_tx_hash', receipt.hash);
 

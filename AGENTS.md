@@ -96,7 +96,7 @@ When the user requests a durable behavior change, record it here or in the relev
 | `.github/workflows/` | CI/CD pipeline — GitHub Actions (build + test backend, lint + build frontend) |
 | `.agent/` | AI agent workflow specifications |
 | `.idx/` | Google Project IDX workspace config |
-| `docs/qa/` | QA specification documents (Deliverables 1–12, IMPLEMENTATION.md) |
+| `docs/qa/` | QA specification documents (Deliverables 1–12, IMPLEMENTATION.md, FINAL-BETA-READINESS-AUDIT.md, FINAL-BETA-READINESS-SUMMARY.md, FINAL-BETA-GO-LIVE-CHECKLIST.md, REMAINING-BLOCKERS.md) |
 | `tests/autonomous/` | Autonomous QA Test Suite (domain test suites, test helpers, runner) |
 | `qa-results/` | Generated QA test run reports, summary, coverage, failures, and evidence (git-ignored) |
 
@@ -108,6 +108,6 @@ The root AGENTS.md owns project-wide rules that apply across all subtrees:
 - Docker Compose orchestration (root `docker-compose.yml`)
 - Netlify deployment config (`netlify.toml`)
 - Root-level tools and assets (CSV data, Instagram scripts, database reference docs, `cookies.json`, `secret.txt`, `debug-login.ps1`, `get-token.ps1`, `test-notifications.ps1`, `scripts/run-autonomous-suite.ts`)
-- Planning documents (MVP_Checklist.md, PoDM Planning Document.txt, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md, ppv_attach_modal_fix.md, creator_views_fix.md, session_refresh_fix.md, crypto_payment_fix_plan.md, TYPESCRIPT_ERRORS_SOLUTION.md, report_content_fix.md)
+- Planning documents (MVP_Checklist.md, PoDM Planning Document.txt, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md, ppv_attach_modal_fix.md, creator_views_fix.md, session_refresh_fix.md, crypto_payment_fix_plan.md, TYPESCRIPT_ERRORS_SOLUTION.md, report_content_fix.md, production_network_trap_fix_plan.md, client_fake_hash_fix_plan.md)
 - Root `package.json` & `tsconfig.json`
 - `.gitignore`, `.git/`, `.github/`

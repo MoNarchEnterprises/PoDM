@@ -3,6 +3,7 @@ import { Copy, Check, Share2, TrendingUp, DollarSign, Percent } from 'lucide-rea
 import apiClient, { getReferrerEarnings } from '../../lib/apiClient';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Referral {
     id: string;
@@ -31,6 +32,10 @@ interface ReferrerEarningsData {
 }
 
 export default function ReferralCodes() {
+    const { user, impersonatedUser } = useAuth();
+    const currentUser = impersonatedUser || user;
+    const isPending = currentUser?.role === 'creator' && currentUser?.status !== 'active';
+
     const [referrals, setReferrals] = useState<Referral[]>([]);
     const [stats, setStats] = useState<ReferralStats | null>(null);
     const [earnings, setEarnings] = useState<ReferrerEarningsData | null>(null);
@@ -39,8 +44,12 @@ export default function ReferralCodes() {
     const [generating, setGenerating] = useState(false);
 
     useEffect(() => {
-        fetchReferralData();
-    }, []);
+        if (!isPending) {
+            fetchReferralData();
+        } else {
+            setLoading(false);
+        }
+    }, [isPending]);
 
     const fetchReferralData = async () => {
         try {
@@ -63,6 +72,7 @@ export default function ReferralCodes() {
     };
 
     const generateCodes = async () => {
+        if (isPending) return;
         try {
             setGenerating(true);
             await apiClient.post('/referrals/generate');
@@ -75,6 +85,7 @@ export default function ReferralCodes() {
     };
 
     const copyToClipboard = (code: string) => {
+        if (isPending) return;
         const referralLink = `${window.location.origin}/enclave?ref=${code}`;
         navigator.clipboard.writeText(referralLink);
         setCopiedCode(code);
@@ -93,21 +104,27 @@ export default function ReferralCodes() {
         );
     }
 
-    if (referrals.length === 0) {
+    if (isPending || referrals.length === 0) {
         return (
             <Card className="text-center">
-                <Share2 className="w-16 h-16 mx-auto mb-4 text-purple-400" />
+                <Share2 className="w-16 h-16 mx-auto mb-4 text-purple-400 opacity-60" />
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Generate Your Referral Codes</h2>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
                     Get two unique referral codes to share with potential Enclave members and earn bonuses!
                 </p>
-                <Button
-                    onClick={generateCodes}
-                    isLoading={generating}
-                    className="w-full bg-gradient-to-r from-[#6B46C1] to-[#EC4899] hover:from-[#553C9A] hover:to-[#D63384]"
-                >
-                    Generate Referral Codes
-                </Button>
+                {isPending ? (
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-700 dark:text-amber-300 text-sm">
+                        Referral link generation is locked until your creator account is verified.
+                    </div>
+                ) : (
+                    <Button
+                        onClick={generateCodes}
+                        isLoading={generating}
+                        className="w-full bg-gradient-to-r from-[#6B46C1] to-[#EC4899] hover:from-[#553C9A] hover:to-[#D63384]"
+                    >
+                        Generate Referral Codes
+                    </Button>
+                )}
             </Card>
         );
     }

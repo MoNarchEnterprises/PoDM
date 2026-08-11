@@ -3,15 +3,17 @@ import { AppError } from '../middleware/error.middleware';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
+import { getChainNamespace } from '../utils/contract.utils';
+
 export class PimlicoPaymasterService implements IPaymasterService {
     private readonly apiKey: string;
     private readonly paymasterUrl: string;
 
     constructor() {
-        this.apiKey = process.env.PIMLICO_API_KEY || 'pim_Sqj8PJ8s1AjbsPrgXyCx7U';
-        const isProd = process.env.NODE_ENV === 'production';
-        const chainNamespace = isProd ? 'base' : 'base-sepolia';
-        this.paymasterUrl = `https://api.pimlico.io/v2/${chainNamespace}/rpc?apikey=${this.apiKey}`;
+        this.apiKey = process.env.PIMLICO_API_KEY || '';
+        const chainNamespace = getChainNamespace();
+        this.paymasterUrl = process.env.PIMLICO_PAYMASTER_URL
+            || `https://api.pimlico.io/v2/${chainNamespace}/rpc${this.apiKey ? `?apikey=${this.apiKey}` : ''}`;
     }
 
     private async rpcCall(method: string, params: any[]) {

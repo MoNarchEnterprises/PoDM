@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import supabase from '../config/supabaseClient';
 import logger from '../config/logger';
+import { getRpcUrl } from '../utils/contract.utils';
 
 const router = Router();
 
@@ -34,7 +35,7 @@ async function checkDatabase(): Promise<HealthComponent> {
 }
 
 async function checkRPC(): Promise<HealthComponent> {
-    const rpcUrl = process.env.BASE_RPC_URL || process.env.BASE_TESTNET_RPC_URL;
+    const rpcUrl = getRpcUrl();
     if (!rpcUrl) {
         return { status: 'degraded', error: 'RPC URL not configured' };
     }

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import supabase from '../config/supabaseClient';
 import { AppError } from '../middleware/error.middleware';
+import { getChainId } from '../utils/contract.utils';
 
 import crypto from 'crypto';
 
@@ -223,7 +224,7 @@ export class OnRampService {
                 status: 'Cleared',
                 blockchain_tx_hash: txHash || null,
                 payment_currency: 'USDC',
-                chain_id: 84532,
+                chain_id: getChainId(),
             })
             .eq('id', pendingTx.id);
 

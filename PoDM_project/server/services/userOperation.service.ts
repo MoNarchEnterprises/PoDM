@@ -16,6 +16,7 @@ import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } 
 
 import {
     getContractConfig,
+    getRpcUrl,
     encodePaySubscription,
     encodePayTip,
     encodePayPPV,
@@ -126,10 +127,7 @@ async function computeUserOpHash(
     }]);
 
     // Use a public Base RPC to call the EntryPoint (don't route through the bundler)
-    const isProd = process.env.NODE_ENV === 'production';
-    const rpcUrl = isProd
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
+    const rpcUrl = getRpcUrl();
 
     const { default: axios } = await import('axios');
     const response = await axios.post(rpcUrl, {

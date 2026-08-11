@@ -1,14 +1,14 @@
 import express from 'express';
 import * as ReferralController from '../controllers/referral.controller';
-import { protect } from '../middleware/auth.middleware';
+import { protect, protectAndCreator } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
-// Protected routes (require authentication)
-router.get('/my-codes', protect, ReferralController.getMyReferralCodes);
-router.post('/generate', protect, ReferralController.generateReferralCodes);
-router.get('/stats', protect, ReferralController.getReferralStats);
-router.get('/earnings', protect, ReferralController.getReferrerEarnings);
+// Protected routes (require active creator status)
+router.get('/my-codes', ...protectAndCreator, ReferralController.getMyReferralCodes);
+router.post('/generate', ...protectAndCreator, ReferralController.generateReferralCodes);
+router.get('/stats', ...protectAndCreator, ReferralController.getReferralStats);
+router.get('/earnings', ...protectAndCreator, ReferralController.getReferrerEarnings);
 
 // Internal route for milestone checking (should be called by payment/earnings system)
 router.post('/check-milestone/:userId', ReferralController.checkMilestoneBonus);

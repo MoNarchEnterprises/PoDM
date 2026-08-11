@@ -6,6 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import axios from 'axios';
 import {
   AutonomousTestScenario,
   AutonomousTestResult,
@@ -13,6 +14,9 @@ import {
   TestFilterOpts,
 } from '../types';
 import { EvidenceCollector } from './evidence.helper';
+import { ApiClient } from './api.helper';
+import { DbHelper } from './db.helper';
+import { Web3Helper } from './web3.helper';
 
 export class SuiteRunner {
   private scenarios: AutonomousTestScenario[] = [];
@@ -47,6 +51,16 @@ export class SuiteRunner {
     });
   }
 
+  public async checkServerHealth(targetUrl: string = 'http://localhost:5000/api/v1'): Promise<boolean> {
+    try {
+      const serverRoot = targetUrl.replace(/\/api\/v1\/?$/, '');
+      const res = await axios.get(serverRoot || 'http://localhost:5000/', { timeout: 2500, validateStatus: () => true });
+      return res.status < 500;
+    } catch {
+      return false;
+    }
+  }
+
   public async executeSuite(
     opts: TestFilterOpts,
     resultsBaseDir: string
@@ -63,6 +77,14 @@ export class SuiteRunner {
     const targetScenarios = this.filterScenarios(opts);
     const results: AutonomousTestResult[] = [];
 
+    const targetUrl = process.env.TARGET_API_URL || 'http://localhost:5000/api/v1';
+    const isServerLive = await this.checkServerHealth(targetUrl);
+
+    if (!isServerLive) {
+      console.warn(`\n⚠️  WARNING: Express server is not reachable at ${targetUrl}`);
+      console.warn(`   Run 'npm run dev:server' in PoDM_project to execute tests live.\n`);
+    }
+
     let passed = 0;
     let failed = 0;
     let blocked = 0;
@@ -77,9 +99,17 @@ export class SuiteRunner {
       const collector = new EvidenceCollector();
       collector.log(`Executing scenario ${scenario.scenario_id}: ${scenario.scenario_name}`);
 
+      const api = new ApiClient(targetUrl);
+
       let outcome;
       try {
-        outcome = await scenario.run({ evidenceCollector: collector });
+        outcome = await scenario.run({
+          evidenceCollector: collector,
+          api,
+          db: DbHelper,
+          web3: Web3Helper,
+          isServerLive,
+        });
       } catch (err: any) {
         collector.recordError(err.message || String(err));
         outcome = {

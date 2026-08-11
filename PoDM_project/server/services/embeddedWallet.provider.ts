@@ -3,6 +3,7 @@ import { AppError } from '../middleware/error.middleware';
 import axios from 'axios';
 import supabase from '../config/supabaseClient';
 import { Transaction, Signature } from 'ethers';
+import { getRpcUrl, getChainId } from '../utils/contract.utils';
 
 /**
  * PrivyWalletProvider — server-controlled embedded wallet EOA signer.
@@ -155,12 +156,6 @@ export class PrivyWalletProvider implements IWalletProvider {
         }
     }
 
-    private getRpcUrl(): string {
-        return process.env.NODE_ENV === 'production'
-            ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-            : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
-    }
-
     async sendTransaction(userId: string, tx: { to: string; data: string; value?: string }): Promise<string> {
         this.assertConfigured();
         const wallet = await this.getWallet(userId);
@@ -169,8 +164,8 @@ export class PrivyWalletProvider implements IWalletProvider {
         }
 
         try {
-            const chainId = 84532;
-            const rpcUrl = this.getRpcUrl();
+            const chainId = getChainId();
+            const rpcUrl = getRpcUrl();
 
             const [nonceRes, gasPriceRes, estimateRes] = await Promise.all([
                 axios.post(rpcUrl, { jsonrpc: '2.0', method: 'eth_getTransactionCount', params: [wallet.address, 'latest'], id: 1 }),

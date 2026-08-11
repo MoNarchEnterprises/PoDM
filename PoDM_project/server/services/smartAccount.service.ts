@@ -4,17 +4,10 @@ import { ethers, Interface } from 'ethers';
 import axios from 'axios';
 import { SmartAccountInfo } from '../../common/types/EmbeddedWallet';
 
-const DEFAULT_FACTORY = '0x91E60e0613810449d098b0b5Ec8b51A0FE8c8985';
+import { getRpcUrl, getSmartAccountFactoryAddress } from '../utils/contract.utils';
 
 function getFactoryAddress(): string {
-    return process.env.SMART_ACCOUNT_FACTORY_ADDRESS || DEFAULT_FACTORY;
-}
-
-function getRpcUrl(): string {
-    const isProd = process.env.NODE_ENV === 'production';
-    return isProd
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
+    return getSmartAccountFactoryAddress();
 }
 
 // SimpleAccountFactory v0.7: getAddress(address owner, uint256 salt) returns (address)

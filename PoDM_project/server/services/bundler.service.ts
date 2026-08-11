@@ -3,6 +3,8 @@ import { AppError } from '../middleware/error.middleware';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
+import { getChainNamespace, getRpcUrl, getEntryPointAddress } from '../utils/contract.utils';
+
 const DEFAULT_ENTRYPOINT = '0x0000000071727De22E5E9d8BAf0edAc6f37da032'; // EntryPoint v0.7
 
 const ENTRYPOINT_ABI = [
@@ -36,13 +38,10 @@ export class PimlicoBundlerService implements IBundlerService {
 
     constructor() {
         this.apiKey = process.env.PIMLICO_API_KEY || '';
-        const isProd = process.env.NODE_ENV === 'production';
-        const chainNamespace = isProd ? 'base' : 'base-sepolia';
+        const chainNamespace = getChainNamespace();
         this.bundlerUrl = process.env.PIMLICO_BUNDLER_URL
             || `https://api.pimlico.io/v2/${chainNamespace}/rpc${this.apiKey ? `?apikey=${this.apiKey}` : ''}`;
-        this.standardRpcUrl = isProd
-            ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-            : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
+        this.standardRpcUrl = getRpcUrl();
     }
 
     private async rpcCall<T = any>(method: string, params: any[]): Promise<T> {
@@ -154,6 +153,6 @@ export class PimlicoBundlerService implements IBundlerService {
     }
 
     getEntryPointAddress(): string {
-        return process.env.ENTRYPOINT_ADDRESS || DEFAULT_ENTRYPOINT;
+        return getEntryPointAddress();
     }
 }

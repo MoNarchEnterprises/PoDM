@@ -150,7 +150,7 @@ export function useCryptoPayment(): CryptoPaymentResult {
 
       const fromAddress = await ensureConnectedWallet();
       const eth = window.ethereum!;
-      const chainId = Number(eth.chainId) || 84532;
+      const chainId = Number(eth.chainId) || Number(import.meta.env.VITE_CHAIN_ID) || 84532;
       const usdcAddress = getUsdcAddress(chainId);
 
       const creatorWallet = params.recipientAddress.startsWith('0x')

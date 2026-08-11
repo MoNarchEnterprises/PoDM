@@ -49,7 +49,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - **Controller pattern**: `asyncHandler`, `requireAuth`, `requireId`, `requireBody` utilities eliminate try/catch and manual guard blocks
 - **Response pattern**: `ok(res, data)`, `created(res, data)`, `okMsg(res, msg, data?)`, `createdMsg(res, msg, data?)` for consistent envelope
 - **Service guard pattern**: `requireUser`, `requireContent`, `requireContentOwnership` from `entityGuards.ts` replace inline null checks
-- **Route middleware pattern**: Composite middleware (`protectAndCreator`, `protectAndAdmin`, `requireRole(...roles)`) replaces `[protect, creatorOnly]` arrays
+- **Route middleware pattern**: Composite middleware (`protectAndCreator`, `protectAndAnyCreator`, `protectAndAdmin`, `requireRole(...roles)`). `creatorOnly` strictly enforces `status === 'active'` (blocking pending creators from creator management, referrals, and Audience messaging), while `anyCreator` / `protectAndAnyCreator` permits pending creators to upload media and complete onboarding/verification.
 - **Model query pattern**: `handleQuery<T>`, `handleCount`, `handleList<T>` wrappers replace `console.error + return null/0` blocks (73 instances eliminated)
 - **Model CRUD helpers**: `createRecord`, `updateRecord`, `deleteRecord`, `findRecordById`, `countRecords` for standard table operations
 
@@ -73,14 +73,14 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 - All API responses follow consistent JSON envelope
 - New model functions: always use `handleQuery<T>`, `handleCount`, or `handleList<T>` for consistent error handling
 - New controller handlers: always use `asyncHandler` wrapper and response helpers; never catch errors or send 500 inline
-- **Crypto payments env vars** (server/.env): `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PIMLICO_API_KEY`, `PIMLICO_BUNDLER_URL`, `PIMLICO_PAYMASTER_URL`, `ENTRYPOINT_ADDRESS`, `SMART_ACCOUNT_FACTORY_ADDRESS`, `BASE_TESTNET_CONTRACT_ADDRESS`, `BASE_CONTRACT_ADDRESS`, `PLATFORM_TREASURY_ADDRESS`
+- **Crypto payments env vars** (server/.env): `CHAIN_NETWORK`, `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PIMLICO_API_KEY`, `PIMLICO_BUNDLER_URL`, `PIMLICO_PAYMASTER_URL`, `ENTRYPOINT_ADDRESS`, `SMART_ACCOUNT_FACTORY_ADDRESS`, `BASE_TESTNET_CONTRACT_ADDRESS`, `BASE_CONTRACT_ADDRESS`, `PLATFORM_TREASURY_ADDRESS`
 - **Migration required for embedded wallet signing**: `migrations/add_provider_wallet_id.sql` adds `profiles.crypto_wallet_provider_id` (Privy wallet id) — needed for `signUserOperation` to resolve the EOA to sign with
 
 ## Verification
 
 - `npm test` — Jest with ts-jest (unit + integration tests in `/server/tests/`). Integration tests under `server/tests/integration/` require `npm run dev:server` to be running on port 5000 with seed data.
 - CI pipeline (`.github/workflows/ci.yml`) runs tests on push/PR to main/master
-- Existing tests: `auth.controller.test.ts`, `admin.ai_settings.test.ts`, `commission.utils.test.ts`, `content_gallery_fix.test.ts`, `paymaster.test.ts`, `integration/auth.integration.test.ts`, `integration/ppv_subscription.test.ts`
+- Existing tests: `auth.controller.test.ts`, `admin.ai_settings.test.ts`, `commission.utils.test.ts`, `contract.utils.test.ts`, `content_gallery_fix.test.ts`, `paymaster.test.ts`, `integration/auth.integration.test.ts`, `integration/ppv_subscription.test.ts`
 
 ## Child DOX Index
 

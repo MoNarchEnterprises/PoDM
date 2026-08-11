@@ -267,8 +267,12 @@ export const getMessagesForConversation = async (conversation_id: string, userId
  */
 export const sendDirectMessage = async (sender_id: string, receiver_id: string, messageData: Partial<Message>) => {
     const sender = await requireUser(sender_id);
+    const receiver = await UserModel.findUserById(receiver_id);
+
     if (sender.role === 'creator' && sender.status !== 'active') {
-        throw new AppError('Your account must be verified to send messages.', 403);
+        if (!receiver || receiver.role !== 'admin') {
+            throw new AppError('Pending creators can only send messages to platform Support until verified.', 403);
+        }
     }
 
     let conversation = await ConversationModel.findConversationByParticipants(sender_id, receiver_id);
@@ -414,7 +418,7 @@ export const markConversationAsRead = async (conversation_id: string, userId: st
 export const sendMassMessageToSubscribers = async (creatorId: string, messageData: Partial<Message>) => {
     const sender = await requireUser(creatorId);
     if (sender.role === 'creator' && sender.status !== 'active') {
-        throw new AppError('Your account must be verified to send messages.', 403);
+        throw new AppError('Mass messaging requires an active creator account.', 403);
     }
     const subscriptions = await SubscriptionModel.findSubscriptionsByCreator(creatorId);
     if (!subscriptions || subscriptions.length === 0) {
@@ -443,8 +447,12 @@ export const sendMassMessageToSubscribers = async (creatorId: string, messageDat
  */
 export const sendVoiceMessage = async (sender_id: string, receiver_id: string, voiceFile: Express.Multer.File) => {
     const sender = await requireUser(sender_id);
+    const receiver = await UserModel.findUserById(receiver_id);
+
     if (sender.role === 'creator' && sender.status !== 'active') {
-        throw new AppError('Your account must be verified to send messages.', 403);
+        if (!receiver || receiver.role !== 'admin') {
+            throw new AppError('Pending creators can only send voice messages to platform Support until verified.', 403);
+        }
     }
 
     // Find or create conversation

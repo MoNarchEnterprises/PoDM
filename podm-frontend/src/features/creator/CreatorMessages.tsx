@@ -278,6 +278,10 @@ const CreatorMessagesPage = () => {
         }
     };
 
+    const isPendingCreator = currentCreator?.role === 'creator' && currentCreator?.status !== 'active';
+    const isSupportRecipient = activeConversation && (activeConversation.fan as any)?.role === 'admin';
+    const canSendMessage = !isPendingCreator || isSupportRecipient;
+
     return (
         <>
             <AttachmentModal
@@ -296,8 +300,15 @@ const CreatorMessagesPage = () => {
                 <div className={`w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col ${activeConversation && 'hidden md:flex'}`}>
                     <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                         <h2 className="text-xl font-bold">Messages</h2>
-                        <Button size="sm" variant="secondary" onClick={() => setIsBroadcastModalOpen(true)}>Broadcast</Button>
+                        {!isPendingCreator && (
+                            <Button size="sm" variant="secondary" onClick={() => setIsBroadcastModalOpen(true)}>Broadcast</Button>
+                        )}
                     </div>
+                    {isPendingCreator && (
+                        <div className="p-3 bg-amber-500/10 border-b border-amber-500/30 text-amber-300 text-xs">
+                            Account verification pending. Messaging is restricted to platform Support.
+                        </div>
+                    )}
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
                         {isLoadingConvos ? <p className="p-4 text-center">Loading...</p> : conversations.map(convo => <ConversationListItem key={convo.fan._id} conversation={convo} isActive={selectedFanId === convo.fan._id} onClick={() => setSelectedFanId(convo.fan._id)} />)}
                     </div>
@@ -376,6 +387,7 @@ const CreatorMessagesPage = () => {
                                             size="sm"
                                             className="p-2 h-auto rounded-full ml-2 bg-pink-500 hover:bg-pink-600"
                                             onClick={handleSendVoiceMessage}
+                                            disabled={!canSendMessage}
                                         >
                                             <Send className="w-5 h-5" />
                                         </Button>
@@ -383,27 +395,29 @@ const CreatorMessagesPage = () => {
                                 ) : (
                                     // Normal text input UI
                                     <div className="flex items-center bg-gray-700 rounded-full p-1">
-                                        <Button type="button" variant="ghost" size="sm" className="p-2 h-auto" onClick={openAttachmentModal}>
+                                        <Button type="button" variant="ghost" size="sm" className="p-2 h-auto" onClick={openAttachmentModal} disabled={!canSendMessage}>
                                             <Lock className="w-6 h-6" />
                                         </Button>
                                         <input
                                             type="text"
                                             value={newMessageText}
                                             onChange={e => setNewMessageText(e.target.value)}
-                                            placeholder="Type a message..."
-                                            className="flex-1 bg-transparent px-3 outline-none"
+                                            placeholder={canSendMessage ? "Type a message..." : "Messaging Audience is disabled while verification is pending."}
+                                            disabled={!canSendMessage}
+                                            className="flex-1 bg-transparent px-3 outline-none disabled:text-gray-400"
                                         />
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            className="p-2 h-auto hover:text-pink-500 transition-colors"
+                                            className="p-2 h-auto hover:text-pink-500 transition-colors disabled:opacity-50"
                                             onClick={startRecording}
+                                            disabled={!canSendMessage}
                                             title="Record voice message"
                                         >
                                             <Mic className="w-6 h-6" />
                                         </Button>
-                                        <Button type="submit" size="sm" className="p-2 h-auto rounded-full ml-2">
+                                        <Button type="submit" size="sm" className="p-2 h-auto rounded-full ml-2" disabled={!canSendMessage}>
                                             <Send className="w-5 h-5" />
                                         </Button>
                                     </div>

@@ -129,6 +129,13 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back, {creator.profile.name}! Here's your performance overview.</p>
                 </header>
 
+                {creator.status !== 'active' && (
+                    <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-700 dark:text-amber-300 text-sm">
+                        <p className="font-bold mb-1 text-base">Account Pending Verification</p>
+                        <p>Your creator account is currently pending verification. You can upload media, but your public profile link, referral code generation, and direct messaging with Audience members remain disabled until your account is approved.</p>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard icon={User} title="Subscribers" value={metrics.subscribers.value.toLocaleString()} change={metrics.subscribers.change} color="purple" />
                     <StatCard icon={DollarSign} title="Earnings (Month)" value={formatCurrency(metrics.earnings.value)} change={metrics.earnings.change / 100} color="green" />
@@ -159,7 +166,7 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/messages')}><MessageSquare className="w-6 h-6 text-blue-500" /><span>View Messages</span></Button>
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => navigate('/hub/earnings')}><DollarSign className="w-6 h-6 text-purple-500" /><span>Check Earnings</span></Button>
                                 <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={() => setShowContestsModal(true)}><Trophy className="w-6 h-6 text-yellow-500" /><span>Contests</span></Button>
-                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={handleShare}><Share2 className="w-6 h-6 text-pink-500" /><span>Share Profile</span></Button>
+                                <Button variant="ghost" className="flex-col h-auto space-y-2 py-4" onClick={handleShare} disabled={creator.status !== 'active'}><Share2 className="w-6 h-6 text-pink-500" /><span>Share Profile</span></Button>
                             </div>
                         </Card>
                     </div>
@@ -167,15 +174,30 @@ const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }:
                     <div className="space-y-8">
                         <Card>
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Your Profile Link</h3>
-                            <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-md p-2">
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-md p-2 opacity-90">
                                 <Link className="w-4 h-4 text-gray-400 dark:text-gray-500 mr-2" />
-                                <input type="text" value={profileLink} readOnly className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none" />
-                                <Button size="sm" onClick={handleCopy} className="p-2 h-auto">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
+                                <input
+                                    type="text"
+                                    value={creator.status === 'active' ? profileLink : ''}
+                                    placeholder={creator.status !== 'active' ? 'Profile link disabled (Account Pending)' : ''}
+                                    readOnly
+                                    disabled={creator.status !== 'active'}
+                                    className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none disabled:text-gray-400"
+                                />
+                                {creator.status === 'active' && (
+                                    <Button size="sm" onClick={handleCopy} className="p-2 h-auto">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
+                                )}
                             </div>
-                            <div className="flex items-center justify-around mt-4 text-gray-500 dark:text-gray-400">
-                                <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={() => setShowQrModal(true)}><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
-                                <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={handleShare}><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
-                            </div>
+                            {creator.status === 'active' ? (
+                                <div className="flex items-center justify-around mt-4 text-gray-500 dark:text-gray-400">
+                                    <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={() => setShowQrModal(true)}><QrCode className="w-5 h-5" /><span className="text-xs">QR Code</span></Button>
+                                    <Button variant="ghost" className="flex-col h-auto space-y-1" onClick={handleShare}><Share2 className="w-5 h-5" /><span className="text-xs">Share</span></Button>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 text-center">
+                                    Public profile link and sharing are disabled while verification is pending.
+                                </p>
+                            )}
                         </Card>
 
                     </div>

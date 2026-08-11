@@ -14,18 +14,11 @@ import { reshapeUserForApp } from '../utils/user.utils';
 import * as StorageService from './storage.service';
 import axios from 'axios';
 import { ethers } from 'ethers';
-
-function getRpcUrl(): string {
-    return process.env.NODE_ENV === 'production'
-        ? (process.env.BASE_RPC_URL || 'https://mainnet.base.org')
-        : (process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org');
-}
+import { getRpcUrl, getUsdcAddress } from '../utils/contract.utils';
 
 async function getPlatformWalletBalance(address: string): Promise<number> {
     try {
-        const usdcAddress = ethers.getAddress(process.env.NODE_ENV === 'production'
-            ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913'
-            : '0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+        const usdcAddress = ethers.getAddress(getUsdcAddress());
         const iface = new ethers.Interface(["function balanceOf(address owner) view returns (uint256)"]);
         const calldata = iface.encodeFunctionData("balanceOf", [address]);
         const response = await axios.post(getRpcUrl(), {
