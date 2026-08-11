@@ -1,8 +1,8 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     User as UserIcon, CheckCircle, AlertCircle, MessageCircle, CreditCard,
-    HelpCircle, Save, Camera, Edit, Trash2, PlusCircle, Twitter, Instagram,
-    Globe, Link,
+    HelpCircle, Save, Camera, Trash2, Twitter, Instagram,
+    Globe,
     X,
     Send,
     Music,
@@ -12,26 +12,19 @@ import WalletSettings from './WalletSettings';
 import { useAuth } from '../../hooks/useAuth';
 
 // --- Import Shared Types ---
-import { Creator, SubscriptionTier, SocialLinks, CreatorData } from '@common/types/Creator';
-import { User, UserProfile, UserStatus } from '@common/types/User';
-import { TransactionType } from '@common/types/Transaction';
+import { Creator, SubscriptionTier, SocialLinks } from '@common/types/Creator';
 import { Content } from '@common/types/Content';
 
 
 // --- Import Reusable Components & API Client ---
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import * as apiClient from '../../lib/apiClient';
 import Modal from '../../components/ui/Modal';
 import { useModal } from '../../hooks/useModal';
-import { useOnClickOutside } from '../../hooks/useOnClickOutside';
-import { useAdminData } from '../admin/AdminPanel';
 import SettingsCard from '../../components/shared/SettingsCard';
 import ToggleSwitch from '../../components/shared/ToggleSwitch';
 
-// --- Local Types ---
-interface AdminUser extends User { }
 
 // --- NEW COMPONENT: Modal for selecting welcome message content ---
 // --- NEW COMPONENT: Modal for selecting welcome message content ---
@@ -216,7 +209,7 @@ const WelcomeMessagePanel = ({ welcomeMessage, onMessageChange, onSelectContentC
 
 const TiersSettingsPanel = ({
     tiers,
-    onAddTier,
+    onAddTier: _onAddTier,
     onTierChange,
     onDeleteTier,
     onAddTierFeature,

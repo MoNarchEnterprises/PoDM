@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Eye, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { User } from '@common/types/User';
 
 const ImpersonationBanner = () => {
     const { user: originalUser, impersonatedUser, stopImpersonation } = useAuth();

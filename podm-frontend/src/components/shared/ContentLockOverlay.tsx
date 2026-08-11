@@ -1,5 +1,3 @@
-import React from 'react';
-import { Lock } from 'lucide-react';
 import Button from '../ui/Button';
 
 interface ContentLockOverlayProps {

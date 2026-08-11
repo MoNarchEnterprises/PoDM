@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { UploadCloud, Save, Send, Trash2, ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Save, Send, Trash2, ArrowRight, Sparkles } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import DropZone from '../components/BulkUpload/DropZone';
 import DraftCard, { DraftFile } from '../components/BulkUpload/DraftCard';
@@ -98,7 +98,7 @@ const BulkUploadPage: React.FC = () => {
         })));
     };
 
-    const handlePublishAll = async (status: 'published' | 'draft') => {
+    const handlePublishAll = async (_status: 'published' | 'draft') => {
         if (drafts.length === 0) return;
         setIsUploading(true);
 

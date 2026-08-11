@@ -3,8 +3,6 @@ import { DollarSign, Bookmark, BookmarkCheck } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { AxiosError } from 'axios';
-
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';

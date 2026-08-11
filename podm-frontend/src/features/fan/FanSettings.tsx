@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { User as UserIcon, Bell, CreditCard, Shield, HelpCircle, Save, Camera, Copy, Check } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User as FanUser } from '@common/types/User';
 
 // --- Import Reusable Components & Hooks ---
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
@@ -146,7 +145,7 @@ const NotificationSettingsPanel = ({ settings, onSettingsChange }: { settings: F
         />
     </SettingsCard>
 );
-const PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => (<SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard>);
+const _PrivacySettingsPanel = ({ settings, onSettingsChange }: { settings: FanSettingsData['privacy']; onSettingsChange: (category: 'privacy', key: string, value: boolean) => void; }) => (<SettingsCard title="Privacy" subtitle="Control how your profile appears to others."><ToggleSwitch label="Show in Search" description="Allow others to find your profile via search." enabled={!!settings.showInSearch} setEnabled={(val) => onSettingsChange('privacy', 'showInSearch', val)} /><ToggleSwitch label="Show Subscriptions" description="Allow others to see which creators you follow." enabled={!!settings.showSubscriptions} setEnabled={(val) => onSettingsChange('privacy', 'showSubscriptions', val)} /></SettingsCard>);
 const PaymentsSettingsPanel = ({ walletAddress, onLinkClick, embeddedWallet, embeddedBalance }: { walletAddress?: string | null, onLinkClick: () => void, embeddedWallet?: { walletAddress?: string | null, smartAccountAddress?: string | null } | null, embeddedBalance?: number }) => {
     return (
         <>
@@ -315,7 +314,7 @@ const FanSettingsPage = ({ fan, initialSettings }: FanSettingsPageProps) => {
     const [walletAddress, setWalletAddress] = useState<string | null>(getCryptoWallet(fan));
     const [isSaving, setIsSaving] = useState(false);
     const { isOpen: isWalletModalOpen, openModal: openWalletModal, closeModal: closeWalletModal } = useModal();
-    const { walletAddress: embeddedAddr, smartAccountAddress, usdcBalance, isReady } = useEmbeddedWallet();
+    const { walletAddress: embeddedAddr, smartAccountAddress, usdcBalance, isReady: _isReady } = useEmbeddedWallet();
 
     const handleProfileChange = (field: string, value: string) => setProfile(prev => ({ ...prev, [field]: value }));
     const handleSettingsChange = (category: 'notifications' | 'privacy', key: string, value: boolean) => setPreferences(prev => ({ ...prev, [category]: { ...prev[category], [key]: value } }));

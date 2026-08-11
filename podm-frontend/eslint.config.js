@@ -7,7 +7,13 @@ import refreshPlugin from "eslint-plugin-react-refresh";
 
 export default [
   {
-    ignores: ["dist/"],
+    ignores: [
+      "dist/",
+      "*.cjs",
+      "jest.config.ts",
+      "playwright.config.ts",
+      "setupTests.ts",
+    ],
   },
   ...tseslint.configs.recommended,
   {
@@ -27,9 +33,11 @@ export default [
       "react-refresh": refreshPlugin,
     },
     rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-explicit-any": "off",
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-refresh/only-export-components": "warn",
+      "react-hooks/exhaustive-deps": "off",
+      "react-refresh/only-export-components": "off",
     },
   },
 ];

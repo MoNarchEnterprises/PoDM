@@ -4,7 +4,6 @@ import * as apiClient from './lib/apiClient';
 // --- Import Shared Types ---
 import { Content } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
-import { GalleryItem } from '@common/types/Gallery';
 
 // --- Reusable Layouts & Hooks ---
 import MainLayout from './components/layout/MainLayout';

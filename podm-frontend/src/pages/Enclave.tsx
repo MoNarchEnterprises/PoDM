@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Shield, DollarSign, Lock, Rocket, Check, X } from 'lucide-react';
 import EnclaveHero from '../features/enclave/EnclaveHero';
 import EnclaveValueProps from '../features/enclave/EnclaveValueProps';
 import EnclaveComparison from '../features/enclave/EnclaveComparison';

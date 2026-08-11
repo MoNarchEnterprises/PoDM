@@ -1,7 +1,6 @@
 // src/features/profile/SubscriptionAuthModal.tsx
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -18,7 +17,6 @@ interface SubscriptionAuthModalProps {
 }
 
 const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLoginSuccess }: SubscriptionAuthModalProps) => {
-    const navigate = useNavigate();
     const { login, signup } = useAuth();
     const [mode, setMode] = useState<'signup' | 'login'>('signup');
     const [email, setEmail] = useState('');
@@ -47,8 +45,9 @@ const SubscriptionAuthModal = ({ isOpen, onClose, creator, selectedTier, onLogin
                 await login(email, password);
                 onLoginSuccess();
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message || "An authentication error occurred.");
+        } catch (err: unknown) {
+            const errObj = err as { response?: { data?: { message?: string } }; message?: string };
+            setError(errObj.response?.data?.message || errObj.message || "An authentication error occurred.");
         } finally {
             setIsLoading(false);
         }

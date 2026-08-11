@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import * as apiClient from '../lib/apiClient';
-import { User } from '@common/types/User';
 import { Content } from '@common/types/Content';
 import { Transaction } from '@common/types/Transaction';
 import { Creator } from '@common/types/Creator';

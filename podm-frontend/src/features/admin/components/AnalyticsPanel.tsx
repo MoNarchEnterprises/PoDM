@@ -13,7 +13,7 @@ const AnalyticsPanel = () => {
     const [timeframe, setTimeframe] = useState('6m');
     const [selectedCreator, setSelectedCreator] = useState<string>('');
     const [drillDown, setDrillDown] = useState<{ year: number; month: string } | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [_isLoading, setIsLoading] = useState(false);
     const [showCustomRange, setShowCustomRange] = useState(false);
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');

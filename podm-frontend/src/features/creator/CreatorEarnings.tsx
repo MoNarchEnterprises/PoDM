@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Home, FileText, MessageSquare, BarChart2, Settings, DollarSign, Banknote, Clock, Download, TrendingUp, X, CheckCircle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { DollarSign, Banknote, Clock, Download, TrendingUp, CheckCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // --- Import Shared Types ---
@@ -31,7 +31,7 @@ const WithdrawModal = ({ isOpen, onClose, availableBalance, onPayoutSuccess }: {
     const [amount, setAmount] = useState('');
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false); // Add isLoading state
-    const [error, setError] = useState<string | null>(null);
+    const [_error, setError] = useState<string | null>(null);
 
     const processingFee = (parseFloat(amount) || 0) * 0.02;
     const totalPayout = (parseFloat(amount) || 0) - processingFee;

@@ -92,7 +92,7 @@ const Sidebar = ({ logoText, navItems, isOpen, onClose }: SidebarProps) => {
 // --- Main Layout Component ---
 
 const MainLayout = ({ logoText, navItems, children }: MainLayoutProps) => {
-    const { user, impersonatedUser } = useAuth();
+    const { user } = useAuth();
     const shouldShowVerificationBanner = user && user.role === 'creator' && user.status !== 'active';
 
     // Mobile menu state

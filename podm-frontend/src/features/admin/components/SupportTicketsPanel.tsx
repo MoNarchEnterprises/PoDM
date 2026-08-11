@@ -4,7 +4,7 @@ import { Paperclip } from 'lucide-react';
 // --- Import Custom Hooks & API Client ---
 import { useAdminData } from '../AdminPanel';
 import * as apiClient from '../../../lib/apiClient';
-import { SupportTicket, TicketStatus } from '@common/types/SupportTicket';
+import { TicketStatus } from '@common/types/SupportTicket';
 
 // --- Reusable Components ---
 const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
@@ -22,18 +22,18 @@ const SupportTicketsPanel = () => {
     // Get the admin data directly from the parent context
     const { data, setData } = useAdminData();
 
-    // Handle the case where data might not be loaded yet
-    if (!data) {
-        return <div className="p-8 text-center text-gray-500">Loading support tickets...</div>;
-    }
-
-    const tickets = data.supportTickets;
+    const tickets = data?.supportTickets || [];
     const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?.id);
     const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
     // --- STATE FOR REPLY FUNCTIONALITY ---
     const [replyText, setReplyText] = useState('');
     const [isReplying, setIsReplying] = useState(false);
+
+    // Handle the case where data might not be loaded yet
+    if (!data) {
+        return <div className="p-8 text-center text-gray-500">Loading support tickets...</div>;
+    }
 
     const handleSendReply = async () => {
         if (!selectedTicket || !replyText.trim()) return;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2, X, Trophy } from 'lucide-react';
+import { FileText, MessageSquare, DollarSign, User, Link, Copy, Share2, PlusCircle, Eye, QrCode, Check, BarChart2, Trophy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 // --- Import Shared Types ---
@@ -33,7 +33,7 @@ type EarningsData = { name: string; earnings: number };
 
 // --- Reusable Sub-Components ---
 
-const ActivityItem = ({ item }: { item: ActivityItemType }) => {
+const _ActivityItem = ({ item }: { item: ActivityItemType }) => {
     let icon: React.ReactNode, description: string;
 
     if ('status' in item && 'title' in item) { // It's a Content item
@@ -69,7 +69,7 @@ interface CreatorDashboardProps {
     monthlyEarnings: EarningsData[];
 }
 
-const CreatorDashboard = ({ creator, metrics, recentActivity, monthlyEarnings }: CreatorDashboardProps) => {
+const CreatorDashboard = ({ creator, metrics, recentActivity: _recentActivity, monthlyEarnings }: CreatorDashboardProps) => {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
     const [showContestsModal, setShowContestsModal] = useState(false);

@@ -9,11 +9,11 @@ interface OnRampButtonProps {
     className?: string;
 }
 
-export const OnRampButton = ({ amount, destinationWallet, fanId, onComplete, className = '' }: OnRampButtonProps) => {
+export const OnRampButton = ({ amount, destinationWallet, fanId: _fanId, onComplete: _onComplete, className = '' }: OnRampButtonProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [sessionUrl, setSessionUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [completed, setCompleted] = useState(false);
+    const [_completed, setCompleted] = useState(false);
 
     const handleBuyWithCard = async () => {
         setIsLoading(true);
@@ -38,9 +38,11 @@ export const OnRampButton = ({ amount, destinationWallet, fanId, onComplete, cla
             }
 
             setSessionUrl(result.data.hostUrl);
+            setCompleted(true);
             window.open(result.data.hostUrl, '_blank', 'noopener,noreferrer');
-        } catch (err: any) {
-            setError(err.message || 'Failed to start card purchase.');
+        } catch (err: unknown) {
+            const errObj = err as { message?: string };
+            setError(errObj.message || 'Failed to start card purchase.');
         } finally {
             setIsLoading(false);
         }

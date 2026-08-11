@@ -37,8 +37,9 @@ const AdminLoginPage = () => {
                 setError('Access denied. This account does not have admin privileges.');
             }
 
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+        } catch (err: unknown) {
+            const errObj = err as { response?: { data?: { message?: string } } };
+            setError(errObj.response?.data?.message || 'Invalid credentials. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -51,8 +52,9 @@ const AdminLoginPage = () => {
         try {
             await apiClient.forgotPassword(email);
             setMode('forgotSuccess');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred.');
+        } catch (err: unknown) {
+            const errObj = err as { response?: { data?: { message?: string } } };
+            setError(errObj.response?.data?.message || 'An error occurred.');
         } finally {
             setIsLoading(false);
         }

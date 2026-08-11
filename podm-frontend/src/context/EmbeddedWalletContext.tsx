@@ -66,7 +66,7 @@ export const EmbeddedWalletProvider: React.FC<{ children: React.ReactNode }> = (
                 if (mounted) setState(prev => ({ ...prev, isLoading: true, error: null }));
                 
                 // First check status
-                let statusRes = await getWalletStatus();
+                const statusRes = await getWalletStatus();
                 let walletData = statusRes.data;
 
                 // If no wallet exists, create one

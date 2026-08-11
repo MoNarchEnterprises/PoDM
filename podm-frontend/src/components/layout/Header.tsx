@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, MessageSquare, Bell, LogOut, User as UserIcon, Settings, Home, List } from 'lucide-react';
+import { MessageSquare, Bell, LogOut, User as UserIcon, Settings, List } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { User } from '@common/types/User';
@@ -92,7 +92,7 @@ interface HeaderProps {
     onSignUpClick: () => void;
 }
 
-const Header = ({ user, impersonatedUser, logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
+const Header = ({ user, impersonatedUser, logoText: _logoText = "PoDM", onLoginClick, onSignUpClick }: HeaderProps) => {
     const currentUser = impersonatedUser || user;
     const navigate = useNavigate();
 

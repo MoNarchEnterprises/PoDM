@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, UserRole, UserProfile } from '@common/types/User';
+import { User, UserRole } from '@common/types/User';
 import { Content } from '@common/types/Content';
 import { refreshSocketToken } from './socket';
 
@@ -175,7 +175,7 @@ apiClient.interceptors.response.use(
                     originalRequest.headers = originalRequest.headers || {};
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
                     return apiClient(originalRequest);
-                } catch (refreshErr) {
+                } catch (_refreshErr) {
                     console.error("Silent token refresh failed. Redirecting to login.");
                     localStorage.removeItem('authToken');
                     sessionStorage.removeItem('authToken');
@@ -214,7 +214,10 @@ apiClient.interceptors.response.use(
 type ApiMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
 export const api = async <T = any>(method: ApiMethod, url: string, data?: any, config?: any): Promise<T> => {
-    const response = await (apiClient[method] as Function)(url, data, config);
+    const fn = apiClient[method] as (...args: any[]) => Promise<{ data: T }>;
+    const response = method === 'get' || method === 'delete'
+        ? await fn(url, config)
+        : await fn(url, data, config);
     return response.data;
 };
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Building2, ExternalLink, ShieldAlert, CheckCircle, Copy, ArrowRight,
-    HelpCircle, Bookmark, Check, Info, AlertTriangle
+    Building2, ExternalLink, ShieldAlert, CheckCircle, ArrowRight,
+    Bookmark, Info
 } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';

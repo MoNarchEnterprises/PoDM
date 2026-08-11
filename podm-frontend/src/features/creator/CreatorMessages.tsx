@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Send, Paperclip, Lock, ArrowLeft, DollarSign, Mic, X } from 'lucide-react';
+import { Send, Lock, ArrowLeft, DollarSign, Mic, X } from 'lucide-react';
 import * as apiClient from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
@@ -13,7 +13,7 @@ import BroadcastModal from './components/BroadcastModal';
 import { useModal } from '../../hooks/useModal';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import MessageBubble from '../messages/components/MessageBubble';
-import { Message, MessageContent } from '@common/types/Message';
+import { Message } from '@common/types/Message';
 
 import ConversationListItem from '../../components/shared/ConversationListItem';
 // --- Local Types ---

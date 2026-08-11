@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-    // add more env variables as needed
+    readonly VITE_ENABLE_EMBEDDED_WALLET?: string;
 }
 
 interface ImportMeta {

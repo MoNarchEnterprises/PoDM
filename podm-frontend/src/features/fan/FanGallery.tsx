@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Home, ImageIcon, Briefcase, Settings, MessageSquare, Search, Video, Star, RefreshCw } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ImageIcon, Search, Video, RefreshCw } from 'lucide-react';
 
 // --- Import Shared Types ---
-import { GalleryItem } from '@common/types/Gallery';
 import { Content, ContentType } from '@common/types/Content';
 import { Creator } from '@common/types/Creator';
 

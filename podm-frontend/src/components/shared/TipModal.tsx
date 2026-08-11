@@ -27,7 +27,7 @@ const TipModal = ({ isOpen, onClose, creator, contentId, onSubmit }: TipModalPro
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [manualAddress, setManualAddress] = useState('');
+    const [_manualAddress, _setManualAddress] = useState('');
 
     const { smartAccountAddress, usdcBalance, isReady: embeddedReady } = useEmbeddedWallet();
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Bookmark, DollarSign, PlayCircle, Maximize, Volume2, Settings, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Bookmark, DollarSign, MoreVertical } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth'; // 1. Import useAuth
 import * as apiClient from '../../lib/apiClient'; // 2. Import apiClient
 
@@ -53,7 +53,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     const [isLoading, setIsLoading] = useState(false);
 
     // Use centralized lock management
-    const { lockState, markAsUnlocked } = useContentLock(content, creator);
+    const { lockState: _lockState, markAsUnlocked: _markAsUnlocked } = useContentLock(content, creator);
 
     useEffect(() => {
         if (content && content.id) {

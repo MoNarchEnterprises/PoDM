@@ -3,7 +3,7 @@ import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import * as apiClient from '../../lib/apiClient';
-import { Calendar, Gift, Award, Info } from 'lucide-react';
+import { Calendar, Gift, Award } from 'lucide-react';
 import { SubscriptionTier } from '@common/types/Creator';
 
 interface CreateContestModalProps {

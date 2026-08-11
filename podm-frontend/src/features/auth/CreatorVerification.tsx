@@ -46,7 +46,7 @@ const CreatorVerificationPage = () => {
             const updatedUser = await apiClient.submitVerification(formData);
             setUser(updatedUser.data); // Update the user context with the new status
             navigate('/hub/dashboard'); // Redirect to creator dashboard
-        } catch (err: any) {
+        } catch (_err) {
         } finally {
             setIsLoading(false);
         }

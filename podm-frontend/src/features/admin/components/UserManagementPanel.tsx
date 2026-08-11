@@ -235,11 +235,25 @@ const UserManagementPanel = () => {
         }
     };
 
+    const users = data?.users || [];
+
+    const filteredUsers = useMemo(() => {
+        return users.filter(user => {
+            if (!user || !user.profile) return false;
+            const lowercasedTerm = searchTerm.toLowerCase();
+            const searchMatch = (user.profile.name?.toLowerCase() || '').includes(lowercasedTerm) ||
+                (user.email?.toLowerCase() || '').includes(lowercasedTerm);
+
+            const typeMatch = filters.type === 'All' || user.role === filters.type.toLowerCase();
+            const statusMatch = filters.status === 'All' || user.status === filters.status.toLowerCase().replace(' ', '-');
+
+            return searchMatch && typeMatch && statusMatch;
+        });
+    }, [searchTerm, filters, users]);
+
     if (!data) {
         return <div className="p-8 text-center text-gray-500">Loading user data...</div>;
     }
-
-    const users = data.users;
 
     const handleManageCommission = (user: User) => {
         setSelectedUserForModal(user);
@@ -332,20 +346,6 @@ const UserManagementPanel = () => {
         }
     };
 
-    const filteredUsers = useMemo(() => {
-        return users.filter(user => {
-            if (!user || !user.profile) return false;
-            // console.log('User management panel: User name:', user.profile.name, 'Email:', user.email, 'Role:', user.role, 'Status:', user.status);
-            const lowercasedTerm = searchTerm.toLowerCase();
-            const searchMatch = (user.profile.name?.toLowerCase() || '').includes(lowercasedTerm) ||
-                (user.email?.toLowerCase() || '').includes(lowercasedTerm);
-
-            const typeMatch = filters.type === 'All' || user.role === filters.type.toLowerCase();
-            const statusMatch = filters.status === 'All' || user.status === filters.status.toLowerCase().replace(' ', '-');
-
-            return searchMatch && typeMatch && statusMatch;
-        });
-    }, [searchTerm, filters, users]);
 
     const userToVerify = users.find(u => u.id === viewingVerificationId);
 

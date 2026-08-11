@@ -4,7 +4,7 @@ import * as apiClient from '../../lib/apiClient';
 import { Contest } from '@common/types/Contest';
 import Button from '../../components/ui/Button';
 import CreateContestModal from './CreateContestModal';
-import { Plus, Trophy, Calendar, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react';
+import { Plus, Trophy, Calendar, MessageCircle } from 'lucide-react';
 import { formatDate } from '../../lib/formatters';
 
 const CreatorContestList = () => {

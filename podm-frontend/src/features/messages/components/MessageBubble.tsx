@@ -19,8 +19,6 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, onContentClick, onSaveToGallery, onDelete }: MessageBubbleProps) => {
-    const justifyClass = isMe ? 'justify-end' : 'justify-start';
-
     const bubbleClass = senderRole === 'creator'
         ? `bg-pink-700 text-white ${isMe ? 'rounded-br-none' : 'rounded-bl-none'}`
         : `bg-purple-600 text-gray-200 ${isMe ? 'rounded-br-none' : 'rounded-bl-none'}`;
@@ -34,7 +32,7 @@ const MessageBubble = ({ message, isMe, senderRole, canSaveToGallery, onUnlock, 
         try {
             await onSaveToGallery(message.content.contentId);
             setIsSaved(true);
-        } catch (error) {
+        } catch (_error) {
             alert("Failed to save to gallery.");
         } finally {
             setIsSaving(false);

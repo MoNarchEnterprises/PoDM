@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth';
 
 // Global cache to avoid refetching for every hook instance
 let featureFlagsCache: Record<string, boolean> | null = null;
-let isFetching = false;
 let fetchPromise: Promise<Record<string, boolean>> | null = null;
 
 export const useFeatureFlag = (flagKey: string) => {
@@ -34,7 +33,6 @@ export const useFeatureFlag = (flagKey: string) => {
             }
 
             if (!fetchPromise) {
-                isFetching = true;
                 fetchPromise = getUserFeatureFlags()
                     .then(res => {
                         const flags = res.data || {};
@@ -46,7 +44,6 @@ export const useFeatureFlag = (flagKey: string) => {
                         return {};
                     })
                     .finally(() => {
-                        isFetching = false;
                         fetchPromise = null;
                     });
             }
@@ -54,7 +51,7 @@ export const useFeatureFlag = (flagKey: string) => {
             try {
                 const flags = await fetchPromise;
                 setEnabled(!!flags[flagKey]);
-            } catch (err) {
+            } catch (_err) {
                 setEnabled(false);
             } finally {
                 setIsLoading(false);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import * as apiClient from '../../lib/apiClient';
-import { CheckCircle, MoreVertical, Twitter, Instagram } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 // --- Import Shared Types ---
 import { Creator, SubscriptionTier } from '@common/types/Creator';
@@ -302,7 +302,7 @@ const CreatorProfileLoader = () => {
     const [profileData, setProfileData] = useState<{ creator: Creator; content: Content[]; isSubscribed: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user: viewer } = useAuth();
+    const { user: _viewer } = useAuth();
 
     useEffect(() => {
         if (!username) return;

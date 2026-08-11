@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface UseAsyncDataResult<T> {
   data: T | null;
@@ -9,8 +9,8 @@ interface UseAsyncDataResult<T> {
 
 export function useAsyncData<T>(
   fetchFn: () => Promise<T>,
-  deps: any[] = [],
-  options?: { onError?: (err: any) => string; debounceMs?: number }
+  deps: unknown[] = [],
+  options?: { onError?: (err: unknown) => string; debounceMs?: number }
 ): UseAsyncDataResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +27,9 @@ export function useAsyncData<T>(
       try {
         const result = await fetchFn();
         if (!cancelled) setData(result);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!cancelled) {
-          const message = options?.onError?.(err) || err?.message || 'An error occurred';
+          const message = options?.onError?.(err) || (err instanceof Error ? err.message : String(err)) || 'An error occurred';
           setError(message);
         }
       } finally {

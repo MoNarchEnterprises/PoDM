@@ -1,0 +1,310 @@
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\layout\Header.tsx
+  95:43  error  'logoText' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\ContentCard.tsx
+  51:8  warning  React Hook React.useEffect has a missing dependency: 'lockState'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\EmbeddedPaymentModal.tsx
+   69:23   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:77   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:75   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:134  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  185:235  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\OnRampButton.tsx
+  12:59  error  'fanId' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  12:66  error  'onComplete' is defined but never used. Allowed unused args must match /^_/u             @typescript-eslint/no-unused-vars
+  16:23  error  'setCompleted' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  42:23  error  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\PaymentModal.tsx
+  22:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  71:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\TipModal.tsx
+   30:12   error  'manualAddress' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   30:27   error  'setManualAddress' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  140:78   error  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  140:166  error  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  142:145  error  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\components\shared\UnlockModal.tsx
+  77:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\context\EmbeddedWalletContext.tsx
+   26:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   95:27  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  113:8   warning  React Hook useEffect has a missing dependency: 'refreshBalance'. Either include it or remove the dependency array               react-hooks/exhaustive-deps
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\context\ToastContext.tsx
+  21:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\AdminPanel.tsx
+   31:14  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  129:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\EnclaveApplications.tsx
+   42:8   warning  React Hook useEffect has a missing dependency: 'filterApplications'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   49:23  error    Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+   88:23  error    Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+  204:84  error    Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\AnalyticsPanel.tsx
+   16:12  error  'isLoading' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   21:56  error  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   36:31  error  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   69:36  error  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  232:52  error  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  273:65  error  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\ContentModerationPanel.tsx
+  45:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  47:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\DashboardPanel.tsx
+  67:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\ReportsPanel.tsx
+  25:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\SupportTicketsPanel.tsx
+  7:10  error  'SupportTicket' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\admin\components\UserManagementPanel.tsx
+  238:11  warning  The 'users' logical expression could make the dependencies of useMemo Hook (at line 252) change on every render. To fix this, wrap the initialization of 'users' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  342:25  error    Unexpected any. Specify a different type                                                                                                                                                    @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\auth\AuthModal.tsx
+  116:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\auth\CreatorVerification.tsx
+  49:18  error  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  49:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\contests\CreateContestModal.tsx
+   6:33  error  'Info' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  73:23  error  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\contests\CreatorContestList.tsx
+  7:34  error  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  7:47  error  'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\contests\FanContestList.tsx
+  33:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorAnalytics.tsx
+   30:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  347:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorContent.tsx
+    5:19  error    'ContentStatus' is defined but never used. Allowed unused vars must match /^_/u                                @typescript-eslint/no-unused-vars
+  183:23  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  281:7   error    'UploadModal' is assigned a value but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+  335:23  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  463:8   warning  React Hook useEffect has a missing dependency: 'item.title'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  634:91  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorDashboard.tsx
+   4:116  error  'X' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+  36:7    error  'ActivityItem' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  57:100  error  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  57:127  error  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  72:47   error  'recentActivity' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorEarnings.tsx
+    1:27   error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+    2:10   error  'Home' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+    2:16   error  'FileText' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    2:26   error  'MessageSquare' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    2:41   error  'BarChart2' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+    2:52   error  'Settings' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    2:113  error  'X' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   34:12   error  'error' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   45:23   error  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+  198:196  error  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorMessages.tsx
+    5:16  error    'Paperclip' is defined but never used. Allowed unused vars must match /^_/u                                       @typescript-eslint/no-unused-vars
+   16:19  error    'MessageContent' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+  132:8   warning  React Hook useEffect has a missing dependency: 'selectedFanId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  206:69  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  282:81  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\CreatorSettings.tsx
+    4:31  error  'Edit' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+    4:45  error  'PlusCircle' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+    5:12  error  'Link' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   15:50  error  'CreatorData' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   16:10  error  'User' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   16:16  error  'UserProfile' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   16:29  error  'UserStatus' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   17:10  error  'TransactionType' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   22:8   error  'Card' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   28:10  error  'useOnClickOutside' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   29:10  error  'useAdminData' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  102:14  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  175:21  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  176:45  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  193:63  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  217:5   error  'onAddTier' is defined but never used. Allowed unused args must match /^_/u          @typescript-eslint/no-unused-vars
+  342:25  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  558:63  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  615:25  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\ReferralCodes.tsx
+  64:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\components\BulkUpload\DraftCard.tsx
+   1:17  error  'useState' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   2:23  error  'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   3:13  error  'apiClient' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  20:24  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  69:97  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\components\CexGuidanceModal.tsx
+    3:56  error  'Copy' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    4:5   error  'HelpCircle' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+    4:27  error  'Check' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+    4:40  error  'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  157:23  error  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\creator\pages\BulkUploadPage.tsx
+    1:27  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+    2:10  error  'UploadCloud' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   23:40  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   62:25  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  101:37  error  'status' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  163:80  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  179:56  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\enclave\EnclaveApplicationForm.tsx
+  111:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\fan\FanGallery.tsx
+  1:36  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  2:10  error  'Home' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  2:27  error  'Briefcase' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  2:38  error  'Settings' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  2:48  error  'MessageSquare' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  2:78  error  'Star' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  5:10  error  'GalleryItem' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\fan\FanMessages.tsx
+    9:31   error  'resolveRecipientWallet' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   14:10   error  'formatMessageTimestamp' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   15:10   error  'getCryptoWallet' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   73:50   error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  239:142  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\fan\FanSettings.tsx
+    1:17  error  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+    8:8   error  'Card' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   46:23  error  Unexpected any. Specify a different type                                                         @typescript-eslint/no-explicit-any
+   62:23  error  Unexpected any. Specify a different type                                                         @typescript-eslint/no-explicit-any
+  138:72  error  Unexpected any. Specify a different type                                                         @typescript-eslint/no-explicit-any
+  149:7   error  'PrivacySettingsPanel' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  236:25  error  Unexpected any. Specify a different type                                                         @typescript-eslint/no-explicit-any
+  281:25  error  Unexpected any. Specify a different type                                                         @typescript-eslint/no-explicit-any
+  318:76  error  'isReady' is assigned a value but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\fan\FanSubscriptions.tsx
+  207:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\fan\components\ContentViewerModal.tsx
+   9:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\messages\components\MessageBubble.tsx
+  22:11  error  'justifyClass' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  37:18  error  'error' is defined but never used                                                        @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\profile\CreatorProfile.tsx
+    5:23  error  'MoreVertical' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+    5:37  error  'Twitter' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+    5:46  error  'Instagram' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   55:95  error  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   79:98  error  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   88:25  error  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  138:23  error  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  283:70  error  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  305:19  error  'viewer' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\profile\SubscriptionAuthModal.tsx
+  21:11  error  'navigate' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  50:23  error  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\profile\SubscriptionModal.tsx
+  19:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\features\viewer\ContentViewer.tsx
+   2:43  error    'PlayCircle' is defined but never used. Allowed unused vars must match /^_/u                                @typescript-eslint/no-unused-vars
+   2:55  error    'Maximize' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+   2:65  error    'Volume2' is defined but never used. Allowed unused vars must match /^_/u                                   @typescript-eslint/no-unused-vars
+   2:74  error    'Settings' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+  56:13  error    'lockState' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  56:24  error    'markAsUnlocked' is assigned a value but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+  81:8   warning  React Hook useEffect has a missing dependency: 'content'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\hooks\useAuth.tsx
+  234:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\lib\apiClient.ts
+    2:26  error  'UserProfile' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  178:26  error  'refreshErr' is defined but never used                                         @typescript-eslint/no-unused-vars
+  216:31  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  216:75  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  216:89  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  217:47  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  286:60  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  287:35  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  305:59  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  325:42  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  384:59  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  440:84  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  573:79  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  687:45  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  767:46  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  833:44  error  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\lib\wallet.ts
+   9:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\pages\AdminLoginPage.tsx
+  40:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\shared\hooks\useAsyncData.ts
+  12:9   error    Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  13:31  error    Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  30:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  47:6   warning  React Hook []);
+
+  u has missing dependencies: 'fetchFn' and 'options'. Either include them or remove the dependency array. If 'fetchFn' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  47:7   warning  React Hook []);
+
+  u has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies                                                                                        react-hooks/exhaustive-deps
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\shared\hooks\useFeatureFlag.ts
+   7:5   error  'isFetching' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  57:22  error  'err' is defined but never used                                                        @typescript-eslint/no-unused-vars
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\shared\hooks\useFormSubmission.ts
+  12:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\leona\Documents_local\PoDM\PoDM\podm-frontend\src\types\ethereum.d.ts
+  2:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 201 problems (188 errors, 13 warnings)
+
