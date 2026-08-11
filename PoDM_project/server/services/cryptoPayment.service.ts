@@ -121,11 +121,8 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
     }
 
     // 2. Verify the hash format is valid (must be 0x followed by 64 hex characters)
-    if (!/^0x[A-Fa-f0-9]{64}$/.test(input.txHash)) {
-        // Normalize any testnet / card on-ramp identifier into a valid 64-hex hash
-        const buffer = Buffer.alloc(32);
-        buffer.write(input.txHash, 0, 'utf8');
-        input.txHash = '0x' + buffer.toString('hex');
+    if (!input.txHash || !/^0x[A-Fa-f0-9]{64}$/.test(input.txHash)) {
+        throw new AppError('Invalid transaction hash format. Must be a 64-character hex string starting with 0x.', 400);
     }
 
     // 3. Fetch creator's configured wallet address via canonical service
@@ -203,7 +200,35 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Failed to parse transaction logs: Expected PoDM protocol event not found.', 400);
         }
 
-        // Parse topics: topics[1] = fan address, topics[2] = creator address
+        // Parse topics: topics[1] = fan address (payer), topics[2] = creator address (recipient)
+        const payerTopic = contractLog.topics[1];
+        if (!payerTopic) {
+            throw new AppError('Invalid transaction: Fan payer topic is missing from contract logs.', 400);
+        }
+
+        const payerHex = '0x' + payerTopic.slice(26).toLowerCase();
+
+        // Fetch authenticated fan's linked crypto_wallet_address and smart_account_address
+        const { data: fanProfile } = await supabase
+            .from('profiles')
+            .select('crypto_wallet_address, smart_account_address')
+            .eq('id', input.fanId)
+            .maybeSingle();
+
+        const fanWalletAddress = fanProfile?.crypto_wallet_address?.toLowerCase() || '';
+        const fanSmartAccountAddress = fanProfile?.smart_account_address?.toLowerCase() || '';
+
+        if (!fanWalletAddress && !fanSmartAccountAddress) {
+            throw new AppError('Authenticated fan does not have a configured wallet address.', 400);
+        }
+
+        const isPayerMatched = (fanWalletAddress && payerHex === fanWalletAddress) ||
+                               (fanSmartAccountAddress && payerHex === fanSmartAccountAddress);
+
+        if (!isPayerMatched) {
+            throw new AppError('Transaction payer does not match the authenticated fan\'s wallet address.', 400);
+        }
+
         const recipientTopic = contractLog.topics[2];
         if (!recipientTopic) {
             throw new AppError('Invalid transaction: Creator recipient topic is missing from contract logs.', 400);

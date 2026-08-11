@@ -72,10 +72,6 @@ const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => 
         }
     };
 
-    const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
-        return apiClient.sendTip(post.creator_id, amount, message, post.id, paymentMethodId);
-    };
-
     const handleUnlockSuccess = () => {
         setLocalIsUnlocked(true);
     };
@@ -94,7 +90,6 @@ const PostCard = ({ post, isLocked: forceLocked, lockState }: PostCardProps) => 
                 onClose={closeTipModal}
                 creator={post.creator}
                 contentId={post.id}
-                onSubmit={handleTipSubmit}
             />
 
             <UnlockModal

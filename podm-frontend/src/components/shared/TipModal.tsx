@@ -58,11 +58,10 @@ const TipModal = ({ isOpen, onClose, creator, contentId, onSubmit }: TipModalPro
 
     const handleEmbeddedSuccess = async () => {
         if (onSubmit) {
-            try {
-                await onSubmit(finalAmount, message);
-            } catch { }
+            await onSubmit(finalAmount, message);
         }
-        handleClose();
+        setShowEmbeddedPayment(false);
+        setStep(2);
     };
 
     const cryptoPayment = useCryptoPayment();

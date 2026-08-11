@@ -87,10 +87,6 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     const menuRef = useRef<HTMLDivElement>(null);
     useOnClickOutside(menuRef, closeMenu);
 
-    const handleTipSubmit = async (amount: number, message: string, paymentMethodId?: string) => {
-        return apiClient.sendTip(creator.id, amount, message, content.id, paymentMethodId);
-    };
-
     const handleReportSubmit = async (reason: string, details: string) => {
         try {
             await apiClient.reportContent(content.id, reason, details);
@@ -129,7 +125,7 @@ const ContentViewerPage = ({ content, creator, relatedContent }: ContentViewerPa
     return (
         <>
             <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} reportType="Content" targetName={creator.profile.name} onSubmit={handleReportSubmit} />
-            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} contentId={content.id} onSubmit={handleTipSubmit} />
+            <TipModal isOpen={isTipModalOpen} onClose={closeTipModal} creator={creator} contentId={content.id} />
             <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
                 <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 w-full">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">

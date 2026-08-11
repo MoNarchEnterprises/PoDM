@@ -37,12 +37,6 @@ export interface CryptoPaymentHookType {
     error: string | null;
 }
 
-interface VerifyResponseData {
-    success?: boolean;
-    txHash?: string;
-    transactionId?: string;
-}
-
 /**
  * Resolves creator's wallet address with fallback chain:
  * 1. explicit creatorWalletAddress param
@@ -144,33 +138,9 @@ export class PaymentOrchestrator {
                 };
             }
 
-            // Fallback if no cryptoPayment hook instance provided: process via window.ethereum directly
-            const eth = window.ethereum;
-            if (!eth) {
-                return { success: false, error: 'No Web3 wallet detected.' };
-            }
-
-            const accounts: string[] = await eth.request({ method: 'eth_requestAccounts' });
-            const fromAddr = params.fromAddress || accounts[0];
-            if (!fromAddr) {
-                return { success: false, error: 'No wallet account connected.' };
-            }
-
-            // Perform backend verification / payment record call
-            const amountInCents = Math.round(params.amount * 100);
-            const verifyResp = await apiClient.api<{ success: boolean; data: VerifyResponseData }>('post', '/payments/crypto/verify', {
-                txHash: '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join(''),
-                creatorId: params.creatorId,
-                amountInCents,
-                transactionType: params.paymentType,
-                relatedId: params.contentId || params.tierId,
-                message: params.message,
-            });
-
             return {
-                success: verifyResp?.success === true || verifyResp?.data?.success === true,
-                txHash: verifyResp?.data?.txHash,
-                transactionId: verifyResp?.data?.transactionId,
+                success: false,
+                error: 'Crypto payment hook instance is required for browser wallet payments.',
             };
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Browser wallet payment execution failed.';

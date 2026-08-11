@@ -76,14 +76,14 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                 fromAddress: walletAddress,
             });
 
-            if (!result.success) {
-                throw new Error(result.error || 'Transaction failed or rejected by wallet.');
+            if (!result.success || !result.txHash) {
+                throw new Error(result.error || 'Transaction failed or transaction hash missing.');
             }
 
             await onSubscriptionComplete({
                 creatorId: creator.id,
                 tierId: selectedTier.id,
-                paymentMethodId: result.txHash || 'subscription-payment',
+                paymentMethodId: result.txHash,
             });
             onClose();
         } catch (err: any) {
@@ -103,10 +103,14 @@ const SubscriptionModal = ({ isOpen, onClose, creator, selectedTier, onSubscript
                 creator={creator}
                 tierName={selectedTier.name}
                 onSuccess={(txHash) => {
+                    if (!txHash) {
+                        setError('Transaction hash missing from embedded payment.');
+                        return;
+                    }
                     onSubscriptionComplete({
                         creatorId: creator.id,
                         tierId: selectedTier.id,
-                        paymentMethodId: txHash || 'embedded-payment',
+                        paymentMethodId: txHash,
                     });
                     onClose();
                 }}

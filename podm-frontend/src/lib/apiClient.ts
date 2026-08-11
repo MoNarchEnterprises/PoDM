@@ -613,20 +613,28 @@ export const getFanSubscriptions = () =>
 /**
  * Creates a new subscription for a creator tier.
  */
-export const createSubscription = (creator_id: string, tier_id: string, paymentMethodId: string) =>
-    api('post', '/subscriptions', { creator_id, tier_id, paymentMethodId, txHash: paymentMethodId });
+export const createSubscription = (creator_id: string, tier_id: string, txHash: string) => {
+    if (!txHash) {
+        throw new Error('Valid blockchain transaction hash is required to create a subscription.');
+    }
+    return api('post', '/subscriptions', { creator_id, tier_id, paymentMethodId: txHash, txHash });
+};
 
 /**
  * Sends a tip to a creator.
  */
-export const sendTip = (creatorId: string, amountInCents: number, message?: string, relatedId?: string, txHash?: string) =>
-    api('post', '/payments/crypto/verify', {
-        txHash: txHash || '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join(''),
+export const sendTip = (creatorId: string, amountInCents: number, message?: string, relatedId?: string, txHash?: string) => {
+    if (!txHash) {
+        throw new Error('Valid blockchain transaction hash is required to send a tip.');
+    }
+    return api('post', '/payments/crypto/verify', {
+        txHash,
         creatorId,
         amountInCents,
         transactionType: 'Tip',
         relatedId,
     });
+};
 
 /**
  * Resolves the referrer details (wallet address + referral fee bps) a fan must
