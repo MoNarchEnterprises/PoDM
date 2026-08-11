@@ -46,13 +46,13 @@ const SplashPage = () => {
                         <div className="flex flex-col lg:flex-row items-center gap-12 text-center lg:text-left">
                             <div className="flex-1 space-y-8">
                                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
-                                    Stop Chasing Likes. <br />
+                                    Stop Collecting Followers. <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                                        Start Monetizing Connection.
+                                        Start Building Relationships.
                                     </span>
                                 </h1>
                                 <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                                    Your Audience is Waiting...
+                                    Your Audience Is Ready. Step up to your PoDM.
                                 </p>
                                 <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                                     <button
