@@ -8,6 +8,7 @@ import { AppError } from '../middleware/error.middleware';
 import { ethers, Interface } from 'ethers';
 import supabase from '../config/supabaseClient';
 import { verifyPaymentReceiptInBackground } from './verification.service';
+import { verifyAndRecordBasePayment } from './cryptoPayment.service';
 import * as TransactionModel from '../models/transaction.model';
 import * as SubscriptionModel from '../models/subscription.model';
 import { getEffectiveCommissionRate } from '../utils/commission.utils';
@@ -301,59 +302,46 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         const txHash = userOpReceipt.transactionHash;
 
-        // Calculate fee splits & referral fee using resolved commissionRate
-        const platformFee = Math.round(intent.amountInCents * (commissionRate / 100));
-        const creatorPayout = intent.amountInCents - platformFee;
+        // Remediation H-02: Require userOpReceipt.success === true before clearing
+        if (userOpReceipt.success === false) {
+            const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message' || intent.type === 'Tip';
+            const relatedContentId = isContentTransaction ? (intent.relatedId || undefined) : undefined;
+            await TransactionModel.createTransaction({
+                fan_id: userId,
+                creator_id: intent.creatorId,
+                type: intent.type,
+                amount: intent.amountInCents,
+                platform_fee: 0,
+                creator_payout: 0,
+                status: 'Failed',
+                blockchain_tx_hash: txHash,
+                user_operation_hash: finalOpHash,
+                related_content_id: relatedContentId,
+            });
+            return {
+                success: false,
+                userOpHash: finalOpHash,
+                txHash,
+                status: 'Failed',
+                error: 'UserOperation reverted on-chain during execution.'
+            };
+        }
 
-        const { referralFee, referrerId } = await calculateReferralFee({
+        // Verify receipt on-chain and record Cleared transaction with full event validation
+        const verifiedResult = await verifyAndRecordBasePayment({
+            txHash,
+            fanId: userId,
             creatorId: intent.creatorId,
             amountInCents: intent.amountInCents,
-            commissionRate,
+            transactionType: intent.type,
+            relatedId: intent.relatedId,
         });
-        const adjustedPlatformFee = platformFee - referralFee;
 
-        const isContentTransaction = intent.type === 'PPV Post' || intent.type === 'PPV Message' || intent.type === 'Tip';
-        const relatedContentId = isContentTransaction ? (intent.relatedId || undefined) : undefined;
-
-        // Build insert payload — conditionally include referral fields
-        // to avoid column-not-found errors if the migration hasn't run yet.
-        const transactionPayload: Record<string, any> = {
-            fan_id: userId,
-            creator_id: intent.creatorId,
-            type: intent.type,
-            amount: intent.amountInCents,
-            platform_fee: adjustedPlatformFee,
-            creator_payout: creatorPayout,
-            status: 'Cleared',
-            blockchain_tx_hash: txHash,
-            user_operation_hash: finalOpHash,
-            related_content_id: relatedContentId,
-        };
-        if (referralFee > 0) {
-            transactionPayload.referral_fee = referralFee;
-            transactionPayload.referrer_id = referrerId;
-        }
-
-        const transaction = await TransactionModel.createTransaction(transactionPayload);
-
-        if (!transaction) {
-            console.error('[UserOpService] createTransaction returned null. Check DB logs above for column/constraint errors. Payload keys:', Object.keys(transactionPayload));
-            throw new AppError('Failed to record transaction in the database.', 500);
-        }
-
-        if (referralFee > 0 && referrerId) {
-            recordReferralFee(referrerId, referralFee);
-        }
-
-        if (intent.relatedId) {
-            if (intent.type === 'Tip') {
-                incrementContentTipStats(intent.relatedId, intent.amountInCents)
-                    .catch(err => console.error('[UserOpService] Error updating content tip stats:', err));
-            } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
-                incrementContentPpvEarningsStats(intent.relatedId, creatorPayout)
-                    .catch(err => console.error('[UserOpService] Error updating content PPV stats:', err));
-            }
-        }
+        // Record user_operation_hash on the transaction
+        await supabase
+            .from('transactions')
+            .update({ user_operation_hash: finalOpHash })
+            .eq('id', verifiedResult.transactionId);
 
         // Create or update subscription record for Subscription-type payments
         if (intent.type === 'Subscription') {
@@ -382,11 +370,8 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
             }
         }
 
-        // Fire background verification — polls eth_getTransactionReceipt up to
-        // 60s. If the on-chain receipt isn't found or validation fails, status
-        // reverts to Failed.
         verifyPaymentReceiptInBackground(
-            transaction.id,
+            verifiedResult.transactionId,
             txHash,
             intent.creatorId,
             intent.amountInCents,
@@ -404,7 +389,7 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         return {
             success: true,
-            transactionId: transaction.id,
+            transactionId: verifiedResult.transactionId,
             userOpHash: finalOpHash,
             txHash,
             status: 'Cleared'

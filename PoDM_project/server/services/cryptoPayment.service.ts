@@ -239,6 +239,18 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Transaction recipient does not match the creator\'s configured wallet address.', 400);
         }
 
+        // Strict topic[3] validation: Payment token MUST match canonical USDC
+        const tokenTopic = contractLog.topics[3];
+        if (!tokenTopic) {
+            throw new AppError('Invalid transaction: Token address topic is missing from contract logs.', 400);
+        }
+
+        const tokenHex = '0x' + tokenTopic.slice(26).toLowerCase();
+        const { usdcContract } = getRpcConfig();
+        if (usdcContract && tokenHex.toLowerCase() !== usdcContract.toLowerCase()) {
+            throw new AppError('Invalid transaction: Payment token does not match canonical USDC.', 400);
+        }
+
         // Decode log data: totalAmount (first 32 bytes), plus referral fee & referrer
         // for the v2 contract. Slots vary by event type:
         //   SubscriptionPaid / PPVPaid: [0] total, [1] idHash, [2] platformFee, [3] referralFee, [4] creatorAmount, [5] referrer
@@ -254,6 +266,15 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
                     `Transaction amount mismatch. Blockchain: $${blockchainAmountInCents / 100}, Requested: $${input.amountInCents / 100}`,
                     400
                 );
+            }
+
+            // Validate emitted tierIdHash / contentIdHash against relatedId if provided (H-03 remediation)
+            if (input.relatedId && (input.transactionType === 'Subscription' || input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message')) {
+                const idHashSlotHex = '0x' + dataHex.slice(66, 130).toLowerCase();
+                const expectedHashHex = keccak256(toUtf8Bytes(input.relatedId)).toLowerCase();
+                if (idHashSlotHex !== expectedHashHex) {
+                    throw new AppError('Transaction content identifier mismatch. Event hash does not match requested tier/content item.', 400);
+                }
             }
 
             const referralFeeSlot = input.transactionType === 'Tip' ? 2 : 3;

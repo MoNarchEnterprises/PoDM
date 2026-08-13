@@ -7,8 +7,11 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
+    using SafeERC20 for IERC20;
+
     address public platformTreasury;
     uint256 public platformFeeBps;
     uint256 public referralFeeBps;
@@ -24,10 +27,19 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
 
     mapping(address => bool) public keepers;
 
+    address public usdcToken;
+
     event KeeperUpdated(address indexed keeper, bool active);
+    event UsdcTokenUpdated(address indexed oldUsdc, address indexed newUsdc);
 
     modifier onlyKeeper() {
         require(keepers[msg.sender] || msg.sender == owner(), "Not authorized keeper");
+        _;
+    }
+
+    modifier onlyUsdc(address tokenAddress) {
+        require(usdcToken != address(0), "USDC token not configured");
+        require(tokenAddress == usdcToken, "Only canonical USDC payments supported");
         _;
     }
 
@@ -35,6 +47,12 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(_keeper != address(0), "Invalid keeper address");
         keepers[_keeper] = _active;
         emit KeeperUpdated(_keeper, _active);
+    }
+
+    function setUsdcToken(address _usdcToken) external onlyOwner {
+        require(_usdcToken != address(0), "Invalid USDC address");
+        emit UsdcTokenUpdated(usdcToken, _usdcToken);
+        usdcToken = _usdcToken;
     }
 
     event SubscriptionPaid(
@@ -172,17 +190,17 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         bytes32 tierIdHash,
         address referrer,
         uint256 customPlatformFeeBps
-    ) external whenNotPaused nonReentrant {
+    ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
-        require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
+        token.safeTransferFrom(msg.sender, creator, creatorAmount);
         if (referralFee > 0) {
-            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+            token.safeTransferFrom(msg.sender, referrer, referralFee);
         }
 
         emit SubscriptionPaid(msg.sender, creator, tokenAddress, amount, tierIdHash, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
@@ -194,17 +212,17 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         uint256 amount,
         address referrer,
         uint256 customPlatformFeeBps
-    ) external whenNotPaused nonReentrant {
+    ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
-        require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
+        token.safeTransferFrom(msg.sender, creator, creatorAmount);
         if (referralFee > 0) {
-            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+            token.safeTransferFrom(msg.sender, referrer, referralFee);
         }
 
         emit TipPaid(msg.sender, creator, tokenAddress, amount, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
@@ -217,17 +235,17 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         bytes32 contentIdHash,
         address referrer,
         uint256 customPlatformFeeBps
-    ) external whenNotPaused nonReentrant {
+    ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(msg.sender, platformTreasury, treasuryFee), "Platform fee transfer failed");
-        require(token.transferFrom(msg.sender, creator, creatorAmount), "Creator payout transfer failed");
+        token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
+        token.safeTransferFrom(msg.sender, creator, creatorAmount);
         if (referralFee > 0) {
-            require(token.transferFrom(msg.sender, referrer, referralFee), "Referrer payout transfer failed");
+            token.safeTransferFrom(msg.sender, referrer, referralFee);
         }
 
         emit PPVPaid(msg.sender, creator, tokenAddress, amount, contentIdHash, treasuryFee + referralFee, referralFee, creatorAmount, referrer);
@@ -268,7 +286,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         uint256 amount,
         address referrer,
         uint256 customPlatformFeeBps
-    ) external whenNotPaused nonReentrant onlyKeeper returns (bool) {
+    ) external whenNotPaused nonReentrant onlyKeeper onlyUsdc(tokenAddress) returns (bool) {
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
         require(amount > 0 && amount <= allowance.maxAmountPerPeriod, "Amount exceeds allowance");
@@ -280,10 +298,10 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transferFrom(fan, platformTreasury, treasuryFee), "Platform fee transfer failed");
-        require(token.transferFrom(fan, creator, creatorAmount), "Creator payout transfer failed");
+        token.safeTransferFrom(fan, platformTreasury, treasuryFee);
+        token.safeTransferFrom(fan, creator, creatorAmount);
         if (referralFee > 0) {
-            require(token.transferFrom(fan, referrer, referralFee), "Referrer payout transfer failed");
+            token.safeTransferFrom(fan, referrer, referralFee);
         }
 
         allowance.lastRenewalAt = block.timestamp;
@@ -296,12 +314,12 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         address tokenAddress,
         address creator,
         uint256 amount
-    ) external onlyOwner whenNotPaused nonReentrant {
+    ) external onlyOwner whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
         IERC20 token = IERC20(tokenAddress);
-        require(token.transfer(creator, amount), "Payout transfer failed");
+        token.safeTransfer(creator, amount);
 
         emit PayoutCompleted(creator, amount);
     }

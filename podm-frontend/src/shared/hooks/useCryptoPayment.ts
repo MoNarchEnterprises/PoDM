@@ -8,7 +8,6 @@ const PAY_TIP_SELECTOR   = '0x7a02b81c';   // payTip(address token, address crea
 const PAY_PPV_SELECTOR   = '0x33f2ab62';   // payPPV(address token, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)
 
 const ZERO_ADDRESS_HEX = '0'.repeat(64);
-const MAX_UINT256_HEX = '0x' + 'f'.repeat(64); // unlimited allowance
 
 type PaymentType = 'Tip' | 'PPV Post' | 'PPV Message' | 'Subscription';
 
@@ -70,12 +69,12 @@ async function readAllowance(usdcAddress: string, owner: string, spender: string
 }
 
 /**
- * Send ERC-20 approve(spender, MAX_UINT256) and wait for the receipt.
- * Returns the approve transaction hash.
+ * Send ERC-20 approve(spender, amountInUnits) for exact payment amount and wait for the receipt.
+ * Returns the approve transaction hash. (Remediates H-01 unlimited approval vulnerability).
  */
-async function approveContract(usdcAddress: string, owner: string, spender: string): Promise<string> {
+async function approveContract(usdcAddress: string, owner: string, spender: string, amountInUnits: bigint): Promise<string> {
   const eth = window.ethereum!;
-  const data = APPROVE_SELECTOR + padAddress(spender) + MAX_UINT256_HEX.slice(2);
+  const data = APPROVE_SELECTOR + padAddress(spender) + padUint(amountInUnits);
   const txHash = await eth.request({
     method: 'eth_sendTransaction',
     params: [{ from: owner, to: usdcAddress, data }],
@@ -159,11 +158,11 @@ export function useCryptoPayment(): CryptoPaymentResult {
 
       const amountInUnits = BigInt(Math.round(params.amount * 1e6)); // USDC 6 decimals
 
-      // 1. Ensure sufficient USDC allowance to the PoDM contract.
+      // 1. Ensure exact USDC allowance to the PoDM contract.
       const currentAllowance = await readAllowance(usdcAddress, fromAddress, contractAddress);
       if (currentAllowance < amountInUnits) {
-        const approveTx = await approveContract(usdcAddress, fromAddress, contractAddress);
-        console.log('[useCryptoPayment] USDC approve tx:', approveTx);
+        const approveTx = await approveContract(usdcAddress, fromAddress, contractAddress, amountInUnits);
+        console.log('[useCryptoPayment] Exact USDC approve tx:', approveTx);
       }
 
       // 2. Build calldata for the appropriate PoDM contract function.

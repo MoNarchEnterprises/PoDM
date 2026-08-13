@@ -14,7 +14,13 @@ describe('PoDMPaymentProtocol', function () {
     await proxy.waitForDeployment();
     const contract = PoDMPaymentProtocol.attach(await proxy.getAddress()) as any;
     const contractAddress = await proxy.getAddress();
-    return { contract, contractAddress, owner, treasury, creator, fan };
+
+    const MockUSDC = await ethers.getContractFactory('MockUSDC');
+    const usdc = await MockUSDC.deploy();
+    await usdc.waitForDeployment();
+    await contract.setUsdcToken(await usdc.getAddress());
+
+    return { contract, contractAddress, owner, treasury, creator, fan, usdc };
   }
 
   describe('Initialization', function () {
@@ -96,20 +102,20 @@ describe('PoDMPaymentProtocol', function () {
     });
 
     it('should reject renewal before period elapses', async () => {
-      const { contract, creator, fan } = await deployFixture();
+      const { contract, creator, fan, usdc } = await deployFixture();
       const amount = ethers.parseUnits('10', 6);
       const period = 30 * 24 * 60 * 60;
 
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
       await expect(
         contract.processRenewal(
-          ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+          await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Renewal period has not elapsed');
     });
 
     it('should reject amount exceeding max allowance', async () => {
-      const { contract, creator, fan } = await deployFixture();
+      const { contract, creator, fan, usdc } = await deployFixture();
       const amount = ethers.parseUnits('5', 6);
       const period = 30 * 24 * 60 * 60;
 
@@ -118,7 +124,7 @@ describe('PoDMPaymentProtocol', function () {
 
       await expect(
         contract.processRenewal(
-          ethers.ZeroAddress, fan.address, creator.address, excessive, ethers.ZeroAddress, 0
+          await usdc.getAddress(), fan.address, creator.address, excessive, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Amount exceeds allowance');
     });
@@ -127,11 +133,7 @@ describe('PoDMPaymentProtocol', function () {
   describe('Payout', function () {
     async function payoutFixture() {
       const base = await deployFixture();
-      const [owner] = await ethers.getSigners();
-
-      const MockUSDC = await ethers.getContractFactory('MockUSDC');
-      const usdc = await MockUSDC.deploy();
-      await usdc.waitForDeployment();
+      const usdc = base.usdc;
 
       // Fund treasury with USDC
       const treasuryAmount = ethers.parseUnits('10000', 6);
@@ -171,11 +173,11 @@ describe('PoDMPaymentProtocol', function () {
 
   describe('Pause blocks payments', function () {
     it('should reject paySubscription when paused', async () => {
-      const { contract, creator, fan } = await deployFixture();
+      const { contract, creator, fan, usdc } = await deployFixture();
       await contract.pause();
       await expect(
         contract.connect(fan).paySubscription(
-          ethers.ZeroAddress, creator.address, ethers.parseUnits('10', 6), ethers.ZeroHash, ethers.ZeroAddress, 0
+          await usdc.getAddress(), creator.address, ethers.parseUnits('10', 6), ethers.ZeroHash, ethers.ZeroAddress, 0
         )
       ).to.be.reverted;
     });
@@ -195,9 +197,7 @@ describe('PoDMPaymentProtocol', function () {
       const [owner] = await ethers.getSigners();
       const referrer = (await ethers.getSigners())[4];
 
-      const MockUSDC = await ethers.getContractFactory('MockUSDC');
-      const usdc = await MockUSDC.deploy();
-      await usdc.waitForDeployment();
+      const usdc = base.usdc;
 
       const fan = (await ethers.getSigners())[3];
       const creator = (await ethers.getSigners())[2];
@@ -308,7 +308,7 @@ describe('PoDMPaymentProtocol', function () {
 
   describe('processRenewal access control', function () {
     it('should reject processRenewal from non-keeper', async () => {
-        const { contract, creator, fan } = await deployFixture();
+        const { contract, creator, fan, usdc } = await deployFixture();
         const amount = ethers.parseUnits('10', 6);
         const period = 30 * 24 * 60 * 60;
         await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
@@ -317,13 +317,13 @@ describe('PoDMPaymentProtocol', function () {
         const [,,, , randomUser] = await ethers.getSigners();
         await expect(
             contract.connect(randomUser).processRenewal(
-                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.be.revertedWith('Not authorized keeper');
     });
 
     it('should allow owner to call processRenewal', async () => {
-        const { contract, creator, fan } = await deployFixture();
+        const { contract, creator, fan, usdc } = await deployFixture();
         const amount = ethers.parseUnits('10', 6);
         const period = 24 * 60 * 60; // 1 day
         await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
@@ -333,13 +333,13 @@ describe('PoDMPaymentProtocol', function () {
         // Owner should pass the keeper check (will fail on ERC20 transfer but NOT on access control)
         await expect(
             contract.processRenewal(
-                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.not.be.revertedWith('Not authorized keeper');
     });
 
     it('should allow registered keeper to call processRenewal', async () => {
-        const { contract, creator, fan } = await deployFixture();
+        const { contract, creator, fan, usdc } = await deployFixture();
         const [,,,,keeperUser] = await ethers.getSigners();
         await contract.setKeeper(keeperUser.address, true);
         const amount = ethers.parseUnits('10', 6);
@@ -351,7 +351,7 @@ describe('PoDMPaymentProtocol', function () {
         // Keeper should pass the keeper check
         await expect(
             contract.connect(keeperUser).processRenewal(
-                ethers.ZeroAddress, fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.not.be.revertedWith('Not authorized keeper');
     });

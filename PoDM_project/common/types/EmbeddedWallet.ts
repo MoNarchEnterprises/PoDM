@@ -175,7 +175,7 @@ export interface PaymentIntentResult {
     transactionId?: string;
     txHash?: string;
     userOpHash?: string;
-    status?: 'Pending' | 'Cleared';
+    status?: 'Pending' | 'Cleared' | 'Failed';
     error?: string;
 }
 

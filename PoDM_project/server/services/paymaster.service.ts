@@ -73,7 +73,18 @@ export class PimlicoPaymasterService implements IPaymasterService {
     }
 
     async isEligibleForSponsorship(amountInCents: number, userId: string): Promise<boolean> {
-        // Sponsor all UserOperations — smart accounts have no ETH to pay prefund
+        if (!userId || amountInCents <= 0) {
+            return false;
+        }
+
+        const maxSponsoredCents = process.env.MAX_SPONSORED_AMOUNT_CENTS
+            ? parseInt(process.env.MAX_SPONSORED_AMOUNT_CENTS, 10)
+            : 50000; // Default max $500 per transaction for sponsorship eligibility
+
+        if (amountInCents > maxSponsoredCents) {
+            return false;
+        }
+
         return true;
     }
 }

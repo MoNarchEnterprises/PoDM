@@ -143,6 +143,20 @@ export const verifyPaymentReceiptInBackground = async (
         }
     }
 
+    const tokenTopic = contractLog.topics[3];
+    if (tokenTopic) {
+        const tokenHex = '0x' + tokenTopic.slice(26).toLowerCase();
+        const { usdcAddress } = getContractConfig();
+        if (usdcAddress && tokenHex.toLowerCase() !== usdcAddress.toLowerCase()) {
+            console.warn('[VerificationService] Token mismatch. Expected USDC:', usdcAddress, 'Got:', tokenHex);
+            await supabase
+                .from('transactions')
+                .update({ status: 'Failed' })
+                .eq('id', transactionId);
+            return;
+        }
+    }
+
     const dataHex = contractLog.data;
     if (dataHex && dataHex.startsWith('0x')) {
         const totalAmountHex = '0x' + dataHex.slice(2, 66);
