@@ -78,7 +78,7 @@ export async function processPayout(
     }
 
     try {
-        const amountUSDC = BigInt(Math.round(amountInCents / 100) * 1_000_000);
+        const amountUSDC = BigInt(Math.round(amountInCents)) * 10_000n;
 
         const { ethers } = await import('ethers');
         const provider = new ethers.JsonRpcProvider(rpcUrl);

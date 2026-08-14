@@ -284,6 +284,33 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
                 }
             }
 
+            // Validate emitted platformFee and creatorAmount against DB expected commission rate (BV-03 remediation)
+            const platformFeeSlot = input.transactionType === 'Tip' ? 1 : 2;
+            const creatorAmountSlot = input.transactionType === 'Tip' ? 3 : 4;
+
+            const platformFeeRaw = parseInt('0x' + dataHex.slice(2 + platformFeeSlot * 64, 2 + (platformFeeSlot + 1) * 64), 16);
+            const creatorAmountRaw = parseInt('0x' + dataHex.slice(2 + creatorAmountSlot * 64, 2 + (creatorAmountSlot + 1) * 64), 16);
+
+            const emittedPlatformFeeInCents = Math.round(platformFeeRaw / 10000);
+            const emittedCreatorPayoutInCents = Math.round(creatorAmountRaw / 10000);
+
+            const expectedPlatformFeeInCents = Math.round(input.amountInCents * (commissionRate / 100));
+            const expectedCreatorPayoutInCents = input.amountInCents - expectedPlatformFeeInCents;
+
+            if (Math.abs(emittedPlatformFeeInCents - expectedPlatformFeeInCents) > 2) {
+                throw new AppError(
+                    `Platform fee split mismatch. Blockchain: $${(emittedPlatformFeeInCents / 100).toFixed(2)}, Expected DB split (${commissionRate}%): $${(expectedPlatformFeeInCents / 100).toFixed(2)}`,
+                    400
+                );
+            }
+
+            if (Math.abs(emittedCreatorPayoutInCents - expectedCreatorPayoutInCents) > 2) {
+                throw new AppError(
+                    `Creator payout split mismatch. Blockchain: $${(emittedCreatorPayoutInCents / 100).toFixed(2)}, Expected DB split: $${(expectedCreatorPayoutInCents / 100).toFixed(2)}`,
+                    400
+                );
+            }
+
             const referralFeeSlot = input.transactionType === 'Tip' ? 2 : 3;
             const referrerSlot = input.transactionType === 'Tip' ? 4 : 5;
             const referralFeeRaw = parseInt('0x' + dataHex.slice(2 + referralFeeSlot * 64, 2 + (referralFeeSlot + 1) * 64), 16);

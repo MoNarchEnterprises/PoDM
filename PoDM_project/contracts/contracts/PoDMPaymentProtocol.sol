@@ -29,8 +29,13 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
 
     address public usdcToken;
 
+    mapping(address => mapping(bytes32 => bool)) public paidHashes;
+    bool public enforceOnChainIdempotency;
+
     event KeeperUpdated(address indexed keeper, bool active);
     event UsdcTokenUpdated(address indexed oldUsdc, address indexed newUsdc);
+    event OnChainIdempotencyToggled(bool enabled);
+    event PaymentHashRecorded(address indexed payer, bytes32 indexed itemHash);
 
     modifier onlyKeeper() {
         require(keepers[msg.sender] || msg.sender == owner(), "Not authorized keeper");
@@ -53,6 +58,11 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(_usdcToken != address(0), "Invalid USDC address");
         emit UsdcTokenUpdated(usdcToken, _usdcToken);
         usdcToken = _usdcToken;
+    }
+
+    function setEnforceOnChainIdempotency(bool _enabled) external onlyOwner {
+        enforceOnChainIdempotency = _enabled;
+        emit OnChainIdempotencyToggled(_enabled);
     }
 
     event SubscriptionPaid(
@@ -174,7 +184,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
 
         uint256 platformFee = (amount * feeBps) / 10000;
         uint256 referralFee = 0;
-        if (referrer != address(0)) {
+        if (referrer != address(0) && referrer != msg.sender) {
             referralFee = (amount * referralFeeBps) / 10000;
             if (referralFee > platformFee) {
                 referralFee = platformFee;
@@ -193,6 +203,12 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+
+        if (enforceOnChainIdempotency) {
+            require(!paidHashes[msg.sender][tierIdHash], "Tier hash already paid by caller");
+            paidHashes[msg.sender][tierIdHash] = true;
+            emit PaymentHashRecorded(msg.sender, tierIdHash);
+        }
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
@@ -238,6 +254,12 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+
+        if (enforceOnChainIdempotency) {
+            require(!paidHashes[msg.sender][contentIdHash], "Content hash already paid by caller");
+            paidHashes[msg.sender][contentIdHash] = true;
+            emit PaymentHashRecorded(msg.sender, contentIdHash);
+        }
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
 
