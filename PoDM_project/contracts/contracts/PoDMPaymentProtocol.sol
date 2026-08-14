@@ -297,6 +297,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(allowances[msg.sender][creator].active, "No active allowance");
 
         allowances[msg.sender][creator].active = false;
+        allowances[msg.sender][creator].maxAmountPerPeriod = 0;
 
         emit SubscriptionRevoked(msg.sender, creator);
     }

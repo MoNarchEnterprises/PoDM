@@ -149,8 +149,24 @@ export function useCryptoPayment(): CryptoPaymentResult {
 
       const fromAddress = await ensureConnectedWallet();
       const eth = window.ethereum!;
-      const chainId = Number(eth.chainId) || Number(import.meta.env.VITE_CHAIN_ID) || 84532;
-      const usdcAddress = getUsdcAddress(chainId);
+
+      // Enforce active network binding (FE-01 network mismatch protection)
+      const expectedChainId = Number(import.meta.env.VITE_CHAIN_ID) || 84532;
+      const rawChainId = eth.chainId ? (typeof eth.chainId === 'string' ? parseInt(eth.chainId, 16) : Number(eth.chainId)) : 0;
+
+      if (rawChainId && rawChainId !== expectedChainId) {
+        const expectedHex = '0x' + expectedChainId.toString(16);
+        try {
+          await eth.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: expectedHex }],
+          });
+        } catch {
+          throw new Error(`Network Mismatch: Wallet is on chain ${rawChainId}, but active network is ${expectedChainId}. Please switch network in your wallet.`);
+        }
+      }
+
+      const usdcAddress = getUsdcAddress(expectedChainId);
 
       const creatorWallet = params.recipientAddress.startsWith('0x')
         ? params.recipientAddress

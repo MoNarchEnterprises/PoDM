@@ -3,7 +3,7 @@ import { onRampService } from '../services/onramp.service';
 import { asyncHandler } from '../utils/asyncHandler';
 
 export const createOnRampSession = asyncHandler(async (req: Request, res: Response) => {
-    const { amount, destinationWallet } = req.body;
+    const { amount, destinationWallet, signature, message } = req.body;
     const fanId = req.user?.id;
 
     if (!fanId) {
@@ -16,7 +16,7 @@ export const createOnRampSession = asyncHandler(async (req: Request, res: Respon
         return;
     }
 
-    const session = await onRampService.createCharge(amount, fanId, destinationWallet);
+    const session = await onRampService.createCharge(amount, fanId, destinationWallet, signature, message);
 
     res.status(201).json({
         success: true,

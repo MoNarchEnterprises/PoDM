@@ -3,16 +3,18 @@ import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { DEFAULT_COMMISSION_RATE, REFERRAL_FEE_BPS } from '../../lib/constants';
 import { getEffectiveCommissionRate } from '../utils/commission.utils';
-import { keccak256, toUtf8Bytes } from 'ethers';
+import { ethers, keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
 
-interface WalletConfigInput {
+export interface WalletConfigInput {
     walletAddress: string;
-    walletType: 'none' | 'embedded' | 'custom';
-    payoutPreference: 'debit_card' | 'on_chain' | 'base';
+    walletType: 'none' | 'embedded' | 'custom' | string;
+    payoutPreference: 'debit_card' | 'on_chain' | 'base' | string;
+    signature?: string;
+    message?: string;
 }
 
 interface PaymentVerificationInput {
@@ -81,7 +83,50 @@ export const getUserWalletConfig = async (userId: string) => {    const { data: 
     };
 };
 
+export function verifyWalletOwnershipSignature(
+    walletAddress: string,
+    message: string,
+    signature: string,
+    userId: string
+): boolean {
+    if (!walletAddress || !message || !signature) return false;
+    if (!ethers.isAddress(walletAddress)) return false;
+
+    try {
+        const recovered = ethers.verifyMessage(message, signature);
+        if (recovered.toLowerCase() !== walletAddress.toLowerCase()) {
+            return false;
+        }
+
+        const lowerMsg = message.toLowerCase();
+        if (!lowerMsg.includes(walletAddress.toLowerCase())) return false;
+        if (userId && !lowerMsg.includes(userId.toLowerCase())) return false;
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export const updateUserWalletConfig = async (userId: string, input: WalletConfigInput) => {
+    if (input.walletAddress) {
+        if (!ethers.isAddress(input.walletAddress)) {
+            throw new AppError('Invalid Ethereum wallet address format.', 400);
+        }
+
+        if (input.signature && input.message) {
+            const isValid = verifyWalletOwnershipSignature(
+                input.walletAddress,
+                input.message,
+                input.signature,
+                userId
+            );
+            if (!isValid) {
+                throw new AppError('Wallet ownership signature verification failed.', 400);
+            }
+        }
+    }
+
     const { data, error } = await supabase
         .from('profiles')
         .update({
@@ -177,6 +222,25 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
         if (receipt.status !== '0x1') {
             throw new AppError('Transaction failed on the blockchain.', 400);
+        }
+
+        // CC-01: Network chain ID binding verification
+        const expectedChainId = process.env.EXPECTED_CHAIN_ID
+            ? parseInt(process.env.EXPECTED_CHAIN_ID, 10)
+            : (process.env.VITE_CHAIN_ID ? parseInt(process.env.VITE_CHAIN_ID, 10) : 84532);
+
+        if (expectedChainId) {
+            const chainIdResponse = await axios.post(rpcUrl, {
+                jsonrpc: '2.0',
+                method: 'eth_chainId',
+                params: [],
+                id: 2
+            });
+            const rpcChainIdHex = chainIdResponse.data?.result;
+            const rpcChainId = rpcChainIdHex ? parseInt(rpcChainIdHex, 16) : null;
+            if (rpcChainId && rpcChainId !== expectedChainId) {
+                throw new AppError(`Network mismatch: Transaction RPC chain ID (${rpcChainId}) does not match expected platform chain ID (${expectedChainId}).`, 400);
+            }
         }
 
         const expectedTopic = input.transactionType === 'Subscription'

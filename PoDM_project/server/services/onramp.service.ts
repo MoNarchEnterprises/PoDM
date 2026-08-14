@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ethers } from 'ethers';
 import supabase from '../config/supabaseClient';
 import { AppError } from '../middleware/error.middleware';
 import { getChainId } from '../utils/contract.utils';
@@ -99,11 +100,52 @@ export class OnRampService {
      * Create a Coinbase On-Ramp session for buying USDC on Base.
      * Returns a hosted URL the user can visit (or embed via iframe).
      */
-    async createCharge(amount: number, fanId: string, destinationWallet: string): Promise<OnRampSession> {
+    async createCharge(
+        amount: number,
+        fanId: string,
+        destinationWallet?: string,
+        signature?: string,
+        message?: string
+    ): Promise<OnRampSession> {
         const { apiKey, appId } = getConfig();
 
-        if (!destinationWallet || !/^0x[a-fA-F0-9]{40}$/.test(destinationWallet)) {
-            throw new AppError('A valid destination wallet address is required.', 400);
+        // Fetch fan's configured profile wallets (V-A05 binding)
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('crypto_wallet_address, smart_account_address')
+            .eq('id', fanId)
+            .maybeSingle();
+
+        const smartAccount = profile?.smart_account_address?.toLowerCase() || '';
+        const cryptoWallet = profile?.crypto_wallet_address?.toLowerCase() || '';
+
+        let targetWallet = destinationWallet ? destinationWallet.toLowerCase() : '';
+
+        if (!targetWallet) {
+            // Default to fan's smart account or crypto wallet
+            targetWallet = smartAccount || cryptoWallet;
+        }
+
+        if (!targetWallet || !/^0x[a-fA-F0-9]{40}$/.test(targetWallet)) {
+            throw new AppError('No configured destination wallet address found for fan.', 400);
+        }
+
+        // V-A05 override validation: If caller specifies an external destination address
+        // not matching fan's profile wallets, require cryptographic signature proof
+        const isProfileWallet = targetWallet === smartAccount || targetWallet === cryptoWallet;
+        if (!isProfileWallet && (smartAccount || cryptoWallet)) {
+            if (!signature || !message) {
+                throw new AppError('External destination wallet override requires cryptographic signature verification.', 400);
+            }
+
+            try {
+                const recovered = ethers.verifyMessage(message, signature);
+                if (recovered.toLowerCase() !== targetWallet) {
+                    throw new AppError('Signature verification failed for external destination wallet override.', 400);
+                }
+            } catch (err: any) {
+                throw new AppError(`Invalid destination wallet signature: ${err.message || 'Verification failed.'}`, 400);
+            }
         }
 
         let token = apiKey;
@@ -122,7 +164,7 @@ export class OnRampService {
                 app_id: appId,
                 destination_wallets: [
                     {
-                        address: destinationWallet,
+                        address: targetWallet,
                         blockchains: ['base'],
                         assets: ['USDC'],
                     },
