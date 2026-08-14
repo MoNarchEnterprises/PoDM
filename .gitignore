@@ -20,3 +20,19 @@ qa-results/
 # Blockchain Security Findings
 Blockchain Security Findings/
 
+# Blockchain security assessment workspace (recon, static analysis, findings, reports)
+# Also contains the hostile fixtures (security/fixtures), executable attack/reproduction
+# suites (security/tests/hardhat), the security-scoped Hardhat config + junctions
+# (security/hardhat.config.ts, security/contracts, security/node_modules), and generated
+# outputs (security/artifacts, security/cache, security/results).
+security/
+
+# Hardhat build artifacts (generated)
+PoDM_project/contracts/artifacts/
+PoDM_project/contracts/cache/
+PoDM_project/contracts/typechain-types/
+
+# Frontend E2E output (Playwright) — generated
+podm-frontend/test-results/
+podm-frontend/playwright-report/
+

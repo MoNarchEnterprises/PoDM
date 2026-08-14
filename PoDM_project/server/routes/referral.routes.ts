@@ -10,8 +10,8 @@ router.post('/generate', ...protectAndCreator, ReferralController.generateReferr
 router.get('/stats', ...protectAndCreator, ReferralController.getReferralStats);
 router.get('/earnings', ...protectAndCreator, ReferralController.getReferrerEarnings);
 
-// Internal route for milestone checking (should be called by payment/earnings system)
-router.post('/check-milestone/:userId', ReferralController.checkMilestoneBonus);
+// Internal route for milestone checking (requires authenticated creator)
+router.post('/check-milestone/:userId', ...protectAndCreator, ReferralController.checkMilestoneBonus);
 
 // Public route for validation
 router.get('/validate/:code', ReferralController.validateReferralCode);

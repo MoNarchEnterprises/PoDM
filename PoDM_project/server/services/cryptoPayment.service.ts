@@ -270,8 +270,15 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
             // Validate emitted tierIdHash / contentIdHash against relatedId if provided (H-03 remediation)
             if (input.relatedId && (input.transactionType === 'Subscription' || input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message')) {
-                const idHashSlotHex = '0x' + dataHex.slice(66, 130).toLowerCase();
-                const expectedHashHex = keccak256(toUtf8Bytes(input.relatedId)).toLowerCase();
+                const idHashSlotHex = ('0x' + dataHex.slice(66, 130)).toLowerCase();
+                let expectedHashHex: string;
+                const cleanId = input.relatedId.replace(/^0x/i, '').replace(/-/g, '');
+                if (/^[0-9a-fA-F]{64}$/.test(cleanId)) {
+                    expectedHashHex = ('0x' + cleanId).toLowerCase();
+                } else {
+                    const truncated = input.relatedId.substring(0, 31);
+                    expectedHashHex = ('0x' + Buffer.from(truncated, 'utf8').toString('hex').padEnd(64, '0')).toLowerCase();
+                }
                 if (idHashSlotHex !== expectedHashHex) {
                     throw new AppError('Transaction content identifier mismatch. Event hash does not match requested tier/content item.', 400);
                 }
@@ -341,10 +348,26 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         transactionPayload.referrer_id = referrerId;
     }
 
-    const transaction = await TransactionModel.createTransaction(transactionPayload);
-
-    if (!transaction) {
-        throw new AppError('Failed to record transaction in the database.', 500);
+    let transaction: any;
+    try {
+        transaction = await TransactionModel.createTransaction(transactionPayload);
+        if (!transaction) {
+            const { data: duplicate } = await supabase
+                .from('transactions')
+                .select('*')
+                .eq('blockchain_tx_hash', input.txHash)
+                .maybeSingle();
+            if (duplicate) {
+                throw new AppError('This transaction hash has already been verified and processed.', 409);
+            }
+            throw new AppError('Failed to record transaction in the database.', 500);
+        }
+    } catch (err: any) {
+        if (err instanceof AppError) throw err;
+        if (err.code === '23505' || err.message?.includes('duplicate key') || err.message?.includes('unique constraint')) {
+            throw new AppError('This transaction hash has already been verified and processed.', 409);
+        }
+        throw err;
     }
 
     if (referralFee > 0 && referrerId) {

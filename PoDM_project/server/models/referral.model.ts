@@ -185,7 +185,7 @@ export const getReferralStats = async (userId: string) => {
     return stats;
 };
 
-export const checkAndAwardMilestoneBonus = async (userId: string, totalEarnings: number): Promise<void> => {
+export const checkAndAwardMilestoneBonus = async (userId: string, totalEarningsInput?: number): Promise<void> => {
     const { data: refApp, error: refAppError } = await supabase
         .from('referral_applications')
         .select('*, referrals(*), enclave_applications(created_at)')
@@ -204,6 +204,19 @@ export const checkAndAwardMilestoneBonus = async (userId: string, totalEarnings:
 
     if (refApp.bonus_awarded && refApp.bonus_awarded > 0) {
         return;
+    }
+
+    // Derive creator total earnings strictly server-side from Cleared transactions (V-A03 remediation)
+    let totalEarnings = 0;
+    const { data: transactions } = await supabase
+        .from('transactions')
+        .select('creator_payout')
+        .eq('creator_id', userId)
+        .eq('status', 'Cleared');
+
+    if (transactions && transactions.length > 0) {
+        const totalEarningsCents = transactions.reduce((acc: number, tx: any) => acc + (tx.creator_payout || 0), 0);
+        totalEarnings = totalEarningsCents / 100;
     }
 
     if (totalEarnings >= 750) {

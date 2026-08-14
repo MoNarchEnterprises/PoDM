@@ -63,14 +63,18 @@ export const validateReferralCode = asyncHandler(async (req: Request, res: Respo
 });
 
 export const checkMilestoneBonus = asyncHandler(async (req: Request, res: Response) => {
+    const authUserId = requireAuth(req);
     const { userId } = req.params;
-    const { totalEarnings } = req.body;
 
-    if (!userId || totalEarnings === undefined) {
-        throw new AppError('userId and totalEarnings are required', 400);
+    if (!userId) {
+        throw new AppError('userId parameter is required', 400);
     }
 
-    await ReferralModel.checkAndAwardMilestoneBonus(userId, totalEarnings);
+    if (authUserId !== userId) {
+        throw new AppError('Forbidden: Cannot trigger milestone bonus check for another user', 403);
+    }
+
+    await ReferralModel.checkAndAwardMilestoneBonus(userId);
 
     ok(res, { message: 'Milestone check completed' });
 });
