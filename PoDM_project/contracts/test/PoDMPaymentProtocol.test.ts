@@ -272,7 +272,17 @@ describe('PoDMPaymentProtocol', function () {
       const creator = base.creator;
       const treasury = base.treasury;
       const treasuryAuthority = base.treasuryAuthority;
-      return { ...base, usdc, fan, creator, referrer, treasury, treasuryAuthority };
+      // R-04: bind the referrer to the creator on-chain so the payment tests
+      // that pass a non-zero referrer satisfy the new contract enforcement.
+      // 200 years from now keeps the binding "active" for the entire test.
+      const validUntil = BigInt(Math.floor(Date.now() / 1000) + 200 * 365 * 24 * 60 * 60);
+      await contract_connectSetReferrer(base.contract, treasuryAuthority, creator.address, referrer.address, validUntil);
+      return { ...base, usdc, fan, creator, referrer, treasury, treasuryAuthority, validUntil };
+    }
+
+    // tiny helper kept in closure scope to avoid an ethers-call boilerplate in every test
+    async function contract_connectSetReferrer(contract: any, treasuryAuthority: any, creator: string, referrer: string, validUntil: bigint) {
+      await contract.connect(treasuryAuthority).setReferrer(creator, referrer, validUntil);
     }
 
     it('should default referral fee to 1%', async () => {

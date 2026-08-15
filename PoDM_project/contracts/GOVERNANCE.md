@@ -117,6 +117,46 @@ Therefore:
   open in every report (VERIFICATION_OF_REMEDIATION.md,
   REMAINING-BLOCKERS.md).**
 
+- **What closes H-05/M-03:** an *independent* record of each of the five
+  role holders plus the timelock's `getMinDelay()` value, reproduced by
+  querying the live proxy on Base Sepolia (and Base Mainnet once deployed),
+  read from the chain via a block explorer or `ethers.getContractAt`.
+  That record must include the negative check that no single address holds
+  two of the five operational roles, and that no EOA holds
+  `UPGRADE_ROLE`. **Until that record is produced, H-05/M-03 remains
+  open in every report (VERIFICATION_OF_REMEDIATION.md,
+  REMAINING-BLOCKERS.md).**
+
+## R-04 Referral Authority (added 2026-08-18)
+
+**Decision:** Option 1 — on-chain authoritative binding.
+
+Per the architectural inconsistency documented in R-04, the contract's
+acceptance of any caller-supplied `referrer` address with zero validation
+below the on-chain layer created a risk: a fan paying directly to the
+contract could redirect the 1% referral fee to an arbitrary address via a
+direct-contract calldata injection, with the on-chain transaction
+irreversibly moving USDC before the platform's post-tx verification could
+reject it.
+
+The on-chain binding ensures the economic invariant is enforced in
+consensus, not merely reconciled after the fact.
+
+**Closeout criteria:**
+- `setReferrer` is callable only by `TREASURY_ROLE`.
+- `_assertReferrer` is called at the top of `paySubscription`,
+  `payTip`, `payPPV`, and `processRenewal`.
+- A non-zero `referrer` that does not match the active on-chain binding
+  causes the transaction to revert (USDC never moves).
+- An independent block explorer attestation of the above three conditions
+  is recorded before R-04 may be marked "fixed" in any report.
+
+**What closes R-04:** an *independent* block explorer attestation of the
+three conditions above, read from the deployed Base Sepolia (or Base
+Mainnet) proxy. Until that record is produced, R-04 remains open in every
+report (VERIFICATION_OF_REMEDIATION.md,
+REMAINING-BLOCKERS.md).
+
 ## Operation runbook (condensed)
 
 - **Deploy a new proxy:** see `scripts/deploy.ts`. Required env:

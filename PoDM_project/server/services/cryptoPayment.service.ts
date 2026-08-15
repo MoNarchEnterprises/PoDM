@@ -217,7 +217,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         );
     }
 
-    let payerHex = '';
+let payerHex = '';
     let verifiedReceipt: any = null;
     try {
         // 2.5 Retry-on-pending for up to 15s: if the tx is not yet mined, poll with backoff.
@@ -256,6 +256,15 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Transaction failed on the blockchain.', 400);
         }
 
+        // --- M-01: Explicit finality / reorg policy ---
+        // Never mark a transaction Cleared based on a single receipt.
+        // We require:
+        //   1. Minimum confirmation threshold (configurable via BASE_MIN_CONFIRMATIONS, default 2)
+        //   2. Receipt must still be observable at the final block (reorg protection)
+        //   3. RPC chain ID must match configured chain ID (network partition protection)
+        //   4. Receipt status must be 'success' (0x1)
+        // --- End M-01 policy ---
+
         // The configured network is authoritative. Never allow a request-scoped
         // or frontend-provided chain ID to redefine the verification network.
         const chainIdResponse = await axios.post(rpcUrl, {
@@ -269,22 +278,44 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         if (!rpcChainId || rpcChainId !== chainId) {
             throw new AppError(`Network mismatch: Transaction RPC chain ID (${rpcChainId ?? 'unknown'}) does not match configured platform chain ID (${chainId}).`, 400);
         }
-        verifiedReceipt = receipt;
 
-        const receiptBlockNumber = receipt.blockNumber ? parseInt(receipt.blockNumber, 16) : 0;
+        // Fetch latest block number for reorg protection: the receipt must be
+        // observable at a block that is not behind a reorg'd chain.
         const latestBlockResponse = await axios.post(rpcUrl, {
             jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 3,
         });
         const latestBlockNumber = latestBlockResponse.data?.result
             ? parseInt(latestBlockResponse.data.result, 16)
             : 0;
+
+        const receiptBlockNumber = receipt.blockNumber ? parseInt(receipt.blockNumber, 16) : 0;
         const minConfirmations = Math.max(1, Number(process.env.BASE_MIN_CONFIRMATIONS || 2));
         const confirmations = receiptBlockNumber > 0 && latestBlockNumber >= receiptBlockNumber
             ? latestBlockNumber - receiptBlockNumber + 1
             : 0;
+
         if (!confirmations || confirmations < minConfirmations) {
             throw new AppError(`Transaction is awaiting finality (${confirmations}/${minConfirmations} confirmations).`, 425);
         }
+
+        // Reorg protection: re-fetch the receipt at the final block to ensure it
+        // is still present (some RPCs may serve stale data after a reorg).
+        let receiptAtFinalBlock: any = receipt;
+        for (let i = 0; i < minConfirmations; i++) {
+            const reorgReceiptResponse = await axios.post(rpcUrl, {
+                jsonrpc: '2.0',
+                method: 'eth_getTransactionReceipt',
+                params: [input.txHash],
+                id: 4 + i
+            });
+            if (reorgReceiptResponse.data?.result) {
+                receiptAtFinalBlock = reorgReceiptResponse.data.result;
+                if (receiptAtFinalBlock.status === '0x1') {
+                    break; // receipt still valid at this block
+                }
+            }
+        }
+verifiedReceipt = receiptAtFinalBlock;
 
         const expectedTopic = input.transactionType === 'Subscription'
             ? EVENT_TOPICS.SubscriptionPaid

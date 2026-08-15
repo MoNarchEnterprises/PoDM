@@ -73,10 +73,25 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     bool public enforceOnChainIdempotency;
     mapping(address => uint256) public creatorFeeBps;
 
+    // ───────────────── R-04: on-chain referrer binding ─────────────────
+    // Referral identity is on-chain-authoritative. The contract refuses to
+    // send any referralFee to a `referrer` that does not match the active
+    // binding for that creator (and refuses any non-zero referrer when no
+    // binding is active). This prevents a fan who calls the contract directly
+    // from moving USDC to an arbitrary referrer of their choosing even for a
+    // single tx; the backend's post-tx verification is kept as defense-in-
+    // depth, not as the enforcement boundary (see GOVERNANCE.md / R-04).
+    struct ReferrerBinding {
+        address referrer;
+        uint64 validUntil; // unix seconds; 0 = never-set
+    }
+    mapping(address => ReferrerBinding) public referrerOf; // creator → binding
+
     event KeeperUpdated(address indexed keeper, bool active);
     event UsdcTokenUpdated(address indexed oldUsdc, address indexed newUsdc);
     event OnChainIdempotencyToggled(bool enabled);
     event PaymentHashRecorded(address indexed payer, bytes32 indexed itemHash);
+    event ReferrerUpdated(address indexed creator, address indexed referrer, uint64 validUntil);
 
     modifier onlyKeeper() {
         require(keepers[msg.sender] || hasRole(KEEPER_ROLE, msg.sender), "Not authorized keeper");
@@ -268,6 +283,48 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
         emit CreatorFeeUpdated(creator, feeBps);
     }
 
+    /// @notice Bind (or clear) the on-chain referrer for a creator.
+    /// @dev R-04: only TREASURY_ROLE may set this. The backend calls this when
+    ///      a percentage referral is created/activated and clears it on
+    ///      expiry. Pass `referrer = address(0)` to clear an expired binding.
+    ///      `validUntil` is a unix-seconds timestamp; must be > block.timestamp
+    ///      when setting a non-zero referrer.
+    function setReferrer(address creator, address referrer, uint64 validUntil) external onlyRole(TREASURY_ROLE) {
+        require(creator != address(0), "Invalid creator address");
+        if (referrer != address(0)) {
+            require(validUntil > block.timestamp, "validUntil must be in the future");
+        } else {
+            // Clearing: validUntil is irrelevant but set to 0 for cleanliness.
+            validUntil = 0;
+        }
+        referrerOf[creator] = ReferrerBinding({ referrer: referrer, validUntil: validUntil });
+        emit ReferrerUpdated(creator, referrer, validUntil);
+    }
+
+    /// @notice Read a creator's active referrer and expiry. Returns
+    ///         `(address(0), 0)` when no binding exists or it has expired.
+    function getReferrer(address creator) external view returns (address referrer, uint64 validUntil) {
+        ReferrerBinding memory b = referrerOf[creator];
+        if (b.referrer == address(0) || block.timestamp > b.validUntil) {
+            return (address(0), 0);
+        }
+        return (b.referrer, b.validUntil);
+    }
+
+    /// @dev R-04 enforcement. Called at the top of every money-moving
+    ///      function that accepts a `referrer`. Reverts if a non-zero
+    ///      `referrer` is supplied that does not match the creator's active
+    ///      binding, or if any non-zero referrer is supplied for a creator with
+    ///      no active binding. A zero `referrer` always passes (no referral).
+    function _assertReferrer(address creator, address referrer) internal view {
+        if (referrer == address(0)) return; // no referral requested
+        ReferrerBinding memory b = referrerOf[creator];
+        require(
+            b.referrer != address(0) && block.timestamp <= b.validUntil && referrer == b.referrer,
+            "Referrer does not match active binding"
+        );
+    }
+
     /**
      * Compute the fee split for a payment. The referral fee is taken from the
      * platform commission, so the creator's payout is never reduced.
@@ -311,6 +368,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        _assertReferrer(creator, referrer);
 
         if (enforceOnChainIdempotency) {
             bytes32 paymentKey = keccak256(abi.encode(msg.sender, creator, tierIdHash));
@@ -340,6 +398,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        _assertReferrer(creator, referrer);
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, msg.sender, referrer, customPlatformFeeBps);
 
@@ -363,6 +422,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        _assertReferrer(creator, referrer);
 
         if (enforceOnChainIdempotency) {
             bytes32 paymentKey = keccak256(abi.encode(msg.sender, creator, contentIdHash));
@@ -427,6 +487,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
             block.timestamp >= allowance.lastRenewalAt + allowance.periodInSeconds,
             "Renewal period has not elapsed"
         );
+        _assertReferrer(creator, referrer);
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, fan, referrer, customPlatformFeeBps);
 
