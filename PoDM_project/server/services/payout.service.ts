@@ -9,32 +9,6 @@ import { getContractConfig, getChainId, encodeProcessPayout } from '../utils/con
 const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY || '';
 const MIN_PAYOUT_CENTS = parseInt(process.env.MIN_PAYOUT_CENTS || '1000', 10);
 
-async function getAvailableBalance(creatorId: string): Promise<number> {
-    const { data, error } = await supabase
-        .from('transactions')
-        .select('creator_payout')
-        .in('type', ['Subscription', 'Tip', 'PPV Message', 'PPV Post', 'SubscriptionRenewal'])
-        .eq('creator_id', creatorId)
-        .eq('status', 'Cleared');
-
-    if (error) throw new AppError(`Failed to query earnings: ${error.message}`, 500);
-
-    const earnings = (data || []).reduce((sum, tx) => sum + (tx.creator_payout || 0), 0);
-
-    const { data: payoutData, error: payoutError } = await supabase
-        .from('transactions')
-        .select('amount')
-        .eq('creator_id', creatorId)
-        .eq('type', 'Payout')
-        .eq('status', 'Cleared');
-
-    if (payoutError) throw new AppError(`Failed to query payouts: ${payoutError.message}`, 500);
-
-    const totalPaidOut = (payoutData || []).reduce((sum, tx) => sum + (tx.amount || 0), 0);
-
-    return earnings - totalPaidOut;
-}
-
 export async function processPayout(
     creatorId: string,
     amountInCents: number
@@ -62,20 +36,18 @@ export async function processPayout(
         throw new AppError(`Minimum payout is $${(MIN_PAYOUT_CENTS / 100).toFixed(2)}.`, 400);
     }
 
-    const available = await getAvailableBalance(creatorId);
-    if (amountInCents > available) {
+    const { data: reservationId, error: reservationError } = await supabase
+        .rpc('reserve_payout', { p_creator_id: creatorId, p_amount: amountInCents });
+
+    if (reservationError || !reservationId) {
+        const isConflict = reservationError?.message?.toLowerCase().includes('another payout');
         throw new AppError(
-            `Insufficient balance. Available: $${(available / 100).toFixed(2)}, Requested: $${(amountInCents / 100).toFixed(2)}.`,
-            400
+            isConflict ? 'Another payout is being processed for this creator. Try again.' : 'Payout amount exceeds the available balance.',
+            isConflict ? 409 : 400
         );
     }
 
-    const { error: lockError } = await supabase
-        .rpc('acquire_payout_lock', { p_creator_id: creatorId });
-
-    if (lockError) {
-        throw new AppError('Another payout is being processed for this creator. Try again.', 409);
-    }
+    let transactionBroadcast = false;
 
     try {
         const amountUSDC = BigInt(Math.round(amountInCents)) * 10_000n;
@@ -92,6 +64,7 @@ export async function processPayout(
             gasLimit: 200000,
         });
 
+        transactionBroadcast = true;
         const receipt = await tx.wait();
         if (!receipt?.hash) {
             throw new AppError('Payout transaction failed on-chain.', 500);
@@ -118,9 +91,21 @@ export async function processPayout(
             })
             .eq('blockchain_tx_hash', receipt.hash);
 
+        const { error: completeError } = await supabase.rpc('complete_payout_reservation', {
+            p_reservation_id: reservationId,
+            p_tx_hash: receipt.hash,
+        });
+        if (completeError) {
+            throw new AppError('Payout was broadcast but its reservation could not be finalized. Manual reconciliation is required.', 500);
+        }
+
         return { txHash: receipt.hash };
     } finally {
-        await supabase.rpc('release_payout_lock', { p_creator_id: creatorId });
+        // Never release after broadcast: a pending reservation is safer than
+        // allowing a second payout if the process crashed after the transfer.
+        if (!transactionBroadcast) {
+            await supabase.rpc('release_payout_reservation', { p_reservation_id: reservationId });
+        }
     }
 }
 

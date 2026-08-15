@@ -32,6 +32,9 @@ PoDM_project/contracts/artifacts/
 PoDM_project/contracts/cache/
 PoDM_project/contracts/typechain-types/
 
+# OpenZeppelin upgrades manifest (generated per-network deploy records)
+PoDM_project/contracts/.openzeppelin/
+
 # Frontend E2E output (Playwright) — generated
 podm-frontend/test-results/
 podm-frontend/playwright-report/

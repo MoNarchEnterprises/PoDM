@@ -13,23 +13,13 @@ function main() {
     const iface = new Interface(artifactJson.abi);
 
     // Compute function selectors
-    const paySubFunc = iface.getFunction('paySubscription');
-    const payTipFunc = iface.getFunction('payTip');
-    const payPPVFunc = iface.getFunction('payPPV');
-    const processRenewalFunc = iface.getFunction('processRenewal');
-    const processPayoutFunc = iface.getFunction('processPayout');
-
-    if (!paySubFunc || !payTipFunc || !payPPVFunc || !processRenewalFunc || !processPayoutFunc) {
-        console.error('One or more required functions missing from contract ABI!');
-        process.exit(1);
-    }
 
     const selectors = {
-        paySubscription: paySubFunc.selector,
-        payTip: payTipFunc.selector,
-        payPPV: payPPVFunc.selector,
-        processRenewal: processRenewalFunc.selector,
-        processPayout: processPayoutFunc.selector,
+        paySubscription: iface.getFunction('paySubscription(address,address,uint256,bytes32,address,uint256)')!.selector,
+        payTip: iface.getFunction('payTip(address,address,uint256,address,uint256)')!.selector,
+        payPPV: iface.getFunction('payPPV(address,address,uint256,bytes32,address,uint256)')!.selector,
+        processRenewal: iface.getFunction('processRenewal(address,address,address,uint256,address,uint256)')!.selector,
+        processPayout: iface.getFunction('processPayout(address,address,uint256)')!.selector,
     };
 
     // Standard ERC-20 selectors
@@ -58,12 +48,30 @@ function main() {
         PPVPaid: ppvPaidEvent.topicHash,
     };
 
+    const requiredSignatures: Record<string, string> = {
+        paySubscription: 'paySubscription(address,address,uint256,bytes32,address,uint256)',
+        payTip: 'payTip(address,address,uint256,address,uint256)',
+        payPPV: 'payPPV(address,address,uint256,bytes32,address,uint256)',
+        processRenewal: 'processRenewal(address,address,address,uint256,address,uint256)',
+        processPayout: 'processPayout(address,address,uint256)',
+    };
+
+    for (const [name, sig] of Object.entries(requiredSignatures)) {
+        const fn = iface.getFunction(sig);
+        if (!fn) {
+            console.error(`Contract ABI is missing expected signature: ${sig} (${name})`);
+            process.exit(1);
+        }
+    }
+
+    // Derive human-readable ABI strings from the artifact itself so the emitted
+    // module can never drift from the compiled contract.
     const humanReadableAbi = [
-        "function paySubscription(address tokenAddress, address creator, uint256 amount, bytes32 tierIdHash, address referrer, uint256 customPlatformFeeBps)",
-        "function payTip(address tokenAddress, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)",
-        "function payPPV(address tokenAddress, address creator, uint256 amount, bytes32 contentIdHash, address referrer, uint256 customPlatformFeeBps)",
-        "function processRenewal(address tokenAddress, address fan, address creator, uint256 amount, address referrer, uint256 customPlatformFeeBps)",
-        "function processPayout(address creator, uint256 amount)"
+        `function ${iface.getFunction('paySubscription(address,address,uint256,bytes32,address,uint256)')!.format('sighash')}`,
+        `function ${iface.getFunction('payTip(address,address,uint256,address,uint256)')!.format('sighash')}`,
+        `function ${iface.getFunction('payPPV(address,address,uint256,bytes32,address,uint256)')!.format('sighash')}`,
+        `function ${iface.getFunction('processRenewal(address,address,address,uint256,address,uint256)')!.format('sighash')}`,
+        `function ${iface.getFunction('processPayout(address,address,uint256)')!.format('sighash')}`,
     ];
 
     const erc20HumanReadableAbi = [

@@ -72,9 +72,45 @@ export const findSubscriptionsDueForRenewal = async (): Promise<Subscription[] |
             .select('*')
             .eq('status', 'active')
             .lte('next_billing_date', new Date().toISOString())
+            .is('renewal_pending_tx_hash', null)
             .not('fan_wallet_address', 'is', null),
         'find subscriptions due for renewal'
     );
+};
+
+export const claimSubscriptionRenewal = async (subscriptionId: string, claimId: string): Promise<boolean> => {
+    const { data, error } = await supabase.rpc('claim_subscription_renewal', {
+        p_subscription_id: Number(subscriptionId),
+        p_claim_id: claimId,
+    });
+    if (error) throw new Error(`Failed to claim subscription renewal: ${error.message}`);
+    return data === true;
+};
+
+export const updateClaimedRenewal = async (
+    subscriptionId: string,
+    claimId: string,
+    updates: Partial<Subscription>
+): Promise<Subscription | null> => {
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions')
+            .update({ ...updates, renewal_claim_id: null, renewal_claimed_at: null })
+            .eq('id', subscriptionId)
+            .eq('renewal_claim_id', claimId)
+            .select()
+            .single(),
+        'update claimed subscription renewal', subscriptionId
+    );
+};
+
+export const markRenewalPending = async (subscriptionId: string, claimId: string, txHash: string): Promise<boolean> => {
+    const { data, error } = await supabase.from('subscriptions')
+        .update({ renewal_pending_tx_hash: txHash })
+        .eq('id', subscriptionId)
+        .eq('renewal_claim_id', claimId)
+        .select('id')
+        .single();
+    return !error && Boolean(data);
 };
 
 export const findSubscriptionByFanAndCreator = async (fanId: string, creatorId: string): Promise<Subscription | null> => {

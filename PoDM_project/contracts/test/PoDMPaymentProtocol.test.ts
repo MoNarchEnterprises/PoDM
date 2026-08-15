@@ -245,6 +245,7 @@ describe('PoDMPaymentProtocol', function () {
 
     it('should calculate splits with custom platform fee (e.g. 10% for Enclave creator)', async () => {
       const { contract, usdc, fan, creator, referrer, treasury } = await referralFixture();
+      await contract.setCreatorFeeBps(creator.address, 1000);
       const amount = ethers.parseUnits('10', 6); // $10 USDC
       await usdc.mint(fan.address, amount);
       await usdc.connect(fan).approve(await contract.getAddress(), amount);
@@ -268,6 +269,7 @@ describe('PoDMPaymentProtocol', function () {
 
     it('should not pay a referrer when referrer is zero with custom fee BPS', async () => {
       const { contract, usdc, fan, creator, treasury } = await referralFixture();
+      await contract.setCreatorFeeBps(creator.address, 1000);
       const amount = ethers.parseUnits('10', 6);
       await usdc.mint(fan.address, amount);
       await usdc.connect(fan).approve(await contract.getAddress(), amount);

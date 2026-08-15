@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
+import { useAuth } from '../../../hooks/useAuth';
+import { buildWalletOwnershipMessage } from '@common/walletOwnership';
 
 interface CexOption {
     id: string;
@@ -66,6 +68,8 @@ export const CexGuidanceModal: React.FC<CexGuidanceModalProps> = ({
     onAddressSaved,
     initialAddress = ''
 }) => {
+    const { user, impersonatedUser } = useAuth();
+    const authenticatedUser = impersonatedUser || user;
     const [step, setStep] = useState<number>(1);
     const [selectedCex, setSelectedCex] = useState<CexOption | null>(null);
     const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
@@ -130,10 +134,30 @@ export const CexGuidanceModal: React.FC<CexGuidanceModalProps> = ({
         setErrorMessage(null);
 
         try {
+            const ethereum = window.ethereum;
+            if (!ethereum) {
+                throw new Error('Connect the wallet that owns this address to prove ownership.');
+            }
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' }) as string[];
+            const connectedAddress = accounts?.[0];
+            if (!connectedAddress || connectedAddress.toLowerCase() !== userAddress.trim().toLowerCase()) {
+                throw new Error('The connected wallet must match the address entered above.');
+            }
+            if (!authenticatedUser?.id) {
+                throw new Error('Your session must be loaded before linking a wallet.');
+            }
+            const message = buildWalletOwnershipMessage(userAddress.trim(), authenticatedUser.id);
+            const signature = await ethereum.request({
+                method: 'personal_sign',
+                params: [message, connectedAddress]
+            }) as string;
+
             const payload = {
                 walletAddress: userAddress.trim(),
                 walletType: 'custom',
-                payoutPreference: 'on_chain'
+                payoutPreference: 'on_chain',
+                message,
+                signature
             };
 
             const response = await fetch('/api/v1/payments/crypto/wallet', {

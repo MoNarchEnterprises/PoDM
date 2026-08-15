@@ -30,7 +30,11 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     address public usdcToken;
 
     mapping(address => mapping(bytes32 => bool)) public paidHashes;
+    // Duplicate protection is always active for production payments. The key
+    // includes the creator so the same fan can legitimately pay equal IDs for
+    // different creators without creating a cross-creator collision.
     bool public enforceOnChainIdempotency;
+    mapping(address => uint256) public creatorFeeBps;
 
     event KeeperUpdated(address indexed keeper, bool active);
     event UsdcTokenUpdated(address indexed oldUsdc, address indexed newUsdc);
@@ -61,6 +65,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     }
 
     function setEnforceOnChainIdempotency(bool _enabled) external onlyOwner {
+        require(_enabled, "On-chain idempotency cannot be disabled");
         enforceOnChainIdempotency = _enabled;
         emit OnChainIdempotencyToggled(_enabled);
     }
@@ -121,6 +126,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
     event FeeUpdated(uint256 oldFee, uint256 newFee);
     event ReferralFeeUpdated(uint256 oldFee, uint256 newFee);
+    event CreatorFeeUpdated(address indexed creator, uint256 feeBps);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -135,6 +141,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         platformTreasury = _platformTreasury;
         platformFeeBps = _platformFeeBps;
         referralFeeBps = 100;
+        enforceOnChainIdempotency = true;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -165,6 +172,13 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         referralFeeBps = _newFeeBps;
     }
 
+    function setCreatorFeeBps(address creator, uint256 feeBps) external onlyOwner {
+        require(creator != address(0), "Invalid creator address");
+        require(feeBps <= 3000, "Fee cannot exceed 30%");
+        creatorFeeBps[creator] = feeBps;
+        emit CreatorFeeUpdated(creator, feeBps);
+    }
+
     /**
      * Compute the fee split for a payment. The referral fee is taken from the
      * platform commission, so the creator's payout is never reduced.
@@ -173,18 +187,23 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
      */
     function _computeFeeSplit(
         uint256 amount,
+        address creator,
+        address payer,
         address referrer,
         uint256 customPlatformFeeBps
     ) internal view returns (uint256, uint256, uint256) {
-        uint256 feeBps = customPlatformFeeBps;
-        if (feeBps == 0) {
-            feeBps = platformFeeBps;
+        // The deployed contract is the fee authority. Keep the legacy
+        // parameter for calldata compatibility but reject attempts to alter
+        // the configured fee basis points.
+        uint256 feeBps = creatorFeeBps[creator];
+        if (feeBps == 0) feeBps = platformFeeBps;
+        if (customPlatformFeeBps != 0) {
+            require(customPlatformFeeBps == feeBps, "Custom fee does not match configured creator fee");
         }
-        require(feeBps <= 3000, "Fee cannot exceed 30%");
 
         uint256 platformFee = (amount * feeBps) / 10000;
         uint256 referralFee = 0;
-        if (referrer != address(0) && referrer != msg.sender) {
+        if (referrer != address(0) && referrer != payer) {
             referralFee = (amount * referralFeeBps) / 10000;
             if (referralFee > platformFee) {
                 referralFee = platformFee;
@@ -205,12 +224,13 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(amount > 0, "Amount must be greater than zero");
 
         if (enforceOnChainIdempotency) {
-            require(!paidHashes[msg.sender][tierIdHash], "Tier hash already paid by caller");
-            paidHashes[msg.sender][tierIdHash] = true;
-            emit PaymentHashRecorded(msg.sender, tierIdHash);
+            bytes32 paymentKey = keccak256(abi.encode(msg.sender, creator, tierIdHash));
+            require(!paidHashes[msg.sender][paymentKey], "Tier hash already paid by caller");
+            paidHashes[msg.sender][paymentKey] = true;
+            emit PaymentHashRecorded(msg.sender, paymentKey);
         }
 
-        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, msg.sender, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
         token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
@@ -232,7 +252,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
-        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, msg.sender, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
         token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
@@ -256,12 +276,13 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         require(amount > 0, "Amount must be greater than zero");
 
         if (enforceOnChainIdempotency) {
-            require(!paidHashes[msg.sender][contentIdHash], "Content hash already paid by caller");
-            paidHashes[msg.sender][contentIdHash] = true;
-            emit PaymentHashRecorded(msg.sender, contentIdHash);
+            bytes32 paymentKey = keccak256(abi.encode(msg.sender, creator, contentIdHash));
+            require(!paidHashes[msg.sender][paymentKey], "Content hash already paid by caller");
+            paidHashes[msg.sender][paymentKey] = true;
+            emit PaymentHashRecorded(msg.sender, paymentKey);
         }
 
-        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, msg.sender, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
         token.safeTransferFrom(msg.sender, platformTreasury, treasuryFee);
@@ -318,7 +339,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
             "Renewal period has not elapsed"
         );
 
-        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, referrer, customPlatformFeeBps);
+        (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, fan, referrer, customPlatformFeeBps);
 
         IERC20 token = IERC20(tokenAddress);
         token.safeTransferFrom(fan, platformTreasury, treasuryFee);

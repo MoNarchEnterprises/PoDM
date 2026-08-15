@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION acquire_payout_lock(p_creator_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
     v_lock_id BIGINT;
@@ -23,6 +24,7 @@ CREATE OR REPLACE FUNCTION release_payout_lock(p_creator_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
     v_lock_id BIGINT;

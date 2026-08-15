@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Define the same alias you used in tsconfig.json
-      '@common': path.resolve(__dirname, '../common'),
+      '@common': path.resolve(__dirname, '../PoDM_project/common'),
     },
   },
   server: {

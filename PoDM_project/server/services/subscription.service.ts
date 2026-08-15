@@ -43,8 +43,9 @@ export const createSubscriptionForUser = async (
     // verification endpoint (/payments/crypto/verify) or the userOperation service.
     // Reusing the existing Cleared transaction avoids a 409 duplicate-hash error.
     const existingPaymentTx = await TransactionModel.findClearedSubscriptionByTxHash(txHash, fan_id, creator_id);
+    let verifiedPayment: any = existingPaymentTx;
     if (!existingPaymentTx) {
-        await CryptoPaymentService.verifyAndRecordBasePayment({
+        verifiedPayment = await CryptoPaymentService.verifyAndRecordBasePayment({
             txHash: txHash,
             fanId: fan_id,
             creatorId: creator_id,
@@ -64,6 +65,8 @@ export const createSubscriptionForUser = async (
             status: 'active',
             start_date: new Date().toISOString(),
             next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            price: Math.round(tier.price * 100),
+            fan_wallet_address: verifiedPayment?.payerWalletAddress || verifiedPayment?.payer_wallet_address,
         });
     } else {
         const payload: any = {
@@ -73,6 +76,8 @@ export const createSubscriptionForUser = async (
             status: 'active',
             start_date: new Date().toISOString(),
             next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            price: Math.round(tier.price * 100),
+            fan_wallet_address: verifiedPayment?.payerWalletAddress || verifiedPayment?.payer_wallet_address,
         };
         dbSubscription = await SubscriptionModel.createSubscription(payload);
     }

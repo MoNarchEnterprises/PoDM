@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { canonicalPaymentIdentifier } from '@common/paymentIdentifier';
 
 // Canonical selectors derived from contract ABI
 const APPROVE_SELECTOR   = '0x095ea7b3';   // approve(address spender, uint256 amount)
@@ -32,17 +33,6 @@ function padAddress(addr: string): string {
 
 function padUint(value: bigint): string {
   return value.toString(16).padStart(64, '0');
-}
-
-function stringToBytes32Hex(str: string | undefined): string {
-  if (!str) return '0'.repeat(64);
-  const clean = str.replace(/-/g, '');
-  if (/^[0-9a-fA-F]{64}$/.test(clean)) return clean.toLowerCase();
-  let hex = '';
-  for (let i = 0; i < str.length && i < 32; i++) {
-    hex += str.charCodeAt(i).toString(16);
-  }
-  return hex.padEnd(64, '0');
 }
 
 async function ensureConnectedWallet(): Promise<string> {
@@ -195,16 +185,41 @@ export function useCryptoPayment(): CryptoPaymentResult {
       let dataHex: string;
       if (type === 'Subscription') {
         selector = PAY_SUB_SELECTOR;
-        const tierIdHash = stringToBytes32Hex(params.tierId);
+        const tierIdHash = canonicalPaymentIdentifier(params.tierId || 'default').slice(2);
         dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + tierIdHash + referrerHex + feeBpsHex;
       } else if (type === 'Tip') {
         selector = PAY_TIP_SELECTOR;
         dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + referrerHex + feeBpsHex;
       } else { // PPV Post or PPV Message
         selector = PAY_PPV_SELECTOR;
-        const contentIdHash = stringToBytes32Hex(params.contentId);
+        const contentIdHash = canonicalPaymentIdentifier(params.contentId || 'content').slice(2);
         dataHex = selector + padAddress(usdcAddress) + padAddress(creatorWallet) + padUint(amountInUnits) + contentIdHash + referrerHex + feeBpsHex;
       }
+
+      // Register before broadcast so a tab close cannot orphan a successful
+      // chain payment from the server's reconciliation queue.
+      const clientIntentId = crypto.randomUUID();
+      const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const intentResponse = await fetch('/api/v1/payments/crypto/intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({
+          clientIntentId,
+          creatorId: params.creatorId,
+          amountInCents: Math.round(params.amount * 100),
+          transactionType: type,
+          relatedId: params.contentId || params.tierId,
+        }),
+      });
+      if (!intentResponse.ok) {
+        const result = await intentResponse.json();
+        throw new Error(result.message || 'Payment intent registration failed.');
+      }
+      const intentResult = await intentResponse.json();
+      const serverPaymentIntentId = intentResult.data?.intentId;
 
       // 3. Send the contract payX call.
       const hash = await eth.request({
@@ -213,10 +228,18 @@ export function useCryptoPayment(): CryptoPaymentResult {
       }) as string;
 
       setTxHash(hash);
+      await fetch('/api/v1/payments/crypto/intent/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({ paymentIntentId: serverPaymentIntentId, txHash: hash }),
+      });
       await waitForReceipt(hash);
 
       // 4. Verify on the backend so the DB records a verified transaction.
-      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const token = authToken;
       const response = await fetch('/api/v1/payments/crypto/verify', {
         method: 'POST',
         headers: {
@@ -229,6 +252,7 @@ export function useCryptoPayment(): CryptoPaymentResult {
           amountInCents: Math.round(params.amount * 100),
           transactionType: type,
           relatedId: params.contentId || params.tierId,
+          paymentIntentId: serverPaymentIntentId,
         }),
       });
 

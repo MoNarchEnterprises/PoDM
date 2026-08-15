@@ -4,6 +4,8 @@ import {
     getWalletConfig,
     updateWalletConfig,
     verifyCryptoPayment,
+    registerPaymentIntent,
+    attachPaymentIntentTransaction,
     getReferrerInfo
 } from '../controllers/cryptoPayment.controller';
 
@@ -30,6 +32,8 @@ router.post('/wallet', protect, updateWalletConfig);
  * @access  Private (Fans only)
  */
 router.post('/verify', protect, verifyCryptoPayment);
+router.post('/intent', protect, registerPaymentIntent);
+router.post('/intent/transaction', protect, attachPaymentIntentTransaction);
 
 /**
  * @route   GET /api/v1/payments/crypto/referrer/:creatorId

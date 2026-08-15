@@ -13,7 +13,7 @@ export const getWalletConfig = asyncHandler(async (req: Request, res: Response) 
 
 export const updateWalletConfig = asyncHandler(async (req: Request, res: Response) => {
     const creatorId = requireAuth(req);
-    const { walletAddress, walletType, payoutPreference } = req.body;
+    const { walletAddress, walletType, payoutPreference, signature, message } = req.body;
 
     if (!walletAddress || !walletType || !payoutPreference) {
         throw new AppError('Wallet address, wallet type, and payout preference are required.', 400);
@@ -30,7 +30,9 @@ export const updateWalletConfig = asyncHandler(async (req: Request, res: Respons
     const result = await CryptoPaymentService.updateUserWalletConfig(creatorId, {
         walletAddress,
         walletType,
-        payoutPreference
+        payoutPreference,
+        signature,
+        message
     });
 
     okMsg(res, 'Wallet configuration updated successfully.', result);
@@ -38,9 +40,9 @@ export const updateWalletConfig = asyncHandler(async (req: Request, res: Respons
 
 export const verifyCryptoPayment = asyncHandler(async (req: Request, res: Response) => {
     const fanId = requireAuth(req);
-    const { txHash, creatorId, amountInCents, transactionType, relatedId } = req.body;
+    const { txHash, creatorId, amountInCents, transactionType, relatedId, paymentIntentId } = req.body;
 
-    if (!txHash || !creatorId || !amountInCents || !transactionType) {
+    if (!txHash || !creatorId || amountInCents === undefined || !transactionType) {
         throw new AppError('Missing required parameters for verification (txHash, creatorId, amountInCents, transactionType).', 400);
     }
 
@@ -50,10 +52,32 @@ export const verifyCryptoPayment = asyncHandler(async (req: Request, res: Respon
         creatorId,
         amountInCents,
         transactionType,
-        relatedId
+        relatedId,
+        paymentIntentId
     });
 
     okMsg(res, 'Crypto transaction verified and recorded successfully.', result);
+});
+
+export const registerPaymentIntent = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const { clientIntentId, creatorId, amountInCents, transactionType, relatedId } = req.body;
+    if (!clientIntentId || !creatorId || amountInCents === undefined || !transactionType) {
+        throw new AppError('Missing required parameters for payment intent registration.', 400);
+    }
+
+    const result = await CryptoPaymentService.registerPaymentIntent({
+        clientIntentId, fanId, creatorId, amountInCents, transactionType, relatedId,
+    });
+    okMsg(res, 'Payment intent registered.', result);
+});
+
+export const attachPaymentIntentTransaction = asyncHandler(async (req: Request, res: Response) => {
+    const fanId = requireAuth(req);
+    const { paymentIntentId, txHash } = req.body;
+    if (!paymentIntentId || !txHash) throw new AppError('Payment intent ID and transaction hash are required.', 400);
+    const result = await CryptoPaymentService.attachPaymentIntentTransaction(fanId, paymentIntentId, txHash);
+    okMsg(res, 'Payment transaction attached to intent.', result);
 });
 
 export const getReferrerInfo = asyncHandler(async (req: Request, res: Response) => {

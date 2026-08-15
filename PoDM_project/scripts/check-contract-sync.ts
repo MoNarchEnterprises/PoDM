@@ -54,7 +54,25 @@ async function main() {
                 console.error(`❌ FAIL: No bytecode found at address ${targetAddress} on network ${rpcUrl}`);
                 hasEnvError = true;
             } else {
-                console.log(`   Bytecode length: ${code.length} characters.`);
+                // If the configured address is an ERC-1967 proxy, follow the
+                // implementation slot and verify the implementation bytecode.
+                const IMPLEMENTATION_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
+                let codeToCheck = code;
+                let implLabel = 'at configured address';
+                try {
+                    const slotValue = await provider.getStorage(targetAddress, IMPLEMENTATION_SLOT);
+                    if (slotValue && slotValue !== '0x' + '0'.repeat(64)) {
+                        const implAddress = ethers.getAddress('0x' + slotValue.slice(-40));
+                        const implCode = await provider.getCode(implAddress);
+                        if (implCode && implCode !== '0x' && implCode !== '0x0') {
+                            codeToCheck = implCode;
+                            implLabel = `implementation ${implAddress} (ERC-1967 slot)`;
+                        }
+                    }
+                } catch (err: any) {
+                    console.warn(`   Could not read ERC-1967 implementation slot: ${err.message}`);
+                }
+                console.log(`   Bytecode length: ${codeToCheck.length} characters (${implLabel}).`);
                 // Verify bytecode contains function selectors
                 const selectorsToCheck = [
                     FUNCTION_SELECTORS.paySubscription,
@@ -65,14 +83,14 @@ async function main() {
                 let missingSelectors = 0;
                 for (const selector of selectorsToCheck) {
                     const cleanSel = selector.replace(/^0x/, '').toLowerCase();
-                    if (!code.toLowerCase().includes(cleanSel)) {
-                        console.error(`❌ FAIL: Bytecode at ${targetAddress} does NOT contain required selector ${selector}`);
+                    if (!codeToCheck.toLowerCase().includes(cleanSel)) {
+                        console.error(`❌ FAIL: Bytecode does NOT contain required selector ${selector} (${implLabel})`);
                         missingSelectors++;
                     }
                 }
 
                 if (missingSelectors === 0) {
-                    console.log('✅ PASS: Bytecode exists on-chain and implements all expected contract function selectors.\n');
+                    console.log(`✅ PASS: Bytecode exists on-chain and implements all expected contract function selectors (${implLabel}).\n`);
                 } else {
                     hasEnvError = true;
                 }

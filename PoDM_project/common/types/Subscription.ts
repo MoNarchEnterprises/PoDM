@@ -47,6 +47,9 @@ export interface Subscription {
   payment_method: PaymentMethod;
   renewal_attempts?: number; // Number of consecutive failed renewal attempts (0 = healthy)
   renewal_locked_at?: string | null; // ISO 8601 timestamp when content was locked due to failed renewal
+  renewal_claim_id?: string | null;
+  renewal_claimed_at?: string | null;
+  renewal_pending_tx_hash?: string | null;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string
 }

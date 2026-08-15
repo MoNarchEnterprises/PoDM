@@ -27,11 +27,14 @@ export interface Transaction {
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
   message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
   blockchain_tx_hash?: string;
+  payer_wallet_address?: string;
   user_operation_hash?: string;
   gas_sponsored?: boolean;
   payment_method?: 'crypto' | 'card_onramp' | 'embedded_wallet' | 'referral_bonus';
   payment_currency?: 'USD' | 'USDC';
   chain_id?: number;
+  blockchain_block_number?: number;
+  blockchain_block_hash?: string;
   created_at: string; // ISO 8601 date string
   updated_at?: string; // ISO 8601 date string
 }

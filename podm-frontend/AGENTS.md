@@ -66,6 +66,11 @@ Client-facing user interface for audience, creators, and administrators on the P
 - `npx playwright test` — Playwright E2E tests in `/tests/` (login, fan, creator, admin, tip flows)
 - CI pipeline (`.github/workflows/ci.yml`) runs lint + build on push/PR
 
+## Current Security Controls
+
+- Browser wallet payments register and attach a payment intent before broadcast.
+- Custom CEX wallet linking retains a manual text input but requires wallet ownership proof before saving.
+
 ## Child DOX Index
 
 No child AGENTS.md files yet. The following subdirectories are governed by this doc:

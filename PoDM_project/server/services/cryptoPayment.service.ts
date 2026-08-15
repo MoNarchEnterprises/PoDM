@@ -3,11 +3,13 @@ import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
 import { DEFAULT_COMMISSION_RATE, REFERRAL_FEE_BPS } from '../../lib/constants';
 import { getEffectiveCommissionRate } from '../utils/commission.utils';
-import { ethers, keccak256, toUtf8Bytes } from 'ethers';
+import { ethers } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
+import { assertCatalogPrice } from './paymentCatalog.service';
+import { canonicalPaymentIdentifier } from '../../common/paymentIdentifier';
 
 export interface WalletConfigInput {
     walletAddress: string;
@@ -19,6 +21,16 @@ export interface WalletConfigInput {
 
 interface PaymentVerificationInput {
     txHash: string;
+    fanId: string;
+    creatorId: string;
+    amountInCents: number;
+    transactionType: 'Tip' | 'PPV Message' | 'PPV Post' | 'Subscription';
+    relatedId?: string;
+    paymentIntentId?: string;
+}
+
+export interface PaymentIntentInput {
+    clientIntentId: string;
     fanId: string;
     creatorId: string;
     amountInCents: number;
@@ -93,14 +105,21 @@ export function verifyWalletOwnershipSignature(
     if (!ethers.isAddress(walletAddress)) return false;
 
     try {
+        const lines = message.split('\n');
+        if (lines.length !== 4 || lines[0] !== 'PoDM Wallet Ownership Proof:') return false;
+        const messageWallet = lines[1].startsWith('Wallet: ') ? lines[1].slice(8).trim() : '';
+        const messageUser = lines[2].startsWith('User: ') ? lines[2].slice(6) : '';
+        const timestampText = lines[3].startsWith('Timestamp: ') ? lines[3].slice(11) : '';
+        const timestamp = Number(timestampText);
+        if (!ethers.isAddress(messageWallet) || messageWallet.toLowerCase() !== walletAddress.toLowerCase()) return false;
+        if (messageUser !== userId || !Number.isSafeInteger(timestamp)) return false;
+        const maxAgeMs = 10 * 60 * 1000;
+        if (timestamp < Date.now() - maxAgeMs || timestamp > Date.now() + maxAgeMs) return false;
+
         const recovered = ethers.verifyMessage(message, signature);
         if (recovered.toLowerCase() !== walletAddress.toLowerCase()) {
             return false;
         }
-
-        const lowerMsg = message.toLowerCase();
-        if (!lowerMsg.includes(walletAddress.toLowerCase())) return false;
-        if (userId && !lowerMsg.includes(userId.toLowerCase())) return false;
 
         return true;
     } catch {
@@ -114,7 +133,10 @@ export const updateUserWalletConfig = async (userId: string, input: WalletConfig
             throw new AppError('Invalid Ethereum wallet address format.', 400);
         }
 
-        if (input.signature && input.message) {
+        if (input.walletType === 'custom') {
+            if (!input.signature || !input.message) {
+                throw new AppError('Custom wallet assignment requires a cryptographic ownership signature.', 400);
+            }
             const isValid = verifyWalletOwnershipSignature(
                 input.walletAddress,
                 input.message,
@@ -150,6 +172,19 @@ export const updateUserWalletConfig = async (userId: string, input: WalletConfig
 };
 
 export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput) => {
+    // Validate the transaction identifier before any catalog lookup so malformed
+    // requests cannot trigger unnecessary database work.
+    if (!input.txHash || !/^0x[A-Fa-f0-9]{64}$/.test(input.txHash)) {
+        throw new AppError('Invalid transaction hash format. Must be a 64-character hex string starting with 0x.', 400);
+    }
+
+    await assertCatalogPrice({
+        creatorId: input.creatorId,
+        transactionType: input.transactionType,
+        relatedId: input.relatedId,
+        amountInCents: input.amountInCents,
+    });
+
     // 1. Check for duplicates
     const { data: existingTx, error: lookupError } = await supabase
         .from('transactions')
@@ -163,11 +198,6 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
 
     if (existingTx) {
         throw new AppError('This transaction hash has already been verified and processed.', 409);
-    }
-
-    // 2. Verify the hash format is valid (must be 0x followed by 64 hex characters)
-    if (!input.txHash || !/^0x[A-Fa-f0-9]{64}$/.test(input.txHash)) {
-        throw new AppError('Invalid transaction hash format. Must be a 64-character hex string starting with 0x.', 400);
     }
 
     // 3. Fetch creator's configured wallet address via canonical service
@@ -187,6 +217,8 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         );
     }
 
+    let payerHex = '';
+    let verifiedReceipt: any = null;
     try {
         // 2.5 Retry-on-pending for up to 15s: if the tx is not yet mined, poll with backoff.
         // This solves the race where the client submits the request immediately after sending
@@ -224,23 +256,34 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Transaction failed on the blockchain.', 400);
         }
 
-        // CC-01: Network chain ID binding verification
-        const expectedChainId = process.env.EXPECTED_CHAIN_ID
-            ? parseInt(process.env.EXPECTED_CHAIN_ID, 10)
-            : (process.env.VITE_CHAIN_ID ? parseInt(process.env.VITE_CHAIN_ID, 10) : 84532);
-
-        if (expectedChainId) {
-            const chainIdResponse = await axios.post(rpcUrl, {
+        // The configured network is authoritative. Never allow a request-scoped
+        // or frontend-provided chain ID to redefine the verification network.
+        const chainIdResponse = await axios.post(rpcUrl, {
                 jsonrpc: '2.0',
                 method: 'eth_chainId',
                 params: [],
                 id: 2
-            });
-            const rpcChainIdHex = chainIdResponse.data?.result;
-            const rpcChainId = rpcChainIdHex ? parseInt(rpcChainIdHex, 16) : null;
-            if (rpcChainId && rpcChainId !== expectedChainId) {
-                throw new AppError(`Network mismatch: Transaction RPC chain ID (${rpcChainId}) does not match expected platform chain ID (${expectedChainId}).`, 400);
-            }
+        });
+        const rpcChainIdHex = chainIdResponse.data?.result;
+        const rpcChainId = rpcChainIdHex ? parseInt(rpcChainIdHex, 16) : null;
+        if (!rpcChainId || rpcChainId !== chainId) {
+            throw new AppError(`Network mismatch: Transaction RPC chain ID (${rpcChainId ?? 'unknown'}) does not match configured platform chain ID (${chainId}).`, 400);
+        }
+        verifiedReceipt = receipt;
+
+        const receiptBlockNumber = receipt.blockNumber ? parseInt(receipt.blockNumber, 16) : 0;
+        const latestBlockResponse = await axios.post(rpcUrl, {
+            jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 3,
+        });
+        const latestBlockNumber = latestBlockResponse.data?.result
+            ? parseInt(latestBlockResponse.data.result, 16)
+            : 0;
+        const minConfirmations = Math.max(1, Number(process.env.BASE_MIN_CONFIRMATIONS || 2));
+        const confirmations = receiptBlockNumber > 0 && latestBlockNumber >= receiptBlockNumber
+            ? latestBlockNumber - receiptBlockNumber + 1
+            : 0;
+        if (!confirmations || confirmations < minConfirmations) {
+            throw new AppError(`Transaction is awaiting finality (${confirmations}/${minConfirmations} confirmations).`, 425);
         }
 
         const expectedTopic = input.transactionType === 'Subscription'
@@ -270,7 +313,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             throw new AppError('Invalid transaction: Fan payer topic is missing from contract logs.', 400);
         }
 
-        const payerHex = '0x' + payerTopic.slice(26).toLowerCase();
+        payerHex = '0x' + payerTopic.slice(26).toLowerCase();
 
         // Fetch authenticated fan's linked crypto_wallet_address and smart_account_address
         const { data: fanProfile } = await supabase
@@ -335,14 +378,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             // Validate emitted tierIdHash / contentIdHash against relatedId if provided (H-03 remediation)
             if (input.relatedId && (input.transactionType === 'Subscription' || input.transactionType === 'PPV Post' || input.transactionType === 'PPV Message')) {
                 const idHashSlotHex = ('0x' + dataHex.slice(66, 130)).toLowerCase();
-                let expectedHashHex: string;
-                const cleanId = input.relatedId.replace(/^0x/i, '').replace(/-/g, '');
-                if (/^[0-9a-fA-F]{64}$/.test(cleanId)) {
-                    expectedHashHex = ('0x' + cleanId).toLowerCase();
-                } else {
-                    const truncated = input.relatedId.substring(0, 31);
-                    expectedHashHex = ('0x' + Buffer.from(truncated, 'utf8').toString('hex').padEnd(64, '0')).toLowerCase();
-                }
+                const expectedHashHex = canonicalPaymentIdentifier(input.relatedId).toLowerCase();
                 if (idHashSlotHex !== expectedHashHex) {
                     throw new AppError('Transaction content identifier mismatch. Event hash does not match requested tier/content item.', 400);
                 }
@@ -432,6 +468,7 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         creator_payout: creatorPayout,
         status: 'Cleared',
         blockchain_tx_hash: input.txHash,
+        payer_wallet_address: payerHex,
         related_content_id: relatedContentId,
     };
     if (referralFee > 0) {
@@ -482,7 +519,9 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
             blockchain_tx_hash: input.txHash,
             payment_method: 'crypto',
             payment_currency: 'USDC',
-            chain_id: chainId
+            chain_id: chainId,
+            blockchain_block_number: verifiedReceipt?.blockNumber ? parseInt(verifiedReceipt.blockNumber, 16) : null,
+            blockchain_block_hash: verifiedReceipt?.blockHash || null,
         })
         .eq('id', transaction.id);
 
@@ -490,12 +529,68 @@ export const verifyAndRecordBasePayment = async (input: PaymentVerificationInput
         console.error('[CryptoPaymentService] Failed to record crypto metadata:', updateError.message);
     }
 
+    if (input.paymentIntentId) {
+        const { error: intentUpdateError } = await supabase
+            .from('payment_intents')
+            .update({ status: 'verified', blockchain_tx_hash: input.txHash, verified_at: new Date().toISOString() })
+            .eq('id', input.paymentIntentId)
+            .eq('fan_id', input.fanId)
+            .eq('status', 'pending');
+        if (intentUpdateError) {
+            console.error('[CryptoPaymentService] Failed to mark payment intent verified:', intentUpdateError.message);
+        }
+    }
+
     return {
         transactionId: transaction.id,
         status: 'Cleared',
         txHash: input.txHash,
-        amount: amount / 100
+        amount: amount / 100,
+        payerWalletAddress: payerHex,
     };
+};
+
+export const registerPaymentIntent = async (input: PaymentIntentInput) => {
+    await assertCatalogPrice(input);
+    const { data, error } = await supabase
+        .from('payment_intents')
+        .insert([{
+            client_intent_id: input.clientIntentId,
+            fan_id: input.fanId,
+            creator_id: input.creatorId,
+            transaction_type: input.transactionType,
+            related_id: input.relatedId || null,
+            amount_in_cents: input.amountInCents,
+            status: 'pending',
+        }])
+        .select('id, client_intent_id, status')
+        .single();
+
+    if (error) {
+        if (error.code === '23505') throw new AppError('This payment intent has already been registered.', 409);
+        throw new AppError(`Failed to register payment intent: ${error.message}`, 500);
+    }
+    return { intentId: data.id, clientIntentId: data.client_intent_id, status: data.status };
+};
+
+export const attachPaymentIntentTransaction = async (
+    fanId: string,
+    paymentIntentId: string,
+    txHash: string,
+) => {
+    if (!/^0x[A-Fa-f0-9]{64}$/.test(txHash)) {
+        throw new AppError('Invalid transaction hash format.', 400);
+    }
+    const { data, error } = await supabase
+        .from('payment_intents')
+        .update({ blockchain_tx_hash: txHash })
+        .eq('id', paymentIntentId)
+        .eq('fan_id', fanId)
+        .eq('status', 'pending')
+        .select('id, blockchain_tx_hash, status')
+        .single();
+    if (error || !data) throw new AppError('Payment intent was not found or is no longer pending.', 404);
+    return data;
 };
 
 export const processDebitCardOffRamp = async (creatorId: string, amountInCents: number, debitCardToken?: string) => {

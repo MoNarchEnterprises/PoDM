@@ -14,6 +14,8 @@ import * as SubscriptionModel from '../models/subscription.model';
 import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
+import { assertCatalogPrice } from './paymentCatalog.service';
+import { canonicalPaymentIdentifier } from '../../common/paymentIdentifier';
 
 import {
     getContractConfig,
@@ -200,29 +202,12 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const commissionRate = getEffectiveCommissionRate(creatorProfile);
         const platformFeeBps = Math.round(commissionRate * 100);
 
-        // Server-side intent price binding check (V-A04 remediation)
-        if (intent.type === 'Subscription' && intent.relatedId) {
-            const tiers = creatorProfile?.creator_data?.subscriptionTiers || [];
-            const tier = tiers.find((t: any) => t.id === intent.relatedId);
-            if (tier && typeof tier.price === 'number') {
-                const expectedPriceInCents = Math.round(tier.price * 100);
-                if (intent.amountInCents !== expectedPriceInCents) {
-                    throw new AppError(`Payment intent amount ($${(intent.amountInCents / 100).toFixed(2)}) does not match catalog tier price ($${tier.price.toFixed(2)})`, 400);
-                }
-            }
-        } else if ((intent.type === 'PPV Post' || intent.type === 'PPV Message') && intent.relatedId) {
-            const { data: contentItem } = await supabase
-                .from('content')
-                .select('price')
-                .eq('id', intent.relatedId)
-                .maybeSingle();
-            if (contentItem && typeof contentItem.price === 'number') {
-                const expectedPriceInCents = Math.round(contentItem.price * 100);
-                if (intent.amountInCents !== expectedPriceInCents) {
-                    throw new AppError(`Payment intent amount ($${(intent.amountInCents / 100).toFixed(2)}) does not match PPV content price ($${contentItem.price.toFixed(2)})`, 400);
-                }
-            }
-        }
+        await assertCatalogPrice({
+            creatorId: intent.creatorId,
+            transactionType: intent.type,
+            relatedId: intent.relatedId,
+            amountInCents: intent.amountInCents,
+        });
 
         const amountInUnits = ethers.parseUnits((intent.amountInCents / 100).toString(), 6); // USDC has 6 decimals
 
@@ -230,12 +215,12 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
 
         let paymentData: string;
         if (intent.type === 'Subscription') {
-            const tierId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("default");
+            const tierId = intent.relatedId ? canonicalPaymentIdentifier(intent.relatedId) : canonicalPaymentIdentifier('default');
             paymentData = encodePaySubscription(usdcAddress, creatorWallet, amountInUnits, tierId, referrerWallet, platformFeeBps);
         } else if (intent.type === 'Tip') {
             paymentData = encodePayTip(usdcAddress, creatorWallet, amountInUnits, referrerWallet, platformFeeBps);
         } else if (intent.type === 'PPV Post' || intent.type === 'PPV Message') {
-            const contentId = intent.relatedId ? ethers.encodeBytes32String(intent.relatedId.substring(0, 31)) : ethers.encodeBytes32String("content");
+            const contentId = intent.relatedId ? canonicalPaymentIdentifier(intent.relatedId) : canonicalPaymentIdentifier('content');
             paymentData = encodePayPPV(usdcAddress, creatorWallet, amountInUnits, contentId, referrerWallet, platformFeeBps);
         } else {
             throw new AppError('Invalid payment intent type', 400);
