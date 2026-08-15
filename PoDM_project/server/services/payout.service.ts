@@ -65,6 +65,21 @@ export async function processPayout(
         });
 
         transactionBroadcast = true;
+
+        // Attach the broadcast hash to the reservation immediately, before the
+        // receipt wait. If the process crashes after broadcast but before
+        // complete_payout_reservation, the reservation still carries the hash so
+        // the reconcilePayoutReservations job can resolve its on-chain fate
+        // (prevents a permanent payout lock for the creator).
+        const { error: attachError } = await supabase
+            .from('payout_reservations')
+            .update({ blockchain_tx_hash: tx.hash })
+            .eq('id', reservationId)
+            .eq('status', 'pending');
+        if (attachError) {
+            throw new AppError('Payout was broadcast but its reservation could not be marked with the transaction hash. Manual reconciliation is required.', 500);
+        }
+
         const receipt = await tx.wait();
         if (!receipt?.hash) {
             throw new AppError('Payout transaction failed on-chain.', 500);

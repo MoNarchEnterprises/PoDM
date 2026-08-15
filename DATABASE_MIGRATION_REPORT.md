@@ -119,11 +119,76 @@ Run through the service-role client against the live project:
 
 ## 8. Regression confirmation
 
-- Backend Jest suite: **15 suites / 72 tests PASS** (`npm test`).
+- Backend Jest suite: **16 suites / 79 tests PASS** (`npm test`).
 - TypeScript: `tsc --noEmit` clean.
 - RLS on `payment_intents`/`payout_reservations` does not affect the service-role production path (service_role bypasses RLS; re-ran §7 after enabling RLS — still 16/16 PASS).
 
-## 9. Security notes
+## 9. H-03 live-database double-payout test (36/36 PASS)
+
+Follow-up to §7: instead of only testing the lock, the full payout lifecycle was exercised against the live database through the service-role client (exact production path). The blockchain layer is simulated (no real USDC is broadcast in tests); every database semantic is real. Scenarios model `processPayout` in `server/services/payout.service.ts`: `reserve_payout` → broadcast → `complete_payout_reservation` (or `release_payout_reservation` pre-broadcast).
+
+### 9.1 Baseline: balance $100, requests A + B simultaneous
+
+| Assertion | Result |
+|---|---|
+| A reserves $100 → exactly one reservation wins | PASS (B: "Another payout is already being processed") |
+| B rejected with conflict (409-class) | PASS |
+| Payout recorded + `complete_payout_reservation` → true | PASS |
+| Exactly one `Payout` transaction, status Cleared | PASS |
+| Reservation row transitions to `completed` | PASS |
+| DB holds exactly ONE payout tx + ONE reservation | PASS (`tx=1 res=1`) |
+| Treasury paid $100 exactly once (amount 10000) | PASS |
+
+### 9.2 Race scenarios (2 / 5 / 10 simultaneous requests)
+
+| Assertion | Result |
+|---|---|
+| Race 2: exactly 1 wins, 1 rejected | PASS |
+| Race 5: exactly 1 wins, 4 rejected | PASS |
+| Race 10: exactly 1 wins, 9 rejected | PASS |
+
+All losers rejected with the 409-class conflict; the partial unique index `payout_reservations_one_pending_per_creator` holds atomically. The H-03 double-payout attack is **prevented**: no scenario produced more than one winner or more than one payout.
+
+### 9.3 Failure & recovery scenarios
+
+| Scenario | Assertion | Result |
+|---|---|---|
+| Request timeout before broadcast | Reservation released → retry succeeds | PASS |
+| Process crash after broadcast, before complete | Reservation stays `pending`; **retry blocked forever**; no expiry | PASS |
+| DB connection failure after broadcast | Complete RPC errors; reservation stays `pending`; retry blocked | PASS |
+| Blockchain transaction failure | Reservation released → retry succeeds | PASS |
+| Chain succeeds but DB update fails (dup tx hash) | `23505` rejected; reservation stays `pending`; retry blocked | PASS |
+| Reservation expiry (aged 30 days) | **No TTL — 30-day-old reservation still blocks new payout** | PASS |
+| Retry after a successful payout | Second payout ($100 of $200 remaining) succeeds | PASS |
+
+### 9.4 The payout-recovery gap (resolved)
+
+The tests confirmed the migration fixed the double-payout race, but exposed a **payout-recovery failure mode**: after a broadcast, `payout.service.ts` deliberately leaves the reservation `pending` (the `finally` only releases when `transactionBroadcast === false`) — correct for preventing double-payouts, but a crash between broadcast and `complete_payout_reservation` left the reservation `pending` forever, permanently locking the creator's balance (no reconciler existed, no expiry).
+
+**Fix (implemented and verified):**
+- `payout.service.ts` now attaches the broadcast `tx.hash` to the reservation immediately after `sendTransaction` resolves (before `tx.wait()`); if that attach write fails, `processPayout` throws a 500 "Payout was broadcast but its reservation could not be marked with the transaction hash. Manual reconciliation is required."
+- New `server/jobs/reconcilePayoutReservations.ts`, run from the production scheduler alongside `reconcilePaymentIntents`. For `pending` reservations older than `PAYOUT_RESERVATION_GRACE_MS` (default 5 min):
+  - **has hash** → on-chain receipt: status 1 → backfill the `Payout` transaction row if missing, then `complete_payout_reservation`; status 0 → `release_payout_reservation`; no receipt yet → leave pending, released only after `PAYOUT_RESERVATION_NO_RECEIPT_RELEASE_MS` (default 1h, tx presumed dropped).
+  - **no hash** (crashed before the attach write) → scan `PayoutCompleted` contract events for the creator's wallet in the reservation's window: found → backfill + complete with the event's tx hash; not found → release.
+  - **creator has no wallet** → left pending for review (cannot determine on-chain fate).
+  - Funds that moved on-chain are never released.
+- Verified against the live DB with a local Hardhat `FakePayout` fixture: reconciler harness **13/13 PASS** (fresh untouched, stale+no-receipt released, revert released, no-hash+event completed + backfilled, no-hash+no-event released, lock cleared) and full crash-recovery scenario **8/8 PASS** (reserve → attach hash → simulated crash → reconciler completes → exactly one Payout recorded → lock cleared → balance-exhaustion on retry, no double-pay). 7 Jest unit tests added (`server/tests/reconcilePayoutReservations.test.ts`); full suite now **16 suites / 79 tests PASS**; `tsc --noEmit` clean. Test rows cleaned up after each run.
+
+### 9.5 The renewal crash-recovery gap (H-04, resolved)
+
+The renewal scheduler (`server/jobs/renewSubscriptions.ts`) had three gaps that could double-charge Audience after a crash or RPC timeout:
+
+1. **Hash returned only after `tx.wait()`** — an RPC timeout during the wait lost the broadcast hash entirely; the next worker re-claimed and re-broadcast → double charge.
+2. **No reconciliation path** — `findSubscriptionsDueForRenewal` filtered out subscriptions with `renewal_pending_tx_hash`, so a stored hash from a crashed worker was never resolved.
+3. **Stale re-claim** — `claim_subscription_renewal` allowed a sub whose worker had broadcast (hash stored) to be re-claimed after the 30-minute stale window and re-broadcast → double charge.
+
+**Fixes (implemented and verified live):**
+- `migrations/add_renewal_claim_pending_guard.sql` — `claim_subscription_renewal` now additionally requires `renewal_pending_tx_hash IS NULL`, so a hash-bearing subscription is claimable only by the reconciliation phase. Applied to the live DB; `has pending guard` verified and non-service grants = 0.
+- `renewSubscriptions.ts` — `broadcastRenewalTransaction` returns `tx.hash` **immediately** (before `tx.wait()`); the caller durably stores it via `markRenewalPending` before any wait. New **phase 1 `reconcilePendingRenewals()`** resolves every stored hash first (never re-broadcasts): receipt status 1 + verified `SubscriptionRenewed` log → `finalizeSuccessfulRenewal` (idempotent via `findTransactionByBlockchainTxHash`); status 0 → `clearRenewalPending` (safe retry); no receipt yet → deferred; no receipt after `RENEWAL_NO_RECEIPT_RELEASE_MS` (default 1h) → cleared (tx presumed dropped). `finalizeSuccessfulRenewal` also writes `payment_method='crypto'`, `payment_currency='USDC'`, `chain_id` so the `transactions` CHECK constraints are satisfied (previously the insert silently failed).
+- `subscription.model.ts` — added `findSubscriptionsPendingRenewal()`, `completeRenewal()` (clears hash/claim/attempts/lock, advances billing), `clearRenewalPending()`.
+- Verified against the live DB with a local Hardhat `FakeRenewal` fixture (emits the exact `SubscriptionRenewed` event, keeper-guarded, `renewCount` counter + `setRevertNext`): live state-machine harness **21/21 PASS** — claim contention (worker B rejected, exactly one wins), crash-recovery (broadcast → hash stored → simulated crash → next worker reconciles the existing hash → billing advanced → exactly one tx row → on-chain charge delta = 1), RPC-timeout no-double-charge (tx mined on-chain, backend "thought it failed", next worker found the existing hash, did NOT re-broadcast, charge delta = 0), and never-mined release (ghost hash cleared for retry, charged exactly once with a fresh tx, ghost hash never recorded). 9 Jest unit tests added (`server/tests/renewSubscriptions.test.ts`); full suite now **17 suites / 88 tests PASS**; `tsc --noEmit` clean. Test rows cleaned up after each run.
+
+## 10. Security notes
 
 - DB credentials (host/user/password) are held only in `PoDM_project/.env` / `server/.env` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and were never written to this report or the repository.
 - The pooler connection string used for this verification is not persisted in any versioned file.

@@ -3,11 +3,20 @@ import { ethers, upgrades } from 'hardhat';
 
 describe('PoDMPaymentProtocol Security & Invariants', function () {
   async function securityFixture() {
-    const [owner, treasury, creator, fan, attacker] = await ethers.getSigners();
+    const [owner, treasury, creator, fan, attacker, pauser, keeper, treasuryAuthority, payoutAuthority] = await ethers.getSigners();
     const PoDMPaymentProtocol = await ethers.getContractFactory('PoDMPaymentProtocol');
     const proxy = await upgrades.deployProxy(
       PoDMPaymentProtocol,
-      [treasury.address, 1250],
+      [
+        treasury.address,
+        1250,
+        owner.address,        // default admin
+        ethers.ZeroAddress,  // upgrade authority unset for security fixture
+        pauser.address,
+        keeper.address,
+        treasuryAuthority.address,
+        payoutAuthority.address,
+      ],
       { kind: 'uups', unsafeAllow: ['constructor'] }
     );
     await proxy.waitForDeployment();
@@ -21,10 +30,10 @@ describe('PoDMPaymentProtocol Security & Invariants', function () {
     const fakeToken = await FakeToken.deploy();
     await fakeToken.waitForDeployment();
 
-    // Set canonical USDC
-    await contract.setUsdcToken(await usdc.getAddress());
+    // Set canonical USDC — TREASURY_ROLE holder may configure the token pin
+    await contract.connect(treasuryAuthority).setUsdcToken(await usdc.getAddress());
 
-    return { contract, usdc, fakeToken, owner, treasury, creator, fan, attacker };
+    return { contract, usdc, fakeToken, owner, treasury, creator, fan, attacker, pauser, keeper, treasuryAuthority, payoutAuthority };
   }
 
   describe('USDC Token Pinning (C-01 Remediation)', function () {
@@ -82,12 +91,12 @@ describe('PoDMPaymentProtocol Security & Invariants', function () {
     });
 
     it('should reject processRenewal using fake token', async () => {
-      const { contract, fakeToken, creator, fan } = await securityFixture();
+      const { contract, fakeToken, creator, fan, keeper } = await securityFixture();
       const amount = ethers.parseUnits('10', 6);
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, 86400);
 
       await expect(
-        contract.processRenewal(
+        contract.connect(keeper).processRenewal(
           await fakeToken.getAddress(),
           fan.address,
           creator.address,
@@ -99,11 +108,11 @@ describe('PoDMPaymentProtocol Security & Invariants', function () {
     });
 
     it('should reject processPayout using fake token', async () => {
-      const { contract, fakeToken, creator } = await securityFixture();
+      const { contract, fakeToken, creator, payoutAuthority } = await securityFixture();
       const amount = ethers.parseUnits('10', 6);
 
       await expect(
-        contract.processPayout(
+        contract.connect(payoutAuthority).processPayout(
           await fakeToken.getAddress(),
           creator.address,
           amount
@@ -129,17 +138,21 @@ describe('PoDMPaymentProtocol Security & Invariants', function () {
       ).to.emit(contract, 'SubscriptionPaid');
     });
 
-    it('should enforce onlyOwner for setUsdcToken', async () => {
-      const { contract, attacker, fakeToken } = await securityFixture();
+    it('should enforce TREASURY_ROLE for setUsdcToken (rejects non-holder)', async () => {
+      const { contract, attacker, fakeToken, treasuryAuthority } = await securityFixture();
       await expect(
         contract.connect(attacker).setUsdcToken(await fakeToken.getAddress())
       ).to.be.reverted;
+      // sanity: treasury authority CAN set it
+      await expect(
+        contract.connect(treasuryAuthority).setUsdcToken(await fakeToken.getAddress())
+      ).to.not.be.reverted;
     });
 
     it('should reject setUsdcToken with zero address', async () => {
-      const { contract } = await securityFixture();
+      const { contract, treasuryAuthority } = await securityFixture();
       await expect(
-        contract.setUsdcToken(ethers.ZeroAddress)
+        contract.connect(treasuryAuthority).setUsdcToken(ethers.ZeroAddress)
       ).to.be.revertedWith('Invalid USDC address');
     });
   });

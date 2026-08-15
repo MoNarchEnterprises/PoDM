@@ -1,9 +1,10 @@
+import { ethers } from 'ethers';
 import supabase from '../config/supabaseClient';
 import * as SubscriptionModel from '../models/subscription.model';
 import * as TransactionModel from '../models/transaction.model';
 import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from '../services/referral.service';
-import { getContractConfig, encodeProcessRenewal } from '../utils/contract.utils';
+import { getContractConfig, getChainId, encodeProcessRenewal } from '../utils/contract.utils';
 import { randomUUID } from 'crypto';
 
 // --- Key isolation: KEEPER_PRIVATE_KEY must be explicitly set in production ---
@@ -18,7 +19,10 @@ function computeAmountInUSDC(amountInCents: number): string {
     return '0x' + microUsdc.toString(16);
 }
 
-async function sendRenewalTransaction(
+// Broadcast a renewal and return the tx hash IMMEDIATELY (before waiting for the
+// receipt). The caller durably persists this hash before waiting, so an RPC
+// timeout on tx.wait() can never lose the on-chain hash and cause a double charge.
+async function broadcastRenewalTransaction(
     fanWallet: string,
     creatorWallet: string,
     referrerWallet: string,
@@ -36,7 +40,6 @@ async function sendRenewalTransaction(
         return null;
     }
 
-    const { ethers } = await import('ethers');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(KEEPER_PRIVATE_KEY, provider);
 
@@ -55,10 +58,9 @@ async function sendRenewalTransaction(
             data,
             gasLimit: 200000,
         });
-        const receipt = await tx.wait();
-        return receipt?.hash || null;
+        return tx.hash || null;
     } catch (err) {
-        console.error('[RenewSubscriptions] Failed to process renewal:', err);
+        console.error('[RenewSubscriptions] Failed to broadcast renewal:', err);
         return null;
     }
 }
@@ -103,7 +105,6 @@ async function verifyRenewalReceipt(
     if (!contractAddress || !rpcUrl) return false;
 
     try {
-        const { ethers } = await import('ethers');
         const provider = new ethers.JsonRpcProvider(rpcUrl);
         const receipt = await provider.getTransactionReceipt(txHash);
 
@@ -161,6 +162,157 @@ async function verifyRenewalReceipt(
     }
 }
 
+/**
+ * Resolve a stored renewal_pending_tx_hash against the chain. Never re-broadcasts.
+ * Returns:
+ *  - 'completed'  — receipt status 1 + verified event log → renewal finalized
+ *  - 'reverted'   — receipt status 0 → tx reverted on-chain, safe to clear + retry
+ *  - 'pending'    — no receipt yet (still in mempool / not enough confirmations)
+ *  - 'missing'    — hash stored but no receipt after the no-receipt release window
+ */
+type PendingRenewalOutcome = 'completed' | 'reverted' | 'pending' | 'missing';
+
+async function resolvePendingRenewal(sub: any): Promise<PendingRenewalOutcome> {
+    const txHash = sub.renewal_pending_tx_hash;
+    if (!txHash) return 'missing';
+
+    const { contractAddress, rpcUrl } = getContractConfig();
+    if (!contractAddress || !rpcUrl) return 'pending';
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const receipt = await provider.getTransactionReceipt(txHash);
+
+    if (!receipt) {
+        // No receipt yet: the tx is still in the mempool, OR it was never mined.
+        // Never release here — wait for the no-receipt window so a slow mining tx
+        // can still land without a double charge.
+        console.warn(`[RenewSubscriptions] Renewal tx ${txHash} has no receipt yet (sub ${sub.id}).`);
+        return 'pending';
+    }
+
+    if (receipt.status === 0) {
+        console.warn(`[RenewSubscriptions] Renewal tx ${txHash} REVERTED on-chain (sub ${sub.id}). Safe to release.`);
+        return 'reverted';
+    }
+
+    const creatorWallet = await getCreatorWallet(sub.creator_id);
+    if (!creatorWallet) {
+        console.error(`[RenewSubscriptions] Creator ${sub.creator_id} has no wallet for pending renewal tx ${txHash}. Leaving for review.`);
+        return 'pending';
+    }
+
+    const isVerified = await verifyRenewalReceipt(txHash, sub.fan_wallet_address, creatorWallet, sub.price);
+    if (!isVerified) {
+        console.error(`[RenewSubscriptions] Pending renewal tx ${txHash} failed event verification. Leaving for review.`);
+        return 'pending';
+    }
+
+    return 'completed';
+}
+
+async function getCreatorWallet(creatorId: string): Promise<string | null> {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('crypto_wallet_address')
+        .eq('id', creatorId)
+        .single();
+    return (error || !data?.crypto_wallet_address) ? null : data.crypto_wallet_address;
+}
+
+/**
+ * Reconcile subscriptions that have a stored renewal_pending_tx_hash (a previous
+ * worker broadcast the renewal but crashed or timed out before completing it).
+ * This is the H-04 crash-recovery state machine: find the existing hash, verify
+ * its receipt, and either complete the renewal or clear the hash for retry —
+ * WITHOUT re-broadcasting.
+ */
+export async function reconcilePendingRenewals(): Promise<void> {
+    const pendingSubs = await SubscriptionModel.findSubscriptionsPendingRenewal();
+    if (!pendingSubs || pendingSubs.length === 0) {
+        console.log('[RenewSubscriptions] No pending renewal hashes to reconcile.');
+        return;
+    }
+
+    const noReceiptReleaseMs = parseInt(process.env.RENEWAL_NO_RECEIPT_RELEASE_MS || String(60 * 60 * 1000), 10); // 1 hour
+
+    for (const sub of pendingSubs) {
+        try {
+            const outcome = await resolvePendingRenewal(sub);
+
+            if (outcome === 'completed') {
+                // Funds moved on-chain and the event matches. Finalize the renewal.
+                await finalizeSuccessfulRenewal(sub, sub.renewal_pending_tx_hash!);
+                console.log(`[RenewSubscriptions] Reconciled sub ${sub.id}: completed from existing tx ${sub.renewal_pending_tx_hash}.`);
+            } else if (outcome === 'reverted') {
+                // Tx reverted on-chain — funds never moved. Clear the hash so the
+                // due-renewal path can retry the subscription.
+                await SubscriptionModel.clearRenewalPending(String(sub.id));
+                console.log(`[RenewSubscriptions] Reconciled sub ${sub.id}: tx reverted, cleared pending hash for retry.`);
+            } else if (outcome === 'pending') {
+                // Still no receipt (or verification inconclusive). If the hash has
+                // been waiting past the release window, it was never mined — clear
+                // it so the subscription can retry instead of blocking forever.
+                const heldMs = Date.now() - new Date(sub.updated_at || sub.created_at).getTime();
+                if (heldMs >= noReceiptReleaseMs) {
+                    await SubscriptionModel.clearRenewalPending(String(sub.id));
+                    console.warn(`[RenewSubscriptions] Reconciled sub ${sub.id}: pending hash ${sub.renewal_pending_tx_hash} never mined in ${Math.round(heldMs / 60000)} min. Cleared for retry.`);
+                } else {
+                    console.log(`[RenewSubscriptions] Sub ${sub.id} tx ${sub.renewal_pending_tx_hash} still pending on-chain; deferring.`);
+                }
+            }
+            // 'missing' (no hash) is unreachable here since the query filters on it.
+        } catch (reconciliationError: any) {
+            console.warn(`[RenewSubscriptions] Failed to reconcile sub ${sub.id}:`, reconciliationError.message || reconciliationError);
+        }
+    }
+}
+
+async function finalizeSuccessfulRenewal(sub: any, txHash: string): Promise<void> {
+    // Idempotent: if the transaction row already exists (a prior run created it
+    // before crashing), don't create a duplicate.
+    const existing = await TransactionModel.findTransactionByBlockchainTxHash(txHash);
+    if (!existing) {
+        const creatorWallet = await getCreatorWallet(sub.creator_id);
+        const referrerWallet = await getReferrerWalletForCreator(sub.creator_id);
+        const commissionRate = await getCommissionRateForCreator(sub.creator_id);
+        const platformFee = Math.round(sub.price * (commissionRate / 100));
+        const creatorPayout = sub.price - platformFee;
+        const { referralFee, referrerId } = await calculateReferralFee({
+            creatorId: sub.creator_id,
+            amountInCents: sub.price,
+            commissionRate,
+        });
+        const adjustedPlatformFee = platformFee - referralFee;
+
+        const transactionPayload: Record<string, any> = {
+            fan_id: sub.fan_id,
+            creator_id: sub.creator_id,
+            type: 'SubscriptionRenewal' as any,
+            amount: sub.price,
+            platform_fee: adjustedPlatformFee,
+            creator_payout: creatorPayout,
+            status: 'Cleared',
+            blockchain_tx_hash: txHash,
+            payment_method: 'crypto',
+            payment_currency: 'USDC',
+            chain_id: getChainId(),
+        };
+        if (referralFee > 0) {
+            transactionPayload.referral_fee = referralFee;
+            transactionPayload.referrer_id = referrerId;
+        }
+
+        await TransactionModel.createTransaction(transactionPayload);
+
+        if (referralFee > 0 && referrerId) {
+            recordReferralFee(referrerId, referralFee);
+        }
+    }
+
+    // Advance the billing date, clear the pending hash + claim, reset attempts.
+    await SubscriptionModel.completeRenewal(String(sub.id), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
+}
+
 export async function renewSubscriptions(): Promise<void> {
     const { contractAddress } = getContractConfig();
     if (!contractAddress) {
@@ -168,6 +320,12 @@ export async function renewSubscriptions(): Promise<void> {
         return;
     }
 
+    // Phase 1 — crash recovery: resolve any stored broadcast hashes first, so a
+    // worker that crashed after broadcasting never leaves a sub stuck or gets
+    // re-broadcast (double charge).
+    await reconcilePendingRenewals();
+
+    // Phase 2 — new renewals for due subscriptions without a pending hash.
     const dueSubscriptions = await SubscriptionModel.findSubscriptionsDueForRenewal();
     if (!dueSubscriptions || dueSubscriptions.length === 0) {
         console.log('[RenewSubscriptions] No subscriptions due for renewal.');
@@ -183,13 +341,7 @@ export async function renewSubscriptions(): Promise<void> {
         }
         const claimedSub = { ...sub, renewal_claim_id: claimId };
 
-        const creatorProfile = await supabase
-            .from('profiles')
-            .select('crypto_wallet_address')
-            .eq('id', sub.creator_id)
-            .single();
-
-        const creatorWallet = creatorProfile.data?.crypto_wallet_address;
+        const creatorWallet = await getCreatorWallet(sub.creator_id);
         if (!creatorWallet || !claimedSub.fan_wallet_address) {
             console.warn(`[RenewSubscriptions] Missing wallet for sub ${sub.id}. Marking expired.`);
             await SubscriptionModel.updateClaimedRenewal(String(sub.id), claimId, { status: 'expired', end_date: new Date().toISOString() });
@@ -209,7 +361,11 @@ export async function renewSubscriptions(): Promise<void> {
 
         const amountInUSDC = computeAmountInUSDC(claimedSub.price);
         const platformFeeBps = Math.round(commissionRate * 100);
-        const txHash = await sendRenewalTransaction(
+
+        // Broadcast and capture the hash IMMEDIATELY (before waiting). If the RPC
+        // times out during tx.wait(), the hash is already durably stored and the
+        // next worker's reconcilePendingRenewals() resolves it without re-charging.
+        const txHash = await broadcastRenewalTransaction(
             claimedSub.fan_wallet_address,
             creatorWallet,
             referrerWallet || '0x0000000000000000000000000000000000000000',
@@ -218,14 +374,15 @@ export async function renewSubscriptions(): Promise<void> {
         );
 
         if (!txHash) {
-            // Renewal failed — lock content and increment attempts
+            // Broadcast itself failed (nothing was sent). Lock content and retry later.
             await handleFailedRenewal(claimedSub, claimId);
             continue;
         }
 
+        // Durable pending-hash attach BEFORE waiting on the receipt.
         const pendingRecorded = await SubscriptionModel.markRenewalPending(String(sub.id), claimId, txHash);
         if (!pendingRecorded) {
-            console.error(`[RenewSubscriptions] Could not durably record pending tx ${txHash}; no retry will be attempted automatically.`);
+            console.error(`[RenewSubscriptions] Could not durably record pending tx ${txHash}; manual reconciliation required.`);
             continue;
         }
 
@@ -238,45 +395,23 @@ export async function renewSubscriptions(): Promise<void> {
         );
 
         if (!isVerified) {
-            console.warn(`[RenewSubscriptions] On-chain verification failed for renewal tx ${txHash}. Marking attempt failed.`);
-            await handleFailedRenewal(claimedSub, claimId);
+            // Receipt not yet available (mempool / finality) or verification failed.
+            // The hash is already stored — do NOT re-broadcast. Leave it for the
+            // reconciliation phase to resolve on the next worker run.
+            console.warn(`[RenewSubscriptions] Verification pending/failed for renewal tx ${txHash}; will reconcile on next run.`);
             continue;
         }
 
         // Success — record transaction and reset grace period
-        const transactionPayload: Record<string, any> = {
-            fan_id: claimedSub.fan_id,
-            creator_id: claimedSub.creator_id,
-            type: 'SubscriptionRenewal' as any,
-            amount: claimedSub.price,
-            platform_fee: adjustedPlatformFee,
-            creator_payout: creatorPayout,
-            status: 'Cleared',
-            blockchain_tx_hash: txHash,
-        };
-        if (referralFee > 0) {
-            transactionPayload.referral_fee = referralFee;
-            transactionPayload.referrer_id = referrerId;
-        }
-
-        await TransactionModel.createTransaction(transactionPayload);
-
-        if (referralFee > 0 && referrerId) {
-            recordReferralFee(referrerId, referralFee);
-        }
-
-        // Reset grace period and extend billing date
-        await SubscriptionModel.updateClaimedRenewal(String(sub.id), claimId, {
-            next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            renewal_attempts: 0,
-            renewal_locked_at: null,
-            renewal_pending_tx_hash: null,
-        });
+        await finalizeSuccessfulRenewal(claimedSub, txHash);
 
         console.log(`[RenewSubscriptions] Renewed sub ${sub.id}, tx: ${txHash}`);
     }
 }
 
 if (require.main === module) {
-    renewSubscriptions().then(() => process.exit(0)).catch(() => process.exit(1));
+    renewSubscriptions().then(() => process.exit(0)).catch((err) => {
+        console.error('[RenewSubscriptions] Fatal:', err.message || err);
+        process.exit(1);
+    });
 }

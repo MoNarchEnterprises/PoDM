@@ -78,6 +78,21 @@ export const findSubscriptionsDueForRenewal = async (): Promise<Subscription[] |
     );
 };
 
+/**
+ * Subscriptions with a stored renewal_pending_tx_hash — a worker broadcast the
+ * renewal on-chain but crashed (or timed out) before completing it. These must be
+ * reconciled by verifying the existing hash's receipt, never re-broadcast.
+ */
+export const findSubscriptionsPendingRenewal = async (): Promise<Subscription[] | null> => {
+    return handleList<Subscription>(
+        supabase.from('subscriptions')
+            .select('*')
+            .eq('status', 'active')
+            .not('renewal_pending_tx_hash', 'is', null),
+        'find subscriptions pending renewal reconciliation'
+    );
+};
+
 export const claimSubscriptionRenewal = async (subscriptionId: string, claimId: string): Promise<boolean> => {
     const { data, error } = await supabase.rpc('claim_subscription_renewal', {
         p_subscription_id: Number(subscriptionId),
@@ -111,6 +126,45 @@ export const markRenewalPending = async (subscriptionId: string, claimId: string
         .select('id')
         .single();
     return !error && Boolean(data);
+};
+
+/**
+ * Complete a renewal after on-chain verification: clear the pending hash and
+ * claim, advance the billing date, reset the retry counter and unlock content.
+ * Used by both the happy path and the reconciliation path (crash recovery).
+ */
+export const completeRenewal = async (subscriptionId: string, nextBillingDate: string): Promise<Subscription | null> => {
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions')
+            .update({
+                next_billing_date: nextBillingDate,
+                renewal_attempts: 0,
+                renewal_locked_at: null,
+                renewal_pending_tx_hash: null,
+                renewal_claim_id: null,
+                renewal_claimed_at: null,
+            })
+            .eq('id', subscriptionId)
+            .select()
+            .single(),
+        'complete subscription renewal', subscriptionId
+    );
+};
+
+/**
+ * Clear a stored pending tx hash when the on-chain receipt proves the tx never
+ * moved funds (status 0 revert) or never mined. Releases the claim so the
+ * subscription can be retried (or the failed-renewal path can lock/expire it).
+ */
+export const clearRenewalPending = async (subscriptionId: string): Promise<Subscription | null> => {
+    return handleQuery<Subscription>(
+        supabase.from('subscriptions')
+            .update({ renewal_pending_tx_hash: null })
+            .eq('id', subscriptionId)
+            .select()
+            .single(),
+        'clear pending renewal tx hash', subscriptionId
+    );
 };
 
 export const findSubscriptionByFanAndCreator = async (fanId: string, creatorId: string): Promise<Subscription | null> => {

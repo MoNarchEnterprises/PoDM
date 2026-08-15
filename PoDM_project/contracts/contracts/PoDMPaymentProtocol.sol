@@ -2,15 +2,52 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
+/// @title PoDMPaymentProtocol
+/// @notice Trust model (H-05/M-03 remediation — Option C):
+///         No single key holds more than one trust boundary. Five distinct
+///         AccessControl roles replace the former single `owner`:
+///           - DEFAULT_ADMIN_ROLE  : grants/revokes every other role. Must be
+///                                    the most protected key (multisig in prod).
+///                                    Can ONLY manage roles — cannot upgrade,
+///                                    drain treasury, push payouts, or renew.
+///           - UPGRADE_ROLE        : sole role accepted by _authorizeUpgrade.
+///                                    Granted to a TimelockController instance,
+///                                    never to an EOA. Upgrades are scheduled,
+///                                    time-delayed, and observable.
+///           - PAUSER_ROLE         : pause/unpause. Independent so emergency
+///                                    halt does not require upgrade/treasury
+///                                    authority.
+///           - KEEPER_ROLE         : processRenewal. The renewal worker holds
+///                                    only this role and cannot move funds
+///                                    beyond the standing allowance logic.
+///           - TREASURY_ROLE       : configuration of treasury address, fees,
+///                                    keeper, idempotency toggle, USDC pin.
+///           - PAYOUT_ROLE         : processPayout only. Highest-trust single
+///                                    action, kept isolated from treasury
+///                                    configuration so a fee/treasury key
+///                                    cannot push funds out.
+///         H-05/M-03 is NOT marked "fixed" in any report until the deployed
+///         proxy demonstrates this role separation on-chain (see GOVERNANCE.md).
+contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, PausableUpgradeable, ReentrancyGuard, UUPSUpgradeable {
     using SafeERC20 for IERC20;
+
+    // ───────────────── Role definitions (H-05/M-03) ─────────────────
+    // UPGRADE_ROLE must be granted to a TimelockController, never an EOA.
+    bytes32 public constant UPGRADE_ROLE = keccak256("UPGRADE_ROLE");
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
+    bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
+    bytes32 public constant PAYOUT_ROLE = keccak256("PAYOUT_ROLE");
+    // DEFAULT_ADMIN_ROLE is provided by AccessControlUpgradeable and is the
+    // only role permitted to grant or revoke the roles above. It cannot
+    // upgrade, pause, configure, payout, or renew by itself.
 
     address public platformTreasury;
     uint256 public platformFeeBps;
@@ -42,7 +79,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
     event PaymentHashRecorded(address indexed payer, bytes32 indexed itemHash);
 
     modifier onlyKeeper() {
-        require(keepers[msg.sender] || msg.sender == owner(), "Not authorized keeper");
+        require(keepers[msg.sender] || hasRole(KEEPER_ROLE, msg.sender), "Not authorized keeper");
         _;
     }
 
@@ -52,19 +89,19 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         _;
     }
 
-    function setKeeper(address _keeper, bool _active) external onlyOwner {
+    function setKeeper(address _keeper, bool _active) external onlyRole(TREASURY_ROLE) {
         require(_keeper != address(0), "Invalid keeper address");
         keepers[_keeper] = _active;
         emit KeeperUpdated(_keeper, _active);
     }
 
-    function setUsdcToken(address _usdcToken) external onlyOwner {
+    function setUsdcToken(address _usdcToken) external onlyRole(TREASURY_ROLE) {
         require(_usdcToken != address(0), "Invalid USDC address");
         emit UsdcTokenUpdated(usdcToken, _usdcToken);
         usdcToken = _usdcToken;
     }
 
-    function setEnforceOnChainIdempotency(bool _enabled) external onlyOwner {
+    function setEnforceOnChainIdempotency(bool _enabled) external onlyRole(TREASURY_ROLE) {
         require(_enabled, "On-chain idempotency cannot be disabled");
         enforceOnChainIdempotency = _enabled;
         emit OnChainIdempotencyToggled(_enabled);
@@ -133,46 +170,98 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         _disableInitializers();
     }
 
-    function initialize(address _platformTreasury, uint256 _platformFeeBps) public initializer {
+    /// @param _platformTreasury  Initial treasury wallet (receives platform fee).
+    /// @param _platformFeeBps    Platform fee in basis points (≤ 3000 = 30%).
+    /// @param _defaultAdmin      Holder of DEFAULT_ADMIN_ROLE. This account is
+    ///                           the ONLY one that can grant/ revoke the four
+    ///                           operational roles. In production this MUST be
+    ///                           a Safe multisig. The deployer may hold it
+    ///                           during initial setup but must transfer it to
+    ///                           the multisig before opening public payments
+    ///                           (see GOVERNANCE.md). All four operational
+    ///                           roles start empty — deployer must grant them
+    ///                           explicitly via grantRole after initialize.
+    /// @param _upgradeAuthority  Address to receive UPGRADE_ROLE. In production
+    ///                           this MUST be a TimelockController instance.
+    ///                           May be address(0) to leave UPGRADE_ROLE unset
+    ///                           (upgrades effectively disabled) until the
+    ///                           timelock is deployed.
+    /// @param _pauser            Address to receive PAUSER_ROLE.
+    /// @param _keeper            Address to receive KEEPER_ROLE.
+    /// @param _treasuryAuthority Address to receive TREASURY_ROLE.
+    /// @param _payoutAuthority   Address to receive PAYOUT_ROLE. Must NOT equal
+    ///                           _treasuryAuthority in production (SEE
+    ///                           GOVERNANCE.md — the same signer holding both
+    ///                           payout and treasury roles is intentional only
+    ///                           for the interim deployer key, and must be
+    ///                           documented as such before public launch).
+    function initialize(
+        address _platformTreasury,
+        uint256 _platformFeeBps,
+        address _defaultAdmin,
+        address _upgradeAuthority,
+        address _pauser,
+        address _keeper,
+        address _treasuryAuthority,
+        address _payoutAuthority
+    ) public initializer {
         require(_platformTreasury != address(0), "Invalid treasury address");
+        require(_defaultAdmin != address(0), "Invalid default admin address");
         require(_platformFeeBps <= 3000, "Fee cannot exceed 30%");
-        __Ownable_init(msg.sender);
+        __AccessControl_init();
         __Pausable_init();
         platformTreasury = _platformTreasury;
         platformFeeBps = _platformFeeBps;
         referralFeeBps = 100;
         enforceOnChainIdempotency = true;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
+        if (_upgradeAuthority != address(0)) {
+            _grantRole(UPGRADE_ROLE, _upgradeAuthority);
+        }
+        if (_pauser != address(0)) {
+            _grantRole(PAUSER_ROLE, _pauser);
+        }
+        if (_keeper != address(0)) {
+            _grantRole(KEEPER_ROLE, _keeper);
+        }
+        if (_treasuryAuthority != address(0)) {
+            _grantRole(TREASURY_ROLE, _treasuryAuthority);
+        }
+        if (_payoutAuthority != address(0)) {
+            _grantRole(PAYOUT_ROLE, _payoutAuthority);
+        }
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADE_ROLE) {}
 
-    function pause() external onlyOwner {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
-    function setPlatformTreasury(address _newTreasury) external onlyOwner {
+    function setPlatformTreasury(address _newTreasury) external onlyRole(TREASURY_ROLE) {
         require(_newTreasury != address(0), "Invalid treasury address");
         emit TreasuryUpdated(platformTreasury, _newTreasury);
         platformTreasury = _newTreasury;
     }
 
-    function setPlatformFeeBps(uint256 _newFeeBps) external onlyOwner {
+    function setPlatformFeeBps(uint256 _newFeeBps) external onlyRole(TREASURY_ROLE) {
         require(_newFeeBps <= 3000, "Fee cannot exceed 30%");
         emit FeeUpdated(platformFeeBps, _newFeeBps);
         platformFeeBps = _newFeeBps;
     }
 
-    function setReferralFeeBps(uint256 _newFeeBps) external onlyOwner {
+    function setReferralFeeBps(uint256 _newFeeBps) external onlyRole(TREASURY_ROLE) {
         require(_newFeeBps <= platformFeeBps, "Referral fee cannot exceed platform fee");
         emit ReferralFeeUpdated(referralFeeBps, _newFeeBps);
         referralFeeBps = _newFeeBps;
     }
 
-    function setCreatorFeeBps(address creator, uint256 feeBps) external onlyOwner {
+    function setCreatorFeeBps(address creator, uint256 feeBps) external onlyRole(TREASURY_ROLE) {
         require(creator != address(0), "Invalid creator address");
         require(feeBps <= 3000, "Fee cannot exceed 30%");
         creatorFeeBps[creator] = feeBps;
@@ -358,7 +447,7 @@ contract PoDMPaymentProtocol is Initializable, OwnableUpgradeable, PausableUpgra
         address tokenAddress,
         address creator,
         uint256 amount
-    ) external onlyOwner whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
+    ) external onlyRole(PAYOUT_ROLE) whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
 
