@@ -1,4 +1,9 @@
 -- Add renewal retry tracking and grace period fields to subscriptions
+-- fan_wallet_address and price backfill the fields the renewal claim function and
+-- subscription service read/write; they were historically created ad-hoc on the
+-- live DB, so IF NOT EXISTS keeps this idempotent for fresh restores.
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS price integer DEFAULT 0;
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS fan_wallet_address text;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS renewal_attempts integer DEFAULT 0;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS renewal_locked_at timestamptz;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS renewal_claim_id uuid;
@@ -35,4 +40,6 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION claim_subscription_renewal(bigint, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION claim_subscription_renewal(bigint, uuid) FROM anon;
+REVOKE ALL ON FUNCTION claim_subscription_renewal(bigint, uuid) FROM authenticated;
 GRANT EXECUTE ON FUNCTION claim_subscription_renewal(bigint, uuid) TO service_role;

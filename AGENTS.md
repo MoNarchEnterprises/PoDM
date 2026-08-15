@@ -115,5 +115,6 @@ The root AGENTS.md owns project-wide rules that apply across all subtrees:
 - Netlify deployment config (`netlify.toml`)
 - Root-level tools and assets (CSV data, Instagram scripts, database reference docs, `cookies.json`, `secret.txt`, `debug-login.ps1`, `get-token.ps1`, `test-notifications.ps1`, `scripts/run-autonomous-suite.ts`)
 - Planning documents (MVP_Checklist.md, PoDM Planning Document.txt, GEMINI.md, RPC_permanent_fix.md, content_and_gallery_fix.md, ppv_attach_modal_fix.md, creator_views_fix.md, session_refresh_fix.md, crypto_payment_fix_plan.md, TYPESCRIPT_ERRORS_SOLUTION.md, report_content_fix.md, production_network_trap_fix_plan.md, client_fake_hash_fix_plan.md, ffmpeg_path_fix.md)
+- Verification reports (DATABASE_MIGRATION_REPORT.md — live-DB migration application evidence for blocker R-07; DEPLOYMENT_RECONCILIATION.md lives in the git-ignored `security/reports/`)
 - Root `package.json` & `tsconfig.json`
 - `.gitignore`, `.git/`, `.github/`

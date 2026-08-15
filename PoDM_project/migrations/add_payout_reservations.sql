@@ -94,8 +94,14 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION reserve_payout(uuid, integer) FROM PUBLIC;
-REVOKE ALL ON FUNCTION complete_payout_reservation(uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION release_payout_reservation(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION reserve_payout(uuid, integer) FROM anon;
+REVOKE ALL ON FUNCTION reserve_payout(uuid, integer) FROM authenticated;
 GRANT EXECUTE ON FUNCTION reserve_payout(uuid, integer) TO service_role;
+REVOKE ALL ON FUNCTION complete_payout_reservation(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION complete_payout_reservation(uuid, text) FROM anon;
+REVOKE ALL ON FUNCTION complete_payout_reservation(uuid, text) FROM authenticated;
 GRANT EXECUTE ON FUNCTION complete_payout_reservation(uuid, text) TO service_role;
+REVOKE ALL ON FUNCTION release_payout_reservation(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION release_payout_reservation(uuid) FROM anon;
+REVOKE ALL ON FUNCTION release_payout_reservation(uuid) FROM authenticated;
 GRANT EXECUTE ON FUNCTION release_payout_reservation(uuid) TO service_role;

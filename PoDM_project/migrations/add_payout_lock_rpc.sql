@@ -34,3 +34,16 @@ BEGIN
     RETURN TRUE;
 END;
 $$;
+
+-- Legacy advisory-lock RPCs. The code has since moved to reservation-based
+-- payouts (add_payout_reservations.sql), but these remain deployed, so they are
+-- locked down to service_role only: SECURITY DEFINER functions must not be
+-- executable by PUBLIC/anon/authenticated.
+REVOKE ALL ON FUNCTION acquire_payout_lock(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION acquire_payout_lock(uuid) FROM anon;
+REVOKE ALL ON FUNCTION acquire_payout_lock(uuid) FROM authenticated;
+GRANT EXECUTE ON FUNCTION acquire_payout_lock(uuid) TO service_role;
+REVOKE ALL ON FUNCTION release_payout_lock(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION release_payout_lock(uuid) FROM anon;
+REVOKE ALL ON FUNCTION release_payout_lock(uuid) FROM authenticated;
+GRANT EXECUTE ON FUNCTION release_payout_lock(uuid) TO service_role;

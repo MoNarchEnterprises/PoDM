@@ -86,6 +86,7 @@ Server-side API, business logic, database layer, payments, real-time messaging, 
 
 - Browser payments register and attach a payment intent before broadcast; `server/jobs/reconcilePaymentIntents.ts` is the scheduler entrypoint for intents with an attached transaction hash.
 - Payouts use atomic balance reservations from `migrations/add_payout_reservations.sql`; a reservation remains pending after broadcast until reconciliation can finalize it.
+- All payout/renewal RPCs (`reserve_payout`, `complete_payout_reservation`, `release_payout_reservation`, `claim_subscription_renewal`, `acquire_payout_lock`, `release_payout_lock`) are `SECURITY DEFINER` with `SET search_path = public, pg_temp` and EXECUTE granted to `service_role` only (anon/authenticated revoked). `payment_intents` and `payout_reservations` are service-role-only tables: RLS enabled, all DML revoked from PUBLIC/anon/authenticated (`migrations/secure_payment_intents_payout_reservations.sql`). `transaction_type` enum includes `SubscriptionRenewal` and `Payout` (`migrations/add_subscription_renewal_payout_types.sql`).
 - `assertCatalogPrice` is shared by browser verification and embedded UserOps. Custom wallet linking requires a fresh signature bound to the authenticated user and wallet address while retaining a manual address input.
 
 ## Child DOX Index
