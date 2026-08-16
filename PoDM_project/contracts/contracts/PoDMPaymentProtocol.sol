@@ -52,6 +52,35 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     address public platformTreasury;
     uint256 public platformFeeBps;
     uint256 public referralFeeBps;
+    uint256 public constant MIN_PAYMENT_AMOUNT = 1_000_000; // $1.00 in USDC base units
+
+    // ───────────────── Monetary Primitives ─────────────────
+    // All calculations use integer basis points; no floating-point dollars.
+    // 1 USDC = 1_000_000 base units (6 decimals).
+    // $1.00 = 1_000_000 units = MIN_TIP_AMOUNT
+    // $0.01 = 10_000 units = CENT
+    // Basis points = 10_000 per 100% (solidity integer division truncates down)
+    uint256 public constant BASIS_POINTS = 10_000;
+    uint256 public constant CENT = 10_000;             // $0.01 in USDC base units
+
+    // Floor amount DOWN to nearest $0.01 boundary.
+    // e.g. floorToCent(1_010_000) = 1_010_000 (already on boundary)
+    //     floorToCent(1_010_050) = 1_010_000 (rounds down $0.0005)
+    function floorToCent(uint256 amount) internal pure returns (uint256) {
+        return (amount / CENT) * CENT;
+    }
+
+    // Calculate a basis-point allocation, rounded DOWN to cent.
+    // Equivalent to: floorToCent(amount * bps / BASIS_POINTS)
+    function calculateAllocation(
+        uint256 amount,
+        uint256 bps
+    ) internal
+        pure
+        returns (uint256)
+    {
+        return floorToCent(amount * bps / BASIS_POINTS);
+    }
 
     struct RecurringAllowance {
         uint256 maxAmountPerPeriod;
@@ -338,24 +367,32 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
         address referrer,
         uint256 customPlatformFeeBps
     ) internal view returns (uint256, uint256, uint256) {
-        // The deployed contract is the fee authority. Keep the legacy
-        // parameter for calldata compatibility but reject attempts to alter
-        // the configured fee basis points.
+        // feeBps is the platform's share in basis points (e.g. 1000 = 10%).
+        // The creator receives the complementary share (BASIS_POINTS - feeBps).
         uint256 feeBps = creatorFeeBps[creator];
         if (feeBps == 0) feeBps = platformFeeBps;
         if (customPlatformFeeBps != 0) {
             require(customPlatformFeeBps == feeBps, "Custom fee does not match configured creator fee");
         }
 
-        uint256 platformFee = (amount * feeBps) / 10000;
+        // Creator gets the complementary basis points: 100% - platform fee.
+        uint256 creatorBps = BASIS_POINTS - feeBps;
+
+        // Creator amount: round DOWN to nearest $0.01 using basis points.
+        uint256 creatorAmount = floorToCent(amount * creatorBps / BASIS_POINTS);
+
+        // Referral fee: round DOWN to nearest $0.01 using basis points.
         uint256 referralFee = 0;
         if (referrer != address(0) && referrer != payer) {
-            referralFee = (amount * referralFeeBps) / 10000;
-            if (referralFee > platformFee) {
-                referralFee = platformFee;
-            }
+            referralFee = floorToCent(amount * referralFeeBps / BASIS_POINTS);
         }
-        return (platformFee - referralFee, referralFee, amount - platformFee);
+
+        // Treasury/Platform fee: the residual guarantees the accounting invariant.
+        // amount == creatorAmount + referralFee + treasuryFee is always satisfied.
+        // All dust from creator and referral rounding automatically goes to treasury.
+        uint256 treasuryFee = amount - creatorAmount - referralFee;
+
+        return (treasuryFee, referralFee, creatorAmount);
     }
 
     function paySubscription(
@@ -368,6 +405,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        require(amount >= MIN_PAYMENT_AMOUNT, "Payments must be at least $1.00");  // $1 minimum
         _assertReferrer(creator, referrer);
 
         if (enforceOnChainIdempotency) {
@@ -398,6 +436,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        require(amount >= MIN_PAYMENT_AMOUNT, "Payments must be at least $1.00");  // $1 minimum
         _assertReferrer(creator, referrer);
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, msg.sender, referrer, customPlatformFeeBps);
@@ -422,6 +461,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     ) external whenNotPaused nonReentrant onlyUsdc(tokenAddress) {
         require(creator != address(0), "Invalid creator address");
         require(amount > 0, "Amount must be greater than zero");
+        require(amount >= MIN_PAYMENT_AMOUNT, "Payments must be at least $1.00");  // $1 minimum
         _assertReferrer(creator, referrer);
 
         if (enforceOnChainIdempotency) {
@@ -483,6 +523,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
         require(amount > 0 && amount <= allowance.maxAmountPerPeriod, "Amount exceeds allowance");
+        require(amount >= MIN_PAYMENT_AMOUNT, "Payments must be at least $1.00");  // $1 minimum
         require(
             block.timestamp >= allowance.lastRenewalAt + allowance.periodInSeconds,
             "Renewal period has not elapsed"
