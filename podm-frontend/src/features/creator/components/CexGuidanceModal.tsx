@@ -146,7 +146,20 @@ export const CexGuidanceModal: React.FC<CexGuidanceModalProps> = ({
             if (!authenticatedUser?.id) {
                 throw new Error('Your session must be loaded before linking a wallet.');
             }
-            const message = buildWalletOwnershipMessage(userAddress.trim(), authenticatedUser.id);
+            const challengeRes = await fetch('/api/v1/payments/crypto/wallet/challenge', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ walletAddress: userAddress.trim() }),
+            });
+            if (!challengeRes.ok) {
+                const err = await challengeRes.json();
+                throw new Error(err.message || 'Failed to generate wallet verification challenge.');
+            }
+            const challengeJson = await challengeRes.json();
+            const challengeData = challengeJson.data || challengeJson;
+            const challengeId = challengeData.challengeId;
+            const message = challengeData.message;
+
             const signature = await ethereum.request({
                 method: 'personal_sign',
                 params: [message, connectedAddress]
@@ -156,7 +169,7 @@ export const CexGuidanceModal: React.FC<CexGuidanceModalProps> = ({
                 walletAddress: userAddress.trim(),
                 walletType: 'custom',
                 payoutPreference: 'on_chain',
-                message,
+                challengeId,
                 signature
             };
 

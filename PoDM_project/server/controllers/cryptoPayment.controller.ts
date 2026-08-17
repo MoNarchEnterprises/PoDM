@@ -11,12 +11,24 @@ export const getWalletConfig = asyncHandler(async (req: Request, res: Response) 
     ok(res, walletConfig);
 });
 
+export const requestWalletChallenge = asyncHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { walletAddress } = req.body;
+
+    if (!walletAddress) {
+        throw new AppError('walletAddress is required.', 400);
+    }
+
+    const challenge = await CryptoPaymentService.createWalletOwnershipChallenge(userId, walletAddress);
+    okMsg(res, 'Wallet verification challenge generated.', challenge);
+});
+
 export const updateWalletConfig = asyncHandler(async (req: Request, res: Response) => {
     const creatorId = requireAuth(req);
-    const { walletAddress, walletType, payoutPreference, signature, message } = req.body;
+    const { walletAddress, walletType, payoutPreference, signature, message, challengeId } = req.body;
 
-    if (!walletAddress || !walletType || !payoutPreference) {
-        throw new AppError('Wallet address, wallet type, and payout preference are required.', 400);
+    if (!walletType || !payoutPreference) {
+        throw new AppError('Wallet type and payout preference are required.', 400);
     }
 
     if (!['none', 'embedded', 'custom'].includes(walletType)) {
@@ -27,12 +39,17 @@ export const updateWalletConfig = asyncHandler(async (req: Request, res: Respons
         throw new AppError('Invalid payout preference specified.', 400);
     }
 
+    if (walletType === 'custom' && !walletAddress) {
+        throw new AppError('Wallet address is required for custom wallet type.', 400);
+    }
+
     const result = await CryptoPaymentService.updateUserWalletConfig(creatorId, {
         walletAddress,
         walletType,
         payoutPreference,
         signature,
-        message
+        message,
+        challengeId,
     });
 
     okMsg(res, 'Wallet configuration updated successfully.', result);

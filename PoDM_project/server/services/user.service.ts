@@ -63,7 +63,12 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
             dbUpdates.username = dbUpdates.name;
             delete dbUpdates.name;
         }
-        // --- END OF PREVIOUS FIX ---
+        // Disallow modifying sensitive crypto wallet fields via general profile update (H-02 invariant)
+        delete dbUpdates.crypto_wallet_address;
+        delete dbUpdates.crypto_wallet_type;
+        delete dbUpdates.crypto_wallet_payout_preference;
+        delete dbUpdates.crypto_wallet_provider_id;
+        delete dbUpdates.smart_account_address;
 
         updatedDbProfile = await UserModel.updateProfile(userId, dbUpdates);
         if (!updatedDbProfile) {
@@ -465,9 +470,6 @@ export const updateFanSettings = async (fan_id: string, updates: any) => {
     if (profile) {
         dbUpdates.username = profile.name; // Assuming name and username are kept in sync
         dbUpdates.bio = profile.bio;
-        if (profile.crypto_wallet_address) {
-            dbUpdates.crypto_wallet_address = profile.crypto_wallet_address;
-        }
     }
     if (preferences) {
         dbUpdates.preferences = preferences;

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import {
     getWalletConfig,
+    requestWalletChallenge,
     updateWalletConfig,
     verifyCryptoPayment,
     registerPaymentIntent,
@@ -18,6 +19,13 @@ const router = Router();
  * @access  Private (Creators & Fans)
  */
 router.get('/wallet', protect, getWalletConfig);
+
+/**
+ * @route   POST /api/v1/payments/crypto/wallet/challenge
+ * @desc    Request a cryptographic ownership challenge for a custom wallet
+ * @access  Private (Creators & Fans)
+ */
+router.post('/wallet/challenge', protect, requestWalletChallenge);
 
 /**
  * @route   POST /api/v1/payments/crypto/wallet

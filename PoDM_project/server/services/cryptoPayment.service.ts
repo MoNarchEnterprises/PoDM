@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import supabase from '../config/supabaseClient';
 import * as TransactionModel from '../models/transaction.model';
 import { AppError } from '../middleware/error.middleware';
@@ -10,11 +11,13 @@ import { incrementContentTipStats, incrementContentPpvEarningsStats } from './co
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
 import { assertCatalogPrice } from './paymentCatalog.service';
 import { canonicalPaymentIdentifier } from '../../common/paymentIdentifier';
+import { buildWalletOwnershipChallengeMessage } from '../../common/walletOwnership';
 
 export interface WalletConfigInput {
-    walletAddress: string;
+    walletAddress?: string;
     walletType: 'none' | 'embedded' | 'custom' | string;
     payoutPreference: 'debit_card' | 'on_chain' | 'base' | string;
+    challengeId?: string;
     signature?: string;
     message?: string;
 }
@@ -60,6 +63,8 @@ async function getCommissionRate(creatorId: string): Promise<number> {
     return getEffectiveCommissionRate(profile);
 }
 
+
+
 /**
  * Resolves the referrer payment details a fan must pass to the contract for a
  * creator payment. Returns the referrer's wallet address ('' when the creator
@@ -95,6 +100,52 @@ export const getUserWalletConfig = async (userId: string) => {    const { data: 
     };
 };
 
+export async function createWalletOwnershipChallenge(userId: string, rawWalletAddress: string) {
+    if (!rawWalletAddress || !ethers.isAddress(rawWalletAddress)) {
+        throw new AppError('Invalid Ethereum wallet address format.', 400);
+    }
+    const walletAddress = ethers.getAddress(rawWalletAddress);
+    const nonce = crypto.randomBytes(32).toString('hex');
+    const issuedAt = new Date();
+    const expiresAt = new Date(issuedAt.getTime() + 5 * 60 * 1000); // 5 minutes validity
+    const challengeId = crypto.randomUUID();
+
+    const message = buildWalletOwnershipChallengeMessage({
+        challengeId,
+        userId,
+        walletAddress,
+        nonce,
+        issuedAt: issuedAt.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+    });
+
+    const { data, error } = await supabase
+        .from('wallet_verification_challenges')
+        .insert({
+            id: challengeId,
+            user_id: userId,
+            wallet_address: walletAddress,
+            nonce,
+            purpose: 'wallet_ownership',
+            message,
+            issued_at: issuedAt.toISOString(),
+            expires_at: expiresAt.toISOString(),
+        })
+        .select()
+        .single();
+
+    if (error || !data) {
+        throw new AppError(`Failed to create wallet verification challenge: ${error?.message || 'Unknown database error'}`, 500);
+    }
+
+    return {
+        challengeId: data.id,
+        walletAddress: data.wallet_address,
+        message: data.message,
+        expiresAt: data.expires_at,
+    };
+}
+
 export function verifyWalletOwnershipSignature(
     walletAddress: string,
     message: string,
@@ -111,13 +162,13 @@ export function verifyWalletOwnershipSignature(
         const messageUser = lines[2].startsWith('User: ') ? lines[2].slice(6) : '';
         const timestampText = lines[3].startsWith('Timestamp: ') ? lines[3].slice(11) : '';
         const timestamp = Number(timestampText);
-        if (!ethers.isAddress(messageWallet) || messageWallet.toLowerCase() !== walletAddress.toLowerCase()) return false;
+        if (!ethers.isAddress(messageWallet) || ethers.getAddress(messageWallet) !== ethers.getAddress(walletAddress)) return false;
         if (messageUser !== userId || !Number.isSafeInteger(timestamp)) return false;
         const maxAgeMs = 10 * 60 * 1000;
         if (timestamp < Date.now() - maxAgeMs || timestamp > Date.now() + maxAgeMs) return false;
 
         const recovered = ethers.verifyMessage(message, signature);
-        if (recovered.toLowerCase() !== walletAddress.toLowerCase()) {
+        if (ethers.getAddress(recovered) !== ethers.getAddress(walletAddress)) {
             return false;
         }
 
@@ -128,17 +179,75 @@ export function verifyWalletOwnershipSignature(
 }
 
 export const updateUserWalletConfig = async (userId: string, input: WalletConfigInput) => {
-    if (input.walletAddress) {
-        if (!ethers.isAddress(input.walletAddress)) {
+    let targetWalletAddress: string | null = null;
+
+    if (input.walletType === 'custom') {
+        if (!input.walletAddress || !ethers.isAddress(input.walletAddress)) {
             throw new AppError('Invalid Ethereum wallet address format.', 400);
         }
+        targetWalletAddress = ethers.getAddress(input.walletAddress);
 
-        if (input.walletType === 'custom') {
-            if (!input.signature || !input.message) {
-                throw new AppError('Custom wallet assignment requires a cryptographic ownership signature.', 400);
+        if (!input.signature) {
+            throw new AppError('Custom wallet assignment requires a cryptographic ownership signature.', 400);
+        }
+
+        if (input.challengeId) {
+            // Authoritative server challenge path
+            const { data: challenge, error: challengeErr } = await supabase
+                .from('wallet_verification_challenges')
+                .select('*')
+                .eq('id', input.challengeId)
+                .single();
+
+            if (challengeErr || !challenge) {
+                throw new AppError('Wallet verification challenge not found.', 400);
             }
+            if (challenge.user_id !== userId) {
+                throw new AppError('Challenge does not belong to the authenticated user.', 400);
+            }
+            if (ethers.getAddress(challenge.wallet_address) !== targetWalletAddress) {
+                throw new AppError('Challenge wallet address does not match requested wallet address.', 400);
+            }
+            if (challenge.purpose !== 'wallet_ownership') {
+                throw new AppError('Invalid challenge purpose.', 400);
+            }
+            if (challenge.used_at) {
+                throw new AppError('Wallet verification challenge has already been used.', 400);
+            }
+            if (new Date(challenge.expires_at).getTime() < Date.now()) {
+                throw new AppError('Wallet verification challenge has expired.', 400);
+            }
+
+            let recoveredSigner: string;
+            try {
+                recoveredSigner = ethers.verifyMessage(challenge.message, input.signature);
+            } catch {
+                throw new AppError('Invalid cryptographic signature format.', 400);
+            }
+
+            if (ethers.getAddress(recoveredSigner) !== targetWalletAddress) {
+                throw new AppError('Signature does not match the requested wallet address.', 400);
+            }
+
+            // Atomic consumption of single-use challenge
+            const { data: consumed, error: consumeErr } = await supabase
+                .from('wallet_verification_challenges')
+                .update({ used_at: new Date().toISOString() })
+                .eq('id', input.challengeId)
+                .eq('user_id', userId)
+                .eq('wallet_address', challenge.wallet_address)
+                .is('used_at', null)
+                .gt('expires_at', new Date().toISOString())
+                .select()
+                .single();
+
+            if (consumeErr || !consumed) {
+                throw new AppError('Failed to consume wallet challenge. It may have already been used or expired.', 400);
+            }
+        } else if (input.message) {
+            // Canonical message verification fallback
             const isValid = verifyWalletOwnershipSignature(
-                input.walletAddress,
+                targetWalletAddress,
                 input.message,
                 input.signature,
                 userId
@@ -146,13 +255,27 @@ export const updateUserWalletConfig = async (userId: string, input: WalletConfig
             if (!isValid) {
                 throw new AppError('Wallet ownership signature verification failed.', 400);
             }
+        } else {
+            throw new AppError('Custom wallet assignment requires a challenge ID and cryptographic signature.', 400);
         }
+    } else if (input.walletType === 'embedded') {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('crypto_wallet_address')
+            .eq('id', userId)
+            .single();
+
+        targetWalletAddress = profile?.crypto_wallet_address || null;
+    } else if (input.walletType === 'none') {
+        targetWalletAddress = null;
+    } else {
+        throw new AppError('Invalid wallet type specified.', 400);
     }
 
     const { data, error } = await supabase
         .from('profiles')
         .update({
-            crypto_wallet_address: input.walletAddress,
+            crypto_wallet_address: targetWalletAddress,
             crypto_wallet_type: input.walletType,
             crypto_wallet_payout_preference: input.payoutPreference
         })

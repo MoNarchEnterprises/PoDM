@@ -89,10 +89,49 @@ export const WalletSettings: React.FC = () => {
                 throw new Error('Please enter a valid custom wallet address.');
             }
 
+            let challengeId: string | undefined;
+            let signature: string | undefined;
+
+            if (walletType === 'custom') {
+                const challengeResponse = await fetch('/api/v1/payments/crypto/wallet/challenge', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ walletAddress: addressToSave.trim() }),
+                });
+
+                if (!challengeResponse.ok) {
+                    const errResult = await challengeResponse.json();
+                    throw new Error(errResult.message || 'Failed to generate wallet verification challenge.');
+                }
+
+                const challengeJson = await challengeResponse.json();
+                const challengeData = challengeJson.data || challengeJson;
+                challengeId = challengeData.challengeId;
+                const message = challengeData.message;
+
+                const ethereum = (window as any).ethereum;
+                if (!ethereum) {
+                    throw new Error('Web3 wallet (MetaMask or Coinbase Wallet) not detected to sign verification challenge.');
+                }
+
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' }) as string[];
+                const connectedAddress = accounts?.[0];
+                if (!connectedAddress || connectedAddress.toLowerCase() !== addressToSave.trim().toLowerCase()) {
+                    throw new Error(`Connected wallet (${connectedAddress || 'none'}) does not match the entered address (${addressToSave.trim()}).`);
+                }
+
+                signature = await ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, connectedAddress],
+                }) as string;
+            }
+
             const payload = {
                 walletAddress: addressToSave,
                 walletType,
                 payoutPreference: walletType === 'embedded' ? 'debit_card' : payoutPreference,
+                challengeId,
+                signature,
             };
 
             const response = await fetch('/api/v1/payments/crypto/wallet', {
