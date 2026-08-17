@@ -6,7 +6,6 @@ import {
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
 import { useAuth } from '../../../hooks/useAuth';
-import { buildWalletOwnershipMessage } from '@common/walletOwnership';
 
 interface CexOption {
     id: string;

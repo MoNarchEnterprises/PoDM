@@ -25,15 +25,13 @@ export const countAllContent = async (): Promise<number> => {
 };
 
 export const findContentById = async (id: string): Promise<Content | null> => {
-    const contentId = parseInt(id, 10);
-    if (isNaN(contentId)) {
-        console.error(`[Model] findContentById: Invalid non-numeric ID passed: "${id}"`);
+    if (!id) {
         return null;
     }
 
     const data = await handleQuery<any>(
-        supabase.from('content').select('*').eq('id', contentId).single(),
-        'find content by ID', contentId
+        supabase.from('content').select('*').eq('id', id).single(),
+        'find content by ID', id
     );
     if (!data) return null;
     const { id: dbId, creator_id, min_tier_level, ...rest } = data;

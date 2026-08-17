@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import supabase from '../config/supabaseClient';
@@ -130,7 +131,7 @@ const seed = async () => {
             for (const item of contentItems) {
                 const { error: contentError } = await supabase
                     .from('content')
-                    .insert(item);
+                    .insert({ ...item, id: uuidv4() });
 
                 if (contentError) {
                     console.error('Error creating content:', contentError);
