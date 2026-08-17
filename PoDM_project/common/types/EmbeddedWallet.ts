@@ -86,6 +86,11 @@ export interface UserOperation {
     paymasterPostOpGasLimit?: string | null;
     paymasterData?: string | null;
     signature: string;
+    /**
+     * Optional amount in cents associated with the payment intent for this operation.
+     * Not part of the on-chain UserOperation spec but used for backend validation.
+     */
+    amountInCents?: number;
 }
 
 /** Result of submitting a UserOperation to the bundler. */
@@ -147,7 +152,7 @@ export interface IPaymasterService {
         callGasLimit: string;
         verificationGasLimit: string;
         preVerificationGas: string;
-    }>;
+    } | null>;
 
     /** Check whether a specific operation is eligible for gas sponsorship. */
     isEligibleForSponsorship(amountInCents: number, userId: string): Promise<boolean>;

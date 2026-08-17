@@ -262,7 +262,8 @@ function assertReceiptFinality(receipt: any, latestBlockNumber: number, chainId:
         throw new Error('Transaction failed on-chain (status !== 0x1)');
     }
     const receiptBlockNumber = receipt.blockNumber ? parseInt(receipt.blockNumber, 16) : 0;
-    const minConfirmations = Math.max(1, Number(chainId ?? 0) === Number(chainId ?? 0) ? process.env.BASE_MIN_CONFIRMATIONS || '2' : '2');
+    const envMinConf = parseInt(process.env.BASE_MIN_CONFIRMATIONS ?? "2", 10);
+    const minConfirmations = Math.max(1, isNaN(envMinConf) ? 2 : envMinConf);
     const confirmations = receiptBlockNumber > 0 && latestBlockNumber >= receiptBlockNumber
         ? latestBlockNumber - receiptBlockNumber + 1
         : 0;

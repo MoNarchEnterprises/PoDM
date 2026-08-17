@@ -582,26 +582,75 @@ verifiedReceipt = receiptAtFinalBlock;
 };
 
 export const registerPaymentIntent = async (input: PaymentIntentInput) => {
+    // Ensure the amount matches the authoritative catalog price
     await assertCatalogPrice(input);
-    const { data, error } = await supabase
+
+    // Insert the payment intent first
+    const { data: intent, error: intentError } = await supabase
         .from('payment_intents')
-        .insert([{
-            client_intent_id: input.clientIntentId,
-            fan_id: input.fanId,
-            creator_id: input.creatorId,
-            transaction_type: input.transactionType,
-            related_id: input.relatedId || null,
-            amount_in_cents: input.amountInCents,
-            status: 'pending',
-        }])
+        .insert([
+            {
+                client_intent_id: input.clientIntentId,
+                fan_id: input.fanId,
+                creator_id: input.creatorId,
+                transaction_type: input.transactionType,
+                related_id: input.relatedId || null,
+                amount_in_cents: input.amountInCents,
+                expected_amount_base_units: input.amountInCents * 10000,
+                status: 'pending',
+            },
+        ])
         .select('id, client_intent_id, status')
         .single();
 
-    if (error) {
-        if (error.code === '23505') throw new AppError('This payment intent has already been registered.', 409);
-        throw new AppError(`Failed to register payment intent: ${error.message}`, 500);
+    if (intentError) {
+        if (intentError.code === '23505')
+            throw new AppError('This payment intent has already been registered.', 409);
+        throw new AppError(`Failed to register payment intent: ${intentError.message}`, 500);
     }
-    return { intentId: data.id, clientIntentId: data.client_intent_id, status: data.status };
+
+    // Create a price snapshot for this intent
+    const snapshotPayload: any = {
+        price_usdc_base_units: input.amountInCents,
+        catalog_version: 1, // simple static version; future upgrades can bump this
+    };
+    if (input.transactionType === 'Subscription') {
+        // Validate that the tier_id belongs to the creator's defined subscription tiers
+        const { data: creatorProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('creator_data')
+            .eq('id', input.creatorId)
+            .single();
+        if (profileError) {
+            console.error('[CryptoPaymentService] Failed to fetch creator profile for tier validation:', profileError.message);
+            throw new AppError('Unable to validate subscription tier.', 500);
+        }
+        const tiers = creatorProfile?.creator_data?.subscriptionTiers || [];
+        const tierExists = tiers.some((t: any) => t.id === input.relatedId);
+        if (!tierExists) {
+            throw new AppError('Invalid subscription tier specified.', 400);
+        }
+        snapshotPayload.tier_id = input.relatedId;
+    } else {
+        snapshotPayload.content_id = input.relatedId;
+    }
+    const { data: snapshot, error: snapError } = await supabase
+        .from('catalog_price_snapshots')
+        .insert([snapshotPayload])
+        .select('id')
+        .single();
+    if (snapError) {
+        console.error('[CryptoPaymentService] Failed to create catalog price snapshot:', snapError.message);
+        // Continue without snapshot; intent remains usable but audit loses snapshot linkage
+    } else {
+        // Attach the snapshot to the payment intent
+        await supabase
+            .from('payment_intents')
+            .update({ snapshot_id: snapshot.id })
+            .eq('id', intent.id);
+    }
+
+    return { intentId: intent.id, clientIntentId: intent.client_intent_id, status: intent.status };
 };
 
 export const attachPaymentIntentTransaction = async (
