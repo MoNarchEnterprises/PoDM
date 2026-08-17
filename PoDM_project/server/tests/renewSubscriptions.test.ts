@@ -4,7 +4,10 @@ import * as contractUtils from '../utils/contract.utils';
 
 jest.mock('../config/supabaseClient', () => ({
     __esModule: true,
-    default: { from: jest.fn(), rpc: jest.fn() },
+    default: {
+        from: jest.fn(),
+        rpc: jest.fn(),
+    },
 }));
 jest.mock('../models/subscription.model', () => ({
     findSubscriptionsPendingRenewal: jest.fn(),
@@ -39,10 +42,12 @@ const FAN_ADDR = '0x2222222222222222222222222222222222222222';
 const CREATOR_ADDR = '0x3333333333333333333333333333333333333333';
 const FAN_PADDED = '0x' + '00'.repeat(12) + FAN_ADDR.slice(2);
 const CREATOR_PADDED = '0x' + '00'.repeat(12) + CREATOR_ADDR.slice(2);
+const DEFAULT_RENEWAL_ID_HASH = '0x' + '99'.repeat(32);
 
 const mockReceipts: Record<string, any> = {};
 const mockTxHashes: string[] = [];
 let mockSendTransactionFail = false;
+
 jest.mock('ethers', () => ({
     __esModule: true,
     ethers: {
@@ -65,7 +70,11 @@ jest.mock('ethers', () => ({
                 return Promise.resolve({ hash });
             }),
         })),
-        id: jest.fn((sig: string) => (sig === 'SubscriptionRenewed(address,address,uint256,uint256)' ? RENEWAL_TOPIC : '0x' + '00'.repeat(32))),
+        id: jest.fn((input: string) => {
+            if (input === 'SubscriptionRenewed(bytes32,address,address,uint256,uint256)') return RENEWAL_TOPIC;
+            if (input.startsWith('renewal:')) return DEFAULT_RENEWAL_ID_HASH;
+            return '0x' + '00'.repeat(32);
+        }),
     },
 }));
 
@@ -75,10 +84,10 @@ const mockedContractUtils = contractUtils as any;
 
 const contractConfig = { contractAddress: CONTRACT_ADDR, rpcUrl: 'http://localhost:8545', usdcAddress: '0x', chainId: 84532, isProd: false };
 
-function mockValidLog() {
+function mockValidLog(renewalIdHash: string = DEFAULT_RENEWAL_ID_HASH) {
     return {
         address: CONTRACT_ADDR.toLowerCase(),
-        topics: [RENEWAL_TOPIC, FAN_PADDED, CREATOR_PADDED],
+        topics: [RENEWAL_TOPIC, renewalIdHash, FAN_PADDED, CREATOR_PADDED],
         data: '0x' + (9_990_000).toString(16).padStart(64, '0'), // $9.99 in micro-USDC
     };
 }
@@ -91,6 +100,10 @@ function mockSub(overrides: Record<string, any> = {}) {
         fan_wallet_address: FAN_ADDR,
         price: 999,
         renewal_pending_tx_hash: null,
+        renewal_status: 'PENDING',
+        renewal_id: 'renewal:sub-1:2026-08-01T00:00:00.000Z',
+        renewal_period: '2026-08-01T00:00:00.000Z',
+        next_billing_date: '2026-08-01T00:00:00.000Z',
         renewal_attempts: 0,
         renewal_locked_at: null,
         created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
@@ -106,6 +119,15 @@ function mockProfiles() {
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         single: jest.fn(() => Promise.resolve({ data: { crypto_wallet_address: CREATOR_ADDR }, error: null })),
+                    })),
+                })),
+            };
+        }
+        if (table === 'transactions') {
+            return {
+                select: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        maybeSingle: jest.fn(() => Promise.resolve({ data: null })),
                     })),
                 })),
             };
@@ -135,6 +157,17 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
         mockProfiles();
     });
 
+    describe('Deterministic Identity & Hash Helpers', () => {
+        it('computes deterministic renewal identity matching subscription and period', () => {
+            loadJob();
+            const renewalId = job.computeRenewalId('123', '2026-09-01T00:00:00Z');
+            expect(renewalId).toBe('renewal:123:2026-09-01T00:00:00Z');
+
+            const hash = job.computeRenewalIdHash(renewalId);
+            expect(hash).toBeDefined();
+        });
+    });
+
     describe('reconcilePendingRenewals — crash recovery', () => {
         it('completes a stored hash when the receipt succeeded on-chain (worker crashed after broadcast)', async () => {
             loadJob();
@@ -152,6 +185,7 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
                 type: 'SubscriptionRenewal',
                 status: 'Cleared',
                 blockchain_tx_hash: '0xcrash',
+                renewal_id: 'renewal:sub-1:2026-08-01T00:00:00.000Z',
                 payment_method: 'crypto',
                 payment_currency: 'USDC',
                 chain_id: 84532,
@@ -183,7 +217,7 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
 
             await job.reconcilePendingRenewals();
 
-            expect(mockedSubscriptionModel.clearRenewalPending).toHaveBeenCalledWith('sub-revert');
+            expect(mockedSubscriptionModel.clearRenewalPending).toHaveBeenCalledWith('sub-revert', expect.stringContaining('reverted'));
             expect(mockedSubscriptionModel.completeRenewal).not.toHaveBeenCalled();
             expect(mockedTxModel.createTransaction).not.toHaveBeenCalled();
         });
@@ -205,13 +239,13 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
             loadJob();
             process.env.RENEWAL_NO_RECEIPT_RELEASE_MS = '1000';
             (mockedSubscriptionModel.findSubscriptionsPendingRenewal as jest.Mock).mockResolvedValue([
-                mockSub({ id: 'sub-stale', renewal_pending_tx_hash: '0xstale', created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() }),
+                mockSub({ id: 'sub-stale', renewal_pending_tx_hash: '0xstale', renewal_started_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() }),
             ]);
             mockReceipts['0xstale'] = null;
 
             await job.reconcilePendingRenewals();
 
-            expect(mockedSubscriptionModel.clearRenewalPending).toHaveBeenCalledWith('sub-stale');
+            expect(mockedSubscriptionModel.clearRenewalPending).toHaveBeenCalledWith('sub-stale', expect.stringContaining('timed out'));
             delete process.env.RENEWAL_NO_RECEIPT_RELEASE_MS;
         });
 
@@ -232,11 +266,11 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
     });
 
     describe('renewSubscriptions — due renewal happy path & claim contention', () => {
-        it('records the pending hash before waiting, then finalizes without re-broadcasting', async () => {
+        it('records the pending hash before waiting, then finalizes with deterministic renewalId', async () => {
             loadJob();
             (mockedSubscriptionModel.findSubscriptionsPendingRenewal as jest.Mock).mockResolvedValue([]);
             (mockedSubscriptionModel.findSubscriptionsDueForRenewal as jest.Mock).mockResolvedValue([
-                mockSub({ id: 'sub-due', fan_id: 'fan-uuid', creator_id: 'creator-uuid' }),
+                mockSub({ id: 'sub-due', fan_id: 'fan-uuid', creator_id: 'creator-uuid', next_billing_date: '2026-08-17T00:00:00Z' }),
             ]);
             (mockedSubscriptionModel.claimSubscriptionRenewal as jest.Mock).mockResolvedValue(true);
             (mockedSubscriptionModel.markRenewalPending as jest.Mock).mockResolvedValue(true);
@@ -246,6 +280,12 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
             await job.renewSubscriptions();
 
             const broadcastHash = mockTxHashes[0];
+            expect(mockedSubscriptionModel.claimSubscriptionRenewal).toHaveBeenCalledWith(
+                'sub-due',
+                expect.any(String),
+                'renewal:sub-due:2026-08-17T00:00:00Z',
+                '2026-08-17T00:00:00Z'
+            );
             expect(mockedSubscriptionModel.markRenewalPending).toHaveBeenCalledWith('sub-due', expect.any(String), broadcastHash);
             expect(mockedSubscriptionModel.completeRenewal).toHaveBeenCalledWith('sub-due', expect.any(String));
         });
@@ -281,6 +321,30 @@ describe('renewSubscriptions renewal state machine (H-04)', () => {
                 expect.objectContaining({ renewal_attempts: 1 })
             );
             mockSendTransactionFail = false;
+        });
+
+        it('concurrent worker invocations produce at most 1 charge per renewal period', async () => {
+            loadJob();
+            (mockedSubscriptionModel.findSubscriptionsPendingRenewal as jest.Mock).mockResolvedValue([]);
+            (mockedSubscriptionModel.findSubscriptionsDueForRenewal as jest.Mock).mockResolvedValue([
+                mockSub({ id: 'sub-race', fan_id: 'fan-uuid', creator_id: 'creator-uuid' }),
+            ]);
+
+            // Worker 1 claims successfully, Worker 2 claim rejected
+            (mockedSubscriptionModel.claimSubscriptionRenewal as jest.Mock)
+                .mockResolvedValueOnce(true)
+                .mockResolvedValueOnce(false);
+            (mockedSubscriptionModel.markRenewalPending as jest.Mock).mockResolvedValue(true);
+            (mockedTxModel.findTransactionByBlockchainTxHash as jest.Mock).mockResolvedValue(null);
+            (mockedTxModel.createTransaction as jest.Mock).mockResolvedValue({ id: 10 });
+
+            // Run concurrently
+            await Promise.all([
+                job.renewSubscriptions(),
+                job.renewSubscriptions(),
+            ]);
+
+            expect(mockTxHashes).toHaveLength(1);
         });
     });
 });

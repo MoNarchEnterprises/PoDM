@@ -73,7 +73,8 @@ export const findSubscriptionsDueForRenewal = async (): Promise<Subscription[] |
             .eq('status', 'active')
             .lte('next_billing_date', new Date().toISOString())
             .is('renewal_pending_tx_hash', null)
-            .not('fan_wallet_address', 'is', null),
+            .not('fan_wallet_address', 'is', null)
+            .or('renewal_status.is.null,renewal_status.in.(PENDING,RETRYABLE,FAILED)'),
         'find subscriptions due for renewal'
     );
 };
@@ -93,10 +94,17 @@ export const findSubscriptionsPendingRenewal = async (): Promise<Subscription[] 
     );
 };
 
-export const claimSubscriptionRenewal = async (subscriptionId: string, claimId: string): Promise<boolean> => {
+export const claimSubscriptionRenewal = async (
+    subscriptionId: string,
+    claimId: string,
+    renewalId: string,
+    renewalPeriod: string
+): Promise<boolean> => {
     const { data, error } = await supabase.rpc('claim_subscription_renewal', {
         p_subscription_id: Number(subscriptionId),
         p_claim_id: claimId,
+        p_renewal_id: renewalId,
+        p_renewal_period: renewalPeriod,
     });
     if (error) throw new Error(`Failed to claim subscription renewal: ${error.message}`);
     return data === true;
@@ -109,7 +117,7 @@ export const updateClaimedRenewal = async (
 ): Promise<Subscription | null> => {
     return handleQuery<Subscription>(
         supabase.from('subscriptions')
-            .update({ ...updates, renewal_claim_id: null, renewal_claimed_at: null })
+            .update({ ...updates, renewal_claim_id: null, renewal_claimed_at: null, renewal_status: updates.status === 'expired' ? 'FAILED' : 'RETRYABLE' })
             .eq('id', subscriptionId)
             .eq('renewal_claim_id', claimId)
             .select()
@@ -120,7 +128,10 @@ export const updateClaimedRenewal = async (
 
 export const markRenewalPending = async (subscriptionId: string, claimId: string, txHash: string): Promise<boolean> => {
     const { data, error } = await supabase.from('subscriptions')
-        .update({ renewal_pending_tx_hash: txHash })
+        .update({
+            renewal_pending_tx_hash: txHash,
+            renewal_status: 'SUBMITTED',
+        })
         .eq('id', subscriptionId)
         .eq('renewal_claim_id', claimId)
         .select('id')
@@ -138,11 +149,15 @@ export const completeRenewal = async (subscriptionId: string, nextBillingDate: s
         supabase.from('subscriptions')
             .update({
                 next_billing_date: nextBillingDate,
+                renewal_status: 'CONFIRMED',
+                renewal_confirmed_at: new Date().toISOString(),
                 renewal_attempts: 0,
                 renewal_locked_at: null,
                 renewal_pending_tx_hash: null,
                 renewal_claim_id: null,
                 renewal_claimed_at: null,
+                renewal_started_at: null,
+                renewal_error: null,
             })
             .eq('id', subscriptionId)
             .select()
@@ -156,10 +171,20 @@ export const completeRenewal = async (subscriptionId: string, nextBillingDate: s
  * moved funds (status 0 revert) or never mined. Releases the claim so the
  * subscription can be retried (or the failed-renewal path can lock/expire it).
  */
-export const clearRenewalPending = async (subscriptionId: string): Promise<Subscription | null> => {
+export const clearRenewalPending = async (subscriptionId: string, errorMsg?: string | null): Promise<Subscription | null> => {
+    const updatePayload: Record<string, any> = {
+        renewal_pending_tx_hash: null,
+        renewal_status: 'RETRYABLE',
+        renewal_claim_id: null,
+        renewal_claimed_at: null,
+        renewal_started_at: null,
+    };
+    if (errorMsg) {
+        updatePayload.renewal_error = errorMsg;
+    }
     return handleQuery<Subscription>(
         supabase.from('subscriptions')
-            .update({ renewal_pending_tx_hash: null })
+            .update(updatePayload)
             .eq('id', subscriptionId)
             .select()
             .single(),

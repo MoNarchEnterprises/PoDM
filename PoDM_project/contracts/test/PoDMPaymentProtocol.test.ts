@@ -172,11 +172,12 @@ describe('PoDMPaymentProtocol', function () {
       const { contract, creator, fan, keeper, usdc } = await deployFixture();
       const amount = ethers.parseUnits('10', 6);
       const period = 30 * 24 * 60 * 60;
+      const renewalId = ethers.id('renewal-sub-1-period-1');
 
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
       await expect(
         contract.connect(keeper).processRenewal(
-          await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+          renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Renewal period has not elapsed');
     });
@@ -185,15 +186,43 @@ describe('PoDMPaymentProtocol', function () {
       const { contract, creator, fan, keeper, usdc } = await deployFixture();
       const amount = ethers.parseUnits('5', 6);
       const period = 30 * 24 * 60 * 60;
+      const renewalId = ethers.id('renewal-sub-1-period-1');
 
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
       const excessive = ethers.parseUnits('10', 6);
 
       await expect(
         contract.connect(keeper).processRenewal(
-          await usdc.getAddress(), fan.address, creator.address, excessive, ethers.ZeroAddress, 0
+          renewalId, await usdc.getAddress(), fan.address, creator.address, excessive, ethers.ZeroAddress, 0
         )
       ).to.be.revertedWith('Amount exceeds allowance');
+    });
+
+    it('should reject duplicate renewal with same renewalId (H-04 on-chain replay protection)', async () => {
+      const { contract, creator, fan, keeper, usdc } = await deployFixture();
+      const amount = ethers.parseUnits('10', 6);
+      const period = 24 * 60 * 60; // 1 day
+      const renewalId = ethers.id('renewal-sub-idempotent-1');
+
+      await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
+      await usdc.mint(fan.address, amount * 2n);
+      await usdc.connect(fan).approve(await contract.getAddress(), amount * 2n);
+
+      await time.increase(period + 1);
+
+      // First call succeeds
+      await expect(
+        contract.connect(keeper).processRenewal(
+          renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+        )
+      ).to.emit(contract, 'SubscriptionRenewed');
+
+      // Second call with same renewalId must revert immediately
+      await expect(
+        contract.connect(keeper).processRenewal(
+          renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+        )
+      ).to.be.revertedWith('Renewal already processed');
     });
   });
 
@@ -398,9 +427,10 @@ describe('PoDMPaymentProtocol', function () {
 
         await time.increase(period + 1);
 
+        const renewalId = ethers.id('renewal-sub-access-1');
         await expect(
             contract.connect(attacker).processRenewal(
-                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.be.revertedWith('Not authorized keeper');
     });
@@ -409,6 +439,7 @@ describe('PoDMPaymentProtocol', function () {
         const { contract, creator, fan, usdc, keeper } = await deployFixture();
         const amount = ethers.parseUnits('10', 6);
         const period = 24 * 60 * 60; // 1 day
+        const renewalId = ethers.id('renewal-sub-keeper-role');
         await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
 
         // Fund the fan so the renewal can actually move tokens
@@ -419,7 +450,7 @@ describe('PoDMPaymentProtocol', function () {
 
         await expect(
             contract.connect(keeper).processRenewal(
-                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.emit(contract, 'SubscriptionRenewed');
     });
@@ -430,6 +461,7 @@ describe('PoDMPaymentProtocol', function () {
         await contract.connect(treasuryAuthority).setKeeper(extraKeeper.address, true);
         const amount = ethers.parseUnits('10', 6);
         const period = 24 * 60 * 60;
+        const renewalId = ethers.id('renewal-sub-legacy-keeper');
         await contract.connect(fan).approveRecurringSubscription(creator.address, amount, period);
 
         await usdc.mint(fan.address, amount);
@@ -439,7 +471,7 @@ describe('PoDMPaymentProtocol', function () {
 
         await expect(
             contract.connect(extraKeeper).processRenewal(
-                await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
+                renewalId, await usdc.getAddress(), fan.address, creator.address, amount, ethers.ZeroAddress, 0
             )
         ).to.emit(contract, 'SubscriptionRenewed');
     });

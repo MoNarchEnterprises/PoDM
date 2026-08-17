@@ -26,6 +26,7 @@ export interface Transaction {
   status: TransactionStatus;
   related_content_id?: string; // Optional: The ID of the content this transaction is related to (e.g., a PPV post)
   message?: string; // Optional: A message from the fan (for tips) or a reference ID (for messages)
+  renewal_id?: string; // Optional: Deterministic renewal identity matching subscription period (H-04)
   blockchain_tx_hash?: string;
   payer_wallet_address?: string;
   user_operation_hash?: string;

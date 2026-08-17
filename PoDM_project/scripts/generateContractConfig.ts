@@ -18,7 +18,7 @@ function main() {
         paySubscription: iface.getFunction('paySubscription(address,address,uint256,bytes32,address,uint256)')!.selector,
         payTip: iface.getFunction('payTip(address,address,uint256,address,uint256)')!.selector,
         payPPV: iface.getFunction('payPPV(address,address,uint256,bytes32,address,uint256)')!.selector,
-        processRenewal: iface.getFunction('processRenewal(address,address,address,uint256,address,uint256)')!.selector,
+        processRenewal: iface.getFunction('processRenewal(bytes32,address,address,address,uint256,address,uint256)')!.selector,
         processPayout: iface.getFunction('processPayout(address,address,uint256)')!.selector,
     };
 
@@ -52,7 +52,7 @@ function main() {
         paySubscription: 'paySubscription(address,address,uint256,bytes32,address,uint256)',
         payTip: 'payTip(address,address,uint256,address,uint256)',
         payPPV: 'payPPV(address,address,uint256,bytes32,address,uint256)',
-        processRenewal: 'processRenewal(address,address,address,uint256,address,uint256)',
+        processRenewal: 'processRenewal(bytes32,address,address,address,uint256,address,uint256)',
         processPayout: 'processPayout(address,address,uint256)',
     };
 
@@ -70,7 +70,7 @@ function main() {
         `function ${iface.getFunction('paySubscription(address,address,uint256,bytes32,address,uint256)')!.format('sighash')}`,
         `function ${iface.getFunction('payTip(address,address,uint256,address,uint256)')!.format('sighash')}`,
         `function ${iface.getFunction('payPPV(address,address,uint256,bytes32,address,uint256)')!.format('sighash')}`,
-        `function ${iface.getFunction('processRenewal(address,address,address,uint256,address,uint256)')!.format('sighash')}`,
+        `function ${iface.getFunction('processRenewal(bytes32,address,address,address,uint256,address,uint256)')!.format('sighash')}`,
         `function ${iface.getFunction('processPayout(address,address,uint256)')!.format('sighash')}`,
     ];
 

@@ -132,6 +132,7 @@ export function encodePayPPV(
 }
 
 export function encodeProcessRenewal(
+    renewalId: string,
     tokenAddress: string,
     fan: string,
     creator: string,
@@ -140,7 +141,7 @@ export function encodeProcessRenewal(
     customPlatformFeeBps: number
 ): string {
     return podmInterface.encodeFunctionData('processRenewal', [
-        tokenAddress, fan, creator, amount, referrer, customPlatformFeeBps
+        renewalId, tokenAddress, fan, creator, amount, referrer, customPlatformFeeBps
     ]);
 }
 

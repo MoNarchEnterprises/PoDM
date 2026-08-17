@@ -15,8 +15,6 @@ export type BillingCycle = 'monthly' | 'yearly';
  */
 export type PaymentMethodType = 'card' | 'paypal';
 
-
-
 /**
  * Defines the structure for the payment method used for a subscription.
  * This should only contain non-sensitive information safe for the frontend.
@@ -50,6 +48,12 @@ export interface Subscription {
   renewal_claim_id?: string | null;
   renewal_claimed_at?: string | null;
   renewal_pending_tx_hash?: string | null;
+  renewal_status?: 'PENDING' | 'PROCESSING' | 'SUBMITTED' | 'CONFIRMED' | 'FAILED' | 'RETRYABLE' | null;
+  renewal_id?: string | null;
+  renewal_period?: string | null;
+  renewal_started_at?: string | null;
+  renewal_confirmed_at?: string | null;
+  renewal_error?: string | null;
   created_at: string; // ISO 8601 date string
   updated_at: string; // ISO 8601 date string
 }

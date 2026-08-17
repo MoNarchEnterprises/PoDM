@@ -93,10 +93,12 @@ describe('PoDMPaymentProtocol Security & Invariants', function () {
     it('should reject processRenewal using fake token', async () => {
       const { contract, fakeToken, creator, fan, keeper } = await securityFixture();
       const amount = ethers.parseUnits('10', 6);
+      const renewalId = ethers.id('renewal-fake-token-test');
       await contract.connect(fan).approveRecurringSubscription(creator.address, amount, 86400);
 
       await expect(
         contract.connect(keeper).processRenewal(
+          renewalId,
           await fakeToken.getAddress(),
           fan.address,
           creator.address,

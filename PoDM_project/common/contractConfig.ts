@@ -5,7 +5,7 @@ export const PODM_CONTRACT_ABI = [
     "function paySubscription(address,address,uint256,bytes32,address,uint256)",
     "function payTip(address,address,uint256,address,uint256)",
     "function payPPV(address,address,uint256,bytes32,address,uint256)",
-    "function processRenewal(address,address,address,uint256,address,uint256)",
+    "function processRenewal(bytes32,address,address,address,uint256,address,uint256)",
     "function processPayout(address,address,uint256)"
 ] as const;
 
@@ -18,7 +18,7 @@ export const FUNCTION_SELECTORS = {
     "paySubscription": "0xe87c1a59",
     "payTip": "0x7a02b81c",
     "payPPV": "0x33f2ab62",
-    "processRenewal": "0xe5ac93df",
+    "processRenewal": "0xac6e9fa5",
     "processPayout": "0x32ab19f5"
 } as const;
 

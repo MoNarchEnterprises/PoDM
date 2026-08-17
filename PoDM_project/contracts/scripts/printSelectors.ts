@@ -7,7 +7,7 @@ async function main() {
         'payPPV(address,address,uint256,bytes32,address,uint256)',
         'approveRecurringSubscription(address,uint256,uint256)',
         'revokeRecurringSubscription(address)',
-        'processRenewal(address,address,address,uint256,address,uint256)',
+        'processRenewal(bytes32,address,address,address,uint256,address,uint256)',
         'processPayout(address,address,uint256)'
     ];
 

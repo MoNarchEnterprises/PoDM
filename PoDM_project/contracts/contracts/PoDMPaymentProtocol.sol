@@ -115,6 +115,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
         uint64 validUntil; // unix seconds; 0 = never-set
     }
     mapping(address => ReferrerBinding) public referrerOf; // creator → binding
+    mapping(bytes32 => bool) public processedRenewals; // renewalId → processed
 
     event KeeperUpdated(address indexed keeper, bool active);
     event UsdcTokenUpdated(address indexed oldUsdc, address indexed newUsdc);
@@ -196,6 +197,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     event SubscriptionRevoked(address indexed fan, address indexed creator);
 
     event SubscriptionRenewed(
+        bytes32 indexed renewalId,
         address indexed fan,
         address indexed creator,
         uint256 amount,
@@ -513,6 +515,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
     }
 
     function processRenewal(
+        bytes32 renewalId,
         address tokenAddress,
         address fan,
         address creator,
@@ -520,6 +523,8 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
         address referrer,
         uint256 customPlatformFeeBps
     ) external whenNotPaused nonReentrant onlyKeeper onlyUsdc(tokenAddress) returns (bool) {
+        require(renewalId != bytes32(0), "Invalid renewal ID");
+        require(!processedRenewals[renewalId], "Renewal already processed");
         RecurringAllowance storage allowance = allowances[fan][creator];
         require(allowance.active, "No active allowance");
         require(amount > 0 && amount <= allowance.maxAmountPerPeriod, "Amount exceeds allowance");
@@ -529,6 +534,8 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
             "Renewal period has not elapsed"
         );
         _assertReferrer(creator, referrer);
+
+        processedRenewals[renewalId] = true;
 
         (uint256 treasuryFee, uint256 referralFee, uint256 creatorAmount) = _computeFeeSplit(amount, creator, fan, referrer, customPlatformFeeBps);
 
@@ -541,7 +548,7 @@ contract PoDMPaymentProtocol is Initializable, AccessControlUpgradeable, Pausabl
 
         allowance.lastRenewalAt = block.timestamp;
 
-        emit SubscriptionRenewed(fan, creator, amount, block.timestamp);
+        emit SubscriptionRenewed(renewalId, fan, creator, amount, block.timestamp);
         return true;
     }
 
