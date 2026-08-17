@@ -1,6 +1,6 @@
 {
   "code": "23502",
-  "details": "Failing row contains (null, 7253e7c3-2413-49bd-971d-aa687a593725, Integration Test Content, Test Description, video, [{\"url\": \"test.mp4\", \"type\": \"video/mp4\", \"thumbnailUrl\": \"thumb..., subscribers_only, 0, null, null, null, published, 2026-08-17 05:25:31.960952+00, 2026-08-17 05:25:31.960952+00, 1).",
+  "details": "Failing row contains (null, 7253e7c3-2413-49bd-971d-aa687a593725, Integration Test Content, Test Description, video, [{\"url\": \"test.mp4\", \"type\": \"video/mp4\", \"thumbnailUrl\": \"thumb..., subscribers_only, 0, null, null, null, published, 2026-08-17 05:56:53.187766+00, 2026-08-17 05:56:53.187766+00, 1).",
   "hint": null,
   "message": "null value in column \"id\" of relation \"content\" violates not-null constraint"
 }

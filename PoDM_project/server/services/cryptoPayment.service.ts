@@ -566,6 +566,9 @@ verifiedReceipt = receiptAtFinalBlock;
             .update({ status: 'verified', blockchain_tx_hash: input.txHash, verified_at: new Date().toISOString() })
             .eq('id', input.paymentIntentId)
             .eq('fan_id', input.fanId)
+            .eq('creator_id', input.creatorId)
+            .eq('transaction_type', input.transactionType)
+            .eq('amount_in_cents', input.amountInCents)
             .eq('status', 'pending');
         if (intentUpdateError) {
             console.error('[CryptoPaymentService] Failed to mark payment intent verified:', intentUpdateError.message);

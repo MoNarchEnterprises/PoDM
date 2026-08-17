@@ -44,7 +44,15 @@ export const createSubscriptionForUser = async (
     // Reusing the existing Cleared transaction avoids a 409 duplicate-hash error.
     const existingPaymentTx = await TransactionModel.findClearedSubscriptionByTxHash(txHash, fan_id, creator_id);
     let verifiedPayment: any = existingPaymentTx;
-    if (!existingPaymentTx) {
+    if (existingPaymentTx) {
+        const expectedPriceInCents = Math.round(tier.price * 100);
+        if (existingPaymentTx.amount !== expectedPriceInCents) {
+            throw new AppError(
+                `Transaction payment amount ($${(existingPaymentTx.amount / 100).toFixed(2)}) does not match the subscription tier price ($${(expectedPriceInCents / 100).toFixed(2)}).`,
+                400
+            );
+        }
+    } else {
         verifiedPayment = await CryptoPaymentService.verifyAndRecordBasePayment({
             txHash: txHash,
             fanId: fan_id,
