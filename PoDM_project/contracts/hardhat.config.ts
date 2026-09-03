@@ -29,10 +29,9 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: {
-      baseSepolia: process.env.BASESCAN_API_KEY || '',
-      base: process.env.BASESCAN_API_KEY || '',
-    },
+    // Etherscan API V2 uses one account-wide key plus the network's chain ID.
+    // The per-network API-key object targets the retired V1 endpoints.
+    apiKey: process.env.BASESCAN_API_KEY || '',
   },
 };
 

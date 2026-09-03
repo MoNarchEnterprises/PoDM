@@ -48,22 +48,11 @@ function getRpcConfig(): { rpcUrl: string; contractAddress: string; usdcContract
     return { rpcUrl, contractAddress, usdcContract: usdcAddress, chainId };
 }
 
+import { getCommissionRateForCreator, getCreatorCommissionTierInfo } from '../utils/fee.utils';
+
 async function getCommissionRate(creatorId: string): Promise<number> {
-    const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('commission_rate, is_enclave_member')
-        .eq('id', creatorId)
-        .single();
-
-    if (error) {
-        console.error('[CryptoPaymentService] Failed to fetch commission_rate:', error.message);
-        return DEFAULT_COMMISSION_RATE;
-    }
-
-    return getEffectiveCommissionRate(profile);
+    return getCommissionRateForCreator(creatorId);
 }
-
-
 
 /**
  * Resolves the referrer payment details a fan must pass to the contract for a
@@ -81,7 +70,8 @@ export const getPaymentReferrerInfo = async (creatorId: string) => {
     };
 };
 
-export const getUserWalletConfig = async (userId: string) => {    const { data: profile, error } = await supabase
+export const getUserWalletConfig = async (userId: string) => {
+    const { data: profile, error } = await supabase
         .from('profiles')
         .select('crypto_wallet_address, crypto_wallet_type, crypto_wallet_payout_preference, commission_rate, is_enclave_member')
         .eq('id', userId)
@@ -91,12 +81,15 @@ export const getUserWalletConfig = async (userId: string) => {    const { data: 
         throw new AppError(`Failed to fetch wallet configuration: ${error.message}`, 500);
     }
 
+    const tierInfo = await getCreatorCommissionTierInfo(userId);
+
     return {
         walletAddress: profile.crypto_wallet_address || null,
         walletType: profile.crypto_wallet_type || 'none',
         payoutPreference: profile.crypto_wallet_payout_preference || 'debit_card',
-        commissionRate: getEffectiveCommissionRate(profile),
+        commissionRate: tierInfo.rate,
         isEnclaveMember: Boolean(profile.is_enclave_member),
+        tierInfo,
     };
 };
 

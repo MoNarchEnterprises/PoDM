@@ -4,6 +4,12 @@ import { getCryptoWalletForUser } from './wallet.service';
 import { PimlicoBundlerService } from './bundler.service';
 import { PimlicoPaymasterService } from './paymaster.service';
 import { PrivyWalletProvider } from './embeddedWallet.provider';
+import { PaymentIntent, PaymentIntentResult, UserOperation } from '../../common/types/EmbeddedWallet';
+import { getOrCreateSmartAccount } from './smartAccount.service';
+import { getCryptoWalletForUser } from './wallet.service';
+import { PimlicoBundlerService } from './bundler.service';
+import { PimlicoPaymasterService } from './paymaster.service';
+import { PrivyWalletProvider } from './embeddedWallet.provider';
 import { AppError } from '../middleware/error.middleware';
 import { ethers, Interface } from 'ethers';
 import supabase from '../config/supabaseClient';
@@ -11,6 +17,7 @@ import { verifyPaymentReceiptInBackground } from './verification.service';
 import { verifyAndRecordBasePayment } from './cryptoPayment.service';
 import * as TransactionModel from '../models/transaction.model';
 import * as SubscriptionModel from '../models/subscription.model';
+import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { getEffectiveCommissionRate } from '../utils/commission.utils';
 import { incrementContentTipStats, incrementContentPpvEarningsStats } from './content.service';
 import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } from './referral.service';
@@ -154,8 +161,6 @@ async function waitForUserOperationReceipt(
     userOpHash: string,
     opts: { intervalMs?: number; timeoutMs?: number } = {}
 ): Promise<{ success: boolean; transactionHash: string; blockNumber: number }> {
-    const intervalMs = opts.intervalMs ?? 2000;
-    const timeoutMs = opts.timeoutMs ?? 60000;
     const deadline = Date.now() + timeoutMs;
 
     while (Date.now() < deadline) {
@@ -194,12 +199,7 @@ export const processPaymentIntent = async (userId: string, intent: PaymentIntent
         const creatorWallet = await getCryptoWalletForUser(intent.creatorId);
         const referrerWallet = (await getReferrerWalletForCreator(intent.creatorId)) || '0x0000000000000000000000000000000000000000';
 
-        const { data: creatorProfile } = await supabase
-            .from('profiles')
-            .select('commission_rate, is_enclave_member, creator_data')
-            .eq('id', intent.creatorId)
-            .single();
-        const commissionRate = getEffectiveCommissionRate(creatorProfile);
+        const commissionRate = await getCommissionRateForCreator(intent.creatorId);
         const platformFeeBps = Math.round(commissionRate * 100);
 
         await assertCatalogPrice({

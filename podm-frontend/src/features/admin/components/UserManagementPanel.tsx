@@ -60,7 +60,7 @@ const ManageCommissionModal = ({ isOpen, onClose, user, onSave }: { isOpen: bool
                 <main className="p-6 space-y-4">
                     <p className="text-sm text-gray-500">
                         Set a custom commission rate for <span className="font-bold">{user.profile.name}</span>.
-                        The platform default is {DEFAULT_COMMISSION_RATE}%.
+                        Standard creators automatically tier based on monthly volume (15% &rarr; 12.5% &rarr; 10%). Setting an explicit custom rate overrides automatic volume tiering.
                     </p>
                     {isEnclaveMember && (
                         <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800 text-sm text-purple-800 dark:text-purple-200">

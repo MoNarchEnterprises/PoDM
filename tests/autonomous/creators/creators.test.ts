@@ -103,15 +103,15 @@ export const creatorScenarios: AutonomousTestScenario[] = [
   },
   {
     scenario_id: 'COM-004',
-    scenario_name: 'Non-Enclave creator with null commission_rate returns DEFAULT_COMMISSION_RATE (12.5%)',
+    scenario_name: 'Non-Enclave creator with null commission_rate returns DEFAULT_COMMISSION_RATE (15.0%) for $0-$5k volume',
     category: 'Commission',
     priority: 'P0',
-    goal: 'Verify platform fallback to 12.5% default commission rate',
+    goal: 'Verify platform fallback to 15.0% Tier 1 base default commission rate',
     preconditions: ['Non-Enclave creator with null commission_rate'],
     agent_roles: ['Creator'],
     permissions_required: ['auth'],
-    test_steps: ['Query getEffectiveCommissionRate', 'Assert rate equals 12.5'],
-    expected_results: ['Effective commission rate is 12.5%'],
+    test_steps: ['Query getEffectiveCommissionRate', 'Assert rate equals 15.0'],
+    expected_results: ['Effective commission rate is 15.0%'],
     verification_methods: ['Fallback resolver assertion'],
     failure_conditions: ['Null error or unhandled default'],
     run: async ({ evidenceCollector, isServerLive }) => {
@@ -126,7 +126,7 @@ export const creatorScenarios: AutonomousTestScenario[] = [
 
       return {
         status: 'PASS',
-        actual_result: 'Non-Enclave creator with null rate correctly fell back to 12.5% default',
+        actual_result: 'Non-Enclave creator with null rate correctly fell back to 15.0% Tier 1 default',
         evidence: evidenceCollector.getEvidence(),
         confidence_score: 100,
       };

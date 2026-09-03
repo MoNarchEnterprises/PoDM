@@ -315,7 +315,7 @@ export const CexGuidanceModal: React.FC<CexGuidanceModalProps> = ({
                                     <input type="checkbox" checked={checklist.copiedAddress} readOnly className="mt-1 rounded text-purple-600 focus:ring-0" />
                                     <div className="text-xs">
                                         <p className="font-bold">3. Copy your USDC Deposit Address (Select Network: Base)</p>
-                                        <p className="text-gray-400 mt-0.5">Navigate to Deposit $\rightarrow$ Select USDC $\rightarrow$ Choose network <strong>Base</strong>, then copy the address.</p>
+                                        <p className="text-gray-400 mt-0.5">Navigate to Deposit → Select USDC → Choose network <strong>Base</strong>, then copy the address.</p>
                                     </div>
                                 </label>
 

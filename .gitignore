@@ -17,6 +17,9 @@ secret.txt
 # Autonomous QA Suite Output
 qa-results/
 
+# PoDM Marketing Strategy & Planning (local-only)
+PoDM_Marketing/
+
 # Blockchain Security Findings
 Blockchain Security Findings/
 

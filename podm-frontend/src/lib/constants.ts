@@ -4,15 +4,27 @@ import { NavItem } from '../components/layout/MainLayout'; // Assuming MainLayou
 // --- Financials ---
 
 /**
- * The default commission rate the platform takes from creator earnings.
- * Stored as a percentage (e.g., 20 means 20%).
+ * The base starting commission rate for standard creators ($0 - $5,000/mo).
  */
-export const DEFAULT_COMMISSION_RATE = 12.5;
+export const DEFAULT_COMMISSION_RATE = 15;
+
+/**
+ * The commission rate for standard creators earning $5,000 - $10,000/mo.
+ */
+export const TIER_2_COMMISSION_RATE = 12.5;
+
+/**
+ * The commission rate for standard creators earning $10,000+/mo.
+ */
+export const TIER_3_COMMISSION_RATE = 10;
 
 /**
  * The locked commission rate for Enclave members (90/10 revenue split).
  */
 export const ENCLAVE_COMMISSION_RATE = 10;
+
+export const TIER_1_THRESHOLD_DOLLARS = 5000;
+export const TIER_2_THRESHOLD_DOLLARS = 10000;
 
 // --- Navigation ---
 

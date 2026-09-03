@@ -179,7 +179,7 @@ export function useCryptoPayment(): CryptoPaymentResult {
         ? padAddress(params.referrerAddress)
         : ZERO_ADDRESS_HEX;
 
-      const feeBpsHex = padUint(BigInt(params.platformFeeBps ?? 1250));
+      const feeBpsHex = padUint(BigInt(params.platformFeeBps ?? 1500));
 
       let selector: string;
       let dataHex: string;

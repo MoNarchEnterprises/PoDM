@@ -1,6 +1,4 @@
-import supabase from '../config/supabaseClient';
-import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
-import { getEffectiveCommissionRate } from '../utils/commission.utils';
+import { getCommissionRateForCreator } from '../utils/fee.utils';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import axios from 'axios';
 import { getCryptoWalletForUser } from './wallet.service';
@@ -14,18 +12,7 @@ function getRpcConfig(): { rpcUrl: string; contractAddress: string; chainId: num
 }
 
 async function getCommissionRate(creatorId: string): Promise<number> {
-    const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('commission_rate, is_enclave_member')
-        .eq('id', creatorId)
-        .single();
-
-    if (error) {
-        console.error('[VerificationService] Failed to fetch commission_rate:', error.message);
-        return DEFAULT_COMMISSION_RATE;
-    }
-
-    return getEffectiveCommissionRate(profile);
+    return getCommissionRateForCreator(creatorId);
 }
 
 function getExpectedTopic(transactionType: string): string {

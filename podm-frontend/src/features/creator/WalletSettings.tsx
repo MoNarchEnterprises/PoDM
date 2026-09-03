@@ -2,8 +2,17 @@ import React, { useState, useEffect } from 'react';
 import useCryptoWallet from '../../shared/hooks/useCryptoWallet';
 import { useEmbeddedWallet } from '../../context/EmbeddedWalletContext';
 import { DEFAULT_COMMISSION_RATE } from '../../lib/constants';
-import { Wallet, Copy, Check, Building2, ExternalLink } from 'lucide-react';
+import { Wallet, Copy, Check, Building2, ExternalLink, TrendingUp, Info, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import CexGuidanceModal from './components/CexGuidanceModal';
+
+interface CommissionTierInfo {
+    rate: number;
+    tierName: string;
+    monthlyVolumeCents: number;
+    nextTierThresholdCents: number | null;
+    distanceToNextTierCents: number | null;
+    nextTierRate: number | null;
+}
 
 const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -32,6 +41,9 @@ export const WalletSettings: React.FC = () => {
     const [embeddedAddress, setEmbeddedAddress] = useState<string>('');
     const [customAddress, setCustomAddress] = useState<string>('');
     const [commissionRate, setCommissionRate] = useState<number>(DEFAULT_COMMISSION_RATE);
+    const [tierInfo, setTierInfo] = useState<CommissionTierInfo | null>(null);
+    const [isEnclaveMember, setIsEnclaveMember] = useState<boolean>(false);
+    const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const [copied, setCopied] = useState<boolean>(false);
@@ -58,6 +70,12 @@ export const WalletSettings: React.FC = () => {
                         setPayoutPreference(result.data.payoutPreference || 'debit_card');
                         if (result.data.commissionRate !== undefined && result.data.commissionRate !== null) {
                             setCommissionRate(result.data.commissionRate);
+                        }
+                        if (result.data.tierInfo) {
+                            setTierInfo(result.data.tierInfo);
+                        }
+                        if (result.data.isEnclaveMember !== undefined) {
+                            setIsEnclaveMember(Boolean(result.data.isEnclaveMember));
                         }
                         if (result.data.walletAddress) {
                             if (loadedType === 'embedded') {
@@ -186,15 +204,103 @@ export const WalletSettings: React.FC = () => {
                             <p className="text-xs text-gray-500 mt-1">1 USDC = $1.00 USD</p>
                         </div>
 
-                        <div className="rounded-xl border border-gray-900 bg-gray-900/30 p-4 space-y-3">
-                            <div className="flex justify-between text-xs">
-                                <span className="text-gray-400">Monthly Revenue (USDC)</span>
-                                <span className="font-bold text-white">$1,250.00</span>
+                        {/* Fee Tier & Monthly Volume Card */}
+                        <div className="rounded-xl border border-purple-500/20 bg-gray-900/40 p-5 space-y-4 shadow-xl backdrop-blur-sm">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2 text-purple-300 font-bold text-xs">
+                                    <TrendingUp className="w-4 h-4 text-purple-400" />
+                                    <span>Platform Fee Tier</span>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                    isEnclaveMember
+                                        ? 'bg-gradient-to-r from-purple-900/60 to-pink-900/60 text-pink-300 border-pink-500/40'
+                                        : 'bg-purple-950/60 text-purple-300 border-purple-500/30'
+                                }`}>
+                                    {isEnclaveMember ? 'The Enclave (10%)' : (tierInfo?.tierName || 'Standard')}
+                                </span>
                             </div>
-                            <div className="flex justify-between text-xs border-t border-gray-900 pt-3">
-                                <span className="text-gray-400">Platform Commission</span>
-                                <span className="font-bold text-purple-400">{commissionRate}%</span>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-gray-400">30-Day Volume (USDC)</span>
+                                    <span className="font-bold text-white">
+                                        ${((tierInfo?.monthlyVolumeCents ?? 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xs border-t border-gray-800/80 pt-2">
+                                    <span className="text-gray-400">Your Current Fee</span>
+                                    <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 text-sm">
+                                        {commissionRate}% <span className="text-[10px] text-gray-400 font-normal">(Keep {(100 - commissionRate).toFixed(1)}%)</span>
+                                    </span>
+                                </div>
                             </div>
+
+                            {/* Progress bar towards next tier if applicable */}
+                            {!isEnclaveMember && tierInfo?.nextTierThresholdCents && tierInfo.distanceToNextTierCents !== null && (
+                                <div className="space-y-1.5 pt-1 border-t border-gray-800/60">
+                                    <div className="flex justify-between text-[11px]">
+                                        <span className="text-gray-400">Next Tier ({tierInfo.nextTierRate}%)</span>
+                                        <span className="text-purple-300 font-semibold">
+                                            ${((tierInfo.monthlyVolumeCents) / 100).toFixed(0)} / ${(tierInfo.nextTierThresholdCents / 100).toFixed(0)}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                                            style={{
+                                                width: `${Math.min(100, Math.max(0, Math.round((tierInfo.monthlyVolumeCents / tierInfo.nextTierThresholdCents) * 100)))}%`
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-gray-400">
+                                        ✨ Earn <strong className="text-purple-300">${(tierInfo.distanceToNextTierCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> more this month to unlock <strong className="text-pink-300">{tierInfo.nextTierRate}%</strong> fee!
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Collapsible Fee Schedule Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsScheduleOpen(!isScheduleOpen)}
+                                className="w-full flex items-center justify-between pt-2 border-t border-gray-800/60 text-[11px] text-gray-400 hover:text-purple-300 transition-colors"
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    <Info className="w-3.5 h-3.5 text-purple-400" />
+                                    <span>Fee Schedule Details</span>
+                                </span>
+                                {isScheduleOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
+
+                            {/* Expandable Fee Table */}
+                            {isScheduleOpen && (
+                                <div className="space-y-2 pt-2 border-t border-gray-800/80 text-[11px]">
+                                    <div className="rounded-lg bg-gray-950/80 p-2.5 space-y-2 border border-gray-800">
+                                        <div className="flex justify-between items-center text-[10px] uppercase font-bold text-gray-400">
+                                            <span>Monthly Revenue</span>
+                                            <span>Platform Fee</span>
+                                        </div>
+                                        <div className={`flex justify-between items-center p-1.5 rounded ${commissionRate === 15 && !isEnclaveMember ? 'bg-purple-900/30 border border-purple-500/30 font-bold text-white' : 'text-gray-300'}`}>
+                                            <span>$0 – $5,000 / mo</span>
+                                            <span className="text-purple-300">15.0% (Keep 85%)</span>
+                                        </div>
+                                        <div className={`flex justify-between items-center p-1.5 rounded ${commissionRate === 12.5 && !isEnclaveMember ? 'bg-purple-900/30 border border-purple-500/30 font-bold text-white' : 'text-gray-300'}`}>
+                                            <span>$5,000 – $10,000 / mo</span>
+                                            <span className="text-purple-300">12.5% (Keep 87.5%)</span>
+                                        </div>
+                                        <div className={`flex justify-between items-center p-1.5 rounded ${commissionRate === 10 && !isEnclaveMember ? 'bg-purple-900/30 border border-purple-500/30 font-bold text-white' : 'text-gray-300'}`}>
+                                            <span>$10,000+ / mo</span>
+                                            <span className="text-purple-300">10.0% (Keep 90%)</span>
+                                        </div>
+                                        <div className={`flex justify-between items-center p-1.5 rounded ${isEnclaveMember ? 'bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-pink-500/40 font-bold text-pink-200' : 'text-gray-400'}`}>
+                                            <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-pink-400" /> The Enclave (First 50)</span>
+                                            <span className="text-pink-300 font-bold">10.0% Lifetime</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-[9px] text-gray-500 leading-tight">
+                                        * OnlyFans / Fansly charge flat 20% fees. PoDM standard rates decrease automatically as your monthly revenue grows.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* CEX Bank Cashout Setup Card */}
