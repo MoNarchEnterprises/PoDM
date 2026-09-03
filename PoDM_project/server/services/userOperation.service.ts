@@ -4,12 +4,6 @@ import { getCryptoWalletForUser } from './wallet.service';
 import { PimlicoBundlerService } from './bundler.service';
 import { PimlicoPaymasterService } from './paymaster.service';
 import { PrivyWalletProvider } from './embeddedWallet.provider';
-import { PaymentIntent, PaymentIntentResult, UserOperation } from '../../common/types/EmbeddedWallet';
-import { getOrCreateSmartAccount } from './smartAccount.service';
-import { getCryptoWalletForUser } from './wallet.service';
-import { PimlicoBundlerService } from './bundler.service';
-import { PimlicoPaymasterService } from './paymaster.service';
-import { PrivyWalletProvider } from './embeddedWallet.provider';
 import { AppError } from '../middleware/error.middleware';
 import { ethers, Interface } from 'ethers';
 import supabase from '../config/supabaseClient';
@@ -24,14 +18,7 @@ import { calculateReferralFee, getReferrerWalletForCreator, recordReferralFee } 
 import { assertCatalogPrice } from './paymentCatalog.service';
 import { canonicalPaymentIdentifier } from '../../common/paymentIdentifier';
 
-import {
-    getContractConfig,
-    getRpcUrl,
-    encodePaySubscription,
-    encodePayTip,
-    encodePayPPV,
-    encodeApprove
-} from '../utils/contract.utils';
+import { getContractConfig, getRpcUrl, encodePaySubscription, encodePayTip, encodePayPPV, encodeApprove } from '../utils/contract.utils';
 
 // EntryPoint v0.7 ABI used to compute getUserOpHash on-chain (avoid replicating packing in JS).
 // Full PackedUserOperation struct includes signature (9 fields).
@@ -161,6 +148,7 @@ async function waitForUserOperationReceipt(
     userOpHash: string,
     opts: { intervalMs?: number; timeoutMs?: number } = {}
 ): Promise<{ success: boolean; transactionHash: string; blockNumber: number }> {
+    const { intervalMs = 1000, timeoutMs = 30000 } = opts;
     const deadline = Date.now() + timeoutMs;
 
     while (Date.now() < deadline) {

@@ -5,6 +5,7 @@ import { getCryptoWalletForUser } from './wallet.service';
 import { calculateReferralFee, getReferrerWalletForCreator } from './referral.service';
 
 import { getContractConfig, EVENT_TOPICS } from '../utils/contract.utils';
+import supabase from '../config/supabaseClient';
 
 function getRpcConfig(): { rpcUrl: string; contractAddress: string; chainId: number } {
     const { rpcUrl, contractAddress, chainId } = getContractConfig();
